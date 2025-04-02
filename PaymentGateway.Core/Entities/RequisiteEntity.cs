@@ -64,7 +64,7 @@ public class RequisiteEntity
     /// </summary>
     public Guid? CurrentPaymentId { get; set; }
 
-    [ForeignKey(nameof(CurrentPaymentId))] public PaymentEntity? CurrentPayment { get; set; }
+    public PaymentEntity? CurrentPayment { get; set; }
 
     /// <summary>
     /// Активен ли реквизит

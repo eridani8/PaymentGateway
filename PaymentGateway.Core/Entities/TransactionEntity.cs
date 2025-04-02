@@ -27,7 +27,6 @@ public sealed class TransactionEntity
     /// </summary>
     public Guid PaymentId { get; init; }
     
-    [ForeignKey(nameof(PaymentId))]
     public PaymentEntity? Payment { get; init; }
     
     /// <summary>
@@ -46,5 +45,4 @@ public sealed class TransactionEntity
     /// Дата и время получения транзакции
     /// </summary>
     public DateTime ReceivedAt { get; init; }
-    
 }

@@ -15,18 +15,12 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             entity.HasIndex(e => e.ExternalPaymentId).IsUnique();
             entity.HasIndex(e => e.Status);
             entity.HasIndex(e => e.CreatedAt);
-            
-            entity.HasOne(e => e.Transaction)
-                .WithOne()
-                .HasForeignKey<PaymentEntity>(e => e.TransactionId)
+
+            entity
+                .HasOne(e => e.Requisite)
+                .WithOne(e => e.CurrentPayment)
+                .HasForeignKey<PaymentEntity>(p => p.RequisiteId)
                 .OnDelete(DeleteBehavior.SetNull);
-        });
-        
-        modelBuilder.Entity<RequisiteEntity>(entity =>
-        {
-            entity.HasIndex(e => e.IsActive);
-            entity.HasIndex(e => e.Priority);
-            entity.HasIndex(e => e.Type);
         });
         
         modelBuilder.Entity<TransactionEntity>(entity =>
@@ -34,10 +28,18 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             entity.HasIndex(e => e.PaymentId);
             entity.HasIndex(e => e.ReceivedAt);
 
-            entity.HasOne(e => e.Payment)
-                .WithOne(p => p.Transaction)
+            entity
+                .HasOne(e => e.Payment)
+                .WithOne(t => t.Transaction)
                 .HasForeignKey<TransactionEntity>(e => e.PaymentId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+        
+        modelBuilder.Entity<RequisiteEntity>(entity =>
+        {
+            entity.HasIndex(e => e.IsActive);
+            entity.HasIndex(e => e.Priority);
+            entity.HasIndex(e => e.Type);
         });
     }
 }

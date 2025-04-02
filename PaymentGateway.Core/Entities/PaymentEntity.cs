@@ -37,8 +37,7 @@ public sealed class PaymentEntity
     /// Идентификатор связанного реквизита
     /// </summary>
     public Guid? RequisiteId { get; set; }
-        
-    [ForeignKey(nameof(RequisiteId))] 
+    
     public RequisiteEntity? Requisite { get; set; }
     
     /// <summary>
@@ -66,6 +65,5 @@ public sealed class PaymentEntity
     /// </summary>
     public int? TransactionId { get; set; }
     
-    [ForeignKey(nameof(TransactionId))]
     public TransactionEntity? Transaction { get; set; }
 }
