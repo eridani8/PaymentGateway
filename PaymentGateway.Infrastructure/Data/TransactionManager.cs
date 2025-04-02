@@ -3,15 +3,34 @@ using PaymentGateway.Infrastructure.Repositories;
 
 namespace PaymentGateway.Infrastructure.Data;
 
-public sealed class TransactionManager(AppDbContext context) : ITransactionManager, IAsyncDisposable
+public sealed class TransactionManager(AppDbContext context) : ITransactionManager, IDisposable
 {
+    private bool _disposed;
+    
     public async Task Commit()
     {
-        await context.SaveChangesAsync();
+        if (!_disposed)
+        {
+            await context.SaveChangesAsync();
+        }
+        else
+        {
+            throw new ObjectDisposedException(nameof(TransactionManager));
+        }
     }
 
-    public async ValueTask DisposeAsync()
+    private void Dispose(bool disposing)
     {
-        await context.DisposeAsync();
+        if (_disposed) return;
+        if (disposing)
+        {
+            context.Dispose();
+        }
+        _disposed = true;
+    }
+
+    public void Dispose()
+    {
+        Dispose(true);
     }
 }
