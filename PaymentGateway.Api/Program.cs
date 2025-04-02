@@ -35,11 +35,9 @@ try
     var columnWriters = new Dictionary<string, ColumnWriterBase>
     {
         { "raise_date", new TimestampColumnWriter(NpgsqlDbType.TimestampTz) },
-        { "message", new RenderedMessageColumnWriter(NpgsqlDbType.Text) },
-        { "message_template", new MessageTemplateColumnWriter(NpgsqlDbType.Text) },
         { "level", new LevelColumnWriter(true, NpgsqlDbType.Varchar) },
-        { "exception", new ExceptionColumnWriter(NpgsqlDbType.Text) },
-        { "properties", new LogEventSerializedColumnWriter(NpgsqlDbType.Jsonb) },
+        { "message", new RenderedMessageColumnWriter(NpgsqlDbType.Text) },
+        { "exception", new ExceptionColumnWriter(NpgsqlDbType.Text) }
     };
 
     var logger = Log.Logger = new LoggerConfiguration()
