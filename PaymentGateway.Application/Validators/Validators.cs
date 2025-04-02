@@ -14,8 +14,8 @@ public static class Validators
     
     public static IRuleBuilderOptions<T, RequisiteType> ValidRequisiteType<T>(IRuleBuilder<T, RequisiteType> rule)
     {
-        return rule.NotEmpty()
-            .WithMessage("Требуется указать тип реквизита");
+        return rule.Must(x => Enum.IsDefined(x) && (int)x >= 0 && (int)x < Enum.GetValues<RequisiteType>().Length)
+            .WithMessage("Тип реквизита должен быть валидным значением из перечисления");
     }
 
     public static IRuleBuilderOptions<T, string> ValidPaymentData<T>(IRuleBuilder<T, string> rule)

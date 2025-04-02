@@ -1,6 +1,7 @@
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using PaymentGateway.Application.Mappings;
+using PaymentGateway.Application.Services;
 using PaymentGateway.Application.Validators;
 using PaymentGateway.Application.Validators.Requisite;
 using PaymentGateway.Core.Interfaces;
@@ -39,6 +40,7 @@ try
     builder.Services.AddAutoMapper(typeof(RequisiteProfile));
     builder.Services.AddValidatorsFromAssemblyContaining<RequisiteCreateDtoValidator>();
     builder.Services.AddScoped<RequisiteValidator>();
+    builder.Services.AddScoped<RequisiteService>();
 
     var app = builder.Build();
 

@@ -13,7 +13,7 @@ public class RequisiteService(IUnitOfWork unit, IMapper mapper, RequisiteValidat
     public async Task<RequisiteResponseDto> CreateRequisite(RequisiteCreateDto dto)
     {
         var validationResult = await validator.CreateValidator.ValidateAsync(dto);
-        if (validationResult.IsValid)
+        if (!validationResult.IsValid)
         {
             throw new ArgumentException(string.Join(Environment.NewLine, validationResult.Errors.Select(e => e.ErrorMessage)));
         }
@@ -45,7 +45,7 @@ public class RequisiteService(IUnitOfWork unit, IMapper mapper, RequisiteValidat
     public async Task<bool> UpdateRequisite(Guid id, RequisiteUpdateDto dto)
     {
         var validationResult = await validator.UpdateValidator.ValidateAsync(dto);
-        if (validationResult.IsValid)
+        if (!validationResult.IsValid)
         {
             throw new ArgumentException(string.Join(Environment.NewLine, validationResult.Errors.Select(e => e.ErrorMessage)));
         }
