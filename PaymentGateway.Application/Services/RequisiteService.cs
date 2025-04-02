@@ -1,34 +1,73 @@
 ﻿using AutoMapper;
+using FluentValidation;
 using PaymentGateway.Application.DTOs;
 using PaymentGateway.Application.Interfaces;
+using PaymentGateway.Application.Validators.Requisite;
+using PaymentGateway.Core.Builders;
 using PaymentGateway.Core.Interfaces;
 
 namespace PaymentGateway.Application.Services;
 
-public class RequisiteService(IRequisiteRepository repository, IMapper mapper) : IRequisiteService
+public class RequisiteService(IUnitOfWork unit, IMapper mapper, RequisiteValidator validator) : IRequisiteService
 {
-    public Task<RequisiteResponseDto> CreateRequisite(RequisiteCreateDto dto)
+    public async Task<RequisiteResponseDto> CreateRequisite(RequisiteCreateDto dto)
     {
-        throw new NotImplementedException();
+        var validationResult = await validator.CreateValidator.ValidateAsync(dto);
+        if (validationResult.IsValid)
+        {
+            throw new ArgumentException(string.Join(Environment.NewLine, validationResult.Errors.Select(e => e.ErrorMessage)));
+        }
+        
+        var entity = new RequisiteEntityBuilder()
+            .WithFullName(dto.FullName)
+            .WithType(dto.Type)
+            .WithPaymentData(dto.PaymentData)
+            .Build();
+        
+        await unit.RequisiteRepository.Add(entity);
+        await unit.Commit();
+        
+        return mapper.Map<RequisiteResponseDto>(entity);
     }
 
-    public Task<IEnumerable<RequisiteResponseDto>> GetAllRequisites()
+    public async Task<IEnumerable<RequisiteResponseDto>> GetAllRequisites()
     {
-        throw new NotImplementedException();
+        var entities = await unit.RequisiteRepository.GetAll();
+        return mapper.Map<IEnumerable<RequisiteResponseDto>>(entities);
     }
 
-    public Task<RequisiteResponseDto?> GetRequisiteById(Guid id)
+    public async Task<RequisiteResponseDto?> GetRequisiteById(Guid id)
     {
-        throw new NotImplementedException();
+        var entity = await unit.RequisiteRepository.GetById(id);
+        return entity != null ? mapper.Map<RequisiteResponseDto>(entity) : null;
     }
 
-    public Task<bool> UpdateRequisite(Guid id, RequisiteUpdateDto dto)
+    public async Task<bool> UpdateRequisite(Guid id, RequisiteUpdateDto dto)
     {
-        throw new NotImplementedException();
+        var validationResult = await validator.UpdateValidator.ValidateAsync(dto);
+        if (validationResult.IsValid)
+        {
+            throw new ArgumentException(string.Join(Environment.NewLine, validationResult.Errors.Select(e => e.ErrorMessage)));
+        }
+        
+        var entity = await unit.RequisiteRepository.GetById(id);
+        if (entity == null) return false;
+        
+        mapper.Map(dto, entity);
+        unit.RequisiteRepository.Update(entity);
+        await unit.Commit();
+        
+        return true;
     }
 
-    public Task<bool> DeleteRequisite(Guid id)
+    public async Task<bool> DeleteRequisite(Guid id)
     {
-        throw new NotImplementedException();
+        var entity = await unit.RequisiteRepository.GetById(id);
+        if (entity == null) return false;
+
+        unit.RequisiteRepository.Delete(entity);
+        await unit.Commit();
+        
+        return true;
     }
 }

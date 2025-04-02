@@ -20,13 +20,11 @@ public sealed class TransactionEntity
     /// <summary>
     /// Идентификатор транзакции
     /// </summary>
-    [Key]
     public Guid Id { get; init; }
     
     /// <summary>
     /// Идентификатор связанного платежа
     /// </summary>
-    [Required]
     public Guid PaymentId { get; init; }
     
     [ForeignKey(nameof(PaymentId))]
@@ -35,7 +33,6 @@ public sealed class TransactionEntity
     /// <summary>
     /// Источник транзакции
     /// </summary>
-    [Required]
     public TransactionSource Source { get; init; }
     
     /// <summary>
@@ -48,7 +45,6 @@ public sealed class TransactionEntity
     /// <summary>
     /// Дата и время получения транзакции
     /// </summary>
-    [Required]
     public DateTime ReceivedAt { get; init; }
     
 }

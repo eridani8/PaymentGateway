@@ -19,13 +19,11 @@ public sealed class PaymentEntity
     /// <summary>
     /// Идентификатор платежа
     /// </summary>
-    [Key] 
     public Guid Id { get; init; }
 
     /// <summary>
     /// Идентификатор платежа во внешней системе
     /// </summary>
-    [Required]
     public Guid ExternalPaymentId { get; init; }
 
     /// <summary>

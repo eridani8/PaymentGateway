@@ -2,7 +2,7 @@
 
 namespace PaymentGateway.Core.Interfaces;
 
-public interface IRepository<TEntity> where TEntity : class
+public interface IRepositoryBase<TEntity> where TEntity : class
 {
     Task<TEntity?> GetById(Guid id);
     Task<IEnumerable<TEntity>> GetAll();

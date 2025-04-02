@@ -1,10 +1,13 @@
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
+using PaymentGateway.Application.Mappings;
+using PaymentGateway.Application.Validators;
+using PaymentGateway.Application.Validators.Requisite;
 using PaymentGateway.Core.Interfaces;
 using PaymentGateway.Infrastructure.Data;
 using PaymentGateway.Infrastructure.Repositories;
 using Serilog;
 using Serilog.Events;
-using TransactionManager = PaymentGateway.Infrastructure.Data.TransactionManager;
 
 var logsPath = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs"));
 Log.Logger = new LoggerConfiguration()
@@ -31,8 +34,11 @@ try
         o.UseLoggerFactory(LoggerFactory.Create(b => b.AddSerilog()));
     });
     builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
-    builder.Services.AddScoped<IRequisiteRepository, RequisiteRepositoryBase>();
-    builder.Services.AddScoped<ITransactionManager, TransactionManager>();
+    builder.Services.AddScoped<IRequisiteRepository, RequisiteRepository>();
+    builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+    builder.Services.AddAutoMapper(typeof(RequisiteProfile));
+    builder.Services.AddValidatorsFromAssemblyContaining<RequisiteCreateDtoValidator>();
+    builder.Services.AddScoped<RequisiteValidator>();
 
     var app = builder.Build();
 

@@ -5,7 +5,7 @@ using PaymentGateway.Infrastructure.Data;
 
 namespace PaymentGateway.Infrastructure.Repositories;
 
-public class RepositoryBase<TEntity>(AppDbContext context) : IRepository<TEntity> where TEntity : class
+public class RepositoryBase<TEntity>(AppDbContext context) : IRepositoryBase<TEntity> where TEntity : class
 {
     private readonly DbSet<TEntity> _entities = context.Set<TEntity>();
 
@@ -33,7 +33,7 @@ public class RepositoryBase<TEntity>(AppDbContext context) : IRepository<TEntity
     {
         _entities.Update(entity);
     }
-
+    
     public void Delete(TEntity entity)
     {
         _entities.Remove(entity);

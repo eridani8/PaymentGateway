@@ -1,12 +1,17 @@
 ﻿using PaymentGateway.Core.Interfaces;
-using PaymentGateway.Infrastructure.Repositories;
 
 namespace PaymentGateway.Infrastructure.Data;
 
-public sealed class TransactionManager(AppDbContext context) : ITransactionManager, IDisposable
+public sealed class UnitOfWork(
+    AppDbContext context,
+    IRequisiteRepository requisiteRepository,
+    IPaymentRepository paymentRepository) : IUnitOfWork, IDisposable
 {
     private bool _disposed;
-    
+
+    public IRequisiteRepository RequisiteRepository { get; } = requisiteRepository;
+    public IPaymentRepository PaymentRepository { get; } = paymentRepository;
+
     public async Task Commit()
     {
         if (!_disposed)
@@ -15,7 +20,7 @@ public sealed class TransactionManager(AppDbContext context) : ITransactionManag
         }
         else
         {
-            throw new ObjectDisposedException(nameof(TransactionManager));
+            throw new ObjectDisposedException(nameof(UnitOfWork));
         }
     }
 
@@ -26,6 +31,7 @@ public sealed class TransactionManager(AppDbContext context) : ITransactionManag
         {
             context.Dispose();
         }
+
         _disposed = true;
     }
 

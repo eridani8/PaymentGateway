@@ -5,7 +5,7 @@ using PaymentGateway.Infrastructure.Data;
 
 namespace PaymentGateway.Infrastructure.Repositories;
 
-public class RequisiteRepositoryBase(AppDbContext context) : RepositoryBase<RequisiteEntity>(context), IRequisiteRepository
+public class RequisiteRepository(AppDbContext context) : RepositoryBase<RequisiteEntity>(context), IRequisiteRepository
 {
     private readonly AppDbContext _context = context;
 

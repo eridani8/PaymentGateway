@@ -6,8 +6,8 @@ namespace PaymentGateway.Core.Entities;
 
 public class RequisiteEntity
 {
-    public RequisiteEntity(RequisiteType type, string paymentData, string fullName, decimal maxAmount = 5000,
-        int cooldownMinutes = 100, int priority = 1, bool isActive = true)
+    public RequisiteEntity(RequisiteType type, string paymentData, string fullName, decimal maxAmount,
+        int cooldownMinutes, int priority, bool isActive)
     {
         Id = Guid.NewGuid();
         Type = type;
@@ -27,27 +27,22 @@ public class RequisiteEntity
     /// <summary>
     /// Идентификатор реквизита
     /// </summary>
-    [Key]
     public Guid Id { get; init; }
 
     /// <summary>
     /// Тип реквизита
     /// </summary>
-    [Required]
     public RequisiteType Type { get; init; }
 
     /// <summary>
     /// Данные для платежа
     /// </summary>
-    [Required]
-    public required string PaymentData { get; init; }
+    public string PaymentData { get; init; }
 
     /// <summary>
     /// ФИО владельца
     /// </summary>
-    [Required]
-    [StringLength(70)]
-    public required string FullName { get; init; }
+    public string FullName { get; init; }
 
     /// <summary>
     /// Дата и время создания
@@ -74,7 +69,6 @@ public class RequisiteEntity
     /// <summary>
     /// Активен ли реквизит
     /// </summary>
-    [Required]
     public bool IsActive { get; set; }
 
     /// <summary>
@@ -85,7 +79,6 @@ public class RequisiteEntity
     /// <summary>
     /// Максимальная сумма платежа
     /// </summary>
-    [Required]
     [Range(0, 9999999999999999.99)]
     [Column(TypeName = "decimal(18,2)")]
     public decimal MaxAmount { get; set; }
@@ -93,12 +86,10 @@ public class RequisiteEntity
     /// <summary>
     /// Задержка перед следующей операцией
     /// </summary>
-    [Required]
     public int CooldownMinutes { get; set; }
 
     /// <summary>
     /// Приоритет использования
     /// </summary>
-    [Required]
     public int Priority { get; set; }
 }
