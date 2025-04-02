@@ -3,6 +3,7 @@ using PaymentGateway.Application.DTOs;
 
 namespace PaymentGateway.Application.Validators.Requisite;
 
+// ReSharper disable once ClassNeverInstantiated.Global
 public class RequisiteCreateDtoValidator : AbstractValidator<RequisiteCreateDto>
 {
     public RequisiteCreateDtoValidator()

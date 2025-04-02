@@ -1,30 +1,59 @@
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
+using NpgsqlTypes;
+using PaymentGateway.Api;
+using PaymentGateway.Application.DTOs;
 using PaymentGateway.Application.Mappings;
 using PaymentGateway.Application.Services;
-using PaymentGateway.Application.Validators;
 using PaymentGateway.Application.Validators.Requisite;
 using PaymentGateway.Core.Interfaces;
 using PaymentGateway.Infrastructure.Data;
 using PaymentGateway.Infrastructure.Repositories;
 using Serilog;
 using Serilog.Events;
-
-var logsPath = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs"));
-Log.Logger = new LoggerConfiguration()
-    .MinimumLevel.Information()
-    .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
-    .MinimumLevel.Override("System.Net.Http.HttpClient", LogEventLevel.Warning)
-    .Enrich.FromLogContext()
-    .WriteTo.Console(LogEventLevel.Information)
-    .WriteTo.File($"{logsPath}/.log", rollingInterval: RollingInterval.Day)
-    .CreateLogger();
+using Serilog.Sinks.PostgreSQL.ColumnWriters;
 
 try
 {
     var builder = WebApplication.CreateBuilder(args);
 
-    builder.Host.UseSerilog();
+    const string logs = "logs";
+    var logsPath = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, logs));
+
+    if (!Directory.Exists(logsPath))
+    {
+        Directory.CreateDirectory(logsPath);
+    }
+
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+    if (string.IsNullOrEmpty(connectionString))
+    {
+        throw new ApplicationException("Нужно указать строку подключения базы данных");
+    }
+
+    var columnWriters = new Dictionary<string, ColumnWriterBase>
+    {
+        { "raise_date", new TimestampColumnWriter(NpgsqlDbType.TimestampTz) },
+        { "message", new RenderedMessageColumnWriter(NpgsqlDbType.Text) },
+        { "message_template", new MessageTemplateColumnWriter(NpgsqlDbType.Text) },
+        { "level", new LevelColumnWriter(true, NpgsqlDbType.Varchar) },
+        { "exception", new ExceptionColumnWriter(NpgsqlDbType.Text) },
+        { "properties", new LogEventSerializedColumnWriter(NpgsqlDbType.Jsonb) },
+    };
+
+    var logger = Log.Logger = new LoggerConfiguration()
+        .MinimumLevel.Information()
+        .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
+        .MinimumLevel.Override("System.Net.Http.HttpClient", LogEventLevel.Warning)
+        .Enrich.FromLogContext()
+        .WriteTo.Console(LogEventLevel.Information)
+        .WriteTo.PostgreSQL(connectionString, logs, columnWriters)
+        .WriteTo.File($"{logsPath}/.log", rollingInterval: RollingInterval.Day)
+        .CreateLogger();
+
+    builder.Host.UseSerilog(logger);
+
     builder.Services.AddControllers();
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen();
@@ -34,11 +63,14 @@ try
         o.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
         o.UseLoggerFactory(LoggerFactory.Create(b => b.AddSerilog()));
     });
+
     builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
     builder.Services.AddScoped<IRequisiteRepository, RequisiteRepository>();
     builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
     builder.Services.AddAutoMapper(typeof(RequisiteProfile));
-    builder.Services.AddValidatorsFromAssemblyContaining<RequisiteCreateDtoValidator>();
+
+    builder.Services.AddScoped<IValidator<RequisiteCreateDto>, RequisiteCreateDtoValidator>();
+    builder.Services.AddScoped<IValidator<RequisiteUpdateDto>, RequisiteUpdateDtoValidator>();
     builder.Services.AddScoped<RequisiteValidator>();
     builder.Services.AddScoped<RequisiteService>();
 
@@ -49,15 +81,16 @@ try
         app.UseSwagger();
         app.UseSwaggerUI();
     }
-    
+
     app.UseHttpsRedirection();
     app.MapControllers();
-    
+    app.UseMiddleware<ExceptionHandling>();
+
     await app.RunAsync();
 }
 catch (Exception e)
 {
-    Log.Fatal(e, "The application cannot be loaded");
+    Log.Fatal(e, "Сервер не смог запуститься");
 }
 finally
 {
