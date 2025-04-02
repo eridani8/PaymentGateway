@@ -4,5 +4,5 @@ namespace PaymentGateway.Application.Interfaces;
 
 public interface IPaymentService
 {
-    Task<PaymentResult> ProcessPayment(PaymentRequest request);
+    // Task<PaymentResult> ProcessPayment(PaymentRequest request);
 }
