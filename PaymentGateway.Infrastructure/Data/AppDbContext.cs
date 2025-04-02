@@ -5,12 +5,12 @@ namespace PaymentGateway.Infrastructure.Data;
 
 public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
 {
-    public DbSet<Payment> Payments { get; set; }
-    public DbSet<Requisite> Requisites { get; set; }
+    public DbSet<PaymentEntity> Payments { get; set; }
+    public DbSet<RequisiteEntity> Requisites { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<Payment>(entity =>
+        modelBuilder.Entity<PaymentEntity>(entity =>
         {
             entity.HasIndex(e => e.ExternalPaymentId).IsUnique();
             entity.HasIndex(e => e.Status);
@@ -18,25 +18,25 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             
             entity.HasOne(e => e.Transaction)
                 .WithOne()
-                .HasForeignKey<Payment>(e => e.TransactionId)
+                .HasForeignKey<PaymentEntity>(e => e.TransactionId)
                 .OnDelete(DeleteBehavior.SetNull);
         });
         
-        modelBuilder.Entity<Requisite>(entity =>
+        modelBuilder.Entity<RequisiteEntity>(entity =>
         {
             entity.HasIndex(e => e.IsActive);
             entity.HasIndex(e => e.Priority);
             entity.HasIndex(e => e.Type);
         });
         
-        modelBuilder.Entity<Transaction>(entity =>
+        modelBuilder.Entity<TransactionEntity>(entity =>
         {
             entity.HasIndex(e => e.PaymentId);
             entity.HasIndex(e => e.ReceivedAt);
 
             entity.HasOne(e => e.Payment)
                 .WithOne(p => p.Transaction)
-                .HasForeignKey<Transaction>(e => e.PaymentId)
+                .HasForeignKey<TransactionEntity>(e => e.PaymentId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
     }

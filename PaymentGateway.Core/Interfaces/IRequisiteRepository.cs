@@ -2,7 +2,7 @@
 
 namespace PaymentGateway.Core.Interfaces;
 
-public interface IRequisiteRepository : IRepository<Requisite>
+public interface IRequisiteRepository : IRepository<RequisiteEntity>
 {
-    Task<IEnumerable<Requisite>> GetActiveRequisites();
+    Task<IEnumerable<RequisiteEntity>> GetActiveRequisites();
 }

@@ -4,9 +4,9 @@ using PaymentGateway.Core.Enums;
 
 namespace PaymentGateway.Core.Entities;
 
-public sealed class Transaction
+public sealed class TransactionEntity
 {
-    public Transaction(Guid paymentId, TransactionSource source, decimal extractedAmount)
+    public TransactionEntity(Guid paymentId, TransactionSource source, decimal extractedAmount)
     {
         Id = Guid.NewGuid();
         PaymentId = paymentId;
@@ -15,7 +15,7 @@ public sealed class Transaction
         ReceivedAt = DateTime.UtcNow;
     }
     
-    private Transaction() { }
+    private TransactionEntity() { }
     
     /// <summary>
     /// Идентификатор транзакции
@@ -30,7 +30,7 @@ public sealed class Transaction
     public Guid PaymentId { get; init; }
     
     [ForeignKey(nameof(PaymentId))]
-    public Payment? Payment { get; init; }
+    public PaymentEntity? Payment { get; init; }
     
     /// <summary>
     /// Источник транзакции

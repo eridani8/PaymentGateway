@@ -5,11 +5,11 @@ using PaymentGateway.Infrastructure.Data;
 
 namespace PaymentGateway.Infrastructure.Repositories;
 
-public class RequisiteRepositoryBase(AppDbContext context) : RepositoryBase<Requisite>(context), IRequisiteRepository
+public class RequisiteRepositoryBase(AppDbContext context) : RepositoryBase<RequisiteEntity>(context), IRequisiteRepository
 {
     private readonly AppDbContext _context = context;
 
-    public async Task<IEnumerable<Requisite>> GetActiveRequisites()
+    public async Task<IEnumerable<RequisiteEntity>> GetActiveRequisites()
     {
         return await _context.Requisites
             .Where(r => r.IsActive)

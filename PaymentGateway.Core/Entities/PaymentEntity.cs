@@ -4,9 +4,9 @@ using PaymentGateway.Core.Enums;
 
 namespace PaymentGateway.Core.Entities;
 
-public sealed class Payment
+public sealed class PaymentEntity
 {
-    public Payment(Guid paymentId, decimal amount)
+    public PaymentEntity(Guid paymentId, decimal amount)
     {
         Id = Guid.NewGuid();
         ExternalPaymentId = paymentId;
@@ -14,7 +14,7 @@ public sealed class Payment
         CreatedAt = DateTime.UtcNow;
     }
 
-    private Payment() { }
+    private PaymentEntity() { }
     
     /// <summary>
     /// Идентификатор платежа
@@ -41,7 +41,7 @@ public sealed class Payment
     public Guid? RequisiteId { get; set; }
         
     [ForeignKey(nameof(RequisiteId))] 
-    public Requisite? Requisite { get; set; }
+    public RequisiteEntity? Requisite { get; set; }
     
     /// <summary>
     /// Текущий статус платежа
@@ -69,5 +69,5 @@ public sealed class Payment
     public int? TransactionId { get; set; }
     
     [ForeignKey(nameof(TransactionId))]
-    public Transaction? Transaction { get; set; }
+    public TransactionEntity? Transaction { get; set; }
 }
