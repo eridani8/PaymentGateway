@@ -48,7 +48,7 @@ try
         .MinimumLevel.Override("System.Net.Http.HttpClient", LogEventLevel.Warning)
         .Enrich.FromLogContext()
         .WriteTo.Console(LogEventLevel.Information)
-        .WriteTo.PostgreSQL(connectionString, logs, columnWriters)
+        .WriteTo.PostgreSQL(connectionString, logs, columnWriters, needAutoCreateTable: true)
         .WriteTo.File($"{logsPath}/.log", rollingInterval: RollingInterval.Day)
         .CreateLogger();
 
@@ -66,7 +66,9 @@ try
 
     builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
     builder.Services.AddScoped<IRequisiteRepository, RequisiteRepository>();
+    builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
     builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+    
     builder.Services.AddAutoMapper(typeof(RequisiteProfile));
 
     builder.Services.AddScoped<IValidator<RequisiteCreateDto>, RequisiteCreateDtoValidator>();
