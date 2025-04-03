@@ -20,9 +20,7 @@ public class RequisiteEntity
         CreatedAt = DateTime.UtcNow;
     }
 
-    private RequisiteEntity()
-    {
-    }
+    private RequisiteEntity() { }
 
     /// <summary>
     /// Идентификатор реквизита
