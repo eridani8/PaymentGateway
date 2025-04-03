@@ -14,6 +14,4 @@ public class RequisiteCreateDtoValidator : AbstractValidator<RequisiteCreateDto>
         RuleFor(x => x.CooldownMinutes ?? 0).ValidCooldown();
         RuleFor(x => x.Priority ?? 0).ValidPriority();
     }
-    
-    
 }
