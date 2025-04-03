@@ -22,7 +22,7 @@ public class RequisiteService(
         var validationResult = await validator.CreateValidator.ValidateAsync(dto);
         if (!validationResult.IsValid)
         {
-            throw new ArgumentException(string.Join(Environment.NewLine,
+            throw new ArgumentException(string.Join(", ",
                 validationResult.Errors.Select(e => e.ErrorMessage)));
         }
 
