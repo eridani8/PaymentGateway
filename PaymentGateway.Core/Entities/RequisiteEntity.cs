@@ -70,6 +70,13 @@ public class RequisiteEntity
     public DateTime? InactiveAt { get; set; }
 
     /// <summary>
+    /// Полученные средства
+    /// </summary>
+    [Range(0, 9999999999999999.99)]
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal ReceivedFounds { get; set; }
+    
+    /// <summary>
     /// Максимальная сумма платежа
     /// </summary>
     [Range(0, 9999999999999999.99)]

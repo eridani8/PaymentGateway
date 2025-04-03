@@ -12,6 +12,7 @@ public class RequisiteResponseDto
     public Guid? CurrentPaymentId { get; init; }
     public bool IsActive { get; init; }
     public DateTime? InactiveAt { get; init; }
+    public decimal ReceivedFounds { get; init; }
     public decimal MaxAmount { get; init; }
     public int CooldownMinutes { get; init; }
     public int Priority { get; init; }

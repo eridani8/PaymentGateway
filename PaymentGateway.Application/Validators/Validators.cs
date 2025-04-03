@@ -12,10 +12,10 @@ public static class Validators
             .Length(10, 70).WithMessage("Имя должно быть от 10 до 70 символов");
     }
     
-    public static IRuleBuilderOptions<T, RequisiteType> ValidRequisiteType<T>(IRuleBuilder<T, RequisiteType> rule)
+    public static IRuleBuilderOptions<T, TEnum> ValidEnumValue<T, TEnum>(IRuleBuilder<T, TEnum> rule) where TEnum : Enum
     {
-        return rule.Must(x => Enum.IsDefined(x) && (int)x >= 0 && (int)x < Enum.GetValues<RequisiteType>().Length)
-            .WithMessage("Тип реквизита должен быть валидным значением из перечисления");
+        return rule.Must(x => Enum.IsDefined(typeof(TEnum), x) && (int)(object)x >= 0 && (int)(object)x < Enum.GetValues(typeof(TEnum)).Length)
+            .WithMessage("Значение должно быть валидным значением из перечисления");
     }
 
     public static IRuleBuilderOptions<T, string> ValidPaymentData<T>(IRuleBuilder<T, string> rule)
@@ -30,5 +30,12 @@ public static class Validators
         return rule
             .GreaterThan(0).WithMessage("Сумма должна быть больше 0")
             .LessThanOrEqualTo(9999999999999999.99m).WithMessage("Сумма должна быть меньше или равна 9999999999999999,99");
+    }
+    
+    public static IRuleBuilderOptions<T, int> ValidAmount<T>(IRuleBuilder<T, int> rule)
+    {
+        return rule
+            .GreaterThan(0).WithMessage("Сумма должна быть больше 0")
+            .LessThanOrEqualTo(999999999).WithMessage("Сумма должна быть меньше или равна 999999999");
     }
 }
