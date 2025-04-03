@@ -1,12 +1,12 @@
 ﻿using AutoMapper;
-using FluentValidation;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using PaymentGateway.Application.DTOs;
 using PaymentGateway.Application.DTOs.Requisite;
 using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Application.Validators.Requisite;
 using PaymentGateway.Core;
 using PaymentGateway.Core.Builders;
+using PaymentGateway.Core.Entities;
 using PaymentGateway.Core.Interfaces;
 
 namespace PaymentGateway.Application.Services;
@@ -17,6 +17,15 @@ public class RequisiteService(
     RequisiteValidator validator,
     IOptions<RequisiteDefaults> defaults) : IRequisiteService
 {
+    public async Task<RequisiteEntity?> GetFreeRequisite()
+    {
+        return await unit.RequisiteRepository
+            .GetAll()
+            .Where(r => r.IsActive)
+            .OrderByDescending(r => r.Priority)
+            .FirstOrDefaultAsync();
+    }
+
     public async Task<RequisiteResponseDto> CreateRequisite(RequisiteCreateDto dto)
     {
         var validationResult = await validator.CreateValidator.ValidateAsync(dto);
@@ -43,7 +52,7 @@ public class RequisiteService(
 
     public async Task<IEnumerable<RequisiteResponseDto>> GetAllRequisites()
     {
-        var entities = await unit.RequisiteRepository.GetAll();
+        var entities = await unit.RequisiteRepository.GetAll().ToListAsync();
         return mapper.Map<IEnumerable<RequisiteResponseDto>>(entities);
     }
 

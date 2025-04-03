@@ -8,19 +8,4 @@ namespace PaymentGateway.Infrastructure.Repositories;
 public class RequisiteRepository(AppDbContext context) : RepositoryBase<RequisiteEntity>(context), IRequisiteRepository
 {
     private readonly AppDbContext _context = context;
-
-    public async Task<RequisiteEntity?> GetFreeRequisite()
-    {
-        return await _context.Requisites
-            .Where(r => r.IsActive)
-            .OrderByDescending(r => r.Priority)
-            .FirstOrDefaultAsync();
-    }
-
-    public async Task<IEnumerable<RequisiteEntity>> GetActiveRequisites()
-    {
-        return await _context.Requisites
-            .Where(r => r.IsActive)
-            .ToListAsync();
-    }
 }

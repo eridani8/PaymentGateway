@@ -5,18 +5,19 @@ using PaymentGateway.Infrastructure.Data;
 
 namespace PaymentGateway.Infrastructure.Repositories;
 
+
 public class RepositoryBase<TEntity>(AppDbContext context) : IRepositoryBase<TEntity> where TEntity : class
 {
     private readonly DbSet<TEntity> _entities = context.Set<TEntity>();
 
+    public IQueryable<TEntity> GetAll()
+    {
+        return _entities;
+    }
+    
     public async Task<TEntity?> GetById(Guid id)
     {
         return await _entities.FindAsync(id);
-    }
-
-    public async Task<IEnumerable<TEntity>> GetAll()
-    {
-        return await _entities.ToListAsync();
     }
 
     public async Task<IEnumerable<TEntity>> Find(Expression<Func<TEntity, bool>> predicate)
