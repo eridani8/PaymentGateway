@@ -39,6 +39,7 @@ public class RequisiteService(
             .WithType(dto.Type)
             .WithPaymentData(dto.PaymentData)
             .WithFullName(dto.FullName)
+            .WithIsActive(dto.IsActive)
             .WithMaxAmount(SettingsHelper.GetValueOrDefault(dto.MaxAmount, defaults.Value.MaxAmount))
             .WithCooldownMinutes(SettingsHelper.GetValueOrDefault(dto.CooldownMinutes, defaults.Value.CooldownMinutes))
             .WithPriority(SettingsHelper.GetValueOrDefault(dto.Priority, defaults.Value.Priority))

@@ -7,11 +7,11 @@ public class RequisiteUpdateDtoValidator : AbstractValidator<RequisiteUpdateDto>
 {
     public RequisiteUpdateDtoValidator()
     {
-        Validators.ValidEnumValue(RuleFor(x => x.Type));
-        Validators.ValidPaymentData(RuleFor(x => x.PaymentData));
-        Validators.ValidFullName(RuleFor(x => x.FullName));
-        Validators.ValidMoneyAmount(RuleFor(x => x.MaxAmount ?? 0));
-        Validators.ValidCooldown(RuleFor(x => x.CooldownMinutes ?? 0));
-        Validators.ValidPriority(RuleFor(x => x.Priority ?? 0));
+        RuleFor(x => x.Type).ValidEnumValue();
+        RuleFor(x => x.PaymentData).ValidPaymentData();
+        RuleFor(x => x.FullName).ValidFullName();
+        RuleFor(x => x.MaxAmount ?? 0).ValidMoneyAmount();
+        RuleFor(x => x.CooldownMinutes ?? 0).ValidCooldown();
+        RuleFor(x => x.Priority ?? 0).ValidPriority();
     }
 }
