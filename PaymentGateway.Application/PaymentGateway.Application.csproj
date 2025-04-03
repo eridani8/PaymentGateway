@@ -8,6 +8,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\PaymentGateway.Core\PaymentGateway.Core.csproj" />
+        <ProjectReference Include="..\PaymentGateway.Infrastructure\PaymentGateway.Infrastructure.csproj" />
     </ItemGroup>
 
     <ItemGroup>

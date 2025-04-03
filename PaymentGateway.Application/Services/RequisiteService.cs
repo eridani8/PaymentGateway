@@ -16,13 +16,14 @@ public class RequisiteService(
     IRequisiteValidator validator,
     IOptions<RequisiteDefaults> defaults) : IRequisiteService
 {
-    public async Task<RequisiteEntity?> GetFreeRequisite()
+    public async Task<List<RequisiteEntity>> GetFreeRequisites()
     {
         return await unit.RequisiteRepository
             .GetAll()
+            .Include(r => r.CurrentPayment)
             .Where(r => r.IsActive)
             .OrderByDescending(r => r.Priority)
-            .FirstOrDefaultAsync();
+            .ToListAsync();
     }
 
     public async Task<RequisiteResponseDto> CreateRequisite(RequisiteCreateDto dto)
@@ -51,7 +52,7 @@ public class RequisiteService(
 
     public async Task<IEnumerable<RequisiteResponseDto>> GetAllRequisites()
     {
-        var entities = await unit.RequisiteRepository.GetAll().ToListAsync();
+        var entities = await unit.RequisiteRepository.GetAll().AsNoTracking().ToListAsync();
         return mapper.Map<IEnumerable<RequisiteResponseDto>>(entities);
     }
 

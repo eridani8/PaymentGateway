@@ -1,8 +1,8 @@
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyModel;
 using NpgsqlTypes;
 using PaymentGateway.Api;
-using PaymentGateway.Application.DTOs;
 using PaymentGateway.Application.DTOs.Payment;
 using PaymentGateway.Application.DTOs.Requisite;
 using PaymentGateway.Application.Interfaces;
@@ -45,14 +45,17 @@ try
         { "exception", new ExceptionColumnWriter(NpgsqlDbType.Text) }
     };
 
+    const string outputTemplate = "[{Timestamp:HH:mm:ss} {Level:u3}] [{SourceContext}] {Message:lj}{NewLine}{Exception}";
+
     var logger = Log.Logger = new LoggerConfiguration()
         .MinimumLevel.Information()
         .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
         .MinimumLevel.Override("System.Net.Http.HttpClient", LogEventLevel.Warning)
+        .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", LogEventLevel.Warning)
         .Enrich.FromLogContext()
-        .WriteTo.Console(LogEventLevel.Information)
+        .WriteTo.Console(LogEventLevel.Information, outputTemplate: outputTemplate)
         .WriteTo.PostgreSQL(connectionString, logs, columnWriters, needAutoCreateTable: true)
-        .WriteTo.File($"{logsPath}/.log", rollingInterval: RollingInterval.Day)
+        .WriteTo.File($"{logsPath}/.log", rollingInterval: RollingInterval.Day, outputTemplate: outputTemplate)
         .CreateLogger();
 
     builder.Host.UseSerilog(logger);
@@ -64,7 +67,6 @@ try
     builder.Services.AddDbContext<AppDbContext>(o =>
     {
         o.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
-        o.UseLoggerFactory(LoggerFactory.Create(b => b.AddSerilog())); // ~ логирование SQL запросов
     });
     
     builder.Services.Configure<RequisiteDefaults>(builder.Configuration.GetSection(nameof(RequisiteDefaults)));
@@ -84,6 +86,8 @@ try
 
     builder.Services.AddScoped<IValidator<PaymentCreateDto>, PaymentCreateDtoValidator>();
     builder.Services.AddScoped<IPaymentService, PaymentService>();
+
+    builder.Services.AddHostedService<GatewayService>();
 
     var app = builder.Build();
 

@@ -26,19 +26,6 @@ public class RequisiteController(IRequisiteService service) : ControllerBase
             return BadRequest(e.Errors);
         }
     }
-
-    [HttpGet]
-    public async Task<ActionResult<RequisiteResponseDto>> GetFree()
-    {
-        var requisite = await service.GetFreeRequisite();
-
-        if (requisite is null)
-        {
-            return NotFound("Нет свободного реквизита");
-        }
-        
-        return Ok(requisite);
-    }
     
     [HttpGet]
     public async Task<ActionResult<IEnumerable<RequisiteResponseDto>>> GetAll()

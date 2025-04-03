@@ -13,6 +13,7 @@ public sealed class PaymentEntity
         Amount = amount;
         UserId = userId;
         CreatedAt = DateTime.UtcNow;
+        ExpiresAt = DateTime.UtcNow.AddMinutes(5); // ~
     }
 
     private PaymentEntity() { }
@@ -64,7 +65,7 @@ public sealed class PaymentEntity
     /// <summary>
     /// Дата и время истечения срока действия платежа
     /// </summary>
-    public DateTime? ExpiresAt { get; set; }
+    public DateTime ExpiresAt { get; set; }
     
     /// <summary>
     /// Идентификатор связанной транзакции
