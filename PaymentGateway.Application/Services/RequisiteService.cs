@@ -11,28 +11,33 @@ using PaymentGateway.Core.Interfaces;
 
 namespace PaymentGateway.Application.Services;
 
-public class RequisiteService(IUnitOfWork unit, IMapper mapper, RequisiteValidator validator, IOptions<RequisiteDefaults> defaults) : IRequisiteService
+public class RequisiteService(
+    IUnitOfWork unit,
+    IMapper mapper,
+    RequisiteValidator validator,
+    IOptions<RequisiteDefaults> defaults) : IRequisiteService
 {
     public async Task<RequisiteResponseDto> CreateRequisite(RequisiteCreateDto dto)
     {
         var validationResult = await validator.CreateValidator.ValidateAsync(dto);
         if (!validationResult.IsValid)
         {
-            throw new ArgumentException(string.Join(Environment.NewLine, validationResult.Errors.Select(e => e.ErrorMessage)));
+            throw new ArgumentException(string.Join(Environment.NewLine,
+                validationResult.Errors.Select(e => e.ErrorMessage)));
         }
-        
+
         var entity = new RequisiteEntityBuilder()
             .WithType(dto.Type)
             .WithPaymentData(dto.PaymentData)
             .WithFullName(dto.FullName)
-            .WithMaxAmount(dto.MaxAmount ?? defaults.Value.MaxAmount)
-            .WithCooldownMinutes(dto.CooldownMinutes ?? defaults.Value.CooldownMinutes)
-            .WithPriority(dto.Priority ?? defaults.Value.Priority)
+            .WithMaxAmount(SettingsHelper.GetValueOrDefault(dto.MaxAmount, defaults.Value.MaxAmount))
+            .WithCooldownMinutes(SettingsHelper.GetValueOrDefault(dto.CooldownMinutes, defaults.Value.CooldownMinutes))
+            .WithPriority(SettingsHelper.GetValueOrDefault(dto.Priority, defaults.Value.Priority))
             .Build();
-        
+
         await unit.RequisiteRepository.Add(entity);
         await unit.Commit();
-        
+
         return mapper.Map<RequisiteResponseDto>(entity);
     }
 
@@ -53,16 +58,17 @@ public class RequisiteService(IUnitOfWork unit, IMapper mapper, RequisiteValidat
         var validationResult = await validator.UpdateValidator.ValidateAsync(dto);
         if (!validationResult.IsValid)
         {
-            throw new ArgumentException(string.Join(Environment.NewLine, validationResult.Errors.Select(e => e.ErrorMessage)));
+            throw new ArgumentException(string.Join(Environment.NewLine,
+                validationResult.Errors.Select(e => e.ErrorMessage)));
         }
-        
+
         var entity = await unit.RequisiteRepository.GetById(id);
         if (entity == null) return false;
-        
+
         mapper.Map(dto, entity);
         unit.RequisiteRepository.Update(entity);
         await unit.Commit();
-        
+
         return true;
     }
 
@@ -73,7 +79,7 @@ public class RequisiteService(IUnitOfWork unit, IMapper mapper, RequisiteValidat
 
         unit.RequisiteRepository.Delete(entity);
         await unit.Commit();
-        
+
         return true;
     }
 }

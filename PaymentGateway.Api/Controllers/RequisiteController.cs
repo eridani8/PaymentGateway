@@ -9,17 +9,21 @@ namespace PaymentGateway.Api.Controllers;
 
 [ApiController]
 [Route("[controller]/[action]")]
-public class RequisiteController(RequisiteService service, RequisiteValidator validator) : ControllerBase
+[Produces("application/json")]
+public class RequisiteController(RequisiteService service) : ControllerBase
 {
     [HttpPost]
-    public async Task<ActionResult<RequisiteResponseDto>> CreateRequisite([FromBody] RequisiteCreateDto? dto)
+    public async Task<ActionResult<RequisiteResponseDto>> Create([FromBody] RequisiteCreateDto? dto)
     {
         if (dto == null) return BadRequest("Invalid data");
 
         try
         {
             var createdRequisite = await service.CreateRequisite(dto);
-            return CreatedAtAction(nameof(service.CreateRequisite), new { id = createdRequisite.Id }, createdRequisite);
+            return CreatedAtRoute(
+                "GetById",
+                new { id = createdRequisite.Id },
+                createdRequisite);
         }
         catch (ValidationException e)
         {
@@ -32,7 +36,7 @@ public class RequisiteController(RequisiteService service, RequisiteValidator va
     }
     
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<RequisiteResponseDto>>> GetAllRequisites()
+    public async Task<ActionResult<IEnumerable<RequisiteResponseDto>>> GetAll()
     {
         try
         {
@@ -45,8 +49,8 @@ public class RequisiteController(RequisiteService service, RequisiteValidator va
         }
     }
     
-    [HttpGet("{id:guid}")]
-    public async Task<ActionResult<RequisiteResponseDto>> GetRequisiteById(Guid id)
+    [HttpGet("{id:guid}", Name = "GetById")]
+    public async Task<ActionResult<RequisiteResponseDto>> GetById(Guid id)
     {
         try
         {
@@ -64,7 +68,7 @@ public class RequisiteController(RequisiteService service, RequisiteValidator va
     }
     
     [HttpPut("{id:guid}")]
-    public async Task<ActionResult> UpdateRequisite(Guid id, [FromBody] RequisiteUpdateDto? dto)
+    public async Task<ActionResult> Update(Guid id, [FromBody] RequisiteUpdateDto? dto)
     {
         if (dto == null) return BadRequest("Invalid data");
 
@@ -89,7 +93,7 @@ public class RequisiteController(RequisiteService service, RequisiteValidator va
     }
     
     [HttpDelete("{id:guid}")]
-    public async Task<ActionResult> DeleteRequisite(Guid id)
+    public async Task<ActionResult> Delete(Guid id)
     {
         try
         {
