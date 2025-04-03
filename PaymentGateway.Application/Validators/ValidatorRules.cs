@@ -5,6 +5,12 @@ namespace PaymentGateway.Application.Validators;
 
 public static partial class ValidatorRules
 {
+    public static IRuleBuilderOptions<T, Guid> ValidGuid<T>(this IRuleBuilder<T, Guid> rule)
+    {
+        return rule.Must(x => x != Guid.Empty)
+            .WithMessage("Значение должно быть Guid");
+    }
+    
     public static IRuleBuilderOptions<T, string> ValidFullName<T>(this IRuleBuilder<T, string> rule)
     {
         return rule

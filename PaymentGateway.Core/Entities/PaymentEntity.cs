@@ -6,11 +6,12 @@ namespace PaymentGateway.Core.Entities;
 
 public sealed class PaymentEntity
 {
-    public PaymentEntity(Guid paymentId, decimal amount)
+    public PaymentEntity(Guid paymentId, decimal amount, Guid? userId)
     {
         Id = Guid.NewGuid();
         ExternalPaymentId = paymentId;
         Amount = amount;
+        UserId = userId;
         CreatedAt = DateTime.UtcNow;
     }
 
@@ -25,6 +26,11 @@ public sealed class PaymentEntity
     /// Идентификатор платежа во внешней системе
     /// </summary>
     public Guid ExternalPaymentId { get; init; }
+    
+    /// <summary>
+    /// Идентификатор пользователя
+    /// </summary>
+    public Guid? UserId { get; init; }
 
     /// <summary>
     /// Сумма платежа

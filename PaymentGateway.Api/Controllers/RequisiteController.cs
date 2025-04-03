@@ -1,30 +1,25 @@
 ﻿using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
-using PaymentGateway.Application.DTOs;
 using PaymentGateway.Application.DTOs.Requisite;
-using PaymentGateway.Application.Services;
-using PaymentGateway.Application.Validators.Requisite;
+using PaymentGateway.Application.Interfaces;
 
 namespace PaymentGateway.Api.Controllers;
 
 [ApiController]
 [Route("[controller]/[action]")]
 [Produces("application/json")]
-public class RequisiteController(RequisiteService service) : ControllerBase
+public class RequisiteController(IRequisiteService service) : ControllerBase
 {
     [HttpPost]
     public async Task<ActionResult<RequisiteResponseDto>> Create([FromBody] RequisiteCreateDto? dto)
     {
-        if (dto == null) return BadRequest("Неверные данные");
+        if (dto is null) return BadRequest("Неверные данные");
 
         try
         {
-            var createdRequisite = await service.CreateRequisite(dto);
-            
-            return CreatedAtRoute(
-                "GetById",
-                new { id = createdRequisite.Id },
-                createdRequisite);
+            var requisite = await service.CreateRequisite(dto);
+
+            return Ok(requisite);
         }
         catch (ValidationException e)
         {
@@ -37,7 +32,7 @@ public class RequisiteController(RequisiteService service) : ControllerBase
     {
         var requisite = await service.GetFreeRequisite();
 
-        if (requisite == null)
+        if (requisite is null)
         {
             return NotFound("Нет свободного реквизита");
         }
@@ -53,11 +48,11 @@ public class RequisiteController(RequisiteService service) : ControllerBase
         return Ok(requisites);
     }
     
-    [HttpGet("{id:guid}", Name = "GetById")]
+    [HttpGet("{id:guid}")]
     public async Task<ActionResult<RequisiteResponseDto>> GetById(Guid id)
     {
         var requisite = await service.GetRequisiteById(id);
-        if (requisite == null)
+        if (requisite is null)
         {
             return NotFound("Реквизит с таким ID не найден");
         }
@@ -68,7 +63,7 @@ public class RequisiteController(RequisiteService service) : ControllerBase
     [HttpPut("{id:guid}")]
     public async Task<ActionResult> Update(Guid id, [FromBody] RequisiteUpdateDto? dto)
     {
-        if (dto == null) return BadRequest("Неверные данные");
+        if (dto is null) return BadRequest("Неверные данные");
 
         try
         {

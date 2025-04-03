@@ -3,9 +3,12 @@ using Microsoft.EntityFrameworkCore;
 using NpgsqlTypes;
 using PaymentGateway.Api;
 using PaymentGateway.Application.DTOs;
+using PaymentGateway.Application.DTOs.Payment;
 using PaymentGateway.Application.DTOs.Requisite;
+using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Application.Mappings;
 using PaymentGateway.Application.Services;
+using PaymentGateway.Application.Validators.Payment;
 using PaymentGateway.Application.Validators.Requisite;
 using PaymentGateway.Core;
 using PaymentGateway.Core.Interfaces;
@@ -72,11 +75,15 @@ try
     builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
     
     builder.Services.AddAutoMapper(typeof(RequisiteProfile));
+    builder.Services.AddAutoMapper(typeof(PaymentProfile));
 
     builder.Services.AddScoped<IValidator<RequisiteCreateDto>, RequisiteCreateDtoValidator>();
     builder.Services.AddScoped<IValidator<RequisiteUpdateDto>, RequisiteUpdateDtoValidator>();
-    builder.Services.AddScoped<RequisiteValidator>();
-    builder.Services.AddScoped<RequisiteService>();
+    builder.Services.AddScoped<IRequisiteValidator, RequisiteValidator>();
+    builder.Services.AddScoped<IRequisiteService, RequisiteService>();
+
+    builder.Services.AddScoped<IValidator<PaymentCreateDto>, PaymentCreateDtoValidator>();
+    builder.Services.AddScoped<IPaymentService, PaymentService>();
 
     var app = builder.Build();
 

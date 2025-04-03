@@ -13,7 +13,6 @@ public class RequisiteProfile : Profile
         CreateMap<RequisiteCreateDto, RequisiteEntity>();
         CreateMap<RequisiteUpdateDto, RequisiteEntity>()
             .ForAllMembers(o => 
-                o.Condition((dto, entity, srcMember) 
-                    => srcMember != null));
+                o.Condition((dto, entity, srcMember) => srcMember is not null));
     }
 }

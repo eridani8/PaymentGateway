@@ -5,7 +5,6 @@ using PaymentGateway.Infrastructure.Data;
 
 namespace PaymentGateway.Infrastructure.Repositories;
 
-
 public class RepositoryBase<TEntity>(AppDbContext context) : IRepositoryBase<TEntity> where TEntity : class
 {
     private readonly DbSet<TEntity> _entities = context.Set<TEntity>();
@@ -14,7 +13,7 @@ public class RepositoryBase<TEntity>(AppDbContext context) : IRepositoryBase<TEn
     {
         return _entities;
     }
-    
+
     public async Task<TEntity?> GetById(Guid id)
     {
         return await _entities.FindAsync(id);
@@ -34,7 +33,7 @@ public class RepositoryBase<TEntity>(AppDbContext context) : IRepositoryBase<TEn
     {
         _entities.Update(entity);
     }
-    
+
     public void Delete(TEntity entity)
     {
         _entities.Remove(entity);
