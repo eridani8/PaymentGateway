@@ -1,14 +1,17 @@
 ﻿using AutoMapper;
 using FluentValidation;
+using Microsoft.Extensions.Options;
 using PaymentGateway.Application.DTOs;
+using PaymentGateway.Application.DTOs.Requisite;
 using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Application.Validators.Requisite;
+using PaymentGateway.Core;
 using PaymentGateway.Core.Builders;
 using PaymentGateway.Core.Interfaces;
 
 namespace PaymentGateway.Application.Services;
 
-public class RequisiteService(IUnitOfWork unit, IMapper mapper, RequisiteValidator validator) : IRequisiteService
+public class RequisiteService(IUnitOfWork unit, IMapper mapper, RequisiteValidator validator, IOptions<RequisiteDefaults> defaults) : IRequisiteService
 {
     public async Task<RequisiteResponseDto> CreateRequisite(RequisiteCreateDto dto)
     {
@@ -19,9 +22,12 @@ public class RequisiteService(IUnitOfWork unit, IMapper mapper, RequisiteValidat
         }
         
         var entity = new RequisiteEntityBuilder()
-            .WithFullName(dto.FullName)
             .WithType(dto.Type)
             .WithPaymentData(dto.PaymentData)
+            .WithFullName(dto.FullName)
+            .WithMaxAmount(dto.MaxAmount ?? defaults.Value.MaxAmount)
+            .WithCooldownMinutes(dto.CooldownMinutes ?? defaults.Value.CooldownMinutes)
+            .WithPriority(dto.Priority ?? defaults.Value.Priority)
             .Build();
         
         await unit.RequisiteRepository.Add(entity);

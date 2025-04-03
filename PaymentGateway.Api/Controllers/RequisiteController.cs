@@ -1,6 +1,7 @@
 ﻿using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using PaymentGateway.Application.DTOs;
+using PaymentGateway.Application.DTOs.Requisite;
 using PaymentGateway.Application.Services;
 using PaymentGateway.Application.Validators.Requisite;
 

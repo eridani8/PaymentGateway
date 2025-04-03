@@ -3,9 +3,11 @@ using Microsoft.EntityFrameworkCore;
 using NpgsqlTypes;
 using PaymentGateway.Api;
 using PaymentGateway.Application.DTOs;
+using PaymentGateway.Application.DTOs.Requisite;
 using PaymentGateway.Application.Mappings;
 using PaymentGateway.Application.Services;
 using PaymentGateway.Application.Validators.Requisite;
+using PaymentGateway.Core;
 using PaymentGateway.Core.Interfaces;
 using PaymentGateway.Infrastructure.Data;
 using PaymentGateway.Infrastructure.Repositories;
@@ -59,8 +61,10 @@ try
     builder.Services.AddDbContext<AppDbContext>(o =>
     {
         o.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
-        o.UseLoggerFactory(LoggerFactory.Create(b => b.AddSerilog()));
+        o.UseLoggerFactory(LoggerFactory.Create(b => b.AddSerilog())); // ~ логирование SQL запросов
     });
+    
+    builder.Services.Configure<RequisiteDefaults>(builder.Configuration.GetSection(nameof(RequisiteDefaults)));
 
     builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
     builder.Services.AddScoped<IRequisiteRepository, RequisiteRepository>();

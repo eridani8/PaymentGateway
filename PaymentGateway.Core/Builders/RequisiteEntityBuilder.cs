@@ -8,10 +8,10 @@ public class RequisiteEntityBuilder
     private RequisiteType _type;
     private string? _paymentData;
     private string? _fullName;
-    private decimal _maxAmount = 5000;
-    private int _cooldownMinutes = 100;
-    private int _priority = 1;
-    private bool _isActive = true;
+    private decimal _maxAmount;
+    private int _cooldownMinutes;
+    private int _priority;
+    private bool _isActive;
     
     public RequisiteEntityBuilder WithType(RequisiteType type)
     {
@@ -71,9 +71,9 @@ public class RequisiteEntityBuilder
             _type,
             _paymentData,
             _fullName,
+            _isActive,
             _maxAmount,
             _cooldownMinutes,
-            _priority,
-            _isActive);
+            _priority);
     }
 }

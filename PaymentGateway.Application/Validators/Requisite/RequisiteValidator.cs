@@ -1,5 +1,6 @@
 ﻿using FluentValidation;
 using PaymentGateway.Application.DTOs;
+using PaymentGateway.Application.DTOs.Requisite;
 
 namespace PaymentGateway.Application.Validators.Requisite;
 

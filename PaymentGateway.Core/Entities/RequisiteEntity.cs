@@ -6,8 +6,8 @@ namespace PaymentGateway.Core.Entities;
 
 public class RequisiteEntity
 {
-    public RequisiteEntity(RequisiteType type, string paymentData, string fullName, decimal maxAmount,
-        int cooldownMinutes, int priority, bool isActive)
+    public RequisiteEntity(RequisiteType type, string paymentData, string fullName, bool isActive, decimal maxAmount,
+        int cooldownMinutes, int priority)
     {
         Id = Guid.NewGuid();
         Type = type;
@@ -46,11 +46,6 @@ public class RequisiteEntity
     /// Дата и время создания
     /// </summary>
     public DateTime CreatedAt { get; init; }
-
-    /// <summary>
-    /// Дата и время обновления
-    /// </summary>
-    public DateTime? UpdatedAt { get; set; }
 
     /// <summary>
     /// Дата и время последней операции

@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using PaymentGateway.Application.DTOs;
+using PaymentGateway.Application.DTOs.Requisite;
 using PaymentGateway.Core.Entities;
 
 namespace PaymentGateway.Application.Mappings;
