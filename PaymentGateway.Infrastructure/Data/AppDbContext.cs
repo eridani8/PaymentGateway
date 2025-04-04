@@ -28,12 +28,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         {
             entity.HasIndex(e => e.PaymentId);
             entity.HasIndex(e => e.ReceivedAt);
-
-            entity
-                .HasOne(e => e.Payment)
-                .WithOne(t => t.Transaction)
-                .HasForeignKey<TransactionEntity>(e => e.PaymentId)
-                .OnDelete(DeleteBehavior.Cascade);
         });
         
         modelBuilder.Entity<RequisiteEntity>(entity =>

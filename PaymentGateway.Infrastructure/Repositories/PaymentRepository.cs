@@ -14,7 +14,7 @@ public class PaymentRepository(AppDbContext context) : RepositoryBase<PaymentEnt
         return await
             GetAll()
                 .Include(p => p.Requisite)
-                .Where(p => p.RequisiteId == null)
+                .Where(p => p.Requisite == null)
                 .OrderBy(p => p.CreatedAt)
                 .ToListAsync();
     }

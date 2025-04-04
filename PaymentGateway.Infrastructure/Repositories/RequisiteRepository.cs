@@ -14,7 +14,7 @@ public class RequisiteRepository(AppDbContext context) : RepositoryBase<Requisit
         return await
             GetAll()
                 .Include(r => r.CurrentPayment)
-                .Where(r => r.IsActive)
+                .Where(r => r.IsActive && r.CurrentPayment == null)
                 .OrderByDescending(r => r.Priority)
                 .ToListAsync();
     }

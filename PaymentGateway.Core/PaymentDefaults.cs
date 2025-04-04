@@ -2,5 +2,5 @@
 
 public class PaymentDefaults
 {
-    public required int ExpiresMinutes { get; set; }
+    public required int ExpiresMinutes { get; init; }
 }
