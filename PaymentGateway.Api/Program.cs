@@ -72,6 +72,7 @@ try
     });
     
     builder.Services.Configure<RequisiteDefaults>(builder.Configuration.GetSection(nameof(RequisiteDefaults)));
+    builder.Services.Configure<PaymentDefaults>(builder.Configuration.GetSection(nameof(PaymentDefaults)));
 
     builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
     builder.Services.AddScoped<IRequisiteRepository, RequisiteRepository>();

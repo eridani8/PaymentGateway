@@ -2,8 +2,10 @@
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using PaymentGateway.Application.DTOs.Payment;
 using PaymentGateway.Application.Interfaces;
+using PaymentGateway.Core;
 using PaymentGateway.Core.Entities;
 using PaymentGateway.Core.Interfaces;
 
@@ -13,6 +15,7 @@ public class PaymentService(
     IUnitOfWork unit,
     IMapper mapper,
     IValidator<PaymentCreateDto> paymentCreateValidator,
+    IOptions<PaymentDefaults> defaults,
     ILogger<PaymentService> logger) : IPaymentService
 {
     public async Task<PaymentResponseDto> CreatePayment(PaymentCreateDto dto)
@@ -23,7 +26,7 @@ public class PaymentService(
             throw new ArgumentException(string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage)));
         }
 
-        var payment = new PaymentEntity(dto.PaymentId, dto.Amount, dto.UserId);
+        var payment = new PaymentEntity(dto.PaymentId, dto.Amount, dto.UserId, defaults.Value.ExpiresMinutes);
 
         await unit.PaymentRepository.Add(payment);
         await unit.Commit();

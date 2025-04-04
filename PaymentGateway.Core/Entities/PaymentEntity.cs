@@ -6,14 +6,14 @@ namespace PaymentGateway.Core.Entities;
 
 public sealed class PaymentEntity
 {
-    public PaymentEntity(Guid paymentId, decimal amount, Guid? userId)
+    public PaymentEntity(Guid paymentId, decimal amount, Guid? userId, int expires)
     {
         Id = Guid.NewGuid();
         ExternalPaymentId = paymentId;
         Amount = amount;
         UserId = userId;
         CreatedAt = DateTime.UtcNow;
-        ExpiresAt = DateTime.UtcNow.AddMinutes(5); // ~
+        ExpiresAt = CreatedAt.AddMinutes(expires);
     }
 
     private PaymentEntity() { }
