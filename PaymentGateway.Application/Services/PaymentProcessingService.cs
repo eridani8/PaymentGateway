@@ -1,15 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Core.Enums;
 using PaymentGateway.Core.Interfaces;
-using Serilog;
 
 namespace PaymentGateway.Application.Services;
 
-public class GatewayService(IServiceProvider serviceProvider, ILogger<GatewayService> logger) : IHostedService
+public class PaymentProcessingService(IServiceProvider serviceProvider, ILogger<PaymentProcessingService> logger) : IHostedService
 {
     private Task? _worker;
     private CancellationTokenSource _cts = null!;
@@ -53,7 +50,7 @@ public class GatewayService(IServiceProvider serviceProvider, ILogger<GatewaySer
             {
                 foreach (var expiredPayment in expiredPayments)
                 {
-                    logger.LogInformation("Платеж {payment} просрочен и был удален", expiredPayment.Id);
+                    logger.LogInformation("Просроченный платеж {payment} удален", expiredPayment.Id);
                 }
                 
                 await unit.PaymentRepository.DeletePayments(expiredPayments);

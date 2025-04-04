@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using PaymentGateway.Application.DTOs.Requisite;
 using PaymentGateway.Application.Interfaces;
@@ -7,6 +8,7 @@ using PaymentGateway.Core;
 using PaymentGateway.Core.Builders;
 using PaymentGateway.Core.Entities;
 using PaymentGateway.Core.Interfaces;
+using Serilog;
 
 namespace PaymentGateway.Application.Services;
 
@@ -14,7 +16,8 @@ public class RequisiteService(
     IUnitOfWork unit,
     IMapper mapper,
     IRequisiteValidator validator,
-    IOptions<RequisiteDefaults> defaults) : IRequisiteService
+    IOptions<RequisiteDefaults> defaults,
+    ILogger<RequisiteService> logger) : IRequisiteService
 {
     public async Task<RequisiteResponseDto> CreateRequisite(RequisiteCreateDto dto)
     {
@@ -36,6 +39,8 @@ public class RequisiteService(
 
         await unit.RequisiteRepository.Add(requisite);
         await unit.Commit();
+        
+        logger.LogInformation("Создание реквизита {requisiteId}", requisite.Id);
 
         return mapper.Map<RequisiteResponseDto>(requisite);
     }
@@ -67,6 +72,8 @@ public class RequisiteService(
         mapper.Map(dto, entity);
         unit.RequisiteRepository.Update(entity);
         await unit.Commit();
+        
+        logger.LogInformation("Обновление реквизита {requisiteId}", entity.Id);
 
         return true;
     }
@@ -78,6 +85,8 @@ public class RequisiteService(
 
         unit.RequisiteRepository.Delete(entity);
         await unit.Commit();
+        
+        logger.LogInformation("Удаление реквизита {requisiteId}", entity.Id);
 
         return true;
     }

@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using PaymentGateway.Application.DTOs.Payment;
 using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Core.Entities;
@@ -8,7 +9,11 @@ using PaymentGateway.Core.Interfaces;
 
 namespace PaymentGateway.Application.Services;
 
-public class PaymentService(IUnitOfWork unit, IMapper mapper, IValidator<PaymentCreateDto> paymentCreateValidator) : IPaymentService
+public class PaymentService(
+    IUnitOfWork unit,
+    IMapper mapper,
+    IValidator<PaymentCreateDto> paymentCreateValidator,
+    ILogger<PaymentService> logger) : IPaymentService
 {
     public async Task<PaymentResponseDto> CreatePayment(PaymentCreateDto dto)
     {
@@ -17,12 +22,14 @@ public class PaymentService(IUnitOfWork unit, IMapper mapper, IValidator<Payment
         {
             throw new ArgumentException(string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage)));
         }
-        
+
         var payment = new PaymentEntity(dto.PaymentId, dto.Amount, dto.UserId);
 
         await unit.PaymentRepository.Add(payment);
         await unit.Commit();
         
+        logger.LogInformation("Создание платежа {paymentId} на сумму {amount}", payment.Id, payment.Amount);
+
         return mapper.Map<PaymentResponseDto>(payment);
     }
 
@@ -42,9 +49,11 @@ public class PaymentService(IUnitOfWork unit, IMapper mapper, IValidator<Payment
     {
         var entity = await unit.PaymentRepository.GetById(id);
         if (entity is null) return false;
-        
+
         unit.PaymentRepository.Delete(entity);
         await unit.Commit();
+        
+        logger.LogInformation("Удаление платежа {paymentId}", entity.Id);
 
         return true;
     }

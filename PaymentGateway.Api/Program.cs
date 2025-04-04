@@ -89,7 +89,7 @@ try
     builder.Services.AddScoped<IValidator<PaymentCreateDto>, PaymentCreateDtoValidator>();
     builder.Services.AddScoped<IPaymentService, PaymentService>();
 
-    builder.Services.AddHostedService<GatewayService>();
+    builder.Services.AddHostedService<PaymentProcessingService>();
 
     var app = builder.Build();
 
