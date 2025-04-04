@@ -8,4 +8,33 @@ namespace PaymentGateway.Infrastructure.Repositories;
 public class PaymentRepository(AppDbContext context) : RepositoryBase<PaymentEntity>(context), IPaymentRepository
 {
     private readonly AppDbContext _context = context;
+
+    public async Task<List<PaymentEntity>> GetUnprocessedPayments()
+    {
+        return await
+            GetAll()
+                .Include(p => p.Requisite)
+                .Where(p => p.RequisiteId == null)
+                .OrderBy(p => p.CreatedAt)
+                .ToListAsync();
+    }
+
+    public async Task<List<PaymentEntity>> GetExpiredPayments()
+    {
+        return await
+            GetAll()
+                .Include(p => p.Requisite)
+                .Where(p => DateTime.UtcNow >= p.ExpiresAt)
+                .ToListAsync();
+    }
+    
+    public Task DeletePayments(IEnumerable<PaymentEntity> entities)
+    {
+        foreach (var entity in entities)
+        {
+            Delete(entity);
+        }
+
+        return Task.CompletedTask;
+    }
 }

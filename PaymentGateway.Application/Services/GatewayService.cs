@@ -16,10 +16,8 @@ public class GatewayService(IServiceProvider serviceProvider) : BackgroundServic
         {
             using var scope = serviceProvider.CreateScope();
             var unit = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
-            var requisiteService = scope.ServiceProvider.GetRequiredService<IRequisiteService>();
-            var paymentService = scope.ServiceProvider.GetRequiredService<IPaymentService>();
 
-            var expiredPayments = await paymentService.GetExpiredPayments();
+            var expiredPayments = await unit.PaymentRepository.GetExpiredPayments();
             if (expiredPayments.Count > 0)
             {
                 foreach (var expiredPayment in expiredPayments)
@@ -27,11 +25,11 @@ public class GatewayService(IServiceProvider serviceProvider) : BackgroundServic
                     Log.ForContext<GatewayService>().Information("Платеж {payment} просрочен и был удален", expiredPayment.Id);
                 }
                 
-                await paymentService.DeletePayments(expiredPayments);
+                await unit.PaymentRepository.DeletePayments(expiredPayments);
                 await unit.Commit();
             }
             
-            var unprocessedPayments = await paymentService.GetUnprocessedPayments();
+            var unprocessedPayments = await unit.PaymentRepository.GetUnprocessedPayments();
             
             if (unprocessedPayments.Count == 0)
             {
@@ -39,7 +37,7 @@ public class GatewayService(IServiceProvider serviceProvider) : BackgroundServic
                 continue;
             }
             
-            var freeRequisites = await requisiteService.GetFreeRequisites();
+            var freeRequisites = await unit.RequisiteRepository.GetFreeRequisites();
 
             foreach (var payment in unprocessedPayments)
             {

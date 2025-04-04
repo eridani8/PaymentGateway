@@ -4,4 +4,5 @@ namespace PaymentGateway.Core.Interfaces;
 
 public interface IRequisiteRepository : IRepositoryBase<RequisiteEntity>
 {
+    Task<List<RequisiteEntity>> GetFreeRequisites();
 }

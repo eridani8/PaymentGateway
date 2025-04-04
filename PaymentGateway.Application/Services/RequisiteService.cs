@@ -16,16 +16,6 @@ public class RequisiteService(
     IRequisiteValidator validator,
     IOptions<RequisiteDefaults> defaults) : IRequisiteService
 {
-    public async Task<List<RequisiteEntity>> GetFreeRequisites()
-    {
-        return await unit.RequisiteRepository
-            .GetAll()
-            .Include(r => r.CurrentPayment)
-            .Where(r => r.IsActive)
-            .OrderByDescending(r => r.Priority)
-            .ToListAsync();
-    }
-
     public async Task<RequisiteResponseDto> CreateRequisite(RequisiteCreateDto dto)
     {
         var validationResult = await validator.CreateValidator.ValidateAsync(dto);

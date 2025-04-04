@@ -10,25 +10,6 @@ namespace PaymentGateway.Application.Services;
 
 public class PaymentService(IUnitOfWork unit, IMapper mapper, IValidator<PaymentCreateDto> paymentCreateValidator) : IPaymentService
 {
-    public async Task<List<PaymentEntity>> GetExpiredPayments()
-    { 
-        return await unit.PaymentRepository
-            .GetAll()
-            .Include(p => p.Requisite)
-            .Where(p => DateTime.UtcNow >= p.ExpiresAt)
-            .ToListAsync();
-    }
-    
-    public async Task<List<PaymentEntity>> GetUnprocessedPayments()
-    {
-        return await unit.PaymentRepository
-            .GetAll()
-            .Include(p => p.Requisite)
-            .Where(p => p.RequisiteId == null)
-            .OrderBy(p => p.CreatedAt)
-            .ToListAsync();
-    }
-
     public async Task<PaymentResponseDto> CreatePayment(PaymentCreateDto dto)
     {
         var validationResult = await paymentCreateValidator.ValidateAsync(dto);
@@ -66,15 +47,5 @@ public class PaymentService(IUnitOfWork unit, IMapper mapper, IValidator<Payment
         await unit.Commit();
 
         return true;
-    }
-
-    public async Task DeletePayments(IEnumerable<PaymentEntity> entities)
-    {
-        foreach (var entity in entities)
-        {
-            unit.PaymentRepository.Delete(entity);
-        }
-        
-        await unit.Commit();
     }
 }

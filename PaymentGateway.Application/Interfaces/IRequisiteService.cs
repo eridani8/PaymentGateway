@@ -6,7 +6,6 @@ namespace PaymentGateway.Application.Interfaces;
 
 public interface IRequisiteService
 {
-    Task<List<RequisiteEntity>> GetFreeRequisites();
     Task<RequisiteResponseDto> CreateRequisite(RequisiteCreateDto dto);
     Task<IEnumerable<RequisiteResponseDto>> GetAllRequisites();
     Task<RequisiteResponseDto?> GetRequisiteById(Guid id);
