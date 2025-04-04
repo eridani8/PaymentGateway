@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Core.Enums;
 using PaymentGateway.Core.Interfaces;
@@ -8,11 +9,41 @@ using Serilog;
 
 namespace PaymentGateway.Application.Services;
 
-public class GatewayService(IServiceProvider serviceProvider) : BackgroundService
+public class GatewayService(IServiceProvider serviceProvider, ILogger<GatewayService> logger) : IHostedService
 {
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    private Task? _worker;
+    private CancellationTokenSource _cts = null!;
+    
+    public Task StartAsync(CancellationToken cancellationToken)
     {
-        while (!stoppingToken.IsCancellationRequested)
+        _cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        _worker = Worker();
+        return Task.CompletedTask;
+    }
+
+    public async Task StopAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            await _cts.CancelAsync();
+            if (_worker != null)
+            {
+                await Task.WhenAny(_worker, Task.Delay(Timeout.Infinite, cancellationToken));
+            }
+        }
+        finally
+        {
+            logger.LogInformation("Сервис остановлен");
+            _cts.Dispose();
+            _worker?.Dispose();
+        }
+    }
+
+    private async Task Worker()
+    {
+        await Task.Delay(3000, _cts.Token);
+        logger.LogInformation("Сервис запущен");
+        while (!_cts.IsCancellationRequested)
         {
             using var scope = serviceProvider.CreateScope();
             var unit = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
@@ -22,7 +53,7 @@ public class GatewayService(IServiceProvider serviceProvider) : BackgroundServic
             {
                 foreach (var expiredPayment in expiredPayments)
                 {
-                    Log.ForContext<GatewayService>().Information("Платеж {payment} просрочен и был удален", expiredPayment.Id);
+                    logger.LogInformation("Платеж {payment} просрочен и был удален", expiredPayment.Id);
                 }
                 
                 await unit.PaymentRepository.DeletePayments(expiredPayments);
@@ -33,7 +64,7 @@ public class GatewayService(IServiceProvider serviceProvider) : BackgroundServic
             
             if (unprocessedPayments.Count == 0)
             {
-                await Task.Delay(1000, stoppingToken); 
+                await Task.Delay(1000, _cts.Token); 
                 continue;
             }
             
@@ -43,7 +74,7 @@ public class GatewayService(IServiceProvider serviceProvider) : BackgroundServic
             {
                 if (freeRequisites.Count == 0)
                 {
-                    Log.ForContext<GatewayService>().Warning("Нет свободных реквизитов для обработки платежей");
+                    logger.LogWarning("Нет свободных реквизитов для обработки платежей");
                     break;
                 }
 
@@ -56,12 +87,12 @@ public class GatewayService(IServiceProvider serviceProvider) : BackgroundServic
                 requisite.CurrentPaymentId = payment.Id;
                 requisite.LastOperationTime = DateTime.UtcNow;
 
-                Log.ForContext<GatewayService>().Information("Платеж {payment} назначен реквизиту {requisite}", payment.Id, requisite.Id);
+                logger.LogInformation("Платеж {payment} назначен реквизиту {requisite}", payment.Id, requisite.Id);
             }
 
             await unit.Commit();
             
-            await Task.Delay(1000, stoppingToken);
+            await Task.Delay(1000, _cts.Token);
         }
     }
 }

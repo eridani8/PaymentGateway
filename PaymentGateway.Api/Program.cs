@@ -16,6 +16,7 @@ using PaymentGateway.Infrastructure.Data;
 using PaymentGateway.Infrastructure.Repositories;
 using Serilog;
 using Serilog.Events;
+using Serilog.Sinks.PostgreSQL;
 using Serilog.Sinks.PostgreSQL.ColumnWriters;
 
 try
@@ -41,13 +42,14 @@ try
     {
         { "raise_date", new TimestampColumnWriter(NpgsqlDbType.TimestampTz) },
         { "level", new LevelColumnWriter(true, NpgsqlDbType.Varchar) },
+        { "source_context", new SinglePropertyColumnWriter("SourceContext", PropertyWriteMethod.Raw) },
         { "message", new RenderedMessageColumnWriter(NpgsqlDbType.Text) },
         { "exception", new ExceptionColumnWriter(NpgsqlDbType.Text) }
     };
 
     const string outputTemplate = "[{Timestamp:HH:mm:ss} {Level:u3}] [{SourceContext}] {Message:lj}{NewLine}{Exception}";
 
-    var logger = Log.Logger = new LoggerConfiguration()
+    Log.Logger = new LoggerConfiguration()
         .MinimumLevel.Information()
         .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
         .MinimumLevel.Override("System.Net.Http.HttpClient", LogEventLevel.Warning)
@@ -58,7 +60,7 @@ try
         .WriteTo.File($"{logsPath}/.log", rollingInterval: RollingInterval.Day, outputTemplate: outputTemplate)
         .CreateLogger();
 
-    builder.Host.UseSerilog(logger);
+    builder.Host.UseSerilog(Log.Logger);
 
     builder.Services.AddControllers();
     builder.Services.AddEndpointsApiExplorer();
@@ -105,7 +107,7 @@ try
 }
 catch (Exception e)
 {
-    Log.Fatal(e, "Сервер не смог запуститься");
+    Log.Fatal(e, "Сервис не смог запуститься");
 }
 finally
 {

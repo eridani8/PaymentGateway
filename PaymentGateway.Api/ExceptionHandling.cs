@@ -2,7 +2,7 @@
 
 namespace PaymentGateway.Api;
 
-public class ExceptionHandling(RequestDelegate next)
+public class ExceptionHandling(RequestDelegate next, ILogger<ExceptionHandling> logger)
 {
     public async Task Invoke(HttpContext context)
     {
@@ -12,7 +12,7 @@ public class ExceptionHandling(RequestDelegate next)
         }
         catch (Exception ex)
         {
-            Log.ForContext<ExceptionHandling>().Error(ex, "Произошло необработанное исключение");
+            logger.LogError(ex, "Произошло необработанное исключение");
             await HandleExceptionAsync(context, ex);
         }
     }
