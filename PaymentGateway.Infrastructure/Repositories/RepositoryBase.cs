@@ -7,6 +7,7 @@ namespace PaymentGateway.Infrastructure.Repositories;
 
 public class RepositoryBase<TEntity>(AppDbContext context) : IRepositoryBase<TEntity> where TEntity : class
 {
+    protected readonly AppDbContext Context = context;
     private readonly DbSet<TEntity> _entities = context.Set<TEntity>();
 
     public IQueryable<TEntity> GetAll()

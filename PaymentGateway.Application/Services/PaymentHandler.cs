@@ -6,9 +6,9 @@ using PaymentGateway.Core.Interfaces;
 
 namespace PaymentGateway.Application.Services;
 
-public class PaymentProcessingService(IServiceProvider serviceProvider, ILogger<PaymentProcessingService> logger) : IHostedService
+public class PaymentHandler(IServiceProvider serviceProvider, ILogger<PaymentHandler> logger) : IHostedService
 {
-    private Task? _worker;
+    private Task _worker = null!;
     private CancellationTokenSource _cts = null!;
     
     public Task StartAsync(CancellationToken cancellationToken)
@@ -23,16 +23,13 @@ public class PaymentProcessingService(IServiceProvider serviceProvider, ILogger<
         try
         {
             await _cts.CancelAsync();
-            if (_worker != null)
-            {
-                await Task.WhenAny(_worker, Task.Delay(Timeout.Infinite, cancellationToken));
-            }
+            await Task.WhenAny(_worker, Task.Delay(Timeout.Infinite, cancellationToken));
         }
         finally
         {
             logger.LogInformation("Сервис остановлен");
             _cts.Dispose();
-            _worker?.Dispose();
+            _worker.Dispose();
         }
     }
 
