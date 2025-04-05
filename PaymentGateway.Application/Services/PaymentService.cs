@@ -19,7 +19,7 @@ public class PaymentService(
     IOptions<PaymentDefaults> defaults,
     ILogger<PaymentService> logger) : IPaymentService
 {
-    public async Task<PaymentResponseDto> CreatePayment(PaymentCreateDto dto)
+    public async Task<PaymentResponseDto?> CreatePayment(PaymentCreateDto dto)
     {
         var validationResult = await paymentCreateValidator.ValidateAsync(dto);
         if (!validationResult.IsValid)
@@ -27,8 +27,13 @@ public class PaymentService(
             throw new ValidationException(validationResult.Errors);
         }
 
+        var containsPayment = await unit.PaymentRepository
+            .GetAll()
+            .AsNoTracking()
+            .FirstOrDefaultAsync(p => p.ExternalPaymentId == dto.PaymentId);
+        if (containsPayment is not null) return null;
+
         var now = DateTime.UtcNow;
-        
         var payment = new PaymentEntity()
         {
             Id = Guid.NewGuid(),

@@ -20,7 +20,12 @@ public class PaymentController(IPaymentService service) : ControllerBase
         {
             var payment = await service.CreatePayment(dto);
 
-            return Ok(payment);
+            if (payment is null)
+            {
+                return Conflict("Платеж с таким ID уже существует");
+            }
+
+            return Ok(payment.Id);
         }
         catch (ValidationException e)
         {
