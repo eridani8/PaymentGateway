@@ -1,9 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using PaymentGateway.Core;
 using PaymentGateway.Core.Entities;
+using PaymentGateway.Core.Interfaces;
 
 namespace PaymentGateway.Infrastructure.Data;
 
-public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
+public class AppDbContext(DbContextOptions<AppDbContext> options, ICryptographyService cryptographyService) : DbContext(options)
 {
     public DbSet<PaymentEntity> Payments { get; set; }
     public DbSet<RequisiteEntity> Requisites { get; set; }
@@ -11,6 +13,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        var stringEncryptionConverter = new StringEncryptionConverter(cryptographyService);
+        
         modelBuilder.Entity<PaymentEntity>(entity =>
         {
             entity.HasIndex(e => e.ExternalPaymentId).IsUnique();
@@ -32,6 +36,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         
         modelBuilder.Entity<RequisiteEntity>(entity =>
         {
+            entity.Property(x => x.CardNumber).HasConversion(stringEncryptionConverter);
+            entity.Property(x => x.BankAccountNumber).HasConversion(stringEncryptionConverter);
+            
             entity.HasIndex(e => e.IsActive);
             entity.HasIndex(e => e.Priority);
             

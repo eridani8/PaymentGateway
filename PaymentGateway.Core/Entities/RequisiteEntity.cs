@@ -21,19 +21,18 @@ public class RequisiteEntity
     /// <summary>
     /// Номер телефона
     /// </summary>
-    [MaxLength(15)]
     public required string PhoneNumber { get; init; }
     
     /// <summary>
     /// Номер карта
     /// </summary>
-    [MaxLength(19)]
+    [MaxLength(255)]
     public required string CardNumber { get; init; }
     
     /// <summary>
     /// Номер банковского счета
     /// </summary>
-    [MaxLength(34)]
+    [MaxLength(255)]
     public required string BankAccountNumber { get; init; }
 
     /// <summary>

@@ -32,8 +32,8 @@ public class CryptographyServiceService(IOptions<CryptographyConfig> config) : I
         aes.BlockSize = 128;
         aes.Mode = CipherMode.CBC;
         aes.Padding = PaddingMode.PKCS7;
-        aes.Key = Encoding.UTF8.GetBytes(config.Value.Key);
-        aes.IV = Encoding.UTF8.GetBytes(config.Value.IV);
+        aes.Key = Convert.FromBase64String(config.Value.Key); 
+        aes.IV = Convert.FromBase64String(config.Value.IV);
         return aes;
     }
 }
