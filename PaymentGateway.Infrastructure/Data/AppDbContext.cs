@@ -34,7 +34,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         {
             entity.HasIndex(e => e.IsActive);
             entity.HasIndex(e => e.Priority);
-            entity.HasIndex(e => e.Type);
             
             entity.HasOne(r => r.CurrentPayment)
                 .WithOne(p => p.Requisite)

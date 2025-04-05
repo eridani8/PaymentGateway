@@ -72,7 +72,13 @@ public class PaymentHandler(IServiceProvider serviceProvider, ILogger<PaymentHan
                     break;
                 }
 
-                var requisite = freeRequisites.First();
+                var requisite = freeRequisites.FirstOrDefault(r => r.MaxAmount <= payment.Amount);
+                if (requisite is null)
+                {
+                    logger.LogWarning("Нет подходящего реквизита для платежа {paymentId} с суммой {amount}", payment.Id, payment.Amount);
+                    continue;
+                }
+                
                 freeRequisites.Remove(requisite);
                 
                 payment.RequisiteId = requisite.Id;

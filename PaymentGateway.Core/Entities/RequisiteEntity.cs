@@ -1,51 +1,45 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using PaymentGateway.Core.Enums;
 
 namespace PaymentGateway.Core.Entities;
 
 public class RequisiteEntity
 {
-    public RequisiteEntity(RequisiteType type, string paymentData, string fullName, bool isActive, decimal maxAmount,
-        int cooldownMinutes, int priority)
-    {
-        Id = Guid.NewGuid();
-        Type = type;
-        PaymentData = paymentData;
-        FullName = fullName;
-        MaxAmount = maxAmount;
-        CooldownMinutes = cooldownMinutes;
-        Priority = priority;
-        IsActive = isActive;
-        CreatedAt = DateTime.UtcNow;
-    }
-
-    private RequisiteEntity() { }
+    public RequisiteEntity() { }
 
     /// <summary>
     /// Идентификатор реквизита
     /// </summary>
-    public Guid Id { get; init; }
-
-    /// <summary>
-    /// Тип реквизита
-    /// </summary>
-    public RequisiteType Type { get; init; }
-
-    /// <summary>
-    /// Данные для платежа
-    /// </summary>
-    public string PaymentData { get; init; }
+    public required Guid Id { get; init; }
 
     /// <summary>
     /// ФИО владельца
     /// </summary>
-    public string FullName { get; init; }
+    [MaxLength(70)]
+    public required string FullName { get; init; }
+    
+    /// <summary>
+    /// Номер телефона
+    /// </summary>
+    [MaxLength(15)]
+    public required string PhoneNumber { get; init; }
+    
+    /// <summary>
+    /// Номер карта
+    /// </summary>
+    [MaxLength(19)]
+    public required string CardNumber { get; init; }
+    
+    /// <summary>
+    /// Номер банковского счета
+    /// </summary>
+    [MaxLength(34)]
+    public required string BankAccountNumber { get; init; }
 
     /// <summary>
     /// Дата и время создания
     /// </summary>
-    public DateTime CreatedAt { get; init; }
+    public required DateTime CreatedAt { get; init; }
 
     /// <summary>
     /// Дата и время последней операции
@@ -62,7 +56,7 @@ public class RequisiteEntity
     /// <summary>
     /// Активен ли реквизит
     /// </summary>
-    public bool IsActive { get; set; }
+    public required bool IsActive { get; set; }
 
     /// <summary>
     /// Дата и время отключения (если реквизит неактивен)
@@ -81,15 +75,15 @@ public class RequisiteEntity
     /// </summary>
     [Range(0, 9999999999999999.99)]
     [Column(TypeName = "decimal(18,2)")]
-    public decimal MaxAmount { get; set; }
+    public required decimal MaxAmount { get; set; }
 
     /// <summary>
     /// Задержка перед следующей операцией
     /// </summary>
-    public int CooldownMinutes { get; set; }
+    public required int CooldownMinutes { get; set; }
 
     /// <summary>
     /// Приоритет использования
     /// </summary>
-    public int Priority { get; set; }
+    public required int Priority { get; set; }
 }

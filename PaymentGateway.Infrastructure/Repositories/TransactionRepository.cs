@@ -6,7 +6,5 @@ namespace PaymentGateway.Infrastructure.Repositories;
 
 public class TransactionRepository(AppDbContext context) : RepositoryBase<TransactionEntity>(context), ITransactionRepository 
 {
-    private readonly AppDbContext _context = context;
-    
     
 }

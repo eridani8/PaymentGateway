@@ -28,8 +28,6 @@ public class RequisiteService(
         }
 
         var requisite = new RequisiteEntityBuilder()
-            .WithType(dto.Type)
-            .WithPaymentData(dto.PaymentData)
             .WithFullName(dto.FullName)
             .WithIsActive(dto.IsActive)
             .WithMaxAmount(SettingsHelper.GetValueOrDefault(dto.MaxAmount, defaults.Value.MaxAmount))
