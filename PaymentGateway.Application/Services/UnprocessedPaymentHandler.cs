@@ -23,7 +23,7 @@ public class UnprocessedPaymentHandler(ILogger<UnprocessedPaymentHandler> logger
                 break;
             }
 
-            var requisite = requisiteService.SelectRequisite(freeRequisites, payment);
+            var requisite = freeRequisites.FirstOrDefault(r => r.MaxAmount >= payment.Amount);
             if (requisite is null)
             {
                 payment.Handle = true;
@@ -33,7 +33,11 @@ public class UnprocessedPaymentHandler(ILogger<UnprocessedPaymentHandler> logger
 
             freeRequisites.Remove(requisite);
             
-            requisiteService.PendingRequisite(requisite, payment);
+            requisite.CurrentPaymentId = payment.Id;
+            requisite.LastOperationTime = DateTime.UtcNow;
+        
+            payment.RequisiteId = requisite.Id;
+            payment.Status = PaymentStatus.Pending;
 
             logger.LogInformation("Платеж {payment} назначен реквизиту {requisite}", payment.Id, requisite.Id);
         }

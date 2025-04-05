@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using PaymentGateway.Application.DTOs.Transaction;
 using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Core.Entities;
+using PaymentGateway.Core.Enums;
 using PaymentGateway.Core.Exceptions;
 using PaymentGateway.Core.Interfaces;
 
@@ -54,7 +55,15 @@ public class TransactionService(
         
         logger.LogInformation("Поступление платежа на сумму {amount}", entity.ExtractedAmount);
 
-        requisiteService.FreeRequisite(requisite, entity);
+        requisite.CurrentPayment!.Status = PaymentStatus.Confirmed;
+        requisite.CurrentPayment!.ProcessedAt = DateTime.UtcNow;
+        requisite.CurrentPayment!.TransactionId = entity.Id;
+        
+        requisite.ReceivedFunds += entity.ExtractedAmount;
+        requisite.CurrentPaymentId = null;
+        requisite.Status = RequisiteStatus.Active;
+        
+        logger.LogInformation("Освобождение реквизита {requisiteId}", requisite.Id);
 
         await unit.TransactionRepository.Add(entity);
         await unit.Commit();

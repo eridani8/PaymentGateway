@@ -21,34 +21,6 @@ public class RequisiteService(
     IOptions<RequisiteDefaults> defaults,
     ILogger<RequisiteService> logger) : IRequisiteService
 {
-    public void FreeRequisite(RequisiteEntity requisite, TransactionEntity transaction)
-    {
-        requisite.CurrentPayment!.Status = PaymentStatus.Confirmed;
-        requisite.CurrentPayment!.ProcessedAt = DateTime.UtcNow;
-        requisite.CurrentPayment!.TransactionId = transaction.Id;
-        
-
-        requisite.ReceivedFunds += transaction.ExtractedAmount;
-        requisite.CurrentPaymentId = null;
-        requisite.Status = RequisiteStatus.Active;
-        
-        logger.LogInformation("Освобождение реквизита {requisiteId}", requisite.Id);
-    }
-
-    public void PendingRequisite(RequisiteEntity requisite, PaymentEntity payment)
-    {
-        requisite.CurrentPaymentId = payment.Id;
-        requisite.LastOperationTime = DateTime.UtcNow;
-        
-        payment.RequisiteId = requisite.Id;
-        payment.Status = PaymentStatus.Pending;
-    }
-
-    public RequisiteEntity? SelectRequisite(List<RequisiteEntity> requisites, PaymentEntity payment)
-    {
-        return requisites.FirstOrDefault(r => r.MaxAmount >= payment.Amount);
-    }
-    
     public async Task<RequisiteResponseDto> CreateRequisite(RequisiteCreateDto dto)
     {
         var validation = await validator.CreateValidator.ValidateAsync(dto);
