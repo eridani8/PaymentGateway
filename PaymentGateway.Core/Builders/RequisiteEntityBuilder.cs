@@ -6,35 +6,35 @@ namespace PaymentGateway.Core.Builders;
 public class RequisiteEntityBuilder
 {
     private string? _fullName;
-    private string? _phoneNumber;
-    private string? _cardNumber;
-    private string? _bankAccountNumber;
+    private RequisiteType _type;
+    private string? _paymentData;
+    private string? _bankNumber;
     private decimal _maxAmount;
     private int _cooldownMinutes;
     private int _priority;
     private bool _isActive;
-    
+
     public RequisiteEntityBuilder WithFullName(string fullName)
     {
         _fullName = fullName;
         return this;
     }
     
-    public RequisiteEntityBuilder WithPhoneNumber(string phoneNumber)
+    public RequisiteEntityBuilder WithPaymentData(string paymentData)
     {
-        _phoneNumber = phoneNumber;
+        _paymentData = paymentData;
+        return this;
+    }
+
+    public RequisiteEntityBuilder WithBankNumber(string bankNumber)
+    {
+        _bankNumber = bankNumber;
         return this;
     }
     
-    public RequisiteEntityBuilder WithCardNumber(string cardNumber)
+    public RequisiteEntityBuilder WithType(RequisiteType type)
     {
-        _cardNumber = cardNumber;
-        return this;
-    }
-    
-    public RequisiteEntityBuilder WithBankAccountNumber(string bankAccountNumber)
-    {
-        _bankAccountNumber = bankAccountNumber;
+        _type = type;
         return this;
     }
 
@@ -69,30 +69,25 @@ public class RequisiteEntityBuilder
             throw new ArgumentException("FullName является обязательным полем");
         }
         
-        if (string.IsNullOrEmpty(_phoneNumber))
+        if (string.IsNullOrEmpty(_paymentData))
         {
-            throw new ArgumentException("PhoneNumber является обязательным полем");
+            throw new ArgumentException("PaymentData является обязательным полем");
         }
         
-        if (string.IsNullOrEmpty(_cardNumber))
+        if (string.IsNullOrEmpty(_bankNumber))
         {
-            throw new ArgumentException("CardNumber является обязательным полем");
-        }
-        
-        if (string.IsNullOrEmpty(_bankAccountNumber))
-        {
-            throw new ArgumentException("BankAccountNumber является обязательным полем");
+            throw new ArgumentException("BankNumber является обязательным полем");
         }
 
-        return new RequisiteEntity()
+        return new RequisiteEntity
         {
             Id = Guid.NewGuid(),
             FullName = _fullName,
-            PhoneNumber = _phoneNumber,
-            CardNumber = _cardNumber,
-            BankAccountNumber = _bankAccountNumber,
+            PaymentType = _type,
+            PaymentData = _paymentData,
+            BankNumber = _bankNumber,
             CreatedAt = DateTime.UtcNow,
-            IsActive = _isActive,
+            Status = _isActive ? RequisiteStatus.Active : RequisiteStatus.Inactive,
             MaxAmount = _maxAmount,
             CooldownMinutes = _cooldownMinutes,
             Priority = _priority,

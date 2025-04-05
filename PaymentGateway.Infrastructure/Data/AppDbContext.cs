@@ -17,6 +17,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICryptographyS
         
         modelBuilder.Entity<PaymentEntity>(entity =>
         {
+            entity.HasIndex(e => e.Id).IsUnique();
             entity.HasIndex(e => e.ExternalPaymentId).IsUnique();
             entity.HasIndex(e => e.Status);
             entity.HasIndex(e => e.CreatedAt);
@@ -30,16 +31,18 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICryptographyS
         
         modelBuilder.Entity<TransactionEntity>(entity =>
         {
+            entity.HasIndex(e => e.Id).IsUnique();
             entity.HasIndex(e => e.PaymentId);
-            entity.HasIndex(e => e.ReceivedAt);
         });
         
         modelBuilder.Entity<RequisiteEntity>(entity =>
         {
-            entity.Property(x => x.CardNumber).HasConversion(stringEncryptionConverter);
-            entity.Property(x => x.BankAccountNumber).HasConversion(stringEncryptionConverter);
+            entity.HasIndex(e => e.Id).IsUnique();
             
-            entity.HasIndex(e => e.IsActive);
+            entity.Property(x => x.PaymentData).HasConversion(stringEncryptionConverter);
+            entity.Property(x => x.BankNumber).HasConversion(stringEncryptionConverter);
+            
+            entity.HasIndex(e => e.Status);
             entity.HasIndex(e => e.Priority);
             
             entity.HasOne(r => r.CurrentPayment)

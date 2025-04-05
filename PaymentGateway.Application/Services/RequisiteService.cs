@@ -30,13 +30,13 @@ public class RequisiteService(
 
         var requisite = new RequisiteEntityBuilder()
             .WithFullName(dto.FullName)
-            .WithPhoneNumber(dto.PhoneNumber)
-            .WithCardNumber(dto.CardNumber)
-            .WithBankAccountNumber(dto.BankAccountNumber)
+            .WithType(dto.RequisiteType)
+            .WithPaymentData(dto.PaymentData)
+            .WithBankNumber(dto.BankNumber)
             .WithIsActive(dto.IsActive)
-            .WithMaxAmount(SettingsHelper.GetValueOrDefault(dto.MaxAmount, defaults.Value.MaxAmount))
-            .WithCooldownMinutes(SettingsHelper.GetValueOrDefault(dto.CooldownMinutes, defaults.Value.CooldownMinutes))
-            .WithPriority(SettingsHelper.GetValueOrDefault(dto.Priority, defaults.Value.Priority))
+            .WithMaxAmount(SettingsExtensions.GetValueOrDefault(dto.MaxAmount, defaults.Value.MaxAmount))
+            .WithCooldownMinutes(SettingsExtensions.GetValueOrDefault(dto.CooldownMinutes, defaults.Value.CooldownMinutes))
+            .WithPriority(SettingsExtensions.GetValueOrDefault(dto.Priority, defaults.Value.Priority))
             .Build();
 
         await unit.RequisiteRepository.Add(requisite);

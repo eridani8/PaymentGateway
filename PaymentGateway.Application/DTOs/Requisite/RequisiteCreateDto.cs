@@ -1,14 +1,15 @@
 ﻿using System.ComponentModel;
+using PaymentGateway.Core.Enums;
 
 namespace PaymentGateway.Application.DTOs.Requisite;
 
 public class RequisiteCreateDto
 {
     public required string FullName { get; init; }
-    [DefaultValue("+1234567890")] public required string PhoneNumber { get; init; } // ~
-    [DefaultValue("12345678901234")] public required string CardNumber { get; init; } // ~
-    [DefaultValue("1234567890123456789012345")] public required string BankAccountNumber { get; init; } // ~
-    [DefaultValue(true)] public bool IsActive { get; init; } // ~
+    public RequisiteType RequisiteType { get; init; }
+    public required string PaymentData { get; init; }
+    [DefaultValue("1234567890123456789012345")] public required string BankNumber { get; init; } // ~
+    public bool IsActive { get; init; }
     [DefaultValue(5000)] public decimal? MaxAmount { get; init; } // ~
     [DefaultValue(100)] public int? CooldownMinutes { get; init; } // ~
     [DefaultValue(1)] public int? Priority { get; init; } // ~

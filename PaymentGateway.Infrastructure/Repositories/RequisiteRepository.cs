@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PaymentGateway.Core.Entities;
+using PaymentGateway.Core.Enums;
 using PaymentGateway.Core.Interfaces;
 using PaymentGateway.Infrastructure.Data;
 
@@ -12,7 +13,7 @@ public class RequisiteRepository(AppDbContext context) : RepositoryBase<Requisit
         return await
             GetAll()
                 .Include(r => r.CurrentPayment)
-                .Where(r => r.IsActive && r.CurrentPayment == null)
+                .Where(r => r.Status == RequisiteStatus.Active && r.CurrentPayment == null)
                 .OrderByDescending(r => r.Priority)
                 .ToListAsync();
     }

@@ -3,7 +3,7 @@ using FluentValidation;
 
 namespace PaymentGateway.Application.Validators;
 
-public static partial class ValidatorRules
+public static class ValidatorRules
 {
     public static IRuleBuilderOptions<T, Guid> ValidGuid<T>(this IRuleBuilder<T, Guid> rule)
     {
@@ -15,30 +15,30 @@ public static partial class ValidatorRules
     {
         return rule
             .NotEmpty()
-            .WithMessage("Требуется указать имя")
-            .Length(10, 70).WithMessage("ФИО должно быть от 10 до 70 символов")
-            .Matches(FullNameRegex()).WithMessage("ФИО должно содержать только буквы и пробелы")
-            .Must(name => name.Split(' ').Length == 3).WithMessage("ФИО должно состоять из 3 слов");
+            .WithMessage("Требуется указать имя и фамилию")
+            .Length(7, 40).WithMessage("Имя и фамилия должны быть от 7 до 40 символов")
+            .Matches(ValidationRegexps.FullNameRegex()).WithMessage("Имя и фамилия должна содержать только буквы и пробелы")
+            .Must(name => name.Split(' ').Length == 2).WithMessage("Имя и фамилия должна состоять из 2-х слов");
     }
     
     public static IRuleBuilderOptions<T, string> ValidPhoneNumber<T>(this IRuleBuilder<T, string> rule)
     {
         return rule
-            .Matches(PhoneRegex())
+            .Matches(ValidationRegexps.PhoneRegex())
             .WithMessage("Неверный формат номера телефона. Номер должен содержать от 10 до 15 цифр и может начинаться с '+'");
     }
     
     public static IRuleBuilderOptions<T, string> ValidCreditCardNumber<T>(this IRuleBuilder<T, string> rule)
     {
         return rule
-            .Matches(CreditCardRegex())
+            .Matches(ValidationRegexps.CreditCardRegex())
             .WithMessage("Неверный формат номера банковской карты. Номер должен содержать от 13 до 19 цифр");
     }
     
     public static IRuleBuilderOptions<T, string> ValidBankAccount<T>(this IRuleBuilder<T, string> rule)
     {
         return rule
-            .Matches(BankAccountRegex())
+            .Matches(ValidationRegexps.BankAccountRegex())
             .WithMessage("Неверный формат банковского счета. Счет должен содержать от 8 до 34 цифр.");
     }
 
@@ -77,17 +77,4 @@ public static partial class ValidatorRules
             .GreaterThan(0).WithMessage("Задержка должна быть больше 0")
             .LessThanOrEqualTo(maxCooldown).WithMessage($"Задержка должна быть меньше или равна {maxCooldown}");
     }
-
-    [GeneratedRegex(@"^[А-Яа-яЁёA-Za-z\s]+$")]
-    private static partial Regex FullNameRegex();
-    
-    [GeneratedRegex(@"^\+?\d{10,15}$")]
-    private static partial Regex PhoneRegex();
-
-    [GeneratedRegex(@"^\d{13,19}$")]
-    private static partial Regex CreditCardRegex();
-    
-    [GeneratedRegex(@"^[0-9]{8,34}$")]
-    private static partial Regex BankAccountRegex();
-    
 }

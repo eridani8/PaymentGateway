@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using PaymentGateway.Core.Enums;
 
 namespace PaymentGateway.Core.Entities;
 
@@ -13,27 +14,26 @@ public class RequisiteEntity
     public required Guid Id { get; init; }
 
     /// <summary>
-    /// ФИО владельца
+    /// Имя и фамилия владельца
     /// </summary>
-    [MaxLength(70)]
+    [MaxLength(40)]
     public required string FullName { get; init; }
     
     /// <summary>
-    /// Номер телефона
+    /// Тип реквизита
     /// </summary>
-    public required string PhoneNumber { get; init; }
+    public RequisiteType PaymentType { get; init; }
     
     /// <summary>
-    /// Номер карта
+    /// Данные для платежа
     /// </summary>
-    [MaxLength(255)]
-    public required string CardNumber { get; init; }
+    public required string PaymentData { get; init; }
     
     /// <summary>
     /// Номер банковского счета
     /// </summary>
     [MaxLength(255)]
-    public required string BankAccountNumber { get; init; }
+    public required string BankNumber { get; init; }
 
     /// <summary>
     /// Дата и время создания
@@ -53,9 +53,9 @@ public class RequisiteEntity
     public PaymentEntity? CurrentPayment { get; set; }
 
     /// <summary>
-    /// Активен ли реквизит
+    /// Статус реквизита
     /// </summary>
-    public required bool IsActive { get; set; }
+    public required RequisiteStatus Status { get; set; }
 
     /// <summary>
     /// Дата и время отключения (если реквизит неактивен)
@@ -67,7 +67,7 @@ public class RequisiteEntity
     /// </summary>
     [Range(0, 9999999999999999.99)]
     [Column(TypeName = "decimal(18,2)")]
-    public decimal ReceivedFounds { get; set; }
+    public decimal ReceivedFunds { get; set; }
     
     /// <summary>
     /// Максимальная сумма платежа
