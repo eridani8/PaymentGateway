@@ -23,7 +23,7 @@ public class UnprocessedPaymentHandler(ILogger<UnprocessedPaymentHandler> logger
                 break;
             }
 
-            var requisite = freeRequisites.FirstOrDefault(r => r.MaxAmount <= payment.Amount);
+            var requisite = freeRequisites.FirstOrDefault(r => r.MaxAmount >= payment.Amount);
             if (requisite is null)
             {
                 logger.LogWarning("Нет подходящего реквизита для платежа {paymentId} с суммой {amount}", payment.Id, payment.Amount);
