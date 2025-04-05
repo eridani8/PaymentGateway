@@ -66,22 +66,22 @@ public class RequisiteEntityBuilder
     {
         if (string.IsNullOrEmpty(_fullName))
         {
-            throw new InvalidOperationException("FullName является обязательным полем");
+            throw new ArgumentException("FullName является обязательным полем");
         }
         
         if (string.IsNullOrEmpty(_phoneNumber))
         {
-            throw new InvalidOperationException("PhoneNumber является обязательным полем");
+            throw new ArgumentException("PhoneNumber является обязательным полем");
         }
         
         if (string.IsNullOrEmpty(_cardNumber))
         {
-            throw new InvalidOperationException("CardNumber является обязательным полем");
+            throw new ArgumentException("CardNumber является обязательным полем");
         }
         
         if (string.IsNullOrEmpty(_bankAccountNumber))
         {
-            throw new InvalidOperationException("BankAccountNumber является обязательным полем");
+            throw new ArgumentException("BankAccountNumber является обязательным полем");
         }
 
         return new RequisiteEntity()

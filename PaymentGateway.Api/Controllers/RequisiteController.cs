@@ -1,5 +1,6 @@
 ﻿using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
+using PaymentGateway.Application;
 using PaymentGateway.Application.DTOs.Requisite;
 using PaymentGateway.Application.Interfaces;
 
@@ -18,12 +19,12 @@ public class RequisiteController(IRequisiteService service) : ControllerBase
         try
         {
             var requisite = await service.CreateRequisite(dto);
-
+            
             return Ok(requisite);
         }
         catch (ValidationException e)
         {
-            return BadRequest(e.Errors);
+            return BadRequest(e.Errors.GetErrors());
         }
     }
     
@@ -62,9 +63,9 @@ public class RequisiteController(IRequisiteService service) : ControllerBase
             
             return NoContent();
         }
-        catch (ValidationException ex)
+        catch (ValidationException e)
         {
-            return BadRequest(ex.Errors);
+            return BadRequest(e.Errors.GetErrors());
         }
     }
     

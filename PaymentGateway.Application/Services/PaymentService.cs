@@ -24,7 +24,7 @@ public class PaymentService(
         var validationResult = await paymentCreateValidator.ValidateAsync(dto);
         if (!validationResult.IsValid)
         {
-            throw new ArgumentException(string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage)));
+            throw new ValidationException(validationResult.Errors);
         }
 
         var now = DateTime.UtcNow;

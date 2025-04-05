@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -19,12 +20,12 @@ public class RequisiteService(
     IOptions<RequisiteDefaults> defaults,
     ILogger<RequisiteService> logger) : IRequisiteService
 {
-    public async Task<RequisiteResponseDto> CreateRequisite(RequisiteCreateDto dto)
+    public async Task<RequisiteResponseDto?> CreateRequisite(RequisiteCreateDto dto)
     {
         var validationResult = await validator.CreateValidator.ValidateAsync(dto);
         if (!validationResult.IsValid)
         {
-            throw new ArgumentException(string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage)));
+            throw new ValidationException(validationResult.Errors);
         }
 
         var requisite = new RequisiteEntityBuilder()
@@ -63,8 +64,7 @@ public class RequisiteService(
         var validationResult = await validator.UpdateValidator.ValidateAsync(dto);
         if (!validationResult.IsValid)
         {
-            throw new ArgumentException(string.Join(Environment.NewLine,
-                validationResult.Errors.Select(e => e.ErrorMessage)));
+            throw new ValidationException(validationResult.Errors);
         }
 
         var entity = await unit.RequisiteRepository.GetById(id);

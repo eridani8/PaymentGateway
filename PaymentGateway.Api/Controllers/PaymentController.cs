@@ -1,5 +1,6 @@
 ﻿using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
+using PaymentGateway.Application;
 using PaymentGateway.Application.DTOs.Payment;
 using PaymentGateway.Application.Interfaces;
 
@@ -23,7 +24,7 @@ public class PaymentController(IPaymentService service) : ControllerBase
         }
         catch (ValidationException e)
         {
-            return BadRequest(e.Errors);
+            return BadRequest(e.Errors.GetErrors());
         }
     }
     

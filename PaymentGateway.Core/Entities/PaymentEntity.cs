@@ -73,4 +73,6 @@ public sealed class PaymentEntity
     public int? TransactionId { get; set; }
     
     public TransactionEntity? Transaction { get; set; }
+    
+    public bool Handle { get; set; }
 }
