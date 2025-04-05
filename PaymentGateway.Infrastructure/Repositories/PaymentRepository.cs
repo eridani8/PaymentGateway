@@ -7,6 +7,8 @@ namespace PaymentGateway.Infrastructure.Repositories;
 
 public class PaymentRepository(AppDbContext context) : RepositoryBase<PaymentEntity>(context), IPaymentRepository
 {
+    // public async Task<PaymentEntity?> GetPayment
+    
     public async Task<List<PaymentEntity>> GetUnprocessedPayments()
     {
         return await

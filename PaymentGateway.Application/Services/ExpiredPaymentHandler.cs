@@ -13,7 +13,7 @@ public class ExpiredPaymentHandler(ILogger<ExpiredPaymentHandler> logger) : IExp
         {
             foreach (var expiredPayment in expiredPayments)
             {
-                logger.LogInformation("Просроченный платеж {payment} удален", expiredPayment.Id);
+                logger.LogInformation("Платеж {payment} просрочен, и был удален", expiredPayment.Id);
             }
 
             await unit.PaymentRepository.DeletePayments(expiredPayments);

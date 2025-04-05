@@ -5,5 +5,5 @@ namespace PaymentGateway.Application.Interfaces;
 
 public interface IUnprocessedPaymentHandler
 {
-    Task HandleUnprocessedPayments(IUnitOfWork unit);
+    Task HandleUnprocessedPayments(IUnitOfWork unit, IRequisiteService requisiteService);
 }

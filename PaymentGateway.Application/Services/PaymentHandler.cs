@@ -42,12 +42,13 @@ public class PaymentHandler(IServiceProvider serviceProvider, ILogger<PaymentHan
         {
             using var scope = serviceProvider.CreateScope();
             var unit = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+            var requisiteService = scope.ServiceProvider.GetRequiredService<IRequisiteService>();
             
             var expiredPaymentHandler = scope.ServiceProvider.GetRequiredService<IExpiredPaymentHandler>();
             await expiredPaymentHandler.HandleExpiredPayments(unit);
 
             var unprocessedPaymentHandler = scope.ServiceProvider.GetRequiredService<IUnprocessedPaymentHandler>();
-            await unprocessedPaymentHandler.HandleUnprocessedPayments(unit);
+            await unprocessedPaymentHandler.HandleUnprocessedPayments(unit, requisiteService);
 
             await Task.Delay(1000, _cts.Token);
         }

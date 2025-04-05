@@ -8,6 +8,7 @@ using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Core;
 using PaymentGateway.Core.Entities;
 using PaymentGateway.Core.Enums;
+using PaymentGateway.Core.Exceptions;
 using PaymentGateway.Core.Interfaces;
 
 namespace PaymentGateway.Application.Services;
@@ -15,26 +16,29 @@ namespace PaymentGateway.Application.Services;
 public class PaymentService(
     IUnitOfWork unit,
     IMapper mapper,
-    IValidator<PaymentCreateDto> paymentCreateValidator,
+    IValidator<PaymentCreateDto> validator,
     IOptions<PaymentDefaults> defaults,
     ILogger<PaymentService> logger) : IPaymentService
 {
-    public async Task<PaymentResponseDto?> CreatePayment(PaymentCreateDto dto)
+    public async Task<PaymentResponseDto> CreatePayment(PaymentCreateDto dto)
     {
-        var validationResult = await paymentCreateValidator.ValidateAsync(dto);
-        if (!validationResult.IsValid)
+        var validation = await validator.ValidateAsync(dto);
+        if (!validation.IsValid)
         {
-            throw new ValidationException(validationResult.Errors);
+            throw new ValidationException(validation.Errors);
         }
 
-        var containsPayment = await unit.PaymentRepository
+        var containsEntity = await unit.PaymentRepository
             .GetAll()
             .AsNoTracking()
             .FirstOrDefaultAsync(p => p.ExternalPaymentId == dto.PaymentId);
-        if (containsPayment is not null) return null;
+        if (containsEntity is not null)
+        {
+            throw new DuplicatePaymentException();
+        }
 
         var now = DateTime.UtcNow;
-        var payment = new PaymentEntity()
+        var entity = new PaymentEntity()
         {
             Id = Guid.NewGuid(),
             ExternalPaymentId = dto.PaymentId,
@@ -45,12 +49,12 @@ public class PaymentService(
             ExpiresAt = now.AddMinutes(defaults.Value.ExpiresMinutes)
         };
 
-        await unit.PaymentRepository.Add(payment);
+        await unit.PaymentRepository.Add(entity);
         await unit.Commit();
         
-        logger.LogInformation("Создание платежа {paymentId} на сумму {amount}", payment.Id, payment.Amount);
+        logger.LogInformation("Создание платежа {paymentId} на сумму {amount}", entity.Id, entity.Amount);
 
-        return mapper.Map<PaymentResponseDto>(payment);
+        return mapper.Map<PaymentResponseDto>(entity);
     }
 
     public async Task<IEnumerable<PaymentResponseDto>> GetAllPayments()

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using PaymentGateway.Application;
 using PaymentGateway.Application.DTOs.Payment;
 using PaymentGateway.Application.Interfaces;
+using PaymentGateway.Core.Exceptions;
 
 namespace PaymentGateway.Api.Controllers;
 
@@ -19,13 +20,11 @@ public class PaymentController(IPaymentService service) : ControllerBase
         try
         {
             var payment = await service.CreatePayment(dto);
-
-            if (payment is null)
-            {
-                return Conflict("Платеж с таким ID уже существует");
-            }
-
-            return Ok(payment.Id);
+            return Ok(payment);
+        }
+        catch (DuplicatePaymentException e)
+        {
+            return Conflict("Платеж с таким ID уже существует");
         }
         catch (ValidationException e)
         {

@@ -70,7 +70,7 @@ public sealed class PaymentEntity
     /// <summary>
     /// Идентификатор связанной транзакции
     /// </summary>
-    public int? TransactionId { get; set; }
+    public Guid? TransactionId { get; set; }
     
     public TransactionEntity? Transaction { get; set; }
     

@@ -7,7 +7,7 @@ namespace PaymentGateway.Application.Services;
 
 public class UnprocessedPaymentHandler(ILogger<UnprocessedPaymentHandler> logger) : IUnprocessedPaymentHandler
 {
-    public async Task HandleUnprocessedPayments(IUnitOfWork unit)
+    public async Task HandleUnprocessedPayments(IUnitOfWork unit, IRequisiteService requisiteService)
     {
         var unprocessedPayments = await unit.PaymentRepository.GetUnprocessedPayments();
 
@@ -23,7 +23,7 @@ public class UnprocessedPaymentHandler(ILogger<UnprocessedPaymentHandler> logger
                 break;
             }
 
-            var requisite = freeRequisites.FirstOrDefault(r => r.MaxAmount >= payment.Amount);
+            var requisite = requisiteService.SelectRequisite(freeRequisites, payment);
             if (requisite is null)
             {
                 payment.Handle = true;
@@ -32,12 +32,8 @@ public class UnprocessedPaymentHandler(ILogger<UnprocessedPaymentHandler> logger
             }
 
             freeRequisites.Remove(requisite);
-
-            payment.RequisiteId = requisite.Id;
-            payment.Status = PaymentStatus.Pending;
-
-            requisite.CurrentPaymentId = payment.Id;
-            requisite.LastOperationTime = DateTime.UtcNow;
+            
+            requisiteService.PendingRequisite(requisite, payment);
 
             logger.LogInformation("Платеж {payment} назначен реквизиту {requisite}", payment.Id, requisite.Id);
         }

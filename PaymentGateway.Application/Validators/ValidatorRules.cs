@@ -77,4 +77,12 @@ public static class ValidatorRules
             .GreaterThan(0).WithMessage("Задержка должна быть больше 0")
             .LessThanOrEqualTo(maxCooldown).WithMessage($"Задержка должна быть меньше или равна {maxCooldown}");
     }
+    
+    public static IRuleBuilderOptions<T, DateTime> ValidDate<T>(this IRuleBuilder<T, DateTime> rule)
+    {
+        return rule
+            .NotEmpty().WithMessage("Требуется указать дату")
+            .Must(date => date != default).WithMessage("Дата не может быть значением по умолчанию")
+            .LessThanOrEqualTo(DateTime.Now).WithMessage("Дата не может быть в будущем");
+    }
 }

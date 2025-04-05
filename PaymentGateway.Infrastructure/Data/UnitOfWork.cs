@@ -5,12 +5,14 @@ namespace PaymentGateway.Infrastructure.Data;
 public sealed class UnitOfWork(
     AppDbContext context,
     IRequisiteRepository requisiteRepository,
-    IPaymentRepository paymentRepository) : IUnitOfWork, IDisposable
+    IPaymentRepository paymentRepository,
+    ITransactionRepository transactionRepository) : IUnitOfWork, IDisposable
 {
     private bool _disposed;
 
     public IRequisiteRepository RequisiteRepository { get; } = requisiteRepository;
     public IPaymentRepository PaymentRepository { get; } = paymentRepository;
+    public ITransactionRepository TransactionRepository { get; } = transactionRepository;
 
     public async Task Commit()
     {

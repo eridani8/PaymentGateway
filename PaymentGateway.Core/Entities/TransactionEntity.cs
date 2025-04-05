@@ -14,7 +14,12 @@ public sealed class TransactionEntity
     public required Guid Id { get; init; }
     
     /// <summary>
-    /// Идентификатор связанного платежа
+    /// Идентификатор реквизита
+    /// </summary>
+    public required Guid RequisiteId { get; init; }
+    
+    /// <summary>
+    /// Идентификатор платежа
     /// </summary>
     public required Guid PaymentId { get; init; }
     

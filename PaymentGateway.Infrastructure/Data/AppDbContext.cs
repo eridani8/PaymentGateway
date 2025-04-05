@@ -23,9 +23,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICryptographyS
             entity.HasIndex(e => e.CreatedAt);
 
             entity
-                .HasOne(e => e.Requisite)
-                .WithOne(e => e.CurrentPayment)
-                .HasForeignKey<PaymentEntity>(p => p.RequisiteId)
+                .HasOne(e => e.Transaction)
+                .WithOne(e => e.Payment)
+                .HasForeignKey<TransactionEntity>(p => p.PaymentId)
                 .OnDelete(DeleteBehavior.SetNull);
         });
         
@@ -46,7 +46,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICryptographyS
             entity.HasIndex(e => e.Priority);
             
             entity.HasOne(r => r.CurrentPayment)
-                .WithOne(p => p.Requisite)
+                .WithOne()
                 .HasForeignKey<RequisiteEntity>(r => r.CurrentPaymentId)
                 .OnDelete(DeleteBehavior.SetNull);
         });

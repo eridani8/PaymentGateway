@@ -5,11 +5,13 @@ using NpgsqlTypes;
 using PaymentGateway.Api;
 using PaymentGateway.Application.DTOs.Payment;
 using PaymentGateway.Application.DTOs.Requisite;
+using PaymentGateway.Application.DTOs.Transaction;
 using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Application.Mappings;
 using PaymentGateway.Application.Services;
 using PaymentGateway.Application.Validators.Payment;
 using PaymentGateway.Application.Validators.Requisite;
+using PaymentGateway.Application.Validators.Transaction;
 using PaymentGateway.Core;
 using PaymentGateway.Core.Interfaces;
 using PaymentGateway.Infrastructure.Data;
@@ -84,6 +86,7 @@ try
     
     builder.Services.AddAutoMapper(typeof(RequisiteProfile));
     builder.Services.AddAutoMapper(typeof(PaymentProfile));
+    builder.Services.AddAutoMapper(typeof(TransactionProfile));
 
     builder.Services.AddScoped<IValidator<RequisiteCreateDto>, RequisiteCreateDtoValidator>();
     builder.Services.AddScoped<IValidator<RequisiteUpdateDto>, RequisiteUpdateDtoValidator>();
@@ -92,6 +95,9 @@ try
 
     builder.Services.AddScoped<IValidator<PaymentCreateDto>, PaymentCreateDtoValidator>();
     builder.Services.AddScoped<IPaymentService, PaymentService>();
+
+    builder.Services.AddScoped<IValidator<TransactionCreateDto>, TransactionCreateDtoValidator>();
+    builder.Services.AddScoped<ITransactionService, TransactionService>();
 
     builder.Services.AddScoped<IExpiredPaymentHandler, ExpiredPaymentHandler>();
     builder.Services.AddScoped<IUnprocessedPaymentHandler, UnprocessedPaymentHandler>();

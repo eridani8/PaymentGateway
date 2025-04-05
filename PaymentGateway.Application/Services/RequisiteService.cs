@@ -8,6 +8,7 @@ using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Core;
 using PaymentGateway.Core.Builders;
 using PaymentGateway.Core.Entities;
+using PaymentGateway.Core.Enums;
 using PaymentGateway.Core.Interfaces;
 using Serilog;
 
@@ -20,15 +21,43 @@ public class RequisiteService(
     IOptions<RequisiteDefaults> defaults,
     ILogger<RequisiteService> logger) : IRequisiteService
 {
-    public async Task<RequisiteResponseDto?> CreateRequisite(RequisiteCreateDto dto)
+    public void FreeRequisite(RequisiteEntity requisite, TransactionEntity transaction)
     {
-        var validationResult = await validator.CreateValidator.ValidateAsync(dto);
-        if (!validationResult.IsValid)
+        requisite.CurrentPayment!.Status = PaymentStatus.Confirmed;
+        requisite.CurrentPayment!.ProcessedAt = DateTime.UtcNow;
+        requisite.CurrentPayment!.TransactionId = transaction.Id;
+        
+
+        requisite.ReceivedFunds += transaction.ExtractedAmount;
+        requisite.CurrentPaymentId = null;
+        requisite.Status = RequisiteStatus.Active;
+        
+        logger.LogInformation("Освобождение реквизита {requisiteId}", requisite.Id);
+    }
+
+    public void PendingRequisite(RequisiteEntity requisite, PaymentEntity payment)
+    {
+        requisite.CurrentPaymentId = payment.Id;
+        requisite.LastOperationTime = DateTime.UtcNow;
+        
+        payment.RequisiteId = requisite.Id;
+        payment.Status = PaymentStatus.Pending;
+    }
+
+    public RequisiteEntity? SelectRequisite(List<RequisiteEntity> requisites, PaymentEntity payment)
+    {
+        return requisites.FirstOrDefault(r => r.MaxAmount >= payment.Amount);
+    }
+    
+    public async Task<RequisiteResponseDto> CreateRequisite(RequisiteCreateDto dto)
+    {
+        var validation = await validator.CreateValidator.ValidateAsync(dto);
+        if (!validation.IsValid)
         {
-            throw new ValidationException(validationResult.Errors);
+            throw new ValidationException(validation.Errors);
         }
 
-        var requisite = new RequisiteEntityBuilder()
+        var entity = new RequisiteEntityBuilder()
             .WithFullName(dto.FullName)
             .WithType(dto.RequisiteType)
             .WithPaymentData(dto.PaymentData)
@@ -39,12 +68,12 @@ public class RequisiteService(
             .WithPriority(SettingsExtensions.GetValueOrDefault(dto.Priority, defaults.Value.Priority))
             .Build();
 
-        await unit.RequisiteRepository.Add(requisite);
+        await unit.RequisiteRepository.Add(entity);
         await unit.Commit();
         
-        logger.LogInformation("Создание реквизита {requisiteId}", requisite.Id);
+        logger.LogInformation("Создание реквизита {requisiteId}", entity.Id);
 
-        return mapper.Map<RequisiteResponseDto>(requisite);
+        return mapper.Map<RequisiteResponseDto>(entity);
     }
 
     public async Task<IEnumerable<RequisiteResponseDto>> GetAllRequisites()
@@ -61,10 +90,10 @@ public class RequisiteService(
 
     public async Task<bool> UpdateRequisite(Guid id, RequisiteUpdateDto dto)
     {
-        var validationResult = await validator.UpdateValidator.ValidateAsync(dto);
-        if (!validationResult.IsValid)
+        var validation = await validator.UpdateValidator.ValidateAsync(dto);
+        if (!validation.IsValid)
         {
-            throw new ValidationException(validationResult.Errors);
+            throw new ValidationException(validation.Errors);
         }
 
         var entity = await unit.RequisiteRepository.GetById(id);
