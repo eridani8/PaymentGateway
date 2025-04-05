@@ -1,10 +1,11 @@
 ﻿using System.Security.Cryptography;
 using System.Text;
+using Microsoft.Extensions.Options;
 using PaymentGateway.Core.Interfaces;
 
 namespace PaymentGateway.Core;
 
-public class CryptographyServiceService(CryptographyConfig config) : ICryptographyService
+public class CryptographyServiceService(IOptions<CryptographyConfig> config) : ICryptographyService
 {
     public string Encrypt(string text)
     {
@@ -31,8 +32,8 @@ public class CryptographyServiceService(CryptographyConfig config) : ICryptograp
         aes.BlockSize = 128;
         aes.Mode = CipherMode.CBC;
         aes.Padding = PaddingMode.PKCS7;
-        aes.Key = Encoding.UTF8.GetBytes(config.Key);
-        aes.IV = Encoding.UTF8.GetBytes(config.IV);
+        aes.Key = Encoding.UTF8.GetBytes(config.Value.Key);
+        aes.IV = Encoding.UTF8.GetBytes(config.Value.IV);
         return aes;
     }
 }

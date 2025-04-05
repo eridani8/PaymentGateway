@@ -29,6 +29,9 @@ public class RequisiteService(
 
         var requisite = new RequisiteEntityBuilder()
             .WithFullName(dto.FullName)
+            .WithPhoneNumber(dto.PhoneNumber)
+            .WithCardNumber(dto.CardNumber)
+            .WithBankAccountNumber(dto.BankAccountNumber)
             .WithIsActive(dto.IsActive)
             .WithMaxAmount(SettingsHelper.GetValueOrDefault(dto.MaxAmount, defaults.Value.MaxAmount))
             .WithCooldownMinutes(SettingsHelper.GetValueOrDefault(dto.CooldownMinutes, defaults.Value.CooldownMinutes))

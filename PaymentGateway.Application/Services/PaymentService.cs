@@ -7,6 +7,7 @@ using PaymentGateway.Application.DTOs.Payment;
 using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Core;
 using PaymentGateway.Core.Entities;
+using PaymentGateway.Core.Enums;
 using PaymentGateway.Core.Interfaces;
 
 namespace PaymentGateway.Application.Services;
@@ -26,7 +27,18 @@ public class PaymentService(
             throw new ArgumentException(string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage)));
         }
 
-        var payment = new PaymentEntity(dto.PaymentId, dto.Amount, dto.UserId, defaults.Value.ExpiresMinutes);
+        var now = DateTime.UtcNow;
+        
+        var payment = new PaymentEntity()
+        {
+            Id = Guid.NewGuid(),
+            ExternalPaymentId = dto.PaymentId,
+            UserId = dto.UserId,
+            Amount = dto.Amount,
+            Status = PaymentStatus.Created,
+            CreatedAt = now,
+            ExpiresAt = now.AddMinutes(defaults.Value.ExpiresMinutes)
+        };
 
         await unit.PaymentRepository.Add(payment);
         await unit.Commit();
