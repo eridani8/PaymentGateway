@@ -17,7 +17,7 @@ public class PaymentHandler(ILogger<PaymentHandler> logger) : IPaymentHandler
                 logger.LogInformation("Платеж {payment} просрочен, и был удален", expiredPayment.Id);
             }
         
-            await unit.PaymentRepository.DeletePayments(expiredPayments);
+            unit.PaymentRepository.DeletePayments(expiredPayments);
             await unit.Commit();
         }
     }

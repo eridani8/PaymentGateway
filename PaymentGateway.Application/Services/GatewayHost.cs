@@ -1,8 +1,11 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using PaymentGateway.Application.Interfaces;
+using PaymentGateway.Core.Entities;
 using PaymentGateway.Core.Interfaces;
+using PaymentGateway.Infrastructure;
 
 namespace PaymentGateway.Application.Services;
 
@@ -11,11 +14,16 @@ public class GatewayHost(IServiceProvider serviceProvider, ILogger<GatewayHost> 
     private Task _worker = null!;
     private CancellationTokenSource _cts = null!;
     
-    public Task StartAsync(CancellationToken cancellationToken)
+    public async Task StartAsync(CancellationToken cancellationToken)
     {
+        using var scope = serviceProvider.CreateScope();
+        var unit = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+        var requisites = await unit.RequisiteRepository.GetAll().AsNoTracking().ToListAsync(cancellationToken);
+
+        // TODO
+        
         _cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         _worker = Worker();
-        return Task.CompletedTask;
     }
 
     public async Task StopAsync(CancellationToken cancellationToken)
@@ -37,8 +45,6 @@ public class GatewayHost(IServiceProvider serviceProvider, ILogger<GatewayHost> 
     {
         await Task.Delay(1000, _cts.Token);
         logger.LogInformation("Сервис запущен");
-        
-        
         
         while (!_cts.IsCancellationRequested)
         {

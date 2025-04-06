@@ -19,7 +19,6 @@ using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.PostgreSQL;
 using Serilog.Sinks.PostgreSQL.ColumnWriters;
-using StackExchange.Redis;
 
 try
 {
@@ -34,16 +33,10 @@ try
     }
 
     var mainConnectionString = builder.Configuration.GetConnectionString("Main");
-    var cacheConnectionString = builder.Configuration.GetConnectionString("Cache");
 
     if (string.IsNullOrEmpty(mainConnectionString))
     {
         throw new ApplicationException("Нужно указать строку подключения базы данных");
-    }
-
-    if (string.IsNullOrEmpty(cacheConnectionString))
-    {
-        throw new ApplicationException("Нужно указать строку подключения кеша");
     }
 
     var columnWriters = new Dictionary<string, ColumnWriterBase>
@@ -83,13 +76,8 @@ try
 
     builder.Services.AddScoped<ICryptographyService, CryptographyService>();
 
-    var redisOptions = new ConfigurationOptions()
-    {
-        EndPoints = { cacheConnectionString },
-        DefaultDatabase = 0,
-    };
-    builder.Services.AddSingleton<IConnectionMultiplexer>(_ => ConnectionMultiplexer.Connect(redisOptions));
-    builder.Services.AddSingleton<ICache, RedisCache>();
+    builder.Services.AddMemoryCache();
+    builder.Services.AddSingleton<ICache, InMemoryCache>();
 
     builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
     builder.Services.AddScoped<IRequisiteRepository, RequisiteRepository>();

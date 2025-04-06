@@ -26,11 +26,11 @@ public class PaymentRepository(AppDbContext context, ICache cache) : RepositoryB
                 .ToListAsync();
     }
     
-    public async Task DeletePayments(IEnumerable<PaymentEntity> entities)
+    public void DeletePayments(IEnumerable<PaymentEntity> entities)
     {
         foreach (var entity in entities)
         {
-            await Delete(entity);
+            Delete(entity);
         }
     }
 }

@@ -74,7 +74,7 @@ public class PaymentService(
         var entity = await unit.PaymentRepository.GetById(id);
         if (entity is null) return false;
 
-        await unit.PaymentRepository.Delete(entity);
+        unit.PaymentRepository.Delete(entity);
         await unit.Commit();
         
         logger.LogInformation("Удаление платежа {paymentId}", entity.Id);

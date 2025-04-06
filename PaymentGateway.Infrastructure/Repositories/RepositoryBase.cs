@@ -20,7 +20,7 @@ public class RepositoryBase<TEntity>(AppDbContext context, ICache cache)
     public async Task<TEntity?> GetById(Guid id)
     {
         var key = CacheHelper<TEntity>.GetCacheKey(id);
-        var cached = await cache.Get<TEntity>(key);
+        var cached = cache.Get<TEntity>(key);
         if (cached is not null)
         {
             return cached;
@@ -29,7 +29,7 @@ public class RepositoryBase<TEntity>(AppDbContext context, ICache cache)
         var entity = await _entities.FindAsync(id);
         if (entity is not null)
         {
-            await cache.Set(key, entity);
+            cache.Set(key, entity);
         }
 
         return entity;
@@ -38,33 +38,20 @@ public class RepositoryBase<TEntity>(AppDbContext context, ICache cache)
     public async Task Add(TEntity entity)
     {
         await _entities.AddAsync(entity);
-
-        if (CacheHelper<TEntity>.TryGetEntityId(entity, out var id))
-        {
-            var cacheKey = CacheHelper<TEntity>.GetCacheKey(id);
-            await cache.Set(cacheKey, entity);
-        }
+        cache.Set(entity);
     }
 
-    public async Task Update(TEntity entity)
+    public void Update(TEntity entity)
     {
         _entities.Update(entity);
         
-        if (CacheHelper<TEntity>.TryGetEntityId(entity, out var id))
-        {
-            var cacheKey = CacheHelper<TEntity>.GetCacheKey(id);
-            await cache.Set(cacheKey, entity);
-        }
+        cache.Set(entity);
     }
 
-    public async Task Delete(TEntity entity)
+    public void Delete(TEntity entity)
     {
         _entities.Remove(entity);
         
-        if (CacheHelper<TEntity>.TryGetEntityId(entity, out var id))
-        {
-            var cacheKey = CacheHelper<TEntity>.GetCacheKey(id);
-            await cache.Remove(cacheKey);
-        }
+        cache.Remove(entity);
     }
 }
