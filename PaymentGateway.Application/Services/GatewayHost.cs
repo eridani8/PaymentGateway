@@ -11,7 +11,12 @@ namespace PaymentGateway.Application.Services;
 
 public class GatewayHost(IServiceProvider serviceProvider, ILogger<GatewayHost> logger, ICache cache) : IHostedService
 {
-    private Task _worker = null!;
+    private readonly TimeSpan _startDelay = TimeSpan.FromSeconds(3);
+    private readonly TimeSpan _paymentProcessInterval = TimeSpan.FromSeconds(1);
+    private readonly TimeSpan _requisiteProcessInterval = TimeSpan.FromMinutes(1);
+    
+    private Task _paymentProcessing = null!;
+    private Task _requisitesCheck = null!;
     private CancellationTokenSource _cts = null!;
     
     public async Task StartAsync(CancellationToken cancellationToken)
@@ -23,7 +28,9 @@ public class GatewayHost(IServiceProvider serviceProvider, ILogger<GatewayHost> 
         // TODO
         
         _cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        _worker = Worker();
+
+        _paymentProcessing = PaymentsProcess();
+        _requisitesCheck = RequisitesCheck();
     }
 
     public async Task StopAsync(CancellationToken cancellationToken)
@@ -31,31 +38,72 @@ public class GatewayHost(IServiceProvider serviceProvider, ILogger<GatewayHost> 
         try
         {
             await _cts.CancelAsync();
-            await Task.WhenAny(_worker, Task.Delay(Timeout.Infinite, cancellationToken));
+            await Task.WhenAny(_paymentProcessing, _requisitesCheck, Task.Delay(Timeout.Infinite, cancellationToken));
+            
+            using var scope = serviceProvider.CreateScope();
+            var unit = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+            await unit.Commit();
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, "Ошибка при остановке сервиса");
         }
         finally
         {
-            logger.LogInformation("Сервис остановлен");
             _cts.Dispose();
-            _worker.Dispose();
+            _paymentProcessing.Dispose();
+            _requisitesCheck.Dispose();
+            logger.LogInformation("Сервис остановлен");
         }
     }
 
-    private async Task Worker()
+    private async Task PaymentsProcess()
     {
-        await Task.Delay(1000, _cts.Token);
-        logger.LogInformation("Сервис запущен");
-        
+        await Task.Delay(_startDelay, _cts.Token);
         while (!_cts.IsCancellationRequested)
         {
-            using var scope = serviceProvider.CreateScope();
-            var unit = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
-            var paymentHandler = scope.ServiceProvider.GetRequiredService<IPaymentHandler>();
-            
-            await paymentHandler.HandleUnprocessedPayments(unit);
-            await paymentHandler.HandleExpiredPayments(unit);
-            
-            await Task.Delay(1000, _cts.Token);
+            try
+            {
+                using var scope = serviceProvider.CreateScope();
+                var unit = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+                var paymentHandler = scope.ServiceProvider.GetRequiredService<IPaymentHandler>();
+
+                await paymentHandler.HandleUnprocessedPayments(unit);
+                await paymentHandler.HandleExpiredPayments(unit);
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e, "Ошибка при обработке платежей");
+            }
+            finally
+            {
+                await Task.Delay(_paymentProcessInterval, _cts.Token);
+            }
+        }
+    }
+
+    private async Task RequisitesCheck()
+    {
+        await Task.Delay(_startDelay, _cts.Token);
+        while (!_cts.IsCancellationRequested)
+        {
+            try
+            {
+                using var scope = serviceProvider.CreateScope();
+                var unit = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+
+                var requisites = await unit.RequisiteRepository.GetAll().ToListAsync();
+
+                // TODO
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e, "Ошибка при обработке реквизитов");
+            }
+            finally
+            {
+                await Task.Delay(_requisiteProcessInterval, _cts.Token);
+            }
         }
     }
 }

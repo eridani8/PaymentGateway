@@ -115,13 +115,6 @@ try
     app.MapControllers();
     app.UseMiddleware<ExceptionHandling>();
 
-    app.Lifetime.ApplicationStopping.Register(() =>
-    {
-        using var scope = app.Services.CreateScope();
-        var unit = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
-        unit.Commit().GetAwaiter().GetResult();
-    });
-
     await app.RunAsync();
 }
 catch (Exception e)
