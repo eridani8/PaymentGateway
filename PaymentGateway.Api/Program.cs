@@ -1,6 +1,5 @@
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyModel;
 using NpgsqlTypes;
 using PaymentGateway.Api;
 using PaymentGateway.Application.DTOs.Payment;
@@ -20,6 +19,7 @@ using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.PostgreSQL;
 using Serilog.Sinks.PostgreSQL.ColumnWriters;
+using StackExchange.Redis;
 
 try
 {
@@ -33,11 +33,17 @@ try
         Directory.CreateDirectory(logsPath);
     }
 
-    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+    var mainConnectionString = builder.Configuration.GetConnectionString("Main");
+    var cacheConnectionString = builder.Configuration.GetConnectionString("Cache");
 
-    if (string.IsNullOrEmpty(connectionString))
+    if (string.IsNullOrEmpty(mainConnectionString))
     {
         throw new ApplicationException("Нужно указать строку подключения базы данных");
+    }
+
+    if (string.IsNullOrEmpty(cacheConnectionString))
+    {
+        throw new ApplicationException("Нужно указать строку подключения кеша");
     }
 
     var columnWriters = new Dictionary<string, ColumnWriterBase>
@@ -49,7 +55,8 @@ try
         { "exception", new ExceptionColumnWriter(NpgsqlDbType.Text) }
     };
 
-    const string outputTemplate = "[{Timestamp:HH:mm:ss} {Level:u3}] [{SourceContext}] {Message:lj}{NewLine}{Exception}";
+    const string outputTemplate =
+        "[{Timestamp:HH:mm:ss} {Level:u3}] [{SourceContext}] {Message:lj}{NewLine}{Exception}";
 
     Log.Logger = new LoggerConfiguration()
         .MinimumLevel.Information()
@@ -58,7 +65,7 @@ try
         .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", LogEventLevel.Warning)
         .Enrich.FromLogContext()
         .WriteTo.Console(LogEventLevel.Information, outputTemplate: outputTemplate)
-        .WriteTo.PostgreSQL(connectionString, logs, columnWriters, needAutoCreateTable: true)
+        .WriteTo.PostgreSQL(mainConnectionString, logs, columnWriters, needAutoCreateTable: true)
         .WriteTo.File($"{logsPath}/.log", rollingInterval: RollingInterval.Day, outputTemplate: outputTemplate)
         .CreateLogger();
 
@@ -68,22 +75,27 @@ try
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen();
 
-    builder.Services.AddDbContext<AppDbContext>(o =>
-    {
-        o.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
-    });
-    
+    builder.Services.AddDbContext<AppDbContext>(o => { o.UseNpgsql(mainConnectionString); });
+
     builder.Services.Configure<RequisiteDefaults>(builder.Configuration.GetSection(nameof(RequisiteDefaults)));
     builder.Services.Configure<PaymentDefaults>(builder.Configuration.GetSection(nameof(PaymentDefaults)));
     builder.Services.Configure<CryptographyConfig>(builder.Configuration.GetSection(nameof(CryptographyConfig)));
-    
-    builder.Services.AddScoped<ICryptographyService, CryptographyServiceService>();
+
+    builder.Services.AddScoped<ICryptographyService, CryptographyService>();
+
+    var redisOptions = new ConfigurationOptions()
+    {
+        EndPoints = { cacheConnectionString },
+        DefaultDatabase = 0,
+    };
+    builder.Services.AddSingleton<IConnectionMultiplexer>(_ => ConnectionMultiplexer.Connect(redisOptions));
+    builder.Services.AddSingleton<ICache, RedisCache>();
 
     builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
     builder.Services.AddScoped<IRequisiteRepository, RequisiteRepository>();
     builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
     builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-    
+
     builder.Services.AddAutoMapper(typeof(RequisiteProfile));
     builder.Services.AddAutoMapper(typeof(PaymentProfile));
     builder.Services.AddAutoMapper(typeof(TransactionProfile));
@@ -100,7 +112,7 @@ try
     builder.Services.AddScoped<ITransactionService, TransactionService>();
 
     builder.Services.AddScoped<IPaymentHandler, PaymentHandler>();
-    
+
     builder.Services.AddHostedService<GatewayHost>();
 
     var app = builder.Build();
@@ -114,6 +126,13 @@ try
     app.UseHttpsRedirection();
     app.MapControllers();
     app.UseMiddleware<ExceptionHandling>();
+
+    app.Lifetime.ApplicationStopping.Register(() =>
+    {
+        using var scope = app.Services.CreateScope();
+        var unit = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+        unit.Commit().GetAwaiter().GetResult();
+    });
 
     await app.RunAsync();
 }

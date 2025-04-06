@@ -55,9 +55,10 @@ public class TransactionService(
         
         logger.LogInformation("Поступление платежа на сумму {amount}", entity.ExtractedAmount);
 
-        requisite.CurrentPayment!.Status = PaymentStatus.Confirmed;
-        requisite.CurrentPayment!.ProcessedAt = DateTime.UtcNow;
-        requisite.CurrentPayment!.TransactionId = entity.Id;
+        requisite.CurrentPayment.Status = PaymentStatus.Confirmed;
+        requisite.CurrentPayment.TransactionId = entity.Id;
+        requisite.CurrentPayment.ProcessedAt = DateTime.UtcNow;
+        requisite.CurrentPayment.ExpiresAt = null;
         
         requisite.ReceivedFunds += entity.ExtractedAmount;
         requisite.CurrentPaymentId = null;

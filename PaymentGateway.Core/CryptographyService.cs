@@ -5,7 +5,7 @@ using PaymentGateway.Core.Interfaces;
 
 namespace PaymentGateway.Core;
 
-public class CryptographyServiceService(IOptions<CryptographyConfig> config) : ICryptographyService
+public class CryptographyService(IOptions<CryptographyConfig> config) : ICryptographyService
 {
     public string Encrypt(string text)
     {

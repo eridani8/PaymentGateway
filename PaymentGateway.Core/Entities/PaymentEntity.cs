@@ -63,9 +63,9 @@ public sealed class PaymentEntity
     public DateTime? ProcessedAt { get; set; }
     
     /// <summary>
-    /// Дата и время истечения срока действия платежа
+    /// Дата и время истечения срока действия платежа (null для подтвержденных)
     /// </summary>
-    public required DateTime ExpiresAt { get; set; }
+    public required DateTime? ExpiresAt { get; set; }
     
     /// <summary>
     /// Идентификатор связанной транзакции
@@ -73,6 +73,4 @@ public sealed class PaymentEntity
     public Guid? TransactionId { get; set; }
     
     public TransactionEntity? Transaction { get; set; }
-    
-    public bool Handle { get; set; }
 }

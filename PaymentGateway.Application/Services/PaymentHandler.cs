@@ -16,7 +16,7 @@ public class PaymentHandler(ILogger<PaymentHandler> logger) : IPaymentHandler
             {
                 logger.LogInformation("Платеж {payment} просрочен, и был удален", expiredPayment.Id);
             }
-
+        
             await unit.PaymentRepository.DeletePayments(expiredPayments);
             await unit.Commit();
         }
@@ -41,11 +41,9 @@ public class PaymentHandler(ILogger<PaymentHandler> logger) : IPaymentHandler
             var requisite = freeRequisites.FirstOrDefault(r => r.MaxAmount >= payment.Amount);
             if (requisite is null)
             {
-                payment.Handle = true;
                 logger.LogWarning("Нет подходящего реквизита для платежа {paymentId} с суммой {amount}", payment.Id, payment.Amount);
                 continue;
             }
-
             freeRequisites.Remove(requisite);
             
             requisite.CurrentPaymentId = payment.Id;

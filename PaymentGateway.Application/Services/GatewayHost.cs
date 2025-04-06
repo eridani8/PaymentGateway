@@ -6,7 +6,7 @@ using PaymentGateway.Core.Interfaces;
 
 namespace PaymentGateway.Application.Services;
 
-public class GatewayHost(IServiceProvider serviceProvider, ILogger<GatewayHost> logger) : IHostedService
+public class GatewayHost(IServiceProvider serviceProvider, ILogger<GatewayHost> logger, ICache cache) : IHostedService
 {
     private Task _worker = null!;
     private CancellationTokenSource _cts = null!;
@@ -37,6 +37,8 @@ public class GatewayHost(IServiceProvider serviceProvider, ILogger<GatewayHost> 
     {
         await Task.Delay(1000, _cts.Token);
         logger.LogInformation("Сервис запущен");
+        
+        
         
         while (!_cts.IsCancellationRequested)
         {

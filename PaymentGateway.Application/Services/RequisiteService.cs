@@ -72,7 +72,7 @@ public class RequisiteService(
         if (entity is null) return false;
 
         mapper.Map(dto, entity);
-        unit.RequisiteRepository.Update(entity);
+        await unit.RequisiteRepository.Update(entity);
         await unit.Commit();
         
         logger.LogInformation("Обновление реквизита {requisiteId}", entity.Id);
@@ -85,7 +85,7 @@ public class RequisiteService(
         var entity = await unit.RequisiteRepository.GetById(id);
         if (entity is null) return false;
 
-        unit.RequisiteRepository.Delete(entity);
+        await unit.RequisiteRepository.Delete(entity);
         await unit.Commit();
         
         logger.LogInformation("Удаление реквизита {requisiteId}", entity.Id);

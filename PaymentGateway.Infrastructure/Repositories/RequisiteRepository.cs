@@ -6,7 +6,7 @@ using PaymentGateway.Infrastructure.Data;
 
 namespace PaymentGateway.Infrastructure.Repositories;
 
-public class RequisiteRepository(AppDbContext context) : RepositoryBase<RequisiteEntity>(context), IRequisiteRepository
+public class RequisiteRepository(AppDbContext context, ICache cache) : RepositoryBase<RequisiteEntity>(context, cache), IRequisiteRepository
 {
     public async Task<List<RequisiteEntity>> GetFreeRequisites()
     {
