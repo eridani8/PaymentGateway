@@ -1,56 +1,62 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using PaymentGateway.Application.Interfaces;
+using PaymentGateway.Core.Enums;
 using PaymentGateway.Core.Interfaces;
 
 namespace PaymentGateway.Application.Services;
 
-public class PaymentHandler(IServiceProvider serviceProvider, ILogger<PaymentHandler> logger) : IHostedService
+public class PaymentHandler(ILogger<PaymentHandler> logger) : IPaymentHandler
 {
-    private Task _worker = null!;
-    private CancellationTokenSource _cts = null!;
-    
-    public Task StartAsync(CancellationToken cancellationToken)
+    public async Task HandleExpiredPayments(IUnitOfWork unit)
     {
-        _cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        _worker = Worker();
-        return Task.CompletedTask;
-    }
+        var expiredPayments = await unit.PaymentRepository.GetExpiredPayments();
+        if (expiredPayments.Count > 0)
+        {
+            foreach (var expiredPayment in expiredPayments)
+            {
+                logger.LogInformation("Платеж {payment} просрочен, и был удален", expiredPayment.Id);
+            }
 
-    public async Task StopAsync(CancellationToken cancellationToken)
-    {
-        try
-        {
-            await _cts.CancelAsync();
-            await Task.WhenAny(_worker, Task.Delay(Timeout.Infinite, cancellationToken));
-        }
-        finally
-        {
-            logger.LogInformation("Сервис остановлен");
-            _cts.Dispose();
-            _worker.Dispose();
+            await unit.PaymentRepository.DeletePayments(expiredPayments);
+            await unit.Commit();
         }
     }
 
-    private async Task Worker()
+    public async Task HandleUnprocessedPayments(IUnitOfWork unit)
     {
-        await Task.Delay(3000, _cts.Token);
-        logger.LogInformation("Сервис запущен");
-        
-        while (!_cts.IsCancellationRequested)
+        var unprocessedPayments = await unit.PaymentRepository.GetUnprocessedPayments();
+
+        if (unprocessedPayments.Count == 0) return;
+
+        var freeRequisites = await unit.RequisiteRepository.GetFreeRequisites();
+
+        foreach (var payment in unprocessedPayments)
         {
-            using var scope = serviceProvider.CreateScope();
-            var unit = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
-            var requisiteService = scope.ServiceProvider.GetRequiredService<IRequisiteService>();
+            if (freeRequisites.Count == 0)
+            {
+                logger.LogWarning("Нет свободных реквизитов для обработки платежей");
+                break;
+            }
+
+            var requisite = freeRequisites.FirstOrDefault(r => r.MaxAmount >= payment.Amount);
+            if (requisite is null)
+            {
+                payment.Handle = true;
+                logger.LogWarning("Нет подходящего реквизита для платежа {paymentId} с суммой {amount}", payment.Id, payment.Amount);
+                continue;
+            }
+
+            freeRequisites.Remove(requisite);
             
-            var expiredPaymentHandler = scope.ServiceProvider.GetRequiredService<IExpiredPaymentHandler>();
-            await expiredPaymentHandler.HandleExpiredPayments(unit);
+            requisite.CurrentPaymentId = payment.Id;
+            requisite.LastOperationTime = DateTime.UtcNow;
+        
+            payment.RequisiteId = requisite.Id;
+            payment.Status = PaymentStatus.Pending;
 
-            var unprocessedPaymentHandler = scope.ServiceProvider.GetRequiredService<IUnprocessedPaymentHandler>();
-            await unprocessedPaymentHandler.HandleUnprocessedPayments(unit, requisiteService);
-
-            await Task.Delay(1000, _cts.Token);
+            logger.LogInformation("Платеж {payment} назначен реквизиту {requisite}", payment.Id, requisite.Id);
         }
+
+        await unit.Commit();
     }
 }

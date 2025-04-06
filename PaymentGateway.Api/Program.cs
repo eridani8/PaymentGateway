@@ -99,10 +99,9 @@ try
     builder.Services.AddScoped<IValidator<TransactionCreateDto>, TransactionCreateDtoValidator>();
     builder.Services.AddScoped<ITransactionService, TransactionService>();
 
-    builder.Services.AddScoped<IExpiredPaymentHandler, ExpiredPaymentHandler>();
-    builder.Services.AddScoped<IUnprocessedPaymentHandler, UnprocessedPaymentHandler>();
+    builder.Services.AddScoped<IPaymentHandler, PaymentHandler>();
     
-    builder.Services.AddHostedService<PaymentHandler>();
+    builder.Services.AddHostedService<PaymentHostHandler>();
 
     var app = builder.Build();
 
