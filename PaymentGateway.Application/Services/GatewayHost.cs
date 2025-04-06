@@ -6,7 +6,7 @@ using PaymentGateway.Core.Interfaces;
 
 namespace PaymentGateway.Application.Services;
 
-public class PaymentHostHandler(IServiceProvider serviceProvider, ILogger<PaymentHostHandler> logger) : IHostedService
+public class GatewayHost(IServiceProvider serviceProvider, ILogger<GatewayHost> logger) : IHostedService
 {
     private Task _worker = null!;
     private CancellationTokenSource _cts = null!;

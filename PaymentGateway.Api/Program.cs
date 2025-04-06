@@ -101,7 +101,7 @@ try
 
     builder.Services.AddScoped<IPaymentHandler, PaymentHandler>();
     
-    builder.Services.AddHostedService<PaymentHostHandler>();
+    builder.Services.AddHostedService<GatewayHost>();
 
     var app = builder.Build();
 
