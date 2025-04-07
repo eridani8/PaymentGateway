@@ -51,6 +51,7 @@ public class TransactionService(
             Payment = requisite.Payment,
             RequisiteId = requisite.Id,
             Requisite = requisite,
+            RawMessage = dto.RawMessage
         };
         
         logger.LogInformation("Поступление платежа на сумму {amount}", entity.ExtractedAmount);

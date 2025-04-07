@@ -43,4 +43,10 @@ public sealed class TransactionEntity
     /// Дата и время получения транзакции
     /// </summary>
     public required DateTime ReceivedAt { get; init; }
+    
+    /// <summary>
+    /// Оригинальный текст сообщения
+    /// </summary>
+    [MaxLength(300)]
+    public required string? RawMessage { get; init; }
 }
