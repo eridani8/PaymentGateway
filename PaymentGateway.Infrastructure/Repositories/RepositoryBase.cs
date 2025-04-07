@@ -1,25 +1,41 @@
-﻿using System.Linq.Expressions;
-using System.Reflection;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
+﻿using Microsoft.EntityFrameworkCore;
 using PaymentGateway.Core.Interfaces;
 using PaymentGateway.Infrastructure.Data;
 
 namespace PaymentGateway.Infrastructure.Repositories;
 
 public class RepositoryBase<TEntity>(AppDbContext context, ICache cache)
-    : IRepositoryBase<TEntity> where TEntity : class
+    : IRepositoryBase<TEntity> where TEntity : class, ICacheable
 {
     private readonly DbSet<TEntity> _entities = context.Set<TEntity>();
 
-    public IQueryable<TEntity> GetAll()
+    public IQueryable<TEntity> QueryableGetAll()
     {
         return _entities;
     }
 
+    public async Task<IEnumerable<TEntity>> GetAll()
+    {
+        var prefix = InMemoryCache.GetCacheKey<TEntity>();
+        
+        var cachedItems = cache.GetByPrefix<TEntity>(prefix).ToList();
+        if (cachedItems.Count > 0)
+        {
+            return cachedItems;
+        }
+        
+        var entities = await _entities.ToListAsync();
+        foreach (var entity in entities)
+        {
+            cache.Set(entity);
+        }
+
+        return entities;
+    }
+
     public async Task<TEntity?> GetById(Guid id)
     {
-        var key = CacheHelper<TEntity>.GetCacheKey(id);
+        var key = InMemoryCache.GetCacheKey<TEntity>(id);
         var cached = cache.Get<TEntity>(key);
         if (cached is not null)
         {
@@ -37,7 +53,8 @@ public class RepositoryBase<TEntity>(AppDbContext context, ICache cache)
 
     public async Task Add(TEntity entity)
     {
-        await _entities.AddAsync(entity);
+        await _entities.AddAsync(entity); 
+        
         cache.Set(entity);
     }
 

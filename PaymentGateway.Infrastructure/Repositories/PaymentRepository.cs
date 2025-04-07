@@ -10,7 +10,7 @@ public class PaymentRepository(AppDbContext context, ICache cache) : RepositoryB
     public async Task<List<PaymentEntity>> GetUnprocessedPayments()
     {
         return await
-            GetAll()
+            QueryableGetAll()
                 .Include(p => p.Requisite)
                 .Where(p => p.Requisite == null)
                 .OrderBy(p => p.CreatedAt)
@@ -20,7 +20,7 @@ public class PaymentRepository(AppDbContext context, ICache cache) : RepositoryB
     public async Task<List<PaymentEntity>> GetExpiredPayments()
     {
         return await
-            GetAll()
+            QueryableGetAll()
                 .Include(p => p.Requisite)
                 .Where(p => DateTime.UtcNow >= p.ExpiresAt)
                 .ToListAsync();

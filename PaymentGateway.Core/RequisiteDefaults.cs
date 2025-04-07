@@ -6,6 +6,6 @@ public class RequisiteDefaults
     public decimal MaxAmount { get; init; }
     public int CooldownMinutes { get; init; }
     public int Priority { get; init; }
-    public TimeSpan WorkFrom { get; init; }
-    public TimeSpan WorkTo { get; init; }
+    public TimeOnly WorkFrom { get; init; }
+    public TimeOnly WorkTo { get; init; }
 }

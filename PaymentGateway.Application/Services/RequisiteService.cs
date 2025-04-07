@@ -52,7 +52,7 @@ public class RequisiteService(
 
     public async Task<IEnumerable<RequisiteResponseDto>> GetAllRequisites()
     {
-        var entities = await unit.RequisiteRepository.GetAll().AsNoTracking().ToListAsync();
+        var entities = await unit.RequisiteRepository.QueryableGetAll().AsNoTracking().ToListAsync();
         return mapper.Map<IEnumerable<RequisiteResponseDto>>(entities);
     }
 
@@ -69,7 +69,11 @@ public class RequisiteService(
         {
             throw new ValidationException(validation.Errors);
         }
-
+        
+        var (workFromUtc, workToUtc) = TimeOnlyUtils.ToUtcTimeOnly(dto.WorkFrom, dto.WorkTo);
+        dto.WorkFrom = workFromUtc;
+        dto.WorkTo = workToUtc;
+        
         var entity = await unit.RequisiteRepository.GetById(id);
         if (entity is null) return false;
 

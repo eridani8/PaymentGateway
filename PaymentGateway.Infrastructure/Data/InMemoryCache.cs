@@ -20,14 +20,14 @@ public class InMemoryCache(IMemoryCache cache) : ICache
         return Keys.Keys;
     }
 
-    public void Set<T>(string key, T obj, TimeSpan? expiry = null)
+    public void Set<T>(string key, T obj, TimeSpan? expiry = null) where T : ICacheable
     {
         var json = JsonSerializer.Serialize(obj, Options);
         var cacheOptions = expiry.HasValue
             ? new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = expiry }
             : new MemoryCacheEntryOptions();
 
-        cacheOptions.RegisterPostEvictionCallback((cacheKey, value, reason, state) =>
+        cacheOptions.RegisterPostEvictionCallback((cacheKey, _, _, _) =>
         {
             if (cacheKey is string keyStr && !string.IsNullOrEmpty(keyStr))
             {
@@ -39,14 +39,11 @@ public class InMemoryCache(IMemoryCache cache) : ICache
         Keys.TryAdd(key, 0);
     }
 
-    public void Set<T>(T obj, TimeSpan? expiry = null)
+    public void Set<T>(T obj, TimeSpan? expiry = null) where T : ICacheable
     {
-        if (CacheHelper<T>.TryGetEntityId(obj, out var id))
-        {
-            Set(CacheHelper<T>.GetCacheKey(id), obj, expiry);
-        }
+        Set(GetCacheKey<T>(obj.Id), obj, expiry);
     }
-    
+
     public T? Get<T>(string key)
     {
         var json = cache.Get<string>(key);
@@ -59,11 +56,35 @@ public class InMemoryCache(IMemoryCache cache) : ICache
         Keys.TryRemove(key, out _);
     }
 
-    public void Remove<T>(T obj)
+    public void Remove<T>(T obj) where T : ICacheable
     {
-        if (CacheHelper<T>.TryGetEntityId(obj, out var id))
+        Remove(GetCacheKey<T>(obj.Id));
+    }
+
+    public bool Exists(string key)
+    {
+        return Keys.ContainsKey(key);
+    }
+
+    public IEnumerable<T> GetByPrefix<T>(string prefix)
+    {
+        foreach (var key in Keys.Keys.Where(k => k.StartsWith(prefix)))
         {
-            Remove(CacheHelper<T>.GetCacheKey(id));
+            var entity = Get<T>(key);
+            if (entity is not null)
+            {
+                yield return entity;
+            }
         }
+    }
+
+    public static string GetCacheKey<T>(Guid id)
+    {
+        return $"{GetCacheKey<T>()}:{id}";
+    }
+
+    public static string GetCacheKey<T>()
+    {
+        return $"{typeof(T).Name}";
     }
 }

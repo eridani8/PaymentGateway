@@ -83,6 +83,6 @@ public static class ValidatorRules
         return rule
             .NotEmpty().WithMessage("Требуется указать дату")
             .Must(date => date != default).WithMessage("Дата не может быть значением по умолчанию")
-            .LessThanOrEqualTo(DateTime.Now).WithMessage("Дата не может быть в будущем");
+            .LessThanOrEqualTo(DateTime.UtcNow).WithMessage("Дата не может быть в будущем");
     }
 }

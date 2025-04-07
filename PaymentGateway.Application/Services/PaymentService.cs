@@ -29,7 +29,7 @@ public class PaymentService(
         }
 
         var containsEntity = await unit.PaymentRepository
-            .GetAll()
+            .QueryableGetAll()
             .AsNoTracking()
             .FirstOrDefaultAsync(p => p.ExternalPaymentId == dto.PaymentId);
         if (containsEntity is not null)
@@ -37,7 +37,7 @@ public class PaymentService(
             throw new DuplicatePaymentException();
         }
 
-        var now = DateTime.Now;
+        var now = DateTime.UtcNow;
         var entity = new PaymentEntity()
         {
             Id = Guid.NewGuid(),
@@ -59,7 +59,7 @@ public class PaymentService(
 
     public async Task<IEnumerable<PaymentResponseDto>> GetAllPayments()
     {
-        var entities = await unit.PaymentRepository.GetAll().AsNoTracking().ToListAsync();
+        var entities = await unit.PaymentRepository.QueryableGetAll().AsNoTracking().ToListAsync();
         return mapper.Map<IEnumerable<PaymentResponseDto>>(entities);
     }
 

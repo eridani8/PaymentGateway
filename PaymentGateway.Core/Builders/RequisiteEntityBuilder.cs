@@ -13,8 +13,8 @@ public class RequisiteEntityBuilder
     private int _cooldownMinutes;
     private int _priority;
     private bool _isActive;
-    private TimeSpan _workFrom;
-    private TimeSpan _workTo;
+    private TimeOnly _workFrom;
+    private TimeOnly _workTo;
 
     public RequisiteEntityBuilder WithFullName(string fullName)
     {
@@ -64,13 +64,13 @@ public class RequisiteEntityBuilder
         return this;
     }
 
-    public RequisiteEntityBuilder WithWorkFrom(TimeSpan workFrom)
+    public RequisiteEntityBuilder WithWorkFrom(TimeOnly workFrom)
     {
         _workFrom = workFrom;
         return this;
     }
 
-    public RequisiteEntityBuilder WithWorkTo(TimeSpan workTo)
+    public RequisiteEntityBuilder WithWorkTo(TimeOnly workTo)
     {
         _workTo = workTo;
         return this;
@@ -93,16 +93,18 @@ public class RequisiteEntityBuilder
             throw new ArgumentException("BankNumber является обязательным полем");
         }
 
-        if ((_workFrom != TimeSpan.Zero && _workTo == TimeSpan.Zero) || 
-            (_workFrom == TimeSpan.Zero && _workTo != TimeSpan.Zero))
+        if ((_workFrom != TimeOnly.MinValue && _workTo == TimeOnly.MinValue) || 
+            (_workFrom == TimeOnly.MinValue && _workTo != TimeOnly.MinValue))
         {
             throw new ArgumentException("Если задано начало рабочего времени, должно быть задано и окончание, и наоборот");
         }
         
-        if (_workFrom != TimeSpan.Zero && _workTo != TimeSpan.Zero && _workFrom >= _workTo)
+        if (_workFrom != TimeOnly.MinValue && _workTo != TimeOnly.MinValue && _workFrom >= _workTo)
         {
             throw new ArgumentException("Время начала работы должно быть меньше времени окончания");
         }
+
+        var (workFromUtc, workToUtc) = TimeOnlyUtils.ToUtcTimeOnly(_workFrom, _workTo);
 
         return new RequisiteEntity
         {
@@ -111,13 +113,13 @@ public class RequisiteEntityBuilder
             PaymentType = _type,
             PaymentData = _paymentData,
             BankNumber = _bankNumber,
-            CreatedAt = DateTime.Now,
+            CreatedAt = DateTime.UtcNow,
             Status = _isActive ? RequisiteStatus.Active : RequisiteStatus.Inactive,
             MaxAmount = _maxAmount,
             CooldownMinutes = _cooldownMinutes,
             Priority = _priority,
-            WorkFrom = _workFrom,
-            WorkTo = _workTo
+            WorkFrom = workFromUtc,
+            WorkTo = workToUtc
         };
     }
 }

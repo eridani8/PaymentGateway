@@ -1,10 +1,11 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using PaymentGateway.Core.Enums;
+using PaymentGateway.Core.Interfaces;
 
 namespace PaymentGateway.Core.Entities;
 
-public class RequisiteEntity
+public class RequisiteEntity : ICacheable
 {
     public RequisiteEntity() { }
 
@@ -84,10 +85,10 @@ public class RequisiteEntity
     /// <summary>
     /// Временное ограничение от
     /// </summary>
-    public required TimeSpan WorkFrom { get; set; }
+    public required TimeOnly WorkFrom { get; set; }
     
     /// <summary>
     /// Временное ограничение до
     /// </summary>
-    public required TimeSpan WorkTo { get; set; }
+    public required TimeOnly WorkTo { get; set; }
 }

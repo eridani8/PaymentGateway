@@ -1,10 +1,11 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using PaymentGateway.Core.Enums;
+using PaymentGateway.Core.Interfaces;
 
 namespace PaymentGateway.Core.Entities;
 
-public sealed class PaymentEntity
+public sealed class PaymentEntity : ICacheable
 {
     public PaymentEntity() { }
     

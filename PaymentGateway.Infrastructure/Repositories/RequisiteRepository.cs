@@ -11,13 +11,14 @@ public class RequisiteRepository(AppDbContext context, ICache cache)
 {
     public async Task<List<RequisiteEntity>> GetFreeRequisites()
     {
-        var currentTime = DateTime.Now.TimeOfDay;
+        var currentTime = DateTime.UtcNow;
+        var currentTimeOnly = TimeOnly.FromDateTime(currentTime);
         return await
-            GetAll()
+            QueryableGetAll()
                 .Include(r => r.Payment)
                 .Where(r => r.Status == RequisiteStatus.Active && r.Payment == null &&
-                            ((r.WorkFrom == TimeSpan.Zero && r.WorkTo == TimeSpan.Zero) ||
-                             (currentTime >= r.WorkFrom && currentTime <= r.WorkTo)))
+                            ((r.WorkFrom == TimeOnly.MinValue && r.WorkTo == TimeOnly.MinValue) ||
+                             (currentTimeOnly >= r.WorkFrom && currentTimeOnly <= r.WorkTo)))
                 .OrderByDescending(r => r.Priority)
                 .ToListAsync();
     }
