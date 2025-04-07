@@ -1,5 +1,4 @@
-﻿using System.ComponentModel;
-using PaymentGateway.Core.Enums;
+﻿using PaymentGateway.Core.Enums;
 
 namespace PaymentGateway.Application.DTOs.Requisite;
 

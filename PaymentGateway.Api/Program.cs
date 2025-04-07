@@ -74,7 +74,6 @@ try
             .EnableSensitiveDataLogging(builder.Environment.IsDevelopment());
     });
 
-    builder.Services.Configure<RequisiteDefaults>(builder.Configuration.GetSection(nameof(RequisiteDefaults)));
     builder.Services.Configure<PaymentDefaults>(builder.Configuration.GetSection(nameof(PaymentDefaults)));
     builder.Services.Configure<CryptographyConfig>(builder.Configuration.GetSection(nameof(CryptographyConfig)));
 

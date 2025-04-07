@@ -2,15 +2,10 @@
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using PaymentGateway.Application.DTOs.Requisite;
 using PaymentGateway.Application.Interfaces;
-using PaymentGateway.Core;
-using PaymentGateway.Core.Builders;
 using PaymentGateway.Core.Entities;
-using PaymentGateway.Core.Enums;
 using PaymentGateway.Core.Interfaces;
-using Serilog;
 
 namespace PaymentGateway.Application.Services;
 
@@ -18,7 +13,6 @@ public class RequisiteService(
     IUnitOfWork unit,
     IMapper mapper,
     IRequisiteValidator validator,
-    IOptions<RequisiteDefaults> defaults,
     ILogger<RequisiteService> logger) : IRequisiteService
 {
     public async Task<RequisiteResponseDto> CreateRequisite(RequisiteCreateDto dto)
