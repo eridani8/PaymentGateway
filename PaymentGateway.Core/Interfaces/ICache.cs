@@ -1,10 +1,13 @@
-﻿using System.Text.Json;
+﻿using System.Collections.Concurrent;
+using System.Text.Json;
 
 namespace PaymentGateway.Core.Interfaces;
 
 public interface ICache
 {
     JsonSerializerOptions Options { get; }
+    ConcurrentDictionary<string, byte> Keys { get; }
+    IEnumerable<string> AllKeys();
     void Set<T>(string key, T obj, TimeSpan? expiry = null);
     void Set<T>(T obj, TimeSpan? expiry = null);
     T? Get<T>(string key);

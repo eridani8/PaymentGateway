@@ -32,7 +32,7 @@ try
         Directory.CreateDirectory(logsPath);
     }
 
-    var mainConnectionString = builder.Configuration.GetConnectionString("Main");
+    var mainConnectionString = builder.Configuration.GetConnectionString("Default");
 
     if (string.IsNullOrEmpty(mainConnectionString))
     {
