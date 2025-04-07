@@ -80,4 +80,14 @@ public class RequisiteEntity
     /// Приоритет использования
     /// </summary>
     public required int Priority { get; set; }
+    
+    /// <summary>
+    /// Временное ограничение от
+    /// </summary>
+    public required TimeSpan WorkFrom { get; set; }
+    
+    /// <summary>
+    /// Временное ограничение до
+    /// </summary>
+    public required TimeSpan WorkTo { get; set; }
 }

@@ -58,12 +58,12 @@ public class TransactionService(
 
         requisite.Payment.Status = PaymentStatus.Confirmed;
         requisite.Payment.TransactionId = entity.Id;
-        requisite.Payment.ProcessedAt = DateTime.UtcNow;
+        requisite.Payment.ProcessedAt = DateTime.Now;
         requisite.Payment.ExpiresAt = null;
         
         requisite.ReceivedFunds += entity.ExtractedAmount;
         requisite.PaymentId = null;
-        requisite.LastOperationTime = DateTime.UtcNow;
+        requisite.LastOperationTime = DateTime.Now;
         requisite.Status = requisite.CooldownMinutes switch
         {
             0 => RequisiteStatus.Active,

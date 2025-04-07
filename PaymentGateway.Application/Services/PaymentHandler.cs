@@ -46,7 +46,7 @@ public class PaymentHandler(ILogger<PaymentHandler> logger) : IPaymentHandler
             freeRequisites.Remove(requisite);
             
             requisite.PaymentId = payment.Id;
-            requisite.LastOperationTime = DateTime.UtcNow;
+            requisite.LastOperationTime = DateTime.Now;
             requisite.Status = RequisiteStatus.Pending;
         
             payment.RequisiteId = requisite.Id;

@@ -37,7 +37,7 @@ public class PaymentService(
             throw new DuplicatePaymentException();
         }
 
-        var now = DateTime.UtcNow;
+        var now = DateTime.Now;
         var entity = new PaymentEntity()
         {
             Id = Guid.NewGuid(),

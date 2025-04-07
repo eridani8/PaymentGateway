@@ -38,6 +38,8 @@ public class RequisiteService(
             .WithMaxAmount(SettingsExtensions.GetValueOrDefault(dto.MaxAmount, defaults.Value.MaxAmount))
             .WithCooldownMinutes(SettingsExtensions.GetValueOrDefault(dto.CooldownMinutes, defaults.Value.CooldownMinutes))
             .WithPriority(SettingsExtensions.GetValueOrDefault(dto.Priority, defaults.Value.Priority))
+            .WithWorkFrom(SettingsExtensions.GetValueOrDefault(dto.WorkFrom, defaults.Value.WorkFrom))
+            .WithWorkTo(SettingsExtensions.GetValueOrDefault(dto.WorkTo, defaults.Value.WorkTo))
             .Build();
 
         await unit.RequisiteRepository.Add(entity);
