@@ -68,7 +68,11 @@ try
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen();
 
-    builder.Services.AddDbContext<AppDbContext>(o => { o.UseNpgsql(mainConnectionString); });
+    builder.Services.AddDbContext<AppDbContext>(o =>
+    {
+        o.UseNpgsql(mainConnectionString)
+            .EnableSensitiveDataLogging(builder.Environment.IsDevelopment());
+    });
 
     builder.Services.Configure<RequisiteDefaults>(builder.Configuration.GetSection(nameof(RequisiteDefaults)));
     builder.Services.Configure<PaymentDefaults>(builder.Configuration.GetSection(nameof(PaymentDefaults)));
@@ -78,6 +82,9 @@ try
 
     builder.Services.AddMemoryCache();
     builder.Services.AddSingleton<ICache, InMemoryCache>();
+
+    builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+    builder.Services.AddProblemDetails();
 
     builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
     builder.Services.AddScoped<IRequisiteRepository, RequisiteRepository>();
@@ -113,7 +120,7 @@ try
 
     app.UseHttpsRedirection();
     app.MapControllers();
-    app.UseMiddleware<ExceptionHandling>();
+    app.UseExceptionHandler();
 
     await app.RunAsync();
 }

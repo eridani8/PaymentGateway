@@ -15,6 +15,22 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICryptographyS
     {
         var stringEncryptionConverter = new StringEncryptionConverter(cryptographyService);
         
+        modelBuilder.Entity<RequisiteEntity>(entity =>
+        {
+            entity.HasIndex(e => e.Id).IsUnique();
+            entity.HasIndex(e => e.Status);
+            entity.HasIndex(e => e.Priority);
+            entity.HasIndex(e => e.PaymentData);
+            
+            entity.Property(x => x.PaymentData).HasConversion(stringEncryptionConverter);
+            entity.Property(x => x.BankNumber).HasConversion(stringEncryptionConverter);
+            
+            entity.HasOne(e => e.Payment)
+                .WithOne()
+                .HasForeignKey<RequisiteEntity>(e => e.PaymentId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+        
         modelBuilder.Entity<PaymentEntity>(entity =>
         {
             entity.HasIndex(e => e.Id).IsUnique();
@@ -25,7 +41,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICryptographyS
             entity
                 .HasOne(e => e.Transaction)
                 .WithOne(e => e.Payment)
-                .HasForeignKey<TransactionEntity>(p => p.PaymentId)
+                .HasForeignKey<TransactionEntity>(e => e.PaymentId)
                 .OnDelete(DeleteBehavior.SetNull);
         });
         
@@ -33,21 +49,17 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICryptographyS
         {
             entity.HasIndex(e => e.Id).IsUnique();
             entity.HasIndex(e => e.PaymentId);
-        });
-        
-        modelBuilder.Entity<RequisiteEntity>(entity =>
-        {
-            entity.HasIndex(e => e.Id).IsUnique();
             
-            entity.Property(x => x.PaymentData).HasConversion(stringEncryptionConverter);
-            entity.Property(x => x.BankNumber).HasConversion(stringEncryptionConverter);
-            
-            entity.HasIndex(e => e.Status);
-            entity.HasIndex(e => e.Priority);
-            
-            entity.HasOne(r => r.CurrentPayment)
+            entity
+                .HasOne(e => e.Payment)
+                .WithOne(e => e.Transaction)
+                .HasForeignKey<TransactionEntity>(e => e.PaymentId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity
+                .HasOne(e => e.Requisite)
                 .WithOne()
-                .HasForeignKey<RequisiteEntity>(r => r.CurrentPaymentId)
+                .HasForeignKey<TransactionEntity>(e => e.RequisiteId)
                 .OnDelete(DeleteBehavior.SetNull);
         });
     }

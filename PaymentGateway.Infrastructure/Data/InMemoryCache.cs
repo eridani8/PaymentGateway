@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.Extensions.Caching.Memory;
 using PaymentGateway.Core.Interfaces;
 
@@ -6,14 +7,19 @@ namespace PaymentGateway.Infrastructure.Data;
 
 public class InMemoryCache(IMemoryCache cache) : ICache
 {
+    public JsonSerializerOptions Options { get; } = new()
+    {
+        ReferenceHandler = ReferenceHandler.Preserve
+    };
+
     public void Set<T>(string key, T obj, TimeSpan? expiry = null)
     {
-        var json = JsonSerializer.Serialize(obj);
-        var options = expiry.HasValue
+        var json = JsonSerializer.Serialize(obj, Options);
+        var cacheOptions = expiry.HasValue
             ? new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = expiry }
             : null;
 
-        cache.Set(key, json, options);
+        cache.Set(key, json, cacheOptions);
     }
 
     public void Set<T>(T obj, TimeSpan? expiry = null)
@@ -27,7 +33,7 @@ public class InMemoryCache(IMemoryCache cache) : ICache
     public T? Get<T>(string key)
     {
         var json = cache.Get<string>(key);
-        return string.IsNullOrEmpty(json) ? default : JsonSerializer.Deserialize<T>(json);
+        return string.IsNullOrEmpty(json) ? default : JsonSerializer.Deserialize<T>(json, Options);
     }
 
     public void Remove(string key)

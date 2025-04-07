@@ -48,19 +48,14 @@ public class RequisiteEntity
     /// <summary>
     /// Идентификатор текущего платежа, если реквизит используется
     /// </summary>
-    public Guid? CurrentPaymentId { get; set; }
+    public Guid? PaymentId { get; set; }
 
-    public PaymentEntity? CurrentPayment { get; set; }
+    public PaymentEntity? Payment { get; set; }
 
     /// <summary>
     /// Статус реквизита
     /// </summary>
     public required RequisiteStatus Status { get; set; }
-
-    /// <summary>
-    /// Дата и время отключения (если реквизит неактивен)
-    /// </summary>
-    public DateTime? InactiveAt { get; set; }
 
     /// <summary>
     /// Полученные средства

@@ -18,7 +18,6 @@ public class PaymentHandler(ILogger<PaymentHandler> logger) : IPaymentHandler
             }
         
             unit.PaymentRepository.DeletePayments(expiredPayments);
-            await unit.Commit();
         }
     }
 
@@ -46,15 +45,14 @@ public class PaymentHandler(ILogger<PaymentHandler> logger) : IPaymentHandler
             }
             freeRequisites.Remove(requisite);
             
-            requisite.CurrentPaymentId = payment.Id;
+            requisite.PaymentId = payment.Id;
             requisite.LastOperationTime = DateTime.UtcNow;
+            requisite.Status = RequisiteStatus.Pending;
         
             payment.RequisiteId = requisite.Id;
             payment.Status = PaymentStatus.Pending;
 
             logger.LogInformation("Платеж {payment} назначен реквизиту {requisite}", payment.Id, requisite.Id);
         }
-
-        await unit.Commit();
     }
 }

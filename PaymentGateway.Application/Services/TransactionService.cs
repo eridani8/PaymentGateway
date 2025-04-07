@@ -15,7 +15,6 @@ public class TransactionService(
     IUnitOfWork unit,
     IMapper mapper,
     IValidator<TransactionCreateDto> validator,
-    IRequisiteService requisiteService,
     ILogger<TransactionService> logger)
     : ITransactionService
 {
@@ -29,10 +28,10 @@ public class TransactionService(
 
         var requisite = await unit.RequisiteRepository
             .GetAll()
-            .Include(r => r.CurrentPayment)
-            .FirstOrDefaultAsync(r => r.Id == dto.RequisiteId);
+            .Include(r => r.Payment)
+            .FirstOrDefaultAsync(r => r.PaymentData == dto.PaymentData);
 
-        if (requisite is null || requisite.CurrentPayment is not { } payment)
+        if (requisite is null || requisite.Payment is not { } payment)
         {
             throw new RequisiteNotFound();
         }
@@ -48,22 +47,29 @@ public class TransactionService(
             ExtractedAmount = dto.ExtractedAmount,
             Source = dto.Source,
             ReceivedAt = dto.ReceivedAt,
-            PaymentId = requisite.CurrentPayment.Id,
-            Payment = requisite.CurrentPayment,
+            PaymentId = requisite.Payment.Id,
+            Payment = requisite.Payment,
             RequisiteId = requisite.Id,
+            Requisite = requisite,
         };
         
         logger.LogInformation("Поступление платежа на сумму {amount}", entity.ExtractedAmount);
 
-        requisite.CurrentPayment.Status = PaymentStatus.Confirmed;
-        requisite.CurrentPayment.TransactionId = entity.Id;
-        requisite.CurrentPayment.ProcessedAt = DateTime.UtcNow;
-        requisite.CurrentPayment.ExpiresAt = null;
+        requisite.Payment.Status = PaymentStatus.Confirmed;
+        requisite.Payment.TransactionId = entity.Id;
+        requisite.Payment.ProcessedAt = DateTime.UtcNow;
+        requisite.Payment.ExpiresAt = null;
         
         requisite.ReceivedFunds += entity.ExtractedAmount;
-        requisite.CurrentPaymentId = null;
-        requisite.Status = RequisiteStatus.Active;
-        
+        requisite.PaymentId = null;
+        requisite.LastOperationTime = DateTime.UtcNow;
+        requisite.Status = requisite.CooldownMinutes switch
+        {
+            0 => RequisiteStatus.Active,
+            > 0 => RequisiteStatus.Cooldown,
+            _ => RequisiteStatus.Inactive
+        };
+
         logger.LogInformation("Освобождение реквизита {requisiteId}", requisite.Id);
 
         await unit.TransactionRepository.Add(entity);

@@ -16,12 +16,14 @@ public sealed class TransactionEntity
     /// <summary>
     /// Идентификатор реквизита
     /// </summary>
-    public required Guid RequisiteId { get; init; }
+    public required Guid? RequisiteId { get; init; }
+    
+    public required RequisiteEntity? Requisite { get; init; }
     
     /// <summary>
     /// Идентификатор платежа
     /// </summary>
-    public required Guid PaymentId { get; init; }
+    public required Guid? PaymentId { get; init; }
     
     public PaymentEntity? Payment { get; init; }
     

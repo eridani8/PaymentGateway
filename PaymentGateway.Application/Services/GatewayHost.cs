@@ -11,26 +11,22 @@ namespace PaymentGateway.Application.Services;
 
 public class GatewayHost(IServiceProvider serviceProvider, ILogger<GatewayHost> logger, ICache cache) : IHostedService
 {
-    private readonly TimeSpan _startDelay = TimeSpan.FromSeconds(3);
-    private readonly TimeSpan _paymentProcessInterval = TimeSpan.FromSeconds(1);
-    private readonly TimeSpan _requisiteProcessInterval = TimeSpan.FromMinutes(1);
+    private readonly TimeSpan _startDelay = TimeSpan.FromSeconds(1);
+    private readonly TimeSpan _gatewayProcessInterval = TimeSpan.FromSeconds(1);
     
     private Task _paymentProcessing = null!;
-    private Task _requisitesCheck = null!;
     private CancellationTokenSource _cts = null!;
     
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        using var scope = serviceProvider.CreateScope();
-        var unit = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
-        var requisites = await unit.RequisiteRepository.GetAll().AsNoTracking().ToListAsync(cancellationToken);
-
+        // using var scope = serviceProvider.CreateScope();
+        // var unit = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+        // var requisites = await unit.RequisiteRepository.GetAll().AsNoTracking().ToListAsync(cancellationToken);
         // TODO
         
         _cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
-        _paymentProcessing = PaymentsProcess();
-        _requisitesCheck = RequisitesCheck();
+        _paymentProcessing = GatewayProcess();
     }
 
     public async Task StopAsync(CancellationToken cancellationToken)
@@ -38,7 +34,7 @@ public class GatewayHost(IServiceProvider serviceProvider, ILogger<GatewayHost> 
         try
         {
             await _cts.CancelAsync();
-            await Task.WhenAny(_paymentProcessing, _requisitesCheck, Task.Delay(Timeout.Infinite, cancellationToken));
+            await Task.WhenAny(_paymentProcessing, Task.Delay(Timeout.Infinite, cancellationToken));
             
             using var scope = serviceProvider.CreateScope();
             var unit = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
@@ -52,12 +48,11 @@ public class GatewayHost(IServiceProvider serviceProvider, ILogger<GatewayHost> 
         {
             _cts.Dispose();
             _paymentProcessing.Dispose();
-            _requisitesCheck.Dispose();
             logger.LogInformation("Сервис остановлен");
         }
     }
 
-    private async Task PaymentsProcess()
+    private async Task GatewayProcess()
     {
         await Task.Delay(_startDelay, _cts.Token);
         while (!_cts.IsCancellationRequested)
@@ -68,8 +63,13 @@ public class GatewayHost(IServiceProvider serviceProvider, ILogger<GatewayHost> 
                 var unit = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
                 var paymentHandler = scope.ServiceProvider.GetRequiredService<IPaymentHandler>();
 
+                // TODO requisites
+                
                 await paymentHandler.HandleUnprocessedPayments(unit);
+                
                 await paymentHandler.HandleExpiredPayments(unit);
+
+                await unit.Commit();
             }
             catch (Exception e)
             {
@@ -77,32 +77,7 @@ public class GatewayHost(IServiceProvider serviceProvider, ILogger<GatewayHost> 
             }
             finally
             {
-                await Task.Delay(_paymentProcessInterval, _cts.Token);
-            }
-        }
-    }
-
-    private async Task RequisitesCheck()
-    {
-        await Task.Delay(_startDelay, _cts.Token);
-        while (!_cts.IsCancellationRequested)
-        {
-            try
-            {
-                using var scope = serviceProvider.CreateScope();
-                var unit = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
-
-                var requisites = await unit.RequisiteRepository.GetAll().ToListAsync();
-
-                // TODO
-            }
-            catch (Exception e)
-            {
-                logger.LogError(e, "Ошибка при обработке реквизитов");
-            }
-            finally
-            {
-                await Task.Delay(_requisiteProcessInterval, _cts.Token);
+                await Task.Delay(_gatewayProcessInterval, _cts.Token);
             }
         }
     }

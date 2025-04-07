@@ -12,8 +12,8 @@ public class RequisiteRepository(AppDbContext context, ICache cache) : Repositor
     {
         return await
             GetAll()
-                .Include(r => r.CurrentPayment)
-                .Where(r => r.Status == RequisiteStatus.Active && r.CurrentPayment == null)
+                .Include(r => r.Payment)
+                .Where(r => r.Status == RequisiteStatus.Active && r.Payment == null)
                 .OrderByDescending(r => r.Priority)
                 .ToListAsync();
     }
