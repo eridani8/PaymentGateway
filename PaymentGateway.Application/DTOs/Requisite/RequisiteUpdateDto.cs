@@ -13,6 +13,6 @@ public class RequisiteUpdateDto
     public decimal? MaxAmount { get; init; }
     public int? CooldownMinutes { get; init; }
     public int? Priority { get; init; }
-    public TimeOnly WorkFrom { get; set; }
-    public TimeOnly WorkTo { get; set; }
+    public TimeOnly WorkFrom { get; init; }
+    public TimeOnly WorkTo { get; init; }
 }

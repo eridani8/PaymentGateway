@@ -104,8 +104,6 @@ public class RequisiteEntityBuilder
             throw new ArgumentException("Время начала работы должно быть меньше времени окончания");
         }
 
-        var (workFromUtc, workToUtc) = TimeOnlyUtils.ToUtcTimeOnly(_workFrom, _workTo);
-
         return new RequisiteEntity
         {
             Id = Guid.NewGuid(),
@@ -118,8 +116,8 @@ public class RequisiteEntityBuilder
             MaxAmount = _maxAmount,
             CooldownMinutes = _cooldownMinutes,
             Priority = _priority,
-            WorkFrom = workFromUtc,
-            WorkTo = workToUtc
+            WorkFrom = _workFrom,
+            WorkTo = _workTo
         };
     }
 }

@@ -10,7 +10,7 @@ public class PaymentResponseDto
     public Guid? RequisiteId { get; init; }
     public PaymentStatus Status { get; init; }
     public DateTime CreatedAt { get; init; }
-    public DateTime? ProcessedAt { get; set; }
-    public DateTime? ExpiresAt { get; set; }
-    public int? TransactionId { get; set; }
+    public DateTime? ProcessedAt { get; init; }
+    public DateTime? ExpiresAt { get; init; }
+    public int? TransactionId { get; init; }
 }

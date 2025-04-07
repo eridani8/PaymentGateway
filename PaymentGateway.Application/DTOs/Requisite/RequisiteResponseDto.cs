@@ -18,6 +18,6 @@ public class RequisiteResponseDto
     public required decimal MaxAmount { get; init; }
     public required int CooldownMinutes { get; init; }
     public required int Priority { get; init; }
-    public required TimeSpan WorkFrom { get; init; }
-    public required TimeSpan WorkTo { get; init; }
+    public required TimeOnly WorkFrom { get; init; }
+    public required TimeOnly WorkTo { get; init; }
 }

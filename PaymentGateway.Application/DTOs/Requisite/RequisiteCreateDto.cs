@@ -13,6 +13,6 @@ public class RequisiteCreateDto
     [DefaultValue(5000)] public decimal? MaxAmount { get; init; } // ~
     [DefaultValue(100)] public int? CooldownMinutes { get; init; } // ~
     [DefaultValue(1)] public int? Priority { get; init; } // ~
-    [DefaultValue("09:00:00")] public TimeOnly WorkFrom { get; init; }
-    [DefaultValue("18:00:00")] public TimeOnly WorkTo { get; init; }
+    [DefaultValue("09:00")] public TimeOnly WorkFrom { get; init; }
+    [DefaultValue("18:00")] public TimeOnly WorkTo { get; init; }
 }

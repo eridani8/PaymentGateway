@@ -29,22 +29,11 @@ public class RequisiteService(
             throw new ValidationException(validation.Errors);
         }
 
-        var entity = new RequisiteEntityBuilder()
-            .WithFullName(dto.FullName)
-            .WithType(dto.RequisiteType)
-            .WithPaymentData(dto.PaymentData)
-            .WithBankNumber(dto.BankNumber)
-            .WithIsActive(dto.IsActive)
-            .WithMaxAmount(SettingsExtensions.GetValueOrDefault(dto.MaxAmount, defaults.Value.MaxAmount))
-            .WithCooldownMinutes(SettingsExtensions.GetValueOrDefault(dto.CooldownMinutes, defaults.Value.CooldownMinutes))
-            .WithPriority(SettingsExtensions.GetValueOrDefault(dto.Priority, defaults.Value.Priority))
-            .WithWorkFrom(SettingsExtensions.GetValueOrDefault(dto.WorkFrom, defaults.Value.WorkFrom))
-            .WithWorkTo(SettingsExtensions.GetValueOrDefault(dto.WorkTo, defaults.Value.WorkTo))
-            .Build();
+        var entity = mapper.Map<RequisiteEntity>(dto);
 
         await unit.RequisiteRepository.Add(entity);
         await unit.Commit();
-        
+
         logger.LogInformation("Создание реквизита {requisiteId}", entity.Id);
 
         return mapper.Map<RequisiteResponseDto>(entity);
@@ -69,10 +58,6 @@ public class RequisiteService(
         {
             throw new ValidationException(validation.Errors);
         }
-        
-        var (workFromUtc, workToUtc) = TimeOnlyUtils.ToUtcTimeOnly(dto.WorkFrom, dto.WorkTo);
-        dto.WorkFrom = workFromUtc;
-        dto.WorkTo = workToUtc;
         
         var entity = await unit.RequisiteRepository.GetById(id);
         if (entity is null) return false;
