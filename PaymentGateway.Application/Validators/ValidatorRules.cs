@@ -10,31 +10,40 @@ public static class ValidatorRules
         return rule.Must(x => x != Guid.Empty)
             .WithMessage("Значение должно быть Guid");
     }
-    
+
+    public static IRuleBuilderOptions<T, Guid?> ValidGuid<T>(this IRuleBuilder<T, Guid?> rule)
+    {
+        return rule
+            .Must(x => !x.HasValue || x.Value != Guid.Empty)
+            .WithMessage("Значение должно быть Guid, если указано");
+    }
+
     public static IRuleBuilderOptions<T, string> ValidFullName<T>(this IRuleBuilder<T, string> rule)
     {
         return rule
             .NotEmpty()
             .WithMessage("Требуется указать имя и фамилию")
             .Length(7, 40).WithMessage("Имя и фамилия должны быть от 7 до 40 символов")
-            .Matches(ValidationRegexps.FullNameRegex()).WithMessage("Имя и фамилия должна содержать только буквы и пробелы")
+            .Matches(ValidationRegexps.FullNameRegex())
+            .WithMessage("Имя и фамилия должна содержать только буквы и пробелы")
             .Must(name => name.Split(' ').Length == 2).WithMessage("Имя и фамилия должна состоять из 2-х слов");
     }
-    
+
     public static IRuleBuilderOptions<T, string> ValidPhoneNumber<T>(this IRuleBuilder<T, string> rule)
     {
         return rule
             .Matches(ValidationRegexps.PhoneRegex())
-            .WithMessage("Неверный формат номера телефона. Номер должен содержать от 10 до 15 цифр и может начинаться с '+'");
+            .WithMessage(
+                "Неверный формат номера телефона. Номер должен содержать от 10 до 15 цифр и может начинаться с '+'");
     }
-    
+
     public static IRuleBuilderOptions<T, string> ValidCreditCardNumber<T>(this IRuleBuilder<T, string> rule)
     {
         return rule
             .Matches(ValidationRegexps.CreditCardRegex())
             .WithMessage("Неверный формат номера банковской карты. Номер должен содержать от 13 до 19 цифр");
     }
-    
+
     public static IRuleBuilderOptions<T, string> ValidBankAccount<T>(this IRuleBuilder<T, string> rule)
     {
         return rule
@@ -77,12 +86,35 @@ public static class ValidatorRules
             .GreaterThan(0).WithMessage("Задержка должна быть больше 0")
             .LessThanOrEqualTo(maxCooldown).WithMessage($"Задержка должна быть меньше или равна {maxCooldown}");
     }
-    
+
     public static IRuleBuilderOptions<T, DateTime> ValidDate<T>(this IRuleBuilder<T, DateTime> rule)
     {
         return rule
             .NotEmpty().WithMessage("Требуется указать дату")
             .Must(date => date != default).WithMessage("Дата не может быть значением по умолчанию")
             .LessThanOrEqualTo(DateTime.UtcNow).WithMessage("Дата не может быть в будущем");
+    }
+
+    public static IRuleBuilderOptions<T, TimeOnly> ValidTime<T>(this IRuleBuilder<T, TimeOnly> rule)
+    {
+        return rule
+            .Must(x => x != TimeOnly.MinValue)
+            .WithMessage("Требуется указать время");
+    }
+
+    public static IRuleBuilderOptions<T, T> ValidTimeRange<T>(this IRuleBuilder<T, T> rule, Func<T, TimeOnly> fromSelector, Func<T, TimeOnly> toSelector)
+    {
+        return rule.Must(x =>
+        {
+            var from = fromSelector(x);
+            var to = toSelector(x);
+
+            if (from == TimeOnly.MinValue || to == TimeOnly.MinValue)
+            {
+                return true;
+            }
+            
+            return from < to;
+        }).WithMessage("Начало должно быть раньше конца");
     }
 }
