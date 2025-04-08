@@ -7,7 +7,7 @@ public class PaymentCreateDtoValidator : AbstractValidator<PaymentCreateDto>
 {
     public PaymentCreateDtoValidator()
     {
-        RuleFor(x => x.PaymentId).ValidGuid();
+        RuleFor(x => x.ExternalPaymentId).ValidGuid();
         RuleFor(x => x.Amount).ValidMoneyAmount();
     }
 }

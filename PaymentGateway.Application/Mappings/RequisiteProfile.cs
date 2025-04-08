@@ -32,6 +32,7 @@ public class RequisiteProfile : Profile
             .ForMember(dest => dest.WorkFrom, opt => opt.MapFrom(src => src.WorkFrom))
             .ForMember(dest => dest.WorkTo, opt => opt.MapFrom(src => src.WorkTo))
             .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.Status == RequisiteStatus.Active))
+            
             .ForMember(dest => dest.CreatedAt, opt => opt.ConvertUsing(new UtcToLocalDateTimeConverter(), src => src.CreatedAt))
             .ForMember(dest => dest.WorkFrom, opt => opt.ConvertUsing(new UtcToLocalTimeOnlyConverter(), src => src.WorkFrom))
             .ForMember(dest => dest.WorkTo, opt => opt.ConvertUsing(new UtcToLocalTimeOnlyConverter(), src => src.WorkTo));
@@ -47,6 +48,7 @@ public class RequisiteProfile : Profile
             .ForMember(dest => dest.MaxAmount, opt => opt.MapFrom(src => src.MaxAmount ?? maxAmount))
             .ForMember(dest => dest.CooldownMinutes, opt => opt.MapFrom(src => src.CooldownMinutes ?? cooldown))
             .ForMember(dest => dest.Priority, opt => opt.MapFrom(src => src.Priority ?? priority))
+            
             .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
             .ForMember(dest => dest.WorkFrom, opt => opt.ConvertUsing(new LocalToUtcTimeOnlyConverter(), src => src.WorkFrom))
             .ForMember(dest => dest.WorkTo, opt => opt.ConvertUsing(new LocalToUtcTimeOnlyConverter(), src => src.WorkTo))
@@ -66,6 +68,7 @@ public class RequisiteProfile : Profile
             .ForMember(dest => dest.MaxAmount, opt => opt.MapFrom(src => src.MaxAmount ?? maxAmount))
             .ForMember(dest => dest.CooldownMinutes, opt => opt.MapFrom(src => src.CooldownMinutes ?? cooldown))
             .ForMember(dest => dest.Priority, opt => opt.MapFrom(src => src.Priority ?? priority))
+            
             .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
             .ForMember(dest => dest.WorkFrom, opt => opt.ConvertUsing(new LocalToUtcTimeOnlyConverter(), src => src.WorkFrom))
             .ForMember(dest => dest.WorkTo, opt => opt.ConvertUsing(new LocalToUtcTimeOnlyConverter(), src => src.WorkTo))

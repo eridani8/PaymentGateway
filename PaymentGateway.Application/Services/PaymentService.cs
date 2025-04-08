@@ -17,7 +17,6 @@ public class PaymentService(
     IUnitOfWork unit,
     IMapper mapper,
     IValidator<PaymentCreateDto> validator,
-    IOptions<PaymentDefaults> defaults,
     ILogger<PaymentService> logger) : IPaymentService
 {
     public async Task<PaymentResponseDto> CreatePayment(PaymentCreateDto dto)
@@ -31,23 +30,13 @@ public class PaymentService(
         var containsEntity = await unit.PaymentRepository
             .QueryableGetAll()
             .AsNoTracking()
-            .FirstOrDefaultAsync(p => p.ExternalPaymentId == dto.PaymentId);
+            .FirstOrDefaultAsync(p => p.ExternalPaymentId == dto.ExternalPaymentId);
         if (containsEntity is not null)
         {
             throw new DuplicatePaymentException();
         }
 
-        var now = DateTime.UtcNow;
-        var entity = new PaymentEntity()
-        {
-            Id = Guid.NewGuid(),
-            ExternalPaymentId = dto.PaymentId,
-            UserId = dto.UserId,
-            Amount = dto.Amount,
-            Status = PaymentStatus.Created,
-            CreatedAt = now,
-            ExpiresAt = now.AddMinutes(defaults.Value.ExpiresMinutes)
-        };
+        var entity = mapper.Map<PaymentEntity>(dto);
 
         await unit.PaymentRepository.Add(entity);
         await unit.Commit();

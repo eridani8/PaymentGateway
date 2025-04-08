@@ -3,6 +3,6 @@
 public class PaymentCreateDto
 {
     public decimal Amount { get; set; }
-    public Guid PaymentId { get; set; }
+    public Guid ExternalPaymentId { get; set; }
     public Guid? UserId { get; set; }
 }

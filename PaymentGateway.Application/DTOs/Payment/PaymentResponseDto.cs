@@ -12,5 +12,5 @@ public class PaymentResponseDto
     public DateTime CreatedAt { get; init; }
     public DateTime? ProcessedAt { get; init; }
     public DateTime? ExpiresAt { get; init; }
-    public int? TransactionId { get; init; }
+    public Guid? TransactionId { get; init; }
 }
