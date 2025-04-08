@@ -5,7 +5,7 @@ using PaymentGateway.Core.Interfaces;
 
 namespace PaymentGateway.Core.Entities;
 
-public sealed class TransactionEntity : ICacheable
+public sealed class TransactionEntity : ITransactionEntity, ICacheable
 {
     public TransactionEntity() { }
     

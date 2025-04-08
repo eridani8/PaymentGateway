@@ -31,7 +31,7 @@ public class TransactionService(
             .Include(r => r.Payment)
             .FirstOrDefaultAsync(r => r.PaymentData == dto.PaymentData);
 
-        if (requisite is null || requisite.Payment is not { } payment)
+        if (requisite?.Payment is not { } payment)
         {
             throw new RequisiteNotFound();
         }
@@ -55,21 +55,9 @@ public class TransactionService(
         };
         
         logger.LogInformation("Поступление платежа на сумму {amount}", entity.ExtractedAmount);
-
-        requisite.Payment.Status = PaymentStatus.Confirmed;
-        requisite.Payment.TransactionId = entity.Id;
-        requisite.Payment.ProcessedAt = DateTime.UtcNow;
-        requisite.Payment.ExpiresAt = null;
         
-        requisite.ReceivedFunds += entity.ExtractedAmount;
-        requisite.PaymentId = null;
-        requisite.LastOperationTime = DateTime.UtcNow;
-        requisite.Status = requisite.CooldownMinutes switch
-        {
-            0 => RequisiteStatus.Active,
-            > 0 => RequisiteStatus.Cooldown,
-            _ => RequisiteStatus.Inactive
-        };
+        payment.ConfirmTransaction(entity.Id);
+        requisite.ReleaseAfterPayment(dto.ExtractedAmount);
 
         logger.LogInformation("Освобождение реквизита {requisiteId}", requisite.Id);
 

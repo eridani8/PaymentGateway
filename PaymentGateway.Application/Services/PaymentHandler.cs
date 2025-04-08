@@ -45,12 +45,8 @@ public class PaymentHandler(ILogger<PaymentHandler> logger) : IPaymentHandler
             }
             freeRequisites.Remove(requisite);
             
-            requisite.PaymentId = payment.Id;
-            requisite.LastOperationTime = DateTime.UtcNow;
-            requisite.Status = RequisiteStatus.Pending;
-        
-            payment.RequisiteId = requisite.Id;
-            payment.Status = PaymentStatus.Pending;
+            requisite.AssignToPayment(payment.Id);
+            payment.MarkAsPending(requisite.Id);
 
             logger.LogInformation("Платеж {payment} назначен реквизиту {requisite}", payment.Id, requisite.Id);
         }

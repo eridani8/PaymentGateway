@@ -5,7 +5,7 @@ using PaymentGateway.Core.Interfaces;
 
 namespace PaymentGateway.Core.Entities;
 
-public sealed class PaymentEntity : ICacheable
+public sealed class PaymentEntity : IPaymentEntity, ICacheable
 {
     public PaymentEntity() { }
     
@@ -64,4 +64,18 @@ public sealed class PaymentEntity : ICacheable
     public Guid? TransactionId { get; set; }
     
     public TransactionEntity? Transaction { get; set; }
+    
+    public void MarkAsPending(Guid requisiteId)
+    {
+        RequisiteId = requisiteId;
+        Status = PaymentStatus.Pending;
+    }
+
+    public void ConfirmTransaction(Guid transactionId)
+    {
+        Status = PaymentStatus.Confirmed;
+        TransactionId = transactionId;
+        ProcessedAt = DateTime.UtcNow;
+        ExpiresAt = null;
+    }
 }

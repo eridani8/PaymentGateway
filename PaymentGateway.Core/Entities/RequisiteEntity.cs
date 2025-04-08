@@ -5,7 +5,7 @@ using PaymentGateway.Core.Interfaces;
 
 namespace PaymentGateway.Core.Entities;
 
-public class RequisiteEntity : ICacheable
+public class RequisiteEntity : IRequisiteEntity, ICacheable
 {
     public RequisiteEntity() { }
 
@@ -91,4 +91,24 @@ public class RequisiteEntity : ICacheable
     /// Временное ограничение до
     /// </summary>
     public required TimeOnly WorkTo { get; set; }
+    
+    public void AssignToPayment(Guid paymentId)
+    {
+        PaymentId = paymentId;
+        Status = RequisiteStatus.Pending;
+        LastOperationTime = DateTime.UtcNow;
+    }
+
+    public void ReleaseAfterPayment(decimal amount)
+    {
+        ReceivedFunds += amount;
+        PaymentId = null;
+        LastOperationTime = DateTime.UtcNow;
+        Status = CooldownMinutes switch
+        {
+            0 => RequisiteStatus.Active,
+            > 0 => RequisiteStatus.Cooldown,
+            _ => RequisiteStatus.Inactive
+        };
+    }
 }

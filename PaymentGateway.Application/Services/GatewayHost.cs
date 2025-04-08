@@ -14,16 +14,11 @@ public class GatewayHost(IServiceProvider serviceProvider, ILogger<GatewayHost> 
     private Task _paymentProcessing = null!;
     private CancellationTokenSource _cts = null!;
     
-    public async Task StartAsync(CancellationToken cancellationToken)
+    public Task StartAsync(CancellationToken cancellationToken)
     {
-        // using var scope = serviceProvider.CreateScope();
-        // var unit = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
-        // var requisites = await unit.RequisiteRepository.GetAll().AsNoTracking().ToListAsync(cancellationToken);
-        // TODO
-        
         _cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-
         _paymentProcessing = GatewayProcess();
+        return Task.CompletedTask;
     }
 
     public async Task StopAsync(CancellationToken cancellationToken)
