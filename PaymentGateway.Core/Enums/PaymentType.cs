@@ -1,6 +1,6 @@
 ﻿namespace PaymentGateway.Core.Enums;
 
-public enum RequisiteType
+public enum PaymentType
 {
     PhoneNumber = 0,
     BankCard = 1

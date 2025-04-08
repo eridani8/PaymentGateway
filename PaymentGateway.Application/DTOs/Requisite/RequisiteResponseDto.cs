@@ -6,7 +6,7 @@ public class RequisiteResponseDto
 {
     public required Guid Id { get; init; }
     public required string FullName { get; init; }
-    public required RequisiteType RequisiteType { get; init; }
+    public required PaymentType PaymentType { get; init; }
     public required string PaymentData { get; init; }
     public required string BankNumber { get; init; }
     public required DateTime CreatedAt { get; init; }
@@ -14,7 +14,7 @@ public class RequisiteResponseDto
     public required RequisiteStatus Status { get; init; }
     public required bool IsActive { get; init; }
     public required DateTime? LastOperationTime { get; init; }
-    public required decimal ReceivedFounds { get; init; }
+    public required decimal ReceivedFunds { get; init; }
     public required decimal MaxAmount { get; init; }
     public required int CooldownMinutes { get; init; }
     public required int Priority { get; init; }

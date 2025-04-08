@@ -6,7 +6,7 @@ namespace PaymentGateway.Core.Interfaces;
 public interface IRequisiteEntity
 {
     string FullName { get; init; }
-    RequisiteType PaymentType { get; init; }
+    PaymentType PaymentType { get; init; }
     string PaymentData { get; init; }
     string BankNumber { get; init; }
     DateTime CreatedAt { get; init; }

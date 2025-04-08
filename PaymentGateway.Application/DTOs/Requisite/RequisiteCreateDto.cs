@@ -6,7 +6,7 @@ namespace PaymentGateway.Application.DTOs.Requisite;
 public class RequisiteCreateDto
 {
     [DefaultValue("string s")] public required string FullName { get; init; } // ~
-    public RequisiteType RequisiteType { get; init; }
+    public PaymentType PaymentType { get; init; }
     [DefaultValue("123456789012345")] public required string PaymentData { get; init; } // ~
     [DefaultValue("1234567890123456789012345")] public required string BankNumber { get; init; } // ~
     public bool IsActive { get; init; }

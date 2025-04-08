@@ -5,7 +5,7 @@ namespace PaymentGateway.Application.DTOs.Requisite;
 public class RequisiteUpdateDto
 {
     public required string FullName { get; init; }
-    public RequisiteType RequisiteType { get; init; }
+    public PaymentType PaymentType { get; init; }
     public required string PaymentData { get; init; }
     public required string BankNumber { get; init; }
     public bool IsActive { get; init; }

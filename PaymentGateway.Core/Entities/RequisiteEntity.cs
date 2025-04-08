@@ -23,7 +23,7 @@ public class RequisiteEntity : IRequisiteEntity, ICacheable
     /// <summary>
     /// Тип реквизита
     /// </summary>
-    public RequisiteType PaymentType { get; init; }
+    public PaymentType PaymentType { get; init; }
     
     /// <summary>
     /// Данные для платежа
