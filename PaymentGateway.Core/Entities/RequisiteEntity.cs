@@ -58,6 +58,8 @@ public class RequisiteEntity : IRequisiteEntity, ICacheable
     /// </summary>
     public required RequisiteStatus Status { get; set; }
 
+    public required bool IsActive { get; set; }
+    
     /// <summary>
     /// Полученные средства
     /// </summary>
@@ -75,7 +77,7 @@ public class RequisiteEntity : IRequisiteEntity, ICacheable
     /// <summary>
     /// Задержка перед следующей операцией
     /// </summary>
-    public required int CooldownMinutes { get; set; }
+    public required TimeSpan Cooldown { get; set; }
 
     /// <summary>
     /// Приоритет использования
@@ -104,11 +106,25 @@ public class RequisiteEntity : IRequisiteEntity, ICacheable
         ReceivedFunds += amount;
         PaymentId = null;
         LastOperationTime = DateTime.UtcNow;
-        Status = CooldownMinutes switch
+        Status = Cooldown > TimeSpan.Zero
+            ? RequisiteStatus.Cooldown
+            : RequisiteStatus.Active;
+    }
+
+    public bool IsWorkingTime(TimeOnly currentTime)
+    {
+        if (WorkFrom <= WorkTo)
         {
-            0 => RequisiteStatus.Active,
-            > 0 => RequisiteStatus.Cooldown,
-            _ => RequisiteStatus.Inactive
-        };
+            return currentTime >= WorkFrom && currentTime <= WorkTo;
+        }
+
+        return currentTime >= WorkFrom || currentTime <= WorkTo;
+    }
+
+    public bool IsCooldownOver(DateTime currentTime)
+    {
+        if (!LastOperationTime.HasValue) return true;
+        
+        return currentTime >= LastOperationTime.Value.Add(Cooldown);
     }
 }

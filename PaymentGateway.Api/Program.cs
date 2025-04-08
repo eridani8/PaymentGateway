@@ -103,7 +103,7 @@ try
     builder.Services.AddScoped<IValidator<TransactionCreateDto>, TransactionCreateDtoValidator>();
     builder.Services.AddScoped<ITransactionService, TransactionService>();
 
-    builder.Services.AddScoped<IPaymentHandler, PaymentHandler>();
+    builder.Services.AddScoped<IGatewayHandler, GatewayHandler>();
 
     builder.Services.AddHostedService<GatewayHost>();
 

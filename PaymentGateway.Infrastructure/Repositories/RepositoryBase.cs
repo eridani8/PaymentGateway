@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Linq.Expressions;
+using Microsoft.EntityFrameworkCore;
 using PaymentGateway.Core.Interfaces;
 using PaymentGateway.Infrastructure.Data;
 
@@ -8,18 +9,60 @@ public class RepositoryBase<TEntity>(AppDbContext context, ICache cache)
     : IRepositoryBase<TEntity> where TEntity : class, ICacheable
 {
     private readonly DbSet<TEntity> _entities = context.Set<TEntity>();
+    
+    public async Task<List<TEntity>> Find(Func<TEntity, bool> predicate)
+    {
+        var prefix = InMemoryCache.GetCacheKey<TEntity>();
+    
+        var cachedKeys = cache.AllKeys()
+            .Where(k => k.StartsWith(prefix))
+            .ToList();
+
+        var cachedItems = cachedKeys
+            .Select(cache.Get<TEntity>)
+            .Where(entity => entity != null)
+            .Cast<TEntity>()
+            .Where(predicate)
+            .ToList();
+
+        if (cachedItems.Count == cachedKeys.Count)
+        {
+            return cachedItems;
+        }
+
+        var entities = await _entities.ToListAsync();
+        var filteredEntities = entities
+            .Where(predicate)
+            .ToList();
+
+        foreach (var entity in filteredEntities)
+        {
+            cache.Set(entity);
+        }
+
+        return filteredEntities;
+    }
 
     public IQueryable<TEntity> QueryableGetAll()
     {
         return _entities;
     }
-
-    public async Task<IEnumerable<TEntity>> GetAll()
+    
+    public async Task<List<TEntity>> GetAll()
     {
         var prefix = InMemoryCache.GetCacheKey<TEntity>();
         
-        var cachedItems = cache.GetByPrefix<TEntity>(prefix).ToList();
-        if (cachedItems.Count > 0)
+        var cachedKeys = cache.AllKeys()
+            .Where(k => k.StartsWith(prefix))
+            .ToList();
+        
+        var cachedItems = cachedKeys
+            .Select(cache.Get<TEntity>)
+            .Where(entity => entity != null)
+            .Cast<TEntity>()
+            .ToList();
+        
+        if (cachedKeys.Count > 0 && cachedItems.Count == cachedKeys.Count)
         {
             return cachedItems;
         }

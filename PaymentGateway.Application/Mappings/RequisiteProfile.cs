@@ -11,10 +11,6 @@ public class RequisiteProfile : Profile
 {
     public RequisiteProfile()
     {
-        const decimal maxAmount = 5000m;
-        const int cooldown = 100;
-        const int priority = 1;
-        
         CreateMap<RequisiteEntity, RequisiteResponseDto>()
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
             .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.FullName))
@@ -24,10 +20,11 @@ public class RequisiteProfile : Profile
             .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt))
             .ForMember(dest => dest.PaymentId, opt => opt.MapFrom(src => src.PaymentId))
             .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status))
+            .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive))
             .ForMember(dest => dest.LastOperationTime, opt => opt.MapFrom(src => src.LastOperationTime))
             .ForMember(dest => dest.ReceivedFunds, opt => opt.MapFrom(src => src.ReceivedFunds))
             .ForMember(dest => dest.MaxAmount, opt => opt.MapFrom(src => src.MaxAmount))
-            .ForMember(dest => dest.CooldownMinutes, opt => opt.MapFrom(src => src.CooldownMinutes))
+            .ForMember(dest => dest.Cooldown, opt => opt.MapFrom(src => src.Cooldown))
             .ForMember(dest => dest.Priority, opt => opt.MapFrom(src => src.Priority))
             .ForMember(dest => dest.WorkFrom, opt => opt.MapFrom(src => src.WorkFrom))
             .ForMember(dest => dest.WorkTo, opt => opt.MapFrom(src => src.WorkTo))
@@ -45,9 +42,10 @@ public class RequisiteProfile : Profile
             .ForMember(dest => dest.PaymentData, opt => opt.MapFrom(src => src.PaymentData))
             .ForMember(dest => dest.BankNumber, opt => opt.MapFrom(src => src.BankNumber))
             .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.IsActive ? RequisiteStatus.Active : RequisiteStatus.Inactive))
-            .ForMember(dest => dest.MaxAmount, opt => opt.MapFrom(src => src.MaxAmount ?? maxAmount))
-            .ForMember(dest => dest.CooldownMinutes, opt => opt.MapFrom(src => src.CooldownMinutes ?? cooldown))
-            .ForMember(dest => dest.Priority, opt => opt.MapFrom(src => src.Priority ?? priority))
+            .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive))
+            .ForMember(dest => dest.MaxAmount, opt => opt.MapFrom(src => src.MaxAmount))
+            .ForMember(dest => dest.Cooldown, opt => opt.MapFrom(src => src.Cooldown))
+            .ForMember(dest => dest.Priority, opt => opt.MapFrom(src => src.Priority))
             
             .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
             .ForMember(dest => dest.WorkFrom, opt => opt.ConvertUsing(new LocalToUtcTimeOnlyConverter(), src => src.WorkFrom))
@@ -65,9 +63,10 @@ public class RequisiteProfile : Profile
             .ForMember(dest => dest.PaymentData, opt => opt.MapFrom(src => src.PaymentData))
             .ForMember(dest => dest.BankNumber, opt => opt.MapFrom(src => src.BankNumber))
             .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.IsActive ? RequisiteStatus.Active : RequisiteStatus.Inactive))
-            .ForMember(dest => dest.MaxAmount, opt => opt.MapFrom(src => src.MaxAmount ?? maxAmount))
-            .ForMember(dest => dest.CooldownMinutes, opt => opt.MapFrom(src => src.CooldownMinutes ?? cooldown))
-            .ForMember(dest => dest.Priority, opt => opt.MapFrom(src => src.Priority ?? priority))
+            .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive))
+            .ForMember(dest => dest.MaxAmount, opt => opt.MapFrom(src => src.MaxAmount))
+            .ForMember(dest => dest.Cooldown, opt => opt.MapFrom(src => src.Cooldown))
+            .ForMember(dest => dest.Priority, opt => opt.MapFrom(src => src.Priority))
             
             .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
             .ForMember(dest => dest.WorkFrom, opt => opt.ConvertUsing(new LocalToUtcTimeOnlyConverter(), src => src.WorkFrom))

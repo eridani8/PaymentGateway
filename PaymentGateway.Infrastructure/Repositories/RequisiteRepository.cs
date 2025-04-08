@@ -16,7 +16,7 @@ public class RequisiteRepository(AppDbContext context, ICache cache)
         return await
             QueryableGetAll()
                 .Include(r => r.Payment)
-                .Where(r => r.Status == RequisiteStatus.Active && r.Payment == null &&
+                .Where(r => r.IsActive && r.Status == RequisiteStatus.Active && r.Payment == null &&
                             ((r.WorkFrom == TimeOnly.MinValue && r.WorkTo == TimeOnly.MinValue) ||
                              (currentTimeOnly >= r.WorkFrom && currentTimeOnly <= r.WorkTo)))
                 .OrderByDescending(r => r.Priority)

@@ -16,10 +16,12 @@ public interface IRequisiteEntity
     RequisiteStatus Status { get; set; }
     decimal ReceivedFunds { get; set; }
     decimal MaxAmount { get; set; }
-    int CooldownMinutes { get; set; }
+    TimeSpan Cooldown { get; set; }
     int Priority { get; set; }
     TimeOnly WorkFrom { get; set; }
     TimeOnly WorkTo { get; set; }
     void AssignToPayment(Guid paymentId);
     void ReleaseAfterPayment(decimal amount);
+    bool IsWorkingTime(TimeOnly currentTime);
+    bool IsCooldownOver(DateTime currentTime);
 }

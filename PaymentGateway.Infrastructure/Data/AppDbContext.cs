@@ -1,15 +1,58 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using PaymentGateway.Core;
 using PaymentGateway.Core.Entities;
 using PaymentGateway.Core.Interfaces;
 
 namespace PaymentGateway.Infrastructure.Data;
 
-public class AppDbContext(DbContextOptions<AppDbContext> options, ICryptographyService cryptographyService, ICache cache) : DbContext(options)
+public class AppDbContext(DbContextOptions<AppDbContext> options, ICryptographyService cryptographyService, ICache cache, ILogger<AppDbContext> logger) : DbContext(options)
 {
     public DbSet<PaymentEntity> Payments { get; set; }
     public DbSet<RequisiteEntity> Requisites { get; set; }
     public DbSet<TransactionEntity> Transactions { get; set; }
+
+    // public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    // {
+    //     var cacheUpdates = new List<ICacheable>();
+    //     var cacheRemovals = new List<ICacheable>();
+    //     
+    //     foreach (var entry in ChangeTracker.Entries<ICacheable>())
+    //     {
+    //         try
+    //         {
+    //             switch (entry.State)
+    //             {
+    //                 case EntityState.Added:
+    //                 case EntityState.Modified:
+    //                     cacheUpdates.Add(entry.Entity);
+    //                     break;
+    //
+    //                 case EntityState.Deleted:
+    //                     cacheRemovals.Add(entry.Entity);
+    //                     break;
+    //             }
+    //         }
+    //         catch (Exception e)
+    //         {
+    //             logger.LogError(e, "Ошибка при сохранении объекта {entryId}", entry.Entity.Id);
+    //         }
+    //     }
+    //     
+    //     var result = await base.SaveChangesAsync(cancellationToken);
+    //     
+    //     foreach (var entity in cacheRemovals)
+    //     {
+    //         cache.Remove(entity.GetType(), entity.Id);
+    //     }
+    //     
+    //     foreach (var entity in cacheUpdates)
+    //     {
+    //         cache.Set(entity.GetType(), entity.Id, entity);
+    //     }
+    //     
+    //     return result;
+    // }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -58,8 +101,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICryptographyS
 
             entity
                 .HasOne(e => e.Requisite)
-                .WithOne()
-                .HasForeignKey<TransactionEntity>(e => e.RequisiteId)
+                .WithMany()
+                .HasForeignKey(e => e.RequisiteId)
                 .OnDelete(DeleteBehavior.SetNull);
         });
     }

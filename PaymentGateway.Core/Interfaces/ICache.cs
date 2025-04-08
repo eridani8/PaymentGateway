@@ -10,9 +10,11 @@ public interface ICache
     IEnumerable<string> AllKeys();
     void Set<T>(string key, T obj, TimeSpan? expiry = null) where T : ICacheable;
     void Set<T>(T obj, TimeSpan? expiry = null) where T : ICacheable;
+    void Set(Type type, Guid id, object obj, TimeSpan? expiry = null);
     T? Get<T>(string key);
     void Remove(string key);
     void Remove<T>(T obj) where T : ICacheable;
+    void Remove(Type type, Guid id);
     bool Exists(string key);
     IEnumerable<T> GetByPrefix<T>(string prefix);
 }

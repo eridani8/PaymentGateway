@@ -16,7 +16,7 @@ public class RequisiteResponseDto
     public required DateTime? LastOperationTime { get; init; }
     public required decimal ReceivedFunds { get; init; }
     public required decimal MaxAmount { get; init; }
-    public required int CooldownMinutes { get; init; }
+    public required TimeSpan Cooldown { get; init; }
     public required int Priority { get; init; }
     public required TimeOnly WorkFrom { get; init; }
     public required TimeOnly WorkTo { get; init; }

@@ -1,11 +1,12 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Core.Enums;
 using PaymentGateway.Core.Interfaces;
 
 namespace PaymentGateway.Application.Services;
 
-public class PaymentHandler(ILogger<PaymentHandler> logger) : IPaymentHandler
+public class GatewayHandler(ILogger<GatewayHandler> logger) : IGatewayHandler
 {
     public async Task HandleExpiredPayments(IUnitOfWork unit)
     {
@@ -19,6 +20,44 @@ public class PaymentHandler(ILogger<PaymentHandler> logger) : IPaymentHandler
         
             unit.PaymentRepository.DeletePayments(expiredPayments);
         }
+    }
+
+    public async Task HandleRequisites(IUnitOfWork unit)
+    {
+        var requisites = await unit.RequisiteRepository.GetAll();
+        var now = DateTime.UtcNow;
+        var nowTimeOnly = TimeOnly.FromDateTime(now);
+        foreach (var requisite in requisites)
+        {
+            try
+            {
+                if (!requisite.IsActive) continue;
+                
+                var inWorkingTime = requisite.IsWorkingTime(nowTimeOnly);
+                var cooldownOver = requisite.IsCooldownOver(now);
+                RequisiteStatus newStatus;
+                
+                if (inWorkingTime)
+                {
+                    newStatus = cooldownOver ? RequisiteStatus.Active : RequisiteStatus.Cooldown;
+                }
+                else
+                {
+                    newStatus = RequisiteStatus.Inactive;
+                }
+
+                if (requisite.Status != RequisiteStatus.Pending && newStatus == requisite.Status) continue;
+                
+                requisite.Status = newStatus;
+                unit.RequisiteRepository.Update(requisite);
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e, "Ошибка при обработке реквизита {requisiteId}", requisite.Id);
+            }
+        }
+
+        await unit.Commit();
     }
 
     public async Task HandleUnprocessedPayments(IUnitOfWork unit)

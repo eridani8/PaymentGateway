@@ -19,10 +19,9 @@ public class InMemoryCache(IMemoryCache cache) : ICache
     {
         return Keys.Keys;
     }
-
-    public void Set<T>(string key, T obj, TimeSpan? expiry = null) where T : ICacheable
+    
+    private void SetCacheInternal(string key, string json, TimeSpan? expiry)
     {
-        var json = JsonSerializer.Serialize(obj, Options);
         var cacheOptions = expiry.HasValue
             ? new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = expiry }
             : new MemoryCacheEntryOptions();
@@ -34,14 +33,27 @@ public class InMemoryCache(IMemoryCache cache) : ICache
                 Keys.TryRemove(keyStr, out _);
             }
         });
-
+        
         cache.Set(key, json, cacheOptions);
         Keys.TryAdd(key, 0);
+    }
+
+    public void Set<T>(string key, T obj, TimeSpan? expiry = null) where T : ICacheable
+    {
+        var json = JsonSerializer.Serialize(obj, Options);
+        SetCacheInternal(key, json, expiry);
     }
 
     public void Set<T>(T obj, TimeSpan? expiry = null) where T : ICacheable
     {
         Set(GetCacheKey<T>(obj.Id), obj, expiry);
+    }
+
+    public void Set(Type type, Guid id, object obj, TimeSpan? expiry = null)
+    {
+        var key = GetCacheKey(type, id);
+        var json = JsonSerializer.Serialize(obj, Options);
+        SetCacheInternal(key, json, expiry);
     }
 
     public T? Get<T>(string key)
@@ -59,6 +71,12 @@ public class InMemoryCache(IMemoryCache cache) : ICache
     public void Remove<T>(T obj) where T : ICacheable
     {
         Remove(GetCacheKey<T>(obj.Id));
+    }
+    
+    public void Remove(Type type, Guid id)
+    {
+        var key = GetCacheKey(type, id);
+        Remove(key);
     }
 
     public bool Exists(string key)
@@ -86,5 +104,10 @@ public class InMemoryCache(IMemoryCache cache) : ICache
     public static string GetCacheKey<T>()
     {
         return $"{typeof(T).Name}";
+    }
+    
+    public static string GetCacheKey(Type entityType, Guid id)
+    {
+        return $"{entityType.Name}:{id}";
     }
 }

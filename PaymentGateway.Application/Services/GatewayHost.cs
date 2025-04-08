@@ -47,19 +47,21 @@ public class GatewayHost(IServiceProvider serviceProvider, ILogger<GatewayHost> 
     private async Task GatewayProcess()
     {
         await Task.Delay(_startDelay, _cts.Token);
+        logger.LogInformation("Сервис запущен");
+        
         while (!_cts.IsCancellationRequested)
         {
             try
             {
                 using var scope = serviceProvider.CreateScope();
                 var unit = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
-                var paymentHandler = scope.ServiceProvider.GetRequiredService<IPaymentHandler>();
+                var handler = scope.ServiceProvider.GetRequiredService<IGatewayHandler>();
 
-                // TODO requisites
+                await handler.HandleRequisites(unit);
                 
-                await paymentHandler.HandleUnprocessedPayments(unit);
+                await handler.HandleUnprocessedPayments(unit);
                 
-                await paymentHandler.HandleExpiredPayments(unit);
+                await handler.HandleExpiredPayments(unit);
 
                 await unit.Commit();
             }

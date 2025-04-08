@@ -23,7 +23,7 @@ public static class ValidatorRules
         return rule
             .NotEmpty()
             .WithMessage("Требуется указать имя и фамилию")
-            .Length(7, 40).WithMessage("Имя и фамилия должны быть от 7 до 40 символов")
+            .Length(4, 40).WithMessage("Имя и фамилия должны быть от 4 до 40 символов")
             .Matches(ValidationRegexps.FullNameRegex())
             .WithMessage("Имя и фамилия должна содержать только буквы и пробелы")
             .Must(name => name.Split(' ').Length == 2).WithMessage("Имя и фамилия должна состоять из 2-х слов");
@@ -71,20 +71,20 @@ public static class ValidatorRules
             .WithMessage("Сумма должна быть округлена до двух знаков после запятой");
     }
 
-    public static IRuleBuilderOptions<T, int> ValidCooldown<T>(this IRuleBuilder<T, int> rule)
+    public static IRuleBuilderOptions<T, TimeSpan> ValidCooldown<T>(this IRuleBuilder<T, TimeSpan> rule)
     {
-        const int maxCooldown = 999999999;
+        var maxCooldown = TimeSpan.FromHours(24);
         return rule
-            .GreaterThan(0).WithMessage("Задержка должна быть больше 0")
-            .LessThanOrEqualTo(maxCooldown).WithMessage($"Задержка должна быть меньше или равна {maxCooldown}");
+            .LessThanOrEqualTo(maxCooldown).WithMessage($"Задержка должна быть меньше или равна {maxCooldown}")
+            .WithMessage("Задержка должна быть больше 0 или равна нулю");
     }
 
     public static IRuleBuilderOptions<T, int> ValidPriority<T>(this IRuleBuilder<T, int> rule)
     {
-        const int maxCooldown = 999999999;
+        const int maxPriority = 100;
         return rule
-            .GreaterThan(0).WithMessage("Задержка должна быть больше 0")
-            .LessThanOrEqualTo(maxCooldown).WithMessage($"Задержка должна быть меньше или равна {maxCooldown}");
+            .GreaterThan(0).WithMessage("Приоритет должен быть больше 0")
+            .LessThanOrEqualTo(maxPriority).WithMessage($"Приоритет должен быть меньше или равен {maxPriority}");
     }
 
     public static IRuleBuilderOptions<T, DateTime> ValidDate<T>(this IRuleBuilder<T, DateTime> rule)

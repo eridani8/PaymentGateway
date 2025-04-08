@@ -4,6 +4,7 @@ using PaymentGateway.Application;
 using PaymentGateway.Application.DTOs.Requisite;
 using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Core;
+using PaymentGateway.Core.Exceptions;
 
 namespace PaymentGateway.Api.Controllers;
 
@@ -20,8 +21,12 @@ public class RequisiteController(IRequisiteService service) : ControllerBase
         try
         {
             var requisite = await service.CreateRequisite(dto);
-            
+
             return Ok(requisite);
+        }
+        catch (DuplicateRequisiteException e)
+        {
+            return BadRequest(e.Message);
         }
         catch (ValidationException e)
         {

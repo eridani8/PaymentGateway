@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using PaymentGateway.Application.DTOs.Requisite;
 using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Core.Entities;
+using PaymentGateway.Core.Exceptions;
 using PaymentGateway.Core.Interfaces;
 
 namespace PaymentGateway.Application.Services;
@@ -22,9 +23,16 @@ public class RequisiteService(
         {
             throw new ValidationException(validation.Errors);
         }
+        
+        var requisites = await unit.RequisiteRepository.GetAll();
+        var containsRequisite = requisites.FirstOrDefault(r => r.PaymentData.Equals(dto.PaymentData));
+        if (containsRequisite is not null)
+        {
+            throw new DuplicateRequisiteException("Реквизит с такими платежными данными уже существует");
+        }
 
         var entity = mapper.Map<RequisiteEntity>(dto);
-
+        
         await unit.RequisiteRepository.Add(entity);
         await unit.Commit();
 

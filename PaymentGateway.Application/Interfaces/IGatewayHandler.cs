@@ -2,8 +2,9 @@
 
 namespace PaymentGateway.Application.Interfaces;
 
-public interface IPaymentHandler
+public interface IGatewayHandler
 {
+    Task HandleRequisites(IUnitOfWork unit);
     Task HandleUnprocessedPayments(IUnitOfWork unit);
     Task HandleExpiredPayments(IUnitOfWork unit);
 }
