@@ -21,7 +21,10 @@ public interface IRequisiteEntity
     TimeOnly WorkFrom { get; set; }
     TimeOnly WorkTo { get; set; }
     void AssignToPayment(Guid paymentId);
-    void ReleaseAfterPayment(decimal amount);
+    void ReleaseWithoutPayment();
+    void ReleaseAfterPayment(decimal amount, out RequisiteStatus status);
     bool IsWorkingTime(TimeOnly currentTime);
     bool IsCooldownOver(DateTime currentTime);
+    bool LimitReached();
+    RequisiteStatus DetermineStatus(DateTime now, TimeOnly nowTimeOnly);
 }

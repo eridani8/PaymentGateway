@@ -32,7 +32,8 @@ public class RequisiteProfile : Profile
             
             .ForMember(dest => dest.CreatedAt, opt => opt.ConvertUsing(new UtcToLocalDateTimeConverter(), src => src.CreatedAt))
             .ForMember(dest => dest.WorkFrom, opt => opt.ConvertUsing(new UtcToLocalTimeOnlyConverter(), src => src.WorkFrom))
-            .ForMember(dest => dest.WorkTo, opt => opt.ConvertUsing(new UtcToLocalTimeOnlyConverter(), src => src.WorkTo));
+            .ForMember(dest => dest.WorkTo, opt => opt.ConvertUsing(new UtcToLocalTimeOnlyConverter(), src => src.WorkTo))
+            .ForMember(dest => dest.LastFundsResetAt, opt => opt.ConvertUsing(new UtcToLocalNullableDateTimeConverter(), src => src.LastFundsResetAt));
 
 
         CreateMap<RequisiteCreateDto, RequisiteEntity>()
@@ -46,6 +47,7 @@ public class RequisiteProfile : Profile
             .ForMember(dest => dest.MaxAmount, opt => opt.MapFrom(src => src.MaxAmount))
             .ForMember(dest => dest.Cooldown, opt => opt.MapFrom(src => src.Cooldown))
             .ForMember(dest => dest.Priority, opt => opt.MapFrom(src => src.Priority))
+            .ForMember(dest => dest.LastFundsResetAt, opt => opt.MapFrom(src => DateTime.UtcNow.Date))
             
             .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
             .ForMember(dest => dest.WorkFrom, opt => opt.ConvertUsing(new LocalToUtcTimeOnlyConverter(), src => src.WorkFrom))
@@ -77,6 +79,7 @@ public class RequisiteProfile : Profile
             .ForMember(dest => dest.LastOperationTime, opt => opt.Ignore())
             .ForMember(dest => dest.PaymentId, opt => opt.Ignore())
             .ForMember(dest => dest.Payment, opt => opt.Ignore())
-            .ForMember(dest => dest.ReceivedFunds, opt => opt.Ignore());
+            .ForMember(dest => dest.ReceivedFunds, opt => opt.Ignore())
+            .ForMember(dest => dest.LastFundsResetAt, opt => opt.Ignore());
     }
 }

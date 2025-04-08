@@ -7,7 +7,9 @@ namespace PaymentGateway.Core.Entities;
 
 public class RequisiteEntity : IRequisiteEntity, ICacheable
 {
-    public RequisiteEntity() { }
+    public RequisiteEntity()
+    {
+    }
 
     /// <summary>
     /// Идентификатор реквизита
@@ -19,17 +21,17 @@ public class RequisiteEntity : IRequisiteEntity, ICacheable
     /// </summary>
     [MaxLength(40)]
     public required string FullName { get; init; }
-    
+
     /// <summary>
     /// Тип реквизита
     /// </summary>
     public PaymentType PaymentType { get; init; }
-    
+
     /// <summary>
     /// Данные для платежа
     /// </summary>
     public required string PaymentData { get; init; }
-    
+
     /// <summary>
     /// Номер банковского счета
     /// </summary>
@@ -59,20 +61,25 @@ public class RequisiteEntity : IRequisiteEntity, ICacheable
     public required RequisiteStatus Status { get; set; }
 
     public required bool IsActive { get; set; }
-    
+
     /// <summary>
     /// Полученные средства
     /// </summary>
     [Range(0, 9999999999999999.99)]
     [Column(TypeName = "decimal(18,2)")]
     public decimal ReceivedFunds { get; set; }
-    
+
     /// <summary>
     /// Максимальная сумма платежа
     /// </summary>
     [Range(0, 9999999999999999.99)]
     [Column(TypeName = "decimal(18,2)")]
     public required decimal MaxAmount { get; set; }
+
+    /// <summary>
+    /// Дата последнего сброса полученных средств
+    /// </summary>
+    public DateTime LastFundsResetAt { get; set; }
 
     /// <summary>
     /// Задержка перед следующей операцией
@@ -83,36 +90,42 @@ public class RequisiteEntity : IRequisiteEntity, ICacheable
     /// Приоритет использования
     /// </summary>
     public required int Priority { get; set; }
-    
+
     /// <summary>
     /// Временное ограничение от
     /// </summary>
     public required TimeOnly WorkFrom { get; set; }
-    
+
     /// <summary>
     /// Временное ограничение до
     /// </summary>
     public required TimeOnly WorkTo { get; set; }
-    
+
     public void AssignToPayment(Guid paymentId)
     {
         PaymentId = paymentId;
         Status = RequisiteStatus.Pending;
-        LastOperationTime = DateTime.UtcNow;
     }
 
-    public void ReleaseAfterPayment(decimal amount)
+    public void ReleaseWithoutPayment()
+    {
+        Status = RequisiteStatus.Active;
+    }
+
+    public void ReleaseAfterPayment(decimal amount, out RequisiteStatus status)
     {
         ReceivedFunds += amount;
         PaymentId = null;
         LastOperationTime = DateTime.UtcNow;
-        Status = Cooldown > TimeSpan.Zero
+        status = Status = Cooldown > TimeSpan.Zero
             ? RequisiteStatus.Cooldown
             : RequisiteStatus.Active;
     }
 
     public bool IsWorkingTime(TimeOnly currentTime)
     {
+        if (WorkFrom == TimeOnly.MinValue && WorkTo == TimeOnly.MinValue) return true;
+
         if (WorkFrom <= WorkTo)
         {
             return currentTime >= WorkFrom && currentTime <= WorkTo;
@@ -124,7 +137,25 @@ public class RequisiteEntity : IRequisiteEntity, ICacheable
     public bool IsCooldownOver(DateTime currentTime)
     {
         if (!LastOperationTime.HasValue) return true;
-        
+
         return currentTime >= LastOperationTime.Value.Add(Cooldown);
+    }
+
+    public bool LimitReached()
+    {
+        return ReceivedFunds >= MaxAmount;
+    }
+
+    public RequisiteStatus DetermineStatus(DateTime now, TimeOnly nowTimeOnly)
+    {
+        if (LimitReached())
+            return RequisiteStatus.Inactive;
+
+        if (!IsWorkingTime(nowTimeOnly))
+            return RequisiteStatus.Inactive;
+
+        return IsCooldownOver(now)
+            ? RequisiteStatus.Active
+            : RequisiteStatus.Cooldown;
     }
 }

@@ -20,4 +20,5 @@ public class RequisiteResponseDto
     public required int Priority { get; init; }
     public required TimeOnly WorkFrom { get; init; }
     public required TimeOnly WorkTo { get; init; }
+    public required DateTime? LastFundsResetAt { get; init; }
 }

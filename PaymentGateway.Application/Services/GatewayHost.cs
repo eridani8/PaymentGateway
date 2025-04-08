@@ -6,16 +6,17 @@ using PaymentGateway.Core.Interfaces;
 
 namespace PaymentGateway.Application.Services;
 
-public class GatewayHost(IServiceProvider serviceProvider, ILogger<GatewayHost> logger, ICache cache) : IHostedService
+public class GatewayHost(IServiceProvider serviceProvider, ILogger<GatewayHost> logger) : IHostedService
 {
     private readonly TimeSpan _startDelay = TimeSpan.FromSeconds(1);
-    private readonly TimeSpan _gatewayProcessInterval = TimeSpan.FromSeconds(1);
+    private readonly TimeSpan _gatewayProcessDelay = TimeSpan.FromSeconds(1);
     
     private Task _paymentProcessing = null!;
     private CancellationTokenSource _cts = null!;
     
     public Task StartAsync(CancellationToken cancellationToken)
     {
+        logger.LogInformation("Инициализация...");
         _cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         _paymentProcessing = GatewayProcess();
         return Task.CompletedTask;
@@ -25,6 +26,7 @@ public class GatewayHost(IServiceProvider serviceProvider, ILogger<GatewayHost> 
     {
         try
         {
+            logger.LogInformation("Останавливаем...");
             await _cts.CancelAsync();
             await Task.WhenAny(_paymentProcessing, Task.Delay(Timeout.Infinite, cancellationToken));
             
@@ -47,7 +49,7 @@ public class GatewayHost(IServiceProvider serviceProvider, ILogger<GatewayHost> 
     private async Task GatewayProcess()
     {
         await Task.Delay(_startDelay, _cts.Token);
-        logger.LogInformation("Сервис запущен");
+        logger.LogInformation("Сервис запущен и обрабатывает транзакции");
         
         while (!_cts.IsCancellationRequested)
         {
@@ -58,20 +60,19 @@ public class GatewayHost(IServiceProvider serviceProvider, ILogger<GatewayHost> 
                 var handler = scope.ServiceProvider.GetRequiredService<IGatewayHandler>();
 
                 await handler.HandleRequisites(unit);
-                
                 await handler.HandleUnprocessedPayments(unit);
-                
                 await handler.HandleExpiredPayments(unit);
 
                 await unit.Commit();
             }
+            catch (OperationCanceledException) { }
             catch (Exception e)
             {
-                logger.LogError(e, "Ошибка при обработке платежей");
+                logger.LogError(e, "Ошибка при обработке платежного цикла");
             }
             finally
             {
-                await Task.Delay(_gatewayProcessInterval, _cts.Token);
+                await Task.Delay(_gatewayProcessDelay, _cts.Token);
             }
         }
     }

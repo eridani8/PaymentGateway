@@ -13,13 +13,17 @@ public class RequisiteRepository(AppDbContext context, ICache cache)
     {
         var currentTime = DateTime.UtcNow;
         var currentTimeOnly = TimeOnly.FromDateTime(currentTime);
-        return await
+        var requisites = await
             QueryableGetAll()
                 .Include(r => r.Payment)
-                .Where(r => r.IsActive && r.Status == RequisiteStatus.Active && r.Payment == null &&
-                            ((r.WorkFrom == TimeOnly.MinValue && r.WorkTo == TimeOnly.MinValue) ||
-                             (currentTimeOnly >= r.WorkFrom && currentTimeOnly <= r.WorkTo)))
+                .Where(r => r.IsActive && r.Status == RequisiteStatus.Active && r.PaymentId == null &&
+                            (
+                                (r.WorkFrom == TimeOnly.MinValue && r.WorkTo == TimeOnly.MinValue) ||
+                                (r.WorkFrom <= r.WorkTo && currentTimeOnly >= r.WorkFrom && currentTimeOnly <= r.WorkTo) ||
+                                (r.WorkFrom > r.WorkTo && (currentTimeOnly >= r.WorkFrom || currentTimeOnly <= r.WorkTo))
+                            ))
                 .OrderByDescending(r => r.Priority)
                 .ToListAsync();
+        return requisites;
     }
 }

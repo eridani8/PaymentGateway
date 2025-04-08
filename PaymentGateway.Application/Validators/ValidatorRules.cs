@@ -95,13 +95,6 @@ public static class ValidatorRules
             .LessThanOrEqualTo(DateTime.UtcNow).WithMessage("Дата не может быть в будущем");
     }
 
-    public static IRuleBuilderOptions<T, TimeOnly> ValidTime<T>(this IRuleBuilder<T, TimeOnly> rule)
-    {
-        return rule
-            .Must(x => x != TimeOnly.MinValue)
-            .WithMessage("Требуется указать время");
-    }
-
     public static IRuleBuilderOptions<T, T> ValidTimeRange<T>(this IRuleBuilder<T, T> rule, Func<T, TimeOnly> fromSelector, Func<T, TimeOnly> toSelector)
     {
         return rule.Must(x =>

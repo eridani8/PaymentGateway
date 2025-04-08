@@ -11,8 +11,8 @@ public class RequisiteCreateDto
     [DefaultValue("1234567890123456789012345")] public required string BankNumber { get; init; }
     public bool IsActive { get; init; }
     [DefaultValue(5000)] public decimal MaxAmount { get; init; }
-    [DefaultValue("03:00:00")] public TimeSpan Cooldown { get; init; }
+    [DefaultValue("00:00:10")] public TimeSpan Cooldown { get; init; }
     [DefaultValue(1)] public int Priority { get; init; }
-    [DefaultValue("09:00")] public TimeOnly WorkFrom { get; init; }
-    [DefaultValue("18:00")] public TimeOnly WorkTo { get; init; }
+    [DefaultValue("00:00")] public TimeOnly WorkFrom { get; init; }
+    [DefaultValue("00:00")] public TimeOnly WorkTo { get; init; }
 }
