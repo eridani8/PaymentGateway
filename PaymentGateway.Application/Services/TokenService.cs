@@ -20,13 +20,13 @@ public class TokenService(IOptions<AuthConfig> config) : ITokenService
         {
             new(ClaimTypes.NameIdentifier, user.Id),
             new(ClaimTypes.Name, user.UserName!),
-            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
         };
         
         claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config.Value.SecretKey));
-        var credentials = new SigningCredentials(key, SecurityAlgorithms.Sha256);
+        var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
         var expires = DateTime.Now.Add(config.Value.Expiration);
         
         var token = new JwtSecurityToken(

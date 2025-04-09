@@ -1,4 +1,4 @@
-﻿namespace PaymentGateway.Core.ViewModels;
+﻿namespace PaymentGateway.Core.Models;
 
 public class LoginModel
 {

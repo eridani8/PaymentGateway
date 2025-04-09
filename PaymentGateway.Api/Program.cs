@@ -9,7 +9,6 @@ using PaymentGateway.Application;
 using PaymentGateway.Core;
 using PaymentGateway.Core.Entities;
 using PaymentGateway.Infrastructure;
-using PaymentGateway.Infrastructure.Data;
 using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.PostgreSQL;
@@ -75,10 +74,11 @@ try
         o.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
         {
             Description = "JWT Authorization",
+            Type = SecuritySchemeType.Http,
             Name = "Authorization",
             In = ParameterLocation.Header,
-            Type = SecuritySchemeType.ApiKey,
-            Scheme = "Bearer"
+            Scheme = "Bearer",
+            BearerFormat = "JWT",
         });
         
         o.AddSecurityRequirement(new OpenApiSecurityRequirement

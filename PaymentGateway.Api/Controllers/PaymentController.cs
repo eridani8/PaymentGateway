@@ -11,6 +11,7 @@ namespace PaymentGateway.Api.Controllers;
 [ApiController]
 [Route("[controller]/[action]")]
 [Produces("application/json")]
+[Authorize]
 public class PaymentController(IPaymentService service) : ControllerBase
 {
     [HttpPost]
