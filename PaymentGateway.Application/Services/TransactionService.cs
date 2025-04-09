@@ -50,7 +50,7 @@ public class TransactionService(
         logger.LogInformation("Освобождение реквизита {requisiteId}", requisite.Id);
         if (status == RequisiteStatus.Cooldown)
         {
-            logger.LogInformation("Статус реквизита {requisiteId} на {sec} сек.", requisite.Id, (int)requisite.Cooldown.TotalSeconds);   
+            logger.LogInformation("Статус реквизита {status} {requisiteId} на {sec} сек.", status, requisite.Id, (int)requisite.Cooldown.TotalSeconds);   
         }
 
         await unit.TransactionRepository.Add(transaction);

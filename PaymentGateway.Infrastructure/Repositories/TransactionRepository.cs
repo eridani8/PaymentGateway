@@ -6,5 +6,4 @@ namespace PaymentGateway.Infrastructure.Repositories;
 
 public class TransactionRepository(AppDbContext context, ICache cache) : RepositoryBase<TransactionEntity>(context, cache), ITransactionRepository 
 {
-    
 }

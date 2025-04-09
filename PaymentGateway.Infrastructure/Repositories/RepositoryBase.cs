@@ -32,32 +32,32 @@ public class RepositoryBase<TEntity>(AppDbContext context, ICache cache)
         // if (cachedKeys.Count > 0 && cachedItems.Count == cachedKeys.Count)
         // {
         //     return cachedItems;
-        // } // TODO
+        // }
         
         var entities = await _entities.ToListAsync();
-        foreach (var entity in entities)
-        {
-            cache.Set(entity, TimeSpan.FromMinutes(1));
-        }
+        // foreach (var entity in entities)
+        // {
+        //     cache.Set(entity, InMemoryCache.DefaultExpiration);
+        // } // TODO cache
 
         return entities;
     }
 
     public async Task<TEntity?> GetById(Guid id)
     {
-        var key = InMemoryCache.GetCacheKey<TEntity>(id);
+        // var key = InMemoryCache.GetCacheKey<TEntity>(id);
         
         // var cached = cache.Get<TEntity>(key);
         // if (cached is not null)
         // {
         //     return cached;
-        // } // TODO
+        // }
 
         var entity = await _entities.FindAsync(id);
-        if (entity is not null)
-        {
-            cache.Set(key, entity, TimeSpan.FromMinutes(1));
-        }
+        // if (entity is not null)
+        // {
+        //     cache.Set(key, entity, InMemoryCache.DefaultExpiration);
+        // } // TODO cache
 
         return entity;
     }
@@ -66,20 +66,20 @@ public class RepositoryBase<TEntity>(AppDbContext context, ICache cache)
     {
         await _entities.AddAsync(entity); 
         
-        cache.Set(entity, TimeSpan.FromMinutes(1));
+        // cache.Set(entity, InMemoryCache.DefaultExpiration); // TODO cache
     }
 
     public void Update(TEntity entity)
     {
         _entities.Update(entity);
         
-        cache.Set(entity, TimeSpan.FromMinutes(1));
+        // cache.Set(entity, InMemoryCache.DefaultExpiration); // TODO cache
     }
 
     public void Delete(TEntity entity)
     {
         _entities.Remove(entity);
         
-        cache.Remove(entity);
+        // cache.Remove(entity); // TODO cache
     }
 }

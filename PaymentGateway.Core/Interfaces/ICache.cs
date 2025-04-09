@@ -6,7 +6,7 @@ namespace PaymentGateway.Core.Interfaces;
 public interface ICache
 {
     JsonSerializerOptions Options { get; }
-    ConcurrentDictionary<string, byte> Keys { get; }
+    ConcurrentDictionary<string, CacheMetadata> Keys { get; }
     IEnumerable<string> AllKeys();
     void Set<T>(string key, T obj, TimeSpan? expiry = null) where T : ICacheable;
     void Set<T>(T obj, TimeSpan? expiry = null) where T : ICacheable;
@@ -18,4 +18,5 @@ public interface ICache
     void Remove(Type type, Guid id);
     bool Exists(string key);
     IEnumerable<T> GetByPrefix<T>(string prefix);
+    TimeSpan? GetRemainingLifetime(string key);
 }

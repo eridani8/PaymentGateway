@@ -3,18 +3,21 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+using PaymentGateway.Core;
 using PaymentGateway.Core.Interfaces;
 
 namespace PaymentGateway.Infrastructure.Data;
 
 public class InMemoryCache(IMemoryCache cache, ILogger<InMemoryCache> logger) : ICache
 {
+    public static TimeSpan DefaultExpiration = TimeSpan.FromSeconds(30);
+    
     public JsonSerializerOptions Options { get; } = new()
     {
         ReferenceHandler = ReferenceHandler.Preserve
     };
 
-    public ConcurrentDictionary<string, byte> Keys { get; } = new();
+    public ConcurrentDictionary<string, CacheMetadata> Keys { get; } = new();
 
     public IEnumerable<string> AllKeys()
     {
@@ -23,10 +26,40 @@ public class InMemoryCache(IMemoryCache cache, ILogger<InMemoryCache> logger) : 
     
     private void SetCacheInternal(string key, object obj, TimeSpan? expiry)
     {
-        var cacheOptions = expiry.HasValue
-            ? new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = expiry }
-            : new MemoryCacheEntryOptions();
-
+        var effectiveExpiry = expiry;
+        DateTime? absoluteExpiration = null;
+        
+        if (Keys.TryGetValue(key, out var metadata) && metadata.OriginalExpiry.HasValue && expiry == null)
+        {
+            effectiveExpiry = metadata.OriginalExpiry;
+            
+            if (metadata.ExpiryTime.HasValue && metadata.ExpiryTime.Value > DateTime.Now)
+            {
+                absoluteExpiration = metadata.ExpiryTime.Value;
+            }
+        }
+        
+        var cacheOptions = new MemoryCacheEntryOptions();
+        
+        if (absoluteExpiration.HasValue)
+        {
+            cacheOptions.AbsoluteExpiration = absoluteExpiration.Value;
+        }
+        else if (effectiveExpiry.HasValue)
+        {
+            cacheOptions.AbsoluteExpirationRelativeToNow = effectiveExpiry.Value;
+        }
+        
+        DateTime? expiryTime = effectiveExpiry.HasValue 
+            ? DateTime.Now.Add(effectiveExpiry.Value) 
+            : null;
+        
+        var newMetadata = new CacheMetadata
+        {
+            OriginalExpiry = effectiveExpiry,
+            ExpiryTime = expiryTime
+        };
+        
         cacheOptions.RegisterPostEvictionCallback((cacheKey, _, _, _) =>
         {
             var cacheKeyStr = cacheKey.ToString()!;
@@ -35,8 +68,8 @@ public class InMemoryCache(IMemoryCache cache, ILogger<InMemoryCache> logger) : 
         });
         
         cache.Set(key, obj, cacheOptions);
-        Keys.TryAdd(key, 0);
-        logger.LogInformation("Cache added: {key}", key);
+        Keys[key] = newMetadata;
+        logger.LogInformation("Cache {operation}: {key}", Keys.ContainsKey(key) ? "updated" : "added", key);
     }
 
     public void Set<T>(string key, T obj, TimeSpan? expiry = null) where T : ICacheable
@@ -100,6 +133,13 @@ public class InMemoryCache(IMemoryCache cache, ILogger<InMemoryCache> logger) : 
                 yield return entity;
             }
         }
+    }
+    
+    public TimeSpan? GetRemainingLifetime(string key)
+    {
+        if (!Keys.TryGetValue(key, out var metadata) || !metadata.ExpiryTime.HasValue) return null;
+        var remaining = metadata.ExpiryTime.Value - DateTime.Now;
+        return remaining.TotalMilliseconds > 0 ? remaining : TimeSpan.Zero;
     }
 
     public static string GetCacheKey<T>(Guid id)

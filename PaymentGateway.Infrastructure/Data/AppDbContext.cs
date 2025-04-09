@@ -7,11 +7,53 @@ using PaymentGateway.Core.Interfaces;
 
 namespace PaymentGateway.Infrastructure.Data;
 
-public class AppDbContext(DbContextOptions<AppDbContext> options, ICryptographyService cryptographyService) : IdentityDbContext<UserEntity>(options)
+public class AppDbContext(DbContextOptions<AppDbContext> options, ICryptographyService cryptographyService, ICache cache) : IdentityDbContext<UserEntity>(options)
 {
     public DbSet<PaymentEntity> Payments { get; set; }
     public DbSet<RequisiteEntity> Requisites { get; set; }
     public DbSet<TransactionEntity> Transactions { get; set; }
+    
+    // public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    // {
+    //     var cacheUpdates = new List<ICacheable>();
+    //     var cacheRemovals = new List<ICacheable>();
+    //     
+    //     foreach (var entry in ChangeTracker.Entries<ICacheable>())
+    //     {
+    //         switch (entry.State)
+    //         {
+    //             case EntityState.Added:
+    //             case EntityState.Modified:
+    //                 cacheUpdates.Add(entry.Entity);
+    //                 break;
+    //
+    //             case EntityState.Deleted:
+    //                 cacheRemovals.Add(entry.Entity);
+    //                 break;
+    //             case EntityState.Detached:
+    //             case EntityState.Unchanged:
+    //             default:
+    //                 continue;
+    //         }
+    //     }
+    //     
+    //     var result = await base.SaveChangesAsync(cancellationToken);
+    //
+    //     if (result > 0)
+    //     {
+    //         foreach (var entity in cacheRemovals)
+    //         {
+    //             cache.Remove(entity.GetType(), entity.Id);
+    //         }
+    //     
+    //         foreach (var entity in cacheUpdates)
+    //         {
+    //             cache.Set(entity.GetType(), entity.Id, entity);
+    //         }
+    //     }
+    //     
+    //     return result;
+    // } // TODO cache
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
