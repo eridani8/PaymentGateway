@@ -19,7 +19,7 @@ public class TransactionProfile : Profile
             .ForMember(dest => dest.ReceivedAt, opt => opt.ConvertUsing(new UtcToLocalDateTimeConverter(), src => src.ReceivedAt));
         
         CreateMap<TransactionCreateDto, TransactionEntity>()
-            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => Guid.NewGuid()))
+            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => Guid.CreateVersion7()))
             .ForMember(dest => dest.Source, opt => opt.MapFrom(src => src.Source))
             .ForMember(dest => dest.ExtractedAmount, opt => opt.MapFrom(src => src.ExtractedAmount))
             

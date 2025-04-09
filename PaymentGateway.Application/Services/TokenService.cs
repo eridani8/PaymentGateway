@@ -20,7 +20,7 @@ public class TokenService(IOptions<AuthConfig> config) : ITokenService
         {
             new(ClaimTypes.NameIdentifier, user.Id),
             new(ClaimTypes.Name, user.UserName!),
-            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            new(JwtRegisteredClaimNames.Jti, Guid.CreateVersion7().ToString()),
         };
         
         claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
