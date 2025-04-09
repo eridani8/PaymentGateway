@@ -65,16 +65,18 @@ public sealed class PaymentEntity : IPaymentEntity, ICacheable
     
     public TransactionEntity? Transaction { get; set; }
     
-    public void MarkAsPending(Guid requisiteId)
+    public void MarkAsPending(RequisiteEntity requisite)
     {
-        RequisiteId = requisiteId;
+        RequisiteId = requisite.Id;
+        Requisite = requisite;
         Status = PaymentStatus.Pending;
     }
 
-    public void ConfirmTransaction(Guid transactionId)
+    public void ConfirmTransaction(TransactionEntity transaction)
     {
         Status = PaymentStatus.Confirmed;
-        TransactionId = transactionId;
+        TransactionId = transaction.Id;
+        Transaction = transaction;
         ProcessedAt = DateTime.UtcNow;
         ExpiresAt = null;
     }

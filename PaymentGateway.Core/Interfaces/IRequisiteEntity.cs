@@ -20,7 +20,7 @@ public interface IRequisiteEntity
     int Priority { get; set; }
     TimeOnly WorkFrom { get; set; }
     TimeOnly WorkTo { get; set; }
-    void AssignToPayment(Guid paymentId);
+    void AssignToPayment(PaymentEntity payment);
     void ReleaseWithoutPayment();
     void ReleaseAfterPayment(decimal amount, out RequisiteStatus status);
     bool IsWorkingTime(TimeOnly currentTime);

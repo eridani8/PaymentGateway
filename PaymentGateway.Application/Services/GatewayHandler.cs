@@ -66,8 +66,8 @@ public class GatewayHandler(ILogger<GatewayHandler> logger) : IGatewayHandler
             }
             freeRequisites.Remove(requisite);
             
-            requisite.AssignToPayment(payment.Id);
-            payment.MarkAsPending(requisite.Id);
+            requisite.AssignToPayment(payment);
+            payment.MarkAsPending(requisite);
 
             logger.LogInformation("Платеж {payment} назначен реквизиту {requisite}", payment.Id, requisite.Id);
         }

@@ -13,6 +13,7 @@ public class RequisiteRepository(AppDbContext context, ICache cache)
     {
         var currentTime = DateTime.UtcNow;
         var currentTimeOnly = TimeOnly.FromDateTime(currentTime);
+        
         var requisites = await
             QueryableGetAll()
                 .Include(r => r.Payment)

@@ -101,9 +101,10 @@ public class RequisiteEntity : IRequisiteEntity, ICacheable
     /// </summary>
     public required TimeOnly WorkTo { get; set; }
 
-    public void AssignToPayment(Guid paymentId)
+    public void AssignToPayment(PaymentEntity payment)
     {
-        PaymentId = paymentId;
+        PaymentId = payment.Id;
+        Payment = payment;
         Status = RequisiteStatus.Pending;
     }
 
@@ -116,6 +117,7 @@ public class RequisiteEntity : IRequisiteEntity, ICacheable
     {
         ReceivedFunds += amount;
         PaymentId = null;
+        Payment = null;
         LastOperationTime = DateTime.UtcNow;
         status = Status = Cooldown > TimeSpan.Zero
             ? RequisiteStatus.Cooldown

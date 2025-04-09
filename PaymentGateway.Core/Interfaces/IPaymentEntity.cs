@@ -16,6 +16,6 @@ public interface IPaymentEntity
     DateTime? ExpiresAt { get; set; }
     Guid? TransactionId { get; set; }
     TransactionEntity? Transaction { get; set; }
-    void MarkAsPending(Guid requisiteId);
-    void ConfirmTransaction(Guid transactionId);
+    void MarkAsPending(RequisiteEntity requisite);
+    void ConfirmTransaction(TransactionEntity transaction);
 }

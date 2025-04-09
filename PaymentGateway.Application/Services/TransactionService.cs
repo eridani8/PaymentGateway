@@ -41,21 +41,21 @@ public class TransactionService(
             throw new WrongPaymentAmount($"Сумма платежа {dto.ExtractedAmount}, ожидалось {payment.Amount}");
         }
 
-        var entity = mapper.Map<TransactionEntity>(dto);
+        var transaction = mapper.Map<TransactionEntity>(dto);
         
-        logger.LogInformation("Поступление платежа на сумму {amount}", entity.ExtractedAmount);
+        logger.LogInformation("Поступление платежа на сумму {amount}", transaction.ExtractedAmount);
         
-        payment.ConfirmTransaction(entity.Id);
+        payment.ConfirmTransaction(transaction);
         requisite.ReleaseAfterPayment(dto.ExtractedAmount, out var status);
         logger.LogInformation("Освобождение реквизита {requisiteId}", requisite.Id);
         if (status == RequisiteStatus.Cooldown)
         {
-            logger.LogInformation("Задержка реквизита {requisiteId} на {sec} сек.", requisite.Id, (int)requisite.Cooldown.TotalSeconds);   
+            logger.LogInformation("Статус реквизита {requisiteId} на {sec} сек.", requisite.Id, (int)requisite.Cooldown.TotalSeconds);   
         }
 
-        await unit.TransactionRepository.Add(entity);
+        await unit.TransactionRepository.Add(transaction);
         await unit.Commit();
 
-        return mapper.Map<TransactionResponseDto>(entity);
+        return mapper.Map<TransactionResponseDto>(transaction);
     }
 }

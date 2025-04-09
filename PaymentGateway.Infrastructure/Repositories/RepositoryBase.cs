@@ -10,39 +10,6 @@ public class RepositoryBase<TEntity>(AppDbContext context, ICache cache)
 {
     private readonly DbSet<TEntity> _entities = context.Set<TEntity>();
     
-    // public async Task<List<TEntity>> Find(Func<TEntity, bool> predicate)
-    // {
-    //     var prefix = InMemoryCache.GetCacheKey<TEntity>();
-    //
-    //     var cachedKeys = cache.AllKeys()
-    //         .Where(k => k.StartsWith(prefix))
-    //         .ToList();
-    //
-    //     var cachedItems = cachedKeys
-    //         .Select(cache.Get<TEntity>)
-    //         .Where(entity => entity != null)
-    //         .Cast<TEntity>()
-    //         .Where(predicate)
-    //         .ToList();
-    //
-    //     if (cachedItems.Count == cachedKeys.Count)
-    //     {
-    //         return cachedItems;
-    //     }
-    //
-    //     var entities = await _entities.ToListAsync();
-    //     var filteredEntities = entities
-    //         .Where(predicate)
-    //         .ToList();
-    //
-    //     foreach (var entity in filteredEntities)
-    //     {
-    //         cache.Set(entity);
-    //     }
-    //
-    //     return filteredEntities;
-    // } // TODO
-
     public IQueryable<TEntity> QueryableGetAll()
     {
         return _entities;
@@ -68,28 +35,28 @@ public class RepositoryBase<TEntity>(AppDbContext context, ICache cache)
         // }
         
         var entities = await _entities.ToListAsync();
-        // foreach (var entity in entities)
-        // {
-        //     cache.Set(entity);
-        // }
+        foreach (var entity in entities)
+        {
+            cache.Set(entity);
+        }
 
         return entities;
     }
 
     public async Task<TEntity?> GetById(Guid id)
     {
-        // var key = InMemoryCache.GetCacheKey<TEntity>(id);
+        var key = InMemoryCache.GetCacheKey<TEntity>(id);
         // var cached = cache.Get<TEntity>(key);
         // if (cached is not null)
         // {
         //     return cached;
-        // } // TODO
+        // }
 
         var entity = await _entities.FindAsync(id);
-        // if (entity is not null)
-        // {
-        //     cache.Set(key, entity);
-        // }
+        if (entity is not null)
+        {
+            cache.Set(key, entity);
+        }
 
         return entity;
     }

@@ -16,7 +16,6 @@ public class GatewayHost(IServiceProvider serviceProvider, ILogger<GatewayHost> 
     
     public Task StartAsync(CancellationToken cancellationToken)
     {
-        logger.LogInformation("Инициализация...");
         _cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         _paymentProcessing = GatewayProcess();
         return Task.CompletedTask;
@@ -26,7 +25,7 @@ public class GatewayHost(IServiceProvider serviceProvider, ILogger<GatewayHost> 
     {
         try
         {
-            logger.LogInformation("Останавливаем...");
+            logger.LogInformation("Сервис останавливается");
             await _cts.CancelAsync();
             await Task.WhenAny(_paymentProcessing, Task.Delay(Timeout.Infinite, cancellationToken));
             
@@ -49,7 +48,7 @@ public class GatewayHost(IServiceProvider serviceProvider, ILogger<GatewayHost> 
     private async Task GatewayProcess()
     {
         await Task.Delay(_startDelay, _cts.Token);
-        logger.LogInformation("Сервис запущен и обрабатывает транзакции");
+        logger.LogInformation("Сервис запущен");
         
         while (!_cts.IsCancellationRequested)
         {
