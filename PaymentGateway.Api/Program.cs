@@ -32,7 +32,7 @@ try
     
     #region Create Logger
 
-    const string logs = "logs";
+    const string logs = "Logs";
     var logsPath = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, logs));
 
     if (!Directory.Exists(logsPath))

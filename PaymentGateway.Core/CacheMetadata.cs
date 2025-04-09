@@ -2,6 +2,6 @@
 
 public class CacheMetadata
 {
-    public DateTime? ExpiryTime { get; set; }
-    public TimeSpan? OriginalExpiry { get; set; }
+    public DateTime? ExpiryTime { get; init; }
+    public TimeSpan? OriginalExpiry { get; init; }
 }
