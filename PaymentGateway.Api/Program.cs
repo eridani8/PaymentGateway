@@ -130,7 +130,7 @@ try
 
     var app = builder.Build();
 
-    if (app.Environment.IsDevelopment())
+    // if (app.Environment.IsDevelopment()) // TODO
     {
         app.UseSwagger();
         app.UseSwaggerUI();
