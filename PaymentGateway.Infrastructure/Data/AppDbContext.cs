@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using PaymentGateway.Core;
 using PaymentGateway.Core.Entities;
@@ -6,7 +7,7 @@ using PaymentGateway.Core.Interfaces;
 
 namespace PaymentGateway.Infrastructure.Data;
 
-public class AppDbContext(DbContextOptions<AppDbContext> options, ICryptographyService cryptographyService, ICache cache, ILogger<AppDbContext> logger) : DbContext(options)
+public class AppDbContext(DbContextOptions<AppDbContext> options, ICryptographyService cryptographyService) : IdentityDbContext<UserEntity>(options)
 {
     public DbSet<PaymentEntity> Payments { get; set; }
     public DbSet<RequisiteEntity> Requisites { get; set; }
@@ -14,7 +15,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICryptographyS
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        var stringEncryptionConverter = new StringEncryptionConverter(cryptographyService);
+        base.OnModelCreating(modelBuilder);
+        modelBuilder.ApplyEncryptedProperties(cryptographyService);
         
         modelBuilder.Entity<RequisiteEntity>(entity =>
         {
@@ -22,9 +24,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICryptographyS
             entity.HasIndex(e => e.Status);
             entity.HasIndex(e => e.Priority);
             entity.HasIndex(e => e.PaymentData);
-            
-            entity.Property(x => x.PaymentData).HasConversion(stringEncryptionConverter);
-            entity.Property(x => x.BankNumber).HasConversion(stringEncryptionConverter);
             
             entity.HasOne(e => e.Payment)
                 .WithOne()

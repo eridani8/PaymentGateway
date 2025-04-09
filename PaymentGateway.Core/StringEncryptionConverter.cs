@@ -5,4 +5,6 @@ namespace PaymentGateway.Core;
 
 public class StringEncryptionConverter(ICryptographyService cryptography) : ValueConverter<string, string>(
     convertToProviderExpression: v => cryptography.Encrypt(v),
-    convertFromProviderExpression: v => cryptography.Decrypt(v)) { }
+    convertFromProviderExpression: v => cryptography.Decrypt(v))
+{
+}

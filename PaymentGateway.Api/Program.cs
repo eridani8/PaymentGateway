@@ -1,20 +1,15 @@
-using FluentValidation;
-using Microsoft.EntityFrameworkCore;
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using NpgsqlTypes;
 using PaymentGateway.Api;
-using PaymentGateway.Application.DTOs.Payment;
-using PaymentGateway.Application.DTOs.Requisite;
-using PaymentGateway.Application.DTOs.Transaction;
-using PaymentGateway.Application.Interfaces;
-using PaymentGateway.Application.Mappings;
-using PaymentGateway.Application.Services;
-using PaymentGateway.Application.Validators.Payment;
-using PaymentGateway.Application.Validators.Requisite;
-using PaymentGateway.Application.Validators.Transaction;
+using PaymentGateway.Application;
 using PaymentGateway.Core;
-using PaymentGateway.Core.Interfaces;
+using PaymentGateway.Core.Entities;
+using PaymentGateway.Infrastructure;
 using PaymentGateway.Infrastructure.Data;
-using PaymentGateway.Infrastructure.Repositories;
 using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.PostgreSQL;
@@ -23,6 +18,20 @@ using Serilog.Sinks.PostgreSQL.ColumnWriters;
 try
 {
     var builder = WebApplication.CreateBuilder(args);
+    
+    var connectionString = builder.Configuration.GetConnectionString("Default");
+    if (string.IsNullOrEmpty(connectionString))
+    {
+        throw new ApplicationException("Нужно указать строку подключения базы данных");
+    }
+    
+    var authConfig = builder.Configuration.GetSection(nameof(AuthConfig)).Get<AuthConfig>();
+    if (authConfig is null)
+    {
+        throw new ApplicationException("Нужно указать настройки аутентификации");
+    }
+    
+    #region Create Logger
 
     const string logs = "logs";
     var logsPath = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, logs));
@@ -31,14 +40,7 @@ try
     {
         Directory.CreateDirectory(logsPath);
     }
-
-    var mainConnectionString = builder.Configuration.GetConnectionString("Default");
-
-    if (string.IsNullOrEmpty(mainConnectionString))
-    {
-        throw new ApplicationException("Нужно указать строку подключения базы данных");
-    }
-
+    
     var columnWriters = new Dictionary<string, ColumnWriterBase>
     {
         { "raise_date", new TimestampColumnWriter(NpgsqlDbType.TimestampTz) },
@@ -58,54 +60,73 @@ try
         .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", LogEventLevel.Warning)
         .Enrich.FromLogContext()
         .WriteTo.Console(outputTemplate: outputTemplate)
-        .WriteTo.PostgreSQL(mainConnectionString, logs, columnWriters, needAutoCreateTable: true)
+        .WriteTo.PostgreSQL(connectionString, logs, columnWriters, needAutoCreateTable: true)
         .WriteTo.File($"{logsPath}/.log", rollingInterval: RollingInterval.Day, outputTemplate: outputTemplate)
         .CreateLogger();
+
+    #endregion
 
     builder.Host.UseSerilog(Log.Logger);
 
     builder.Services.AddControllers();
     builder.Services.AddEndpointsApiExplorer();
-    builder.Services.AddSwaggerGen();
-
-    builder.Services.AddDbContext<AppDbContext>(o =>
+    builder.Services.AddSwaggerGen(o =>
     {
-        o.UseNpgsql(mainConnectionString)
-            .EnableSensitiveDataLogging(builder.Environment.IsDevelopment());
+        o.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+        {
+            Description = "JWT Authorization",
+            Name = "Authorization",
+            In = ParameterLocation.Header,
+            Type = SecuritySchemeType.ApiKey,
+            Scheme = "Bearer"
+        });
+        
+        o.AddSecurityRequirement(new OpenApiSecurityRequirement
+        {
+            {
+                new OpenApiSecurityScheme
+                {
+                    Reference = new OpenApiReference
+                    {
+                        Type = ReferenceType.SecurityScheme,
+                        Id = "Bearer"
+                    }
+                },
+                []
+            }
+        });
     });
 
-    builder.Services.Configure<CryptographyConfig>(builder.Configuration.GetSection(nameof(CryptographyConfig)));
-    builder.Services.AddScoped<ICryptographyService, CryptographyService>();
-
-    builder.Services.AddMemoryCache();
-    builder.Services.AddSingleton<ICache, InMemoryCache>();
-
+    builder.Services.AddCore(builder.Configuration);
+    builder.Services.AddInfrastructure(connectionString);
+    builder.Services.AddApplication();
+    
     builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
     builder.Services.AddProblemDetails();
-
-    builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
-    builder.Services.AddScoped<IRequisiteRepository, RequisiteRepository>();
-    builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
-    builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-
-    builder.Services.AddAutoMapper(typeof(RequisiteProfile));
-    builder.Services.AddAutoMapper(typeof(PaymentProfile));
-    builder.Services.AddAutoMapper(typeof(TransactionProfile));
-
-    builder.Services.AddScoped<IValidator<RequisiteCreateDto>, RequisiteCreateDtoValidator>();
-    builder.Services.AddScoped<IValidator<RequisiteUpdateDto>, RequisiteUpdateDtoValidator>();
-    builder.Services.AddScoped<IRequisiteValidator, RequisiteValidator>();
-    builder.Services.AddScoped<IRequisiteService, RequisiteService>();
-
-    builder.Services.AddScoped<IValidator<PaymentCreateDto>, PaymentCreateDtoValidator>();
-    builder.Services.AddScoped<IPaymentService, PaymentService>();
-
-    builder.Services.AddScoped<IValidator<TransactionCreateDto>, TransactionCreateDtoValidator>();
-    builder.Services.AddScoped<ITransactionService, TransactionService>();
-
-    builder.Services.AddScoped<IGatewayHandler, GatewayHandler>();
-
-    builder.Services.AddHostedService<GatewayHost>();
+    
+    var secretKey = authConfig.SecretKey;
+    var key = Encoding.ASCII.GetBytes(secretKey);
+    builder.Services.AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
+    .AddJwtBearer(options =>
+    {
+        options.RequireHttpsMetadata = false;
+        options.SaveToken = true;
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(key),
+            ValidateIssuer = true,
+            ValidIssuer = authConfig.Issuer,
+            ValidateAudience = true,
+            ValidAudience = authConfig.Audience,
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.Zero
+        };
+    });
 
     var app = builder.Build();
 
@@ -116,8 +137,44 @@ try
     }
 
     app.UseHttpsRedirection();
+    app.UseAuthentication();
+    app.UseAuthorization();
     app.MapControllers();
     app.UseExceptionHandler();
+    
+    using (var scope = app.Services.CreateScope())
+    {
+        var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+        
+        var roles = new[] { "User", "Admin", "Support" };
+        foreach (var role in roles)
+        {
+            if (!await roleManager.RoleExistsAsync(role))
+            {
+                await roleManager.CreateAsync(new IdentityRole(role));
+            }
+        }
+        
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<UserEntity>>();
+        
+        var rootUser = await userManager.FindByNameAsync("root");
+        if (rootUser == null)
+        {
+            rootUser = new UserEntity
+            {
+                UserName = "root"
+            };
+            var result = await userManager.CreateAsync(rootUser, "Qwerty123_");
+            if (!result.Succeeded)
+            {
+                throw new ApplicationException("Ошибка при создании root пользователя");
+            }
+            if (!await userManager.IsInRoleAsync(rootUser, "Admin"))
+            {
+                await userManager.AddToRoleAsync(rootUser, "Admin");
+            }
+        }
+    }
 
     await app.RunAsync();
 }

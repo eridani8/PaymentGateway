@@ -30,12 +30,15 @@ public class RequisiteEntity : IRequisiteEntity, ICacheable
     /// <summary>
     /// Данные для платежа
     /// </summary>
+    [MaxLength(255)]
+    [Encrypted]
     public required string PaymentData { get; init; }
 
     /// <summary>
     /// Номер банковского счета
     /// </summary>
     [MaxLength(255)]
+    [Encrypted]
     public required string BankNumber { get; init; }
 
     /// <summary>
