@@ -5,7 +5,7 @@ using PaymentGateway.Core.Interfaces;
 
 namespace PaymentGateway.Application.Services;
 
-public class GatewayHandler(ILogger<GatewayHandler> logger) : IGatewayHandler
+public class GatewayHandler(ILogger<GatewayHandler> logger, ICache cache) : IGatewayHandler
 {
     public async Task HandleRequisites(IUnitOfWork unit)
     {
@@ -50,14 +50,21 @@ public class GatewayHandler(ILogger<GatewayHandler> logger) : IGatewayHandler
 
         var freeRequisites = await unit.RequisiteRepository.GetFreeRequisites();
 
+        const string noAvailableRequisites = "Нет свободных реквизитов для обработки платежей";
         if (freeRequisites.Count == 0)
         {
-            logger.LogWarning("Нет свободных реквизитов для обработки платежей");
+            logger.LogWarning(noAvailableRequisites);
             return;
         }
         
         foreach (var payment in unprocessedPayments)
         {
+            if (freeRequisites.Count == 0)
+            {
+                logger.LogWarning(noAvailableRequisites);
+                return;
+            }
+            
             var requisite = freeRequisites.FirstOrDefault(r => r.MaxAmount >= payment.Amount);
             if (requisite is null)
             {

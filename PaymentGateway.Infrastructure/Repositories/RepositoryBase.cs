@@ -32,12 +32,12 @@ public class RepositoryBase<TEntity>(AppDbContext context, ICache cache)
         // if (cachedKeys.Count > 0 && cachedItems.Count == cachedKeys.Count)
         // {
         //     return cachedItems;
-        // }
+        // } // TODO
         
         var entities = await _entities.ToListAsync();
         foreach (var entity in entities)
         {
-            cache.Set(entity);
+            cache.Set(entity, TimeSpan.FromMinutes(1));
         }
 
         return entities;
@@ -46,6 +46,7 @@ public class RepositoryBase<TEntity>(AppDbContext context, ICache cache)
     public async Task<TEntity?> GetById(Guid id)
     {
         var key = InMemoryCache.GetCacheKey<TEntity>(id);
+        
         // var cached = cache.Get<TEntity>(key);
         // if (cached is not null)
         // {
@@ -55,7 +56,7 @@ public class RepositoryBase<TEntity>(AppDbContext context, ICache cache)
         var entity = await _entities.FindAsync(id);
         if (entity is not null)
         {
-            cache.Set(key, entity);
+            cache.Set(key, entity, TimeSpan.FromMinutes(1));
         }
 
         return entity;
@@ -65,14 +66,14 @@ public class RepositoryBase<TEntity>(AppDbContext context, ICache cache)
     {
         await _entities.AddAsync(entity); 
         
-        cache.Set(entity);
+        cache.Set(entity, TimeSpan.FromMinutes(1));
     }
 
     public void Update(TEntity entity)
     {
         _entities.Update(entity);
         
-        cache.Set(entity);
+        cache.Set(entity, TimeSpan.FromMinutes(1));
     }
 
     public void Delete(TEntity entity)

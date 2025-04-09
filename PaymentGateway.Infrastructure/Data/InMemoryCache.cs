@@ -2,11 +2,12 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 using PaymentGateway.Core.Interfaces;
 
 namespace PaymentGateway.Infrastructure.Data;
 
-public class InMemoryCache(IMemoryCache cache) : ICache
+public class InMemoryCache(IMemoryCache cache, ILogger<InMemoryCache> logger) : ICache
 {
     public JsonSerializerOptions Options { get; } = new()
     {
@@ -20,7 +21,7 @@ public class InMemoryCache(IMemoryCache cache) : ICache
         return Keys.Keys;
     }
     
-    private void SetCacheInternal(string key, string json, TimeSpan? expiry)
+    private void SetCacheInternal(string key, object obj, TimeSpan? expiry)
     {
         var cacheOptions = expiry.HasValue
             ? new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = expiry }
@@ -28,14 +29,14 @@ public class InMemoryCache(IMemoryCache cache) : ICache
 
         cacheOptions.RegisterPostEvictionCallback((cacheKey, _, _, _) =>
         {
-            if (cacheKey is string keyStr && !string.IsNullOrEmpty(keyStr))
-            {
-                Keys.TryRemove(keyStr, out _);
-            }
+            var cacheKeyStr = cacheKey.ToString()!;
+            Keys.TryRemove(cacheKeyStr, out _);
+            logger.LogInformation("Cache removed: {key}", cacheKeyStr);
         });
         
-        cache.Set(key, json, cacheOptions);
+        cache.Set(key, obj, cacheOptions);
         Keys.TryAdd(key, 0);
+        logger.LogInformation("Cache added: {key}", key);
     }
 
     public void Set<T>(string key, T obj, TimeSpan? expiry = null) where T : ICacheable
@@ -54,6 +55,11 @@ public class InMemoryCache(IMemoryCache cache) : ICache
         var key = GetCacheKey(type, id);
         var json = JsonSerializer.Serialize(obj, Options);
         SetCacheInternal(key, json, expiry);
+    }
+
+    public void Set(string key, TimeSpan? expiry = null)
+    {
+        SetCacheInternal(key, "", expiry);
     }
 
     public T? Get<T>(string key)

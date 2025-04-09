@@ -57,7 +57,7 @@ try
         .MinimumLevel.Override("System.Net.Http.HttpClient", LogEventLevel.Warning)
         .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", LogEventLevel.Warning)
         .Enrich.FromLogContext()
-        .WriteTo.Console(LogEventLevel.Information, outputTemplate: outputTemplate)
+        .WriteTo.Console(outputTemplate: outputTemplate)
         .WriteTo.PostgreSQL(mainConnectionString, logs, columnWriters, needAutoCreateTable: true)
         .WriteTo.File($"{logsPath}/.log", rollingInterval: RollingInterval.Day, outputTemplate: outputTemplate)
         .CreateLogger();
