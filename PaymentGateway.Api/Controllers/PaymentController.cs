@@ -24,7 +24,7 @@ public class PaymentController(IPaymentService service) : ControllerBase
             var payment = await service.CreatePayment(dto);
             return Ok(payment);
         }
-        catch (DuplicatePaymentException e)
+        catch (DuplicatePaymentException)
         {
             return Conflict("Платеж с таким ID уже существует");
         }

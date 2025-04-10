@@ -10,6 +10,7 @@ using PaymentGateway.Core;
 using PaymentGateway.Core.Entities;
 using PaymentGateway.Infrastructure;
 using Serilog;
+using Serilog.Core;
 using Serilog.Events;
 using Serilog.Sinks.PostgreSQL;
 using Serilog.Sinks.PostgreSQL.ColumnWriters;
@@ -17,19 +18,19 @@ using Serilog.Sinks.PostgreSQL.ColumnWriters;
 try
 {
     var builder = WebApplication.CreateBuilder(args);
-    
+
     var connectionString = builder.Configuration.GetConnectionString("Default");
     if (string.IsNullOrEmpty(connectionString))
     {
         throw new ApplicationException("Нужно указать строку подключения базы данных");
     }
-    
+
     var authConfig = builder.Configuration.GetSection(nameof(AuthConfig)).Get<AuthConfig>();
     if (authConfig is null)
     {
         throw new ApplicationException("Нужно указать настройки аутентификации");
     }
-    
+
     #region Create Logger
 
     const string logs = "Logs";
@@ -39,7 +40,7 @@ try
     {
         Directory.CreateDirectory(logsPath);
     }
-    
+
     var columnWriters = new Dictionary<string, ColumnWriterBase>
     {
         { "raise_date", new TimestampColumnWriter(NpgsqlDbType.TimestampTz) },
@@ -52,15 +53,17 @@ try
     const string outputTemplate =
         "[{Timestamp:HH:mm:ss} {Level:u3}] [{SourceContext}] {Message:lj}{NewLine}{Exception}";
 
+    var levelSwitch = new LoggingLevelSwitch();
     Log.Logger = new LoggerConfiguration()
-        .MinimumLevel.Information()
+        .MinimumLevel.ControlledBy(levelSwitch)
         .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
         .MinimumLevel.Override("System.Net.Http.HttpClient", LogEventLevel.Warning)
         .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", LogEventLevel.Warning)
         .Enrich.FromLogContext()
-        .WriteTo.Console(outputTemplate: outputTemplate)
-        .WriteTo.PostgreSQL(connectionString, logs, columnWriters, needAutoCreateTable: true)
-        .WriteTo.File($"{logsPath}/.log", rollingInterval: RollingInterval.Day, outputTemplate: outputTemplate)
+        .WriteTo.Console(outputTemplate: outputTemplate, levelSwitch: levelSwitch)
+        .WriteTo.PostgreSQL(connectionString, logs, columnWriters, needAutoCreateTable: true, levelSwitch: levelSwitch)
+        .WriteTo.File($"{logsPath}/.log", rollingInterval: RollingInterval.Day, outputTemplate: outputTemplate,
+            levelSwitch: levelSwitch)
         .CreateLogger();
 
     #endregion
@@ -80,7 +83,7 @@ try
             Scheme = "Bearer",
             BearerFormat = "JWT",
         });
-        
+
         o.AddSecurityRequirement(new OpenApiSecurityRequirement
         {
             {
@@ -100,33 +103,33 @@ try
     builder.Services.AddCore(builder.Configuration);
     builder.Services.AddInfrastructure(connectionString);
     builder.Services.AddApplication();
-    
+
     builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
     builder.Services.AddProblemDetails();
-    
+
     var secretKey = authConfig.SecretKey;
     var key = Encoding.ASCII.GetBytes(secretKey);
     builder.Services.AddAuthentication(options =>
-    {
-        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-    })
-    .AddJwtBearer(options =>
-    {
-        options.RequireHttpsMetadata = false;
-        options.SaveToken = true;
-        options.TokenValidationParameters = new TokenValidationParameters
         {
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(key),
-            ValidateIssuer = true,
-            ValidIssuer = authConfig.Issuer,
-            ValidateAudience = true,
-            ValidAudience = authConfig.Audience,
-            ValidateLifetime = true,
-            ClockSkew = TimeSpan.Zero
-        };
-    });
+            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        })
+        .AddJwtBearer(options =>
+        {
+            options.RequireHttpsMetadata = false;
+            options.SaveToken = true;
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(key),
+                ValidateIssuer = true,
+                ValidIssuer = authConfig.Issuer,
+                ValidateAudience = true,
+                ValidAudience = authConfig.Audience,
+                ValidateLifetime = true,
+                ClockSkew = TimeSpan.Zero
+            };
+        });
 
     var app = builder.Build();
 
@@ -141,11 +144,11 @@ try
     app.UseAuthorization();
     app.MapControllers();
     app.UseExceptionHandler();
-    
+
     using (var scope = app.Services.CreateScope())
     {
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-        
+
         var roles = new[] { "User", "Admin", "Support" };
         foreach (var role in roles)
         {
@@ -154,9 +157,9 @@ try
                 await roleManager.CreateAsync(new IdentityRole(role));
             }
         }
-        
+
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<UserEntity>>();
-        
+
         var rootUser = await userManager.FindByNameAsync("root");
         if (rootUser == null)
         {
@@ -169,6 +172,7 @@ try
             {
                 throw new ApplicationException("Ошибка при создании root пользователя");
             }
+
             if (!await userManager.IsInRoleAsync(rootUser, "Admin"))
             {
                 await userManager.AddToRoleAsync(rootUser, "Admin");

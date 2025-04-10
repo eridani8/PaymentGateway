@@ -22,7 +22,7 @@ public class TransactionController(ITransactionService service) : ControllerBase
             var transaction = await service.CreateTransaction(dto);
             return Ok(transaction);
         }
-        catch (RequisiteNotFound e)
+        catch (RequisiteNotFound)
         {
             return NotFound("Реквизит оплаты не найден");
         }
