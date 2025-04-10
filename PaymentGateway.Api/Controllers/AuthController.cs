@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
+using PaymentGateway.Core;
 using PaymentGateway.Core.Entities;
 using PaymentGateway.Core.Interfaces;
 using PaymentGateway.Core.Models;
@@ -12,7 +14,8 @@ namespace PaymentGateway.Api.Controllers;
 public class AuthController(
     UserManager<UserEntity> userManager,
     SignInManager<UserEntity> signInManager,
-    ITokenService tokenService) : ControllerBase
+    ITokenService tokenService,
+    IOptions<AuthConfig> config) : ControllerBase
 {
     [HttpPost]
     public async Task<IActionResult> Login([FromBody] LoginModel model)
