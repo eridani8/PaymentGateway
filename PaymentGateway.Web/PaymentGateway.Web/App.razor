@@ -1,15 +1,34 @@
-﻿<Blazorise.ThemeProvider Theme="@_theme">
-        <Router AppAssembly="typeof(App).Assembly">
-
+﻿@using PaymentGateway.Web.Layouts
+@using PaymentGateway.Web.Components
+<Blazorise.ThemeProvider Theme="@_theme">
+    <CascadingAuthenticationState>
+        <Router AppAssembly="@typeof(App).Assembly">
             <Found Context="routeData">
-                <RouteView RouteData="routeData" DefaultLayout="typeof(Layouts.MainLayout)"/>
+                <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
+                    <NotAuthorized>
+                        @if (context.User.Identity is { IsAuthenticated: false })
+                        {
+                            <RedirectToLogin/>
+                        }
+                        else
+                        {
+                            <p>У вас нет доступа к этой странице.</p>
+                        }
+                    </NotAuthorized>
+                    <Authorizing>
+                        <p>Проверка авторизации...</p>
+                    </Authorizing>
+                </AuthorizeRouteView>
+                <FocusOnNavigate RouteData="@routeData" Selector="h1"/>
             </Found>
-
             <NotFound>
-                <p>Sorry, there's nothing at this address.</p>
+                <PageTitle>Not found</PageTitle>
+                <p>Извините, по этому адресу ничего не найдено.</p>
             </NotFound>
-
         </Router>
+    </CascadingAuthenticationState>
+
+
     <MessageProvider/>
     <PageProgressProvider/>
 </Blazorise.ThemeProvider>
@@ -25,22 +44,22 @@
         ColorOptions = new ThemeColorOptions
         {
             Primary = "#621982",
-            Secondary = "#A65529",
-            Success = "#23C02E",
-            Info = "#9BD8FE",
-            Warning = "#F8B86C",
-            Danger = "#F95741",
+            Secondary = "#e3b178",
+            Success = "#86BA90",
+            Info = "#A594F9",
+            Warning = "#F28123",
+            Danger = "#B9314F",
             Light = "#F0F0F0",
             Dark = "#535353",
         },
         BackgroundOptions = new ThemeBackgroundOptions
         {
             Primary = "#621982",
-            Secondary = "#A65529",
-            Success = "#23C02E",
-            Info = "#9BD8FE",
-            Warning = "#F8B86C",
-            Danger = "#F95741",
+            Secondary = "#e3b178",
+            Success = "#86BA90",
+            Info = "#A594F9",
+            Warning = "#F28123",
+            Danger = "#B9314F",
             Light = "#F0F0F0",
             Dark = "#535353",
         },

@@ -1,0 +1,16 @@
+﻿@using PaymentGateway.Web.Service
+@inject NavigationManager Navigation
+@inject CustomAuthStateProvider AuthStateProvider
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity is { IsAuthenticated: false })
+        {
+            Navigation.NavigateTo("/login", true);
+        }
+    }
+}

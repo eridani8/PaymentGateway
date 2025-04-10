@@ -6,54 +6,81 @@
 @inject NavigationManager NavigationManager
 @inject ILogger<Login> Logger
 
-<h3>Авторизация</h3>
+<div class="d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+    <div style="width: 500px;" class="card">
+        <div class="card-header py-4">
+            <h3 class="text-center mb-0">Авторизация</h3>
+        </div>
+        <div class="card-body">
 
-@if (!string.IsNullOrEmpty(_errorMessage))
-{
-    <p class="alert alert-danger">@_errorMessage</p>
-}
+            <Validations @ref="_validations" Mode="ValidationMode.Auto" Model="@_loginModel" ValidateOnLoad="false">
+                <Validation>
+                    <Field>
+                        <TextEdit @bind-Text="@_loginModel.Username" Placeholder="Логин">
+                            <Feedback>
+                                <ValidationError />
+                            </Feedback>
+                        </TextEdit>
+                    </Field>
+                </Validation>
+                <Validation>
+                    <Field>
+                        <TextEdit type="password" @bind-Text="@_loginModel.Password" Placeholder="Пароль">
+                            <Feedback>
+                                <ValidationError />
+                            </Feedback>
+                        </TextEdit>
+                    </Field>
+                </Validation>
 
-<EditForm Model="@_loginModel" OnValidSubmit="@HandleLogin">
-    <DataAnnotationsValidator />
-    <Blazorise.ValidationSummary />
-
-    <div class="form-group">
-        <label>Имя пользователя:</label>
-        <InputText @bind-Value="_loginModel.Username" class="form-control" />
+                @if (!string.IsNullOrEmpty(_errorMessage))
+                {
+                    <Alert Color="Color.Danger" Visible>
+                        @_errorMessage
+                    </Alert>
+                }
+                
+                <Button Color="Color.Primary" Clicked="@Submit" Block>Войти</Button>
+                
+            </Validations>
+        </div>
     </div>
-    <div class="form-group">
-        <label>Пароль:</label>
-        <InputText @bind-Value="_loginModel.Password" type="password" class="form-control" />
-    </div>
-    <button type="submit" class="btn btn-primary">Войти</button>
-</EditForm>
+</div>
 
 @code {
     private readonly LoginModel _loginModel = new();
+    private Validations? _validations;
     private string? _errorMessage;
 
-    private async Task HandleLogin()
+    private async Task Submit()
     {
         _errorMessage = null;
-        try
+        
+        if (_validations != null)
         {
-            using var client = Factory.CreateClient("API");
-            var response = await client.PostAsJsonAsync("auth/login", _loginModel, cancellationToken: CancellationToken.None);
-            if (response.IsSuccessStatusCode)
+            if (await _validations.ValidateAll())
             {
-                var token = await response.Content.ReadAsStringAsync();
-                await AuthStateProvider.MarkUserAsAuthenticated(token);
-                NavigationManager.NavigateTo("/");
+                try
+                {
+                    using var client = Factory.CreateClient("API");
+                    var response = await client.PostAsJsonAsync("auth/login", _loginModel);
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var token = await response.Content.ReadAsStringAsync();
+                        await AuthStateProvider.MarkUserAsAuthenticated(token);
+                        NavigationManager.NavigateTo("/", forceLoad: true);
+                    }
+                    else
+                    {
+                        _errorMessage = "Неверное имя пользователя или пароль";
+                    }
+                }
+                catch (Exception e)
+                {
+                    Logger.LogError(e, "Ошибка авторизации");
+                    _errorMessage = "Ошибка при входе";
+                }
             }
-            else
-            {
-                _errorMessage = "Неверное имя пользователя или пароль.";
-            }
-        }
-        catch (Exception e)
-        {
-            Logger.LogError(e, "Ошибка авторизации");
-            _errorMessage = "Ошибка при входе";
         }
     }
 }

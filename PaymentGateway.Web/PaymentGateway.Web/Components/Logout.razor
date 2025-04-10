@@ -1,0 +1,15 @@
+﻿@using PaymentGateway.Web.Service
+@inject NavigationManager NavigationManager
+@inject CustomAuthStateProvider AuthStateProvider
+
+<button @onclick="LogoutMe">Выйти</button>
+
+@code {
+
+    private async Task LogoutMe()
+    {
+        await AuthStateProvider.MarkUserAsLoggedOut();
+        NavigationManager.NavigateTo("/");
+    }
+
+}

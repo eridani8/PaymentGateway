@@ -1,4 +1,8 @@
-﻿<Bar Breakpoint="Breakpoint.Desktop" Background="Background.Primary" ThemeContrast="ThemeContrast.Light">
+﻿@using PaymentGateway.Web.Service
+@inject CustomAuthStateProvider AuthStateProvider
+@inject NavigationManager NavigationManager
+
+<Bar Breakpoint="Breakpoint.Desktop" Background="Background.Primary" ThemeContrast="ThemeContrast.Light">
     <BarBrand>
         <BarItem>
             <BarLink To="">
@@ -9,12 +13,37 @@
     </BarBrand>
     <BarToggler/>
     <BarMenu>
-        <BarStart>
-            <BarItem>
-                <BarLink To="/">Home</BarLink>
-            </BarItem>
-        </BarStart>
-        <BarEnd>
+        @* <BarStart> *@
+        @*     <BarItem> *@
+        @*         <BarLink To="/">Home</BarLink> *@
+        @*     </BarItem> *@
+        @* </BarStart> *@
+        <BarEnd Margin="Margin.Is3.FromEnd">
+            <BarMenu>
+                <AuthorizeView>
+                    <Authorized>
+                        <BarItem>
+                            <BarDropdown RightAligned>
+                                <BarDropdownToggle>
+                                    <BarIcon IconName="IconName.User" />
+                                    @context.User.Identity?.Name
+                                </BarDropdownToggle>
+                                <BarDropdownMenu RightAligned>
+                                    <BarDropdownItem Clicked="@LogoutAsync">Выйти</BarDropdownItem>
+                                </BarDropdownMenu>
+                            </BarDropdown>
+                        </BarItem>
+                    </Authorized>
+                    <NotAuthorized>
+                        <BarItem>
+                            <BarLink To="/login">
+                                <BarIcon IconName="IconName.User" />
+                                Войти
+                            </BarLink>
+                        </BarItem>
+                    </NotAuthorized>
+                </AuthorizeView>
+            </BarMenu>
         </BarEnd>
     </BarMenu>
 </Bar>
@@ -25,4 +54,12 @@
     {
         await base.OnInitializedAsync();
     }
+
+    private async Task LogoutAsync(MouseEventArgs arg)
+    {
+        await AuthStateProvider.MarkUserAsLoggedOut();
+        
+        NavigationManager.NavigateTo("/login");
+    }
+
 }

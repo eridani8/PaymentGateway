@@ -1,12 +1,26 @@
 ﻿@using PaymentGateway.Web.Components.Layout
-
+@using PaymentGateway.Web.Service
 @inherits LayoutComponentBase
+@inject CustomAuthStateProvider AuthStateProvider
 
 <Layout>
     <LayoutHeader Fixed>
-        <TopMenu />
+        @if (_isAuthenticated)
+        {
+            <TopMenu />
+        }
     </LayoutHeader>
     <LayoutContent Padding="Padding.Is4.OnX.Is4.FromTop">
         @Body
     </LayoutContent>
 </Layout>
+
+@code {
+    private bool _isAuthenticated;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        _isAuthenticated = authState.User.Identity?.IsAuthenticated ?? false;
+    }
+}

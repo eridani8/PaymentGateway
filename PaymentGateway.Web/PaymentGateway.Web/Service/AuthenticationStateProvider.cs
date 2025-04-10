@@ -56,7 +56,8 @@ public class CustomAuthStateProvider(IHttpClientFactory httpClientFactory, ILoca
     }
 
     private const string TokenKey = "authToken";
-    private async Task<string?> GetTokenFromLocalStorageAsync()
+
+    public async Task<string?> GetTokenFromLocalStorageAsync()
     {
         return await localStorage.GetItemAsync<string>(TokenKey);
     }
