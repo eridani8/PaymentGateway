@@ -130,6 +130,17 @@ try
                 ClockSkew = TimeSpan.Zero
             };
         });
+    
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy("AllowAll", policy =>
+        {
+            policy
+                .AllowAnyOrigin()
+                .AllowAnyMethod()
+                .AllowAnyHeader();
+        });
+    }); // TODO
 
     var app = builder.Build();
 
@@ -144,6 +155,8 @@ try
     app.UseAuthorization();
     app.MapControllers();
     app.UseExceptionHandler();
+    
+    app.UseCors("AllowAll"); // TODO
 
     using (var scope = app.Services.CreateScope())
     {

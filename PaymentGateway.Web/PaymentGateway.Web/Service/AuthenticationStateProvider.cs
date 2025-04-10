@@ -7,8 +7,6 @@ namespace PaymentGateway.Web.Service;
 
 public class CustomAuthStateProvider(IHttpClientFactory httpClientFactory, ILocalStorageService localStorage) : AuthenticationStateProvider
 {
-    private readonly HttpClient _httpClient = httpClientFactory.CreateClient("API");
-
     public override async Task<AuthenticationState> GetAuthenticationStateAsync()
     {
         var token = await GetTokenFromLocalStorageAsync();

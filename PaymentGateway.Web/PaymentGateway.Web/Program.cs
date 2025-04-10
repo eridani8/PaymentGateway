@@ -1,10 +1,10 @@
-﻿using Blazored.LocalStorage;
+﻿using System.Net.Http.Headers;
+using Blazored.LocalStorage;
 using PaymentGateway.Web;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Blazorise.Bootstrap5;
 using Blazorise.Icons.FontAwesome;
-using Microsoft.AspNetCore.Components.Authorization;
 using PaymentGateway.Web.Service;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
@@ -13,9 +13,13 @@ try
     builder.RootComponents.Add<App>("#app");
     builder.RootComponents.Add<HeadOutlet>("head::after");
 
-    builder.Services.AddHttpClient("API", client => client.BaseAddress = new Uri("localhost"));
+    builder.Services.AddHttpClient("API", client =>
+    {
+        client.BaseAddress = new Uri("http://109.73.192.135");
+        client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+    });
     builder.Services.AddAuthorizationCore();
-    builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
+    builder.Services.AddScoped<CustomAuthStateProvider>();
 
     builder.Services.AddBlazorise(o => o.Immediate = true);
     builder.Services
