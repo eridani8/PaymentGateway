@@ -64,14 +64,18 @@
             {
                 var response = await UserService.Login(_loginModel);
 
-                if (response.Code == HttpStatusCode.OK && !string.IsNullOrEmpty(response.Content))
+                switch (response.Code)
                 {
-                    await AuthStateProvider.MarkUserAsAuthenticated(response.Content);
-                    NavigationManager.NavigateTo("/", forceLoad: true);
-                }
-                else
-                {
-                    _errorMessage = "Ошибка авторизации";
+                    case HttpStatusCode.OK when !string.IsNullOrEmpty(response.Content):
+                        await AuthStateProvider.MarkUserAsAuthenticated(response.Content.Trim('"'));
+                        NavigationManager.NavigateTo("/", forceLoad: true);
+                        break;
+                    case HttpStatusCode.Unauthorized:
+                        _errorMessage = "Неверный логин или пароль";
+                        break;
+                    default:
+                        _errorMessage = "Ошибка аунтетификации";
+                        break;
                 }
             }
         }

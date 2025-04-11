@@ -22,7 +22,7 @@ public class UserController(
     [HttpPost]
     public async Task<IActionResult> Login([FromBody] LoginModel? model)
     {
-        if (model is null) return BadRequest("Неверные данные");
+        if (model is null) return BadRequest();
 
         var validation = await loginValidator.ValidateAsync(model);
         if (!validation.IsValid)
@@ -33,26 +33,26 @@ public class UserController(
         var user = await userManager.FindByNameAsync(model.Username);
         if (user == null)
         {
-            return Unauthorized("Неверное имя пользователя или пароль");
+            return Unauthorized();
         }
 
         var result = await signInManager.CheckPasswordSignInAsync(user, model.Password, false);
         if (!result.Succeeded)
         {
-            return Unauthorized("Неверное имя пользователя или пароль");
+            return Unauthorized();
         }
 
         var roles = await userManager.GetRolesAsync(user);
         var token = tokenService.GenerateJwtToken(user, roles);
         
-        return Ok(token.Trim('"'));
+        return Ok(token);
     }
     
     [HttpPost]
     [Authorize]
     public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordModel? model)
     {
-        if (model is null) return BadRequest("Неверные данные");
+        if (model is null) return BadRequest();
 
         var validation = await changePasswordValidator.ValidateAsync(model);
         if (!validation.IsValid)

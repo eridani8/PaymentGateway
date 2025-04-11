@@ -22,13 +22,12 @@ public class TokenService(IOptions<AuthConfig> config) : ITokenService
             new(ClaimTypes.Name, user.UserName!),
             new(JwtRegisteredClaimNames.Jti, Guid.CreateVersion7().ToString()),
         };
-        
         claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config.Value.SecretKey));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
         var expires = DateTime.Now.Add(config.Value.Expiration);
-        
+
         var token = new JwtSecurityToken(
             issuer: config.Value.Issuer,
             audience: config.Value.Audience,
@@ -36,7 +35,7 @@ public class TokenService(IOptions<AuthConfig> config) : ITokenService
             expires: expires,
             signingCredentials: credentials
         );
-        
+
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
 }

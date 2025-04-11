@@ -79,10 +79,11 @@
                 {
                     _changePasswordModel = new ChangePasswordModel();
                     await NotificationService.Success("Пароль успешно изменен");
+                    await _validations.ClearAll();
                 }
                 else
                 {
-                    await NotificationService.Error("Ошибка при смене пароля");
+                    await NotificationService.Error(response.Content);
                 }
             }
         }

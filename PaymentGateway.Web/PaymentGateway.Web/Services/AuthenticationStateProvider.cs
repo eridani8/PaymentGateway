@@ -41,7 +41,44 @@ public class CustomAuthStateProvider(IHttpClientFactory httpClientFactory, ILoca
         var jsonBytes = ParseBase64WithoutPadding(payload);
         var keyValuePairs = JsonSerializer.Deserialize<Dictionary<string, object>>(jsonBytes);
 
-        var claims = keyValuePairs?.Select(kvp => new Claim(kvp.Key, kvp.Value.ToString() ?? string.Empty));
+        var claims = new List<Claim>();
+        if (keyValuePairs == null) return claims;
+        
+        foreach (var (key, value) in keyValuePairs)
+        {
+            if (key.Equals("http://schemas.microsoft.com/ws/2008/06/identity/claims/role", StringComparison.OrdinalIgnoreCase))
+            {
+                switch (value)
+                {
+                    case JsonElement { ValueKind: JsonValueKind.Array } rolesElement:
+                    {
+                        claims.AddRange(rolesElement.EnumerateArray().Select(role => new Claim(ClaimTypes.Role, role.GetString() ?? string.Empty)));
+
+                        break;
+                    }
+                    case string rolesString:
+                    {
+                        var roles = rolesString.Split(';');
+                        claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
+
+                        break;
+                    }
+                    default:
+                    {
+                        if (value is string singleRole)
+                        {
+                            claims.Add(new Claim(ClaimTypes.Role, singleRole));
+                        }
+
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                claims.Add(new Claim(key, value.ToString() ?? string.Empty));
+            }
+        }
         return claims;
     }
 

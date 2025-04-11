@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -126,7 +127,8 @@ try
                 ValidateAudience = true,
                 ValidAudience = authConfig.Audience,
                 ValidateLifetime = true,
-                ClockSkew = TimeSpan.Zero
+                ClockSkew = TimeSpan.Zero,
+                RoleClaimType = ClaimTypes.Role
             };
         });
 
