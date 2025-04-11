@@ -15,7 +15,7 @@ public class TransactionController(ITransactionService service) : ControllerBase
     [HttpPost]
     public async Task<ActionResult<TransactionResponseDto>> Create([FromBody] TransactionCreateDto? dto)
     {
-        if (dto is null) return BadRequest("Неверные данные");
+        if (dto is null) return BadRequest();
 
         try
         {
@@ -24,7 +24,7 @@ public class TransactionController(ITransactionService service) : ControllerBase
         }
         catch (RequisiteNotFound)
         {
-            return NotFound("Реквизит оплаты не найден");
+            return NotFound();
         }
         catch (ValidationException e)
         {

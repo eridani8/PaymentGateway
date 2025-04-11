@@ -1,6 +1,6 @@
-﻿namespace PaymentGateway.Shared.Models;
+﻿namespace PaymentGateway.Shared.DTOs.User;
 
-public class ChangePasswordModel
+public class ChangePasswordDto
 {
     public string CurrentPassword { get; set; } = string.Empty;
     public string NewPassword { get; set; } = string.Empty;

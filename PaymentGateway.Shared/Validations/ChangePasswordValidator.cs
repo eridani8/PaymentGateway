@@ -1,9 +1,10 @@
 ﻿using FluentValidation;
-using PaymentGateway.Shared.Models;
+using PaymentGateway.Shared.DTOs;
+using PaymentGateway.Shared.DTOs.User;
 
 namespace PaymentGateway.Shared.Validations;
 
-public class ChangePasswordValidator : AbstractValidator<ChangePasswordModel>
+public class ChangePasswordValidator : AbstractValidator<ChangePasswordDto>
 {
     public ChangePasswordValidator()
     {

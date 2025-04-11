@@ -9,7 +9,8 @@ using Blazorise.Icons.FontAwesome;
 using FluentValidation;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Extensions.Options;
-using PaymentGateway.Shared.Models;
+using PaymentGateway.Shared.DTOs;
+using PaymentGateway.Shared.DTOs.User;
 using PaymentGateway.Shared.Validations;
 using PaymentGateway.Web.Interfaces;
 using PaymentGateway.Web.Services;
@@ -29,8 +30,8 @@ try
         .AddFontAwesomeIcons()
         .AddBlazoriseFluentValidation();
     
-    builder.Services.AddScoped<IValidator<LoginModel>, LoginModelValidator>();
-    builder.Services.AddScoped<IValidator<ChangePasswordModel>, ChangePasswordValidator>();
+    builder.Services.AddScoped<IValidator<LoginDto>, LoginModelValidator>();
+    builder.Services.AddScoped<IValidator<ChangePasswordDto>, ChangePasswordValidator>();
 
     builder.Services.AddAuthorizationCore();
     builder.Services.AddScoped<CustomAuthStateProvider>();

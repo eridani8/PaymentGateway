@@ -1,6 +1,6 @@
-﻿namespace PaymentGateway.Shared.Models;
+﻿namespace PaymentGateway.Shared.DTOs.User;
 
-public class UserCreateModel
+public class CreateUserDto
 {
     public string Username { get; set; } = string.Empty;
     public string Password { get; set; } = string.Empty;

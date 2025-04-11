@@ -5,7 +5,8 @@ using Microsoft.AspNetCore.Mvc;
 using PaymentGateway.Application;
 using PaymentGateway.Core.Entities;
 using PaymentGateway.Core.Interfaces;
-using PaymentGateway.Shared.Models;
+using PaymentGateway.Shared.DTOs;
+using PaymentGateway.Shared.DTOs.User;
 
 namespace PaymentGateway.Api.Controllers;
 
@@ -16,11 +17,11 @@ public class UserController(
     UserManager<UserEntity> userManager,
     SignInManager<UserEntity> signInManager,
     ITokenService tokenService,
-    IValidator<LoginModel> loginValidator, 
-    IValidator<ChangePasswordModel> changePasswordValidator) : ControllerBase
+    IValidator<LoginDto> loginValidator, 
+    IValidator<ChangePasswordDto> changePasswordValidator) : ControllerBase
 {
     [HttpPost]
-    public async Task<IActionResult> Login([FromBody] LoginModel? model)
+    public async Task<IActionResult> Login([FromBody] LoginDto? model)
     {
         if (model is null) return BadRequest();
 
@@ -50,7 +51,7 @@ public class UserController(
     
     [HttpPost]
     [Authorize]
-    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordModel? model)
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto? model)
     {
         if (model is null) return BadRequest();
 

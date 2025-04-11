@@ -1,9 +1,10 @@
 ﻿using FluentValidation;
-using PaymentGateway.Shared.Models;
+using PaymentGateway.Shared.DTOs;
+using PaymentGateway.Shared.DTOs.User;
 
 namespace PaymentGateway.Shared.Validations;
 
-public class LoginModelValidator : AbstractValidator<LoginModel>
+public class LoginModelValidator : AbstractValidator<LoginDto>
 {
     public LoginModelValidator()
     {

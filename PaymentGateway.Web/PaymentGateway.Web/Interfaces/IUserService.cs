@@ -1,11 +1,12 @@
 ﻿using System.Net;
-using PaymentGateway.Shared.Models;
+using PaymentGateway.Shared.DTOs;
+using PaymentGateway.Shared.DTOs.User;
 using PaymentGateway.Web.Services;
 
 namespace PaymentGateway.Web.Interfaces;
 
 public interface IUserService
 {
-    Task<Response> Login(LoginModel model);
-    Task<Response> ChangePasswordAsync(ChangePasswordModel model);
+    Task<Response> Login(LoginDto dto);
+    Task<Response> ChangePasswordAsync(ChangePasswordDto dto);
 }

@@ -18,7 +18,7 @@ public class RequisiteController(IRequisiteService service) : ControllerBase
     [HttpPost]
     public async Task<ActionResult<RequisiteResponseDto>> Create([FromBody] RequisiteCreateDto? dto)
     {
-        if (dto is null) return BadRequest("Неверные данные");
+        if (dto is null) return BadRequest();
 
         try
         {
@@ -50,7 +50,7 @@ public class RequisiteController(IRequisiteService service) : ControllerBase
         var requisite = await service.GetRequisiteById(id);
         if (requisite is null)
         {
-            return NotFound("Реквизит с таким ID не найден");
+            return NotFound();
         }
         
         return Ok(requisite);
@@ -59,14 +59,14 @@ public class RequisiteController(IRequisiteService service) : ControllerBase
     [HttpPut("{id:guid}")]
     public async Task<ActionResult> Update(Guid id, [FromBody] RequisiteUpdateDto? dto)
     {
-        if (dto is null) return BadRequest("Неверные данные");
+        if (dto is null) return BadRequest();
 
         try
         {
             var result = await service.UpdateRequisite(id, dto);
             if (!result)
             {
-                return NotFound("Реквизит с таким ID не найден");
+                return NotFound();
             }
             
             return NoContent();
@@ -83,7 +83,7 @@ public class RequisiteController(IRequisiteService service) : ControllerBase
         var result = await service.DeleteRequisite(id);
         if (!result)
         {
-            return NotFound("Реквизит с таким ID не найден");
+            return NotFound();
         }
         
         return NoContent();

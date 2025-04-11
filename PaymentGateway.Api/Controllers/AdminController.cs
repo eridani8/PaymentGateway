@@ -1,131 +1,68 @@
 ﻿using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using PaymentGateway.Application;
-using PaymentGateway.Core.Entities;
-using PaymentGateway.Shared.Models;
+using PaymentGateway.Application.Interfaces;
+using PaymentGateway.Core.Exceptions;
+using PaymentGateway.Shared.DTOs.User;
 
 namespace PaymentGateway.Api.Controllers;
 
 [ApiController]
 [Route("[controller]/[action]")]
 [Authorize(Roles = "Admin")]
-public class UsersController(
-    UserManager<UserEntity> userManager,
-    RoleManager<IdentityRole> roleManager) : ControllerBase
+public class UsersController(IAdminService service) : ControllerBase
 {
     [HttpPost]
-    public async Task<IActionResult> CreateUser([FromBody] UserCreateModel model)
+    public async Task<ActionResult<UserResponseDto>> CreateUser([FromBody] CreateUserDto? dto)
     {
-        if (!ModelState.IsValid)
+        if (dto is null) return BadRequest();
+
+        try
         {
-            return BadRequest(ModelState);
+            var user = await service.CreateUser(dto);
+            return Ok(user);
         }
-
-        var existingUser = await userManager.FindByNameAsync(model.Username);
-        if (existingUser != null)
+        catch (DuplicateUserException)
         {
-            return BadRequest("Пользователь с таким именем уже существует");
+            return Conflict();
         }
-
-        if (model.Roles.Count > 0)
+        catch (ValidationException e)
         {
-            foreach (var role in model.Roles)
-            {
-                var roleExists = await roleManager.RoleExistsAsync(role);
-                if (!roleExists)
-                {
-                    return BadRequest($"Роль '{role}' не существует");
-                }
-            }
+            return BadRequest(e.Errors.GetErrors());
         }
-        else
-        {
-            return BadRequest("Нужно указать роль");
-        }
-
-        var user = new UserEntity()
-        {
-            UserName = model.Username
-        };
-
-        var result = await userManager.CreateAsync(user, model.Password);
-        if (!result.Succeeded)
-        {
-            return BadRequest(result.Errors);
-        }
-
-        await userManager.AddToRoleAsync(user, model.Roles.First());
-
-        return Ok(new
-        {
-            Message = "Пользователь создан",
-            UserId = user.Id,
-            Roles = await userManager.GetRolesAsync(user)
-        });
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAllUsers()
+    public async Task<ActionResult<List<UserResponseDto>>> GetAllUsers()
     {
-        var users = await userManager.Users.ToListAsync();
-        var userList = new List<object>();
-
-        foreach (var user in users)
-        {
-            var roles = await userManager.GetRolesAsync(user);
-            userList.Add(new
-            {
-                Id = user.Id,
-                UserName = user.UserName,
-                Roles = roles
-            });
-        }
-
-        return Ok(userList);
+        var users = await service.GetAllUsers();
+        return Ok(users);
     }
 
-    [HttpGet("{id}")]
-    public async Task<IActionResult> GetUserById(string id)
+    [HttpGet("{id:guid}")]
+    public async Task<ActionResult<UserResponseDto>> GetUserById(Guid id)
     {
-        var user = await userManager.FindByIdAsync(id);
-        if (user == null)
+        var user = await service.GetUserById(id);
+        if (user is null)
         {
-            return NotFound("Пользователь не найден");
+            return NotFound();
         }
-
-        var roles = await userManager.GetRolesAsync(user);
-        return Ok(new
-        {
-            Id = user.Id,
-            UserName = user.UserName,
-            Roles = roles
-        });
+        
+        return Ok(user);
     }
 
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteUser(string id)
+    [HttpDelete("{id:guid}")]
+    public async Task<ActionResult> DeleteUser(Guid id)
     {
-        var user = await userManager.FindByIdAsync(id);
-        if (user == null)
-        {
-            return NotFound("Пользователь не найден");
-        }
-
         var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-        if (id == currentUserId)
-        {
-            return BadRequest("Вы не можете удалить свой собственный аккаунт");
-        }
+        var result = await service.DeleteUser(id, currentUserId);
 
-        var result = await userManager.DeleteAsync(user);
-        if (result.Succeeded)
+        if (!result)
         {
-            return Ok(new { Message = "Пользователь успешно удален" });
+            return NotFound();
         }
-
-        return StatusCode(500);
+        
+        return NoContent();
     }
 }

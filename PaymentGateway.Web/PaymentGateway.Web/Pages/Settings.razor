@@ -1,7 +1,8 @@
 ﻿@page "/Settings"
 @using System.Net
 @using Blazorise.FluentValidation
-@using PaymentGateway.Shared.Models
+@using PaymentGateway.Shared.DTOs
+@using PaymentGateway.Shared.DTOs.User
 @using PaymentGateway.Web.Interfaces
 @attribute [Authorize]
 @inject IUserService UserService
@@ -13,11 +14,11 @@
             <div class="card">
                 <div class="card-body">
 
-                    <Validations @ref="_validations" Mode="ValidationMode.Auto" Model="@_changePasswordModel"
+                    <Validations @ref="_validations" Mode="ValidationMode.Auto" Model="@_changePasswordDto"
                                  ValidateOnLoad="false" HandlerType="typeof(FluentValidationHandler)">
                         <Validation>
                             <Field>
-                                <TextEdit type="password" @bind-Text="@_changePasswordModel.CurrentPassword"
+                                <TextEdit type="password" @bind-Text="@_changePasswordDto.CurrentPassword"
                                           Placeholder="Текущий пароль">
                                     <Feedback>
                                         <ValidationError/>
@@ -26,7 +27,7 @@
                             </Field>
                             <Validation>
                                 <Field>
-                                    <TextEdit type="password" @bind-Text="@_changePasswordModel.NewPassword" Placeholder="Пароль">
+                                    <TextEdit type="password" @bind-Text="@_changePasswordDto.NewPassword" Placeholder="Пароль">
                                         <Feedback>
                                             <ValidationError/>
                                         </Feedback>
@@ -35,7 +36,7 @@
                             </Validation>
                             <Validation>
                                 <Field>
-                                    <TextEdit type="password" @bind-Text="@_changePasswordModel.ConfirmPassword" Placeholder="Подтверждение пароля">
+                                    <TextEdit type="password" @bind-Text="@_changePasswordDto.ConfirmPassword" Placeholder="Подтверждение пароля">
                                         <Feedback>
                                             <ValidationError/>
                                         </Feedback>
@@ -62,7 +63,7 @@
 </div>
 
 @code {
-    private ChangePasswordModel _changePasswordModel = new();
+    private ChangePasswordDto _changePasswordDto = new();
     private Validations? _validations;
     private string? _errorMessage;
 
@@ -74,10 +75,10 @@
         {
             if (await _validations.ValidateAll())
             {
-                var response = await UserService.ChangePasswordAsync(_changePasswordModel);
+                var response = await UserService.ChangePasswordAsync(_changePasswordDto);
                 if (response.Code == HttpStatusCode.OK)
                 {
-                    _changePasswordModel = new ChangePasswordModel();
+                    _changePasswordDto = new ChangePasswordDto();
                     await NotificationService.Success("Пароль успешно изменен");
                     await _validations.ClearAll();
                 }

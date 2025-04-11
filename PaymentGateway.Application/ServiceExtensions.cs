@@ -10,7 +10,8 @@ using PaymentGateway.Application.Validators.Payment;
 using PaymentGateway.Application.Validators.Requisite;
 using PaymentGateway.Application.Validators.Transaction;
 using PaymentGateway.Core.Interfaces;
-using PaymentGateway.Shared.Models;
+using PaymentGateway.Shared.DTOs;
+using PaymentGateway.Shared.DTOs.User;
 using PaymentGateway.Shared.Validations;
 
 namespace PaymentGateway.Application;
@@ -22,6 +23,7 @@ public static class ServiceExtensions
         services.AddAutoMapper(typeof(RequisiteProfile));
         services.AddAutoMapper(typeof(PaymentProfile));
         services.AddAutoMapper(typeof(TransactionProfile));
+        services.AddAutoMapper(typeof(UserProfile));
         
         services.AddScoped<IValidator<RequisiteCreateDto>, RequisiteCreateDtoValidator>();
         services.AddScoped<IValidator<RequisiteUpdateDto>, RequisiteUpdateDtoValidator>();
@@ -34,8 +36,8 @@ public static class ServiceExtensions
         services.AddScoped<IValidator<TransactionCreateDto>, TransactionCreateDtoValidator>();
         services.AddScoped<ITransactionService, TransactionService>();
 
-        services.AddScoped<IValidator<LoginModel>, LoginModelValidator>();
-        services.AddScoped<IValidator<ChangePasswordModel>, ChangePasswordValidator>();
+        services.AddScoped<IValidator<LoginDto>, LoginModelValidator>();
+        services.AddScoped<IValidator<ChangePasswordDto>, ChangePasswordValidator>();
 
         services.AddScoped<ITokenService, TokenService>();
         

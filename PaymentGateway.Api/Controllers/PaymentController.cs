@@ -17,7 +17,7 @@ public class PaymentController(IPaymentService service) : ControllerBase
     [HttpPost]
     public async Task<ActionResult<PaymentResponseDto>> Create([FromBody] PaymentCreateDto? dto)
     {
-        if (dto is null) return BadRequest("Неверные данные");
+        if (dto is null) return BadRequest();
 
         try
         {
@@ -26,7 +26,7 @@ public class PaymentController(IPaymentService service) : ControllerBase
         }
         catch (DuplicatePaymentException)
         {
-            return Conflict("Платеж с таким ID уже существует");
+            return Conflict();
         }
         catch (ValidationException e)
         {
@@ -48,7 +48,7 @@ public class PaymentController(IPaymentService service) : ControllerBase
         var requisite = await service.GetPaymentById(id);
         if (requisite is null)
         {
-            return NotFound("Платеж с таким ID не найден");
+            return NotFound();
         }
         
         return Ok(requisite);
@@ -60,7 +60,7 @@ public class PaymentController(IPaymentService service) : ControllerBase
         var result = await service.DeletePayment(id);
         if (!result)
         {
-            return NotFound("Платеж с таким ID не найден");
+            return NotFound();
         }
         
         return NoContent();
