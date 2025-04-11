@@ -6,32 +6,29 @@ using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Blazorise.Bootstrap5;
 using Blazorise.Icons.FontAwesome;
 using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
+using Microsoft.Extensions.Options;
 using PaymentGateway.Web.Service;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 try
 {
-    var apiBaseUrl = builder.Configuration["BaseUrl"];
-    
-    if (string.IsNullOrEmpty(apiBaseUrl))
-    {
-        throw new ApplicationException("Нужно заполнить конфигурацию");
-    }
+    builder.Services.Configure<ApiSettings>(builder.Configuration.GetSection(nameof(ApiSettings)));
     
     builder.RootComponents.Add<App>("#app");
     builder.RootComponents.Add<HeadOutlet>("head::after");
-    
+
     builder.Services.AddBlazoredLocalStorage();
 
     builder.Services.AddAuthorizationCore();
     builder.Services.AddScoped<CustomAuthStateProvider>();
     builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
     builder.Services.AddScoped<AuthMessageHandler>();
-    
-    builder.Services.AddHttpClient("API", client =>
+
+    builder.Services.AddHttpClient("API", (serviceProvider, client) =>
         {
-            client.BaseAddress = new Uri(apiBaseUrl);
+            var settings = serviceProvider.GetRequiredService<IOptions<ApiSettings>>().Value;
+            
+            client.BaseAddress = new Uri(settings.BaseAddress);
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         })
         .AddHttpMessageHandler<AuthMessageHandler>();
@@ -40,7 +37,7 @@ try
     builder.Services
         .AddBootstrap5Providers()
         .AddFontAwesomeIcons();
-    
+
 
     var app = builder.Build();
 
