@@ -74,8 +74,8 @@
         {
             if (await _validations.ValidateAll())
             {
-                var (status, content) = await UserService.ChangePasswordAsync(_changePasswordModel);
-                if (status == HttpStatusCode.OK)
+                var response = await UserService.ChangePasswordAsync(_changePasswordModel);
+                if (response.Code == HttpStatusCode.OK)
                 {
                     _changePasswordModel = new ChangePasswordModel();
                     await NotificationService.Success("Пароль успешно изменен");

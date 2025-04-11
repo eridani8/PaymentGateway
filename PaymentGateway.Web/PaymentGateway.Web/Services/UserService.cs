@@ -1,43 +1,17 @@
-﻿using System.Net;
-using System.Net.Http.Json;
-using PaymentGateway.Shared.Models;
+﻿using PaymentGateway.Shared.Models;
 using PaymentGateway.Web.Interfaces;
 
 namespace PaymentGateway.Web.Services;
 
-public class UserService(IHttpClientFactory factory) : IUserService
+public class UserService(IHttpClientFactory factory) : ServiceBase(factory), IUserService
 {
-    public async Task<(HttpStatusCode, string?)> Login(LoginModel model)
+    public Task<Response> Login(LoginModel model)
     {
-        HttpResponseMessage? response = null;
-        string? content = null;
-        try
-        {
-            using var client = factory.CreateClient("API");
-            response = await client.PostAsJsonAsync("auth/login", model);
-            content = await response.Content.ReadAsStringAsync();
-        }
-        catch
-        {
-            // ignore
-        }
-        return (response?.StatusCode ?? HttpStatusCode.InternalServerError, content);
+        return CreateRequest("auth/login", model);
     }
-    
-    public async Task<(HttpStatusCode, string?)> ChangePasswordAsync(ChangePasswordModel model)
+
+    public Task<Response> ChangePasswordAsync(ChangePasswordModel model)
     {
-        HttpResponseMessage? response = null;
-        string? content = null;
-        try
-        {
-            using var client = factory.CreateClient("API");
-            response = await client.PostAsJsonAsync("api/user/change-password", model);
-            content = await response.Content.ReadAsStringAsync();
-        }
-        catch
-        {
-            // ignore
-        }
-        return (response?.StatusCode ?? HttpStatusCode.InternalServerError, content);
+        return CreateRequest("users/changepassword", model);
     }
 }

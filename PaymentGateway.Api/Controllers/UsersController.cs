@@ -157,6 +157,6 @@ public class UsersController(
             return Ok();
         }
 
-        return StatusCode(500);
+        return BadRequest(result.Errors.GetErrors());
     }
 }

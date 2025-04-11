@@ -1,10 +1,11 @@
 ﻿using System.Net;
 using PaymentGateway.Shared.Models;
+using PaymentGateway.Web.Services;
 
 namespace PaymentGateway.Web.Interfaces;
 
 public interface IUserService
 {
-    Task<(HttpStatusCode, string?)> Login(LoginModel model);
-    Task<(HttpStatusCode, string?)> ChangePasswordAsync(ChangePasswordModel model);
+    Task<Response> Login(LoginModel model);
+    Task<Response> ChangePasswordAsync(ChangePasswordModel model);
 }

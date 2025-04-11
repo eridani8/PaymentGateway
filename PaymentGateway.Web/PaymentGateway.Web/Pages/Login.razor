@@ -62,11 +62,11 @@
         {
             if (await _validations.ValidateAll())
             {
-                var (statusCode, content) = await UserService.Login(_loginModel);
+                var response = await UserService.Login(_loginModel);
 
-                if (statusCode == HttpStatusCode.OK && !string.IsNullOrEmpty(content))
+                if (response.Code == HttpStatusCode.OK && !string.IsNullOrEmpty(response.Content))
                 {
-                    await AuthStateProvider.MarkUserAsAuthenticated(content);
+                    await AuthStateProvider.MarkUserAsAuthenticated(response.Content);
                     NavigationManager.NavigateTo("/", forceLoad: true);
                 }
                 else
