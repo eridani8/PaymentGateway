@@ -130,7 +130,7 @@ public class UsersController(
         return StatusCode(500);
     }
 
-    [HttpPost("change-password")]
+    [HttpPost]
     public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordModel? model)
     {
         if (model is null) return BadRequest("Неверные данные");
