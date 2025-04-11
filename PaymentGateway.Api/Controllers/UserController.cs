@@ -45,7 +45,7 @@ public class UserController(
         var roles = await userManager.GetRolesAsync(user);
         var token = tokenService.GenerateJwtToken(user, roles);
         
-        return Ok(token);
+        return Ok(token.Trim('"'));
     }
     
     [HttpPost]
