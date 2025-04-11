@@ -10,6 +10,8 @@ using PaymentGateway.Application.Validators.Payment;
 using PaymentGateway.Application.Validators.Requisite;
 using PaymentGateway.Application.Validators.Transaction;
 using PaymentGateway.Core.Interfaces;
+using PaymentGateway.Shared.Models;
+using PaymentGateway.Shared.Validations;
 
 namespace PaymentGateway.Application;
 
@@ -31,6 +33,8 @@ public static class ServiceExtensions
 
         services.AddScoped<IValidator<TransactionCreateDto>, TransactionCreateDtoValidator>();
         services.AddScoped<ITransactionService, TransactionService>();
+
+        services.AddScoped<IValidator<LoginModel>, LoginModelValidator>();
 
         services.AddScoped<ITokenService, TokenService>();
         

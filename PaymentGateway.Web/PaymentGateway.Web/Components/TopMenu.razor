@@ -1,5 +1,4 @@
-﻿@using PaymentGateway.Web.Service
-@inject CustomAuthStateProvider AuthStateProvider
+﻿@inject CustomAuthStateProvider AuthStateProvider
 @inject NavigationManager NavigationManager
 
 <Bar Breakpoint="Breakpoint.Desktop" Background="Background.Primary" ThemeContrast="ThemeContrast.Light">
@@ -13,11 +12,18 @@
     </BarBrand>
     <BarToggler/>
     <BarMenu>
-        @* <BarStart> *@
-        @*     <BarItem> *@
-        @*         <BarLink To="/">Home</BarLink> *@
-        @*     </BarItem> *@
-        @* </BarStart> *@
+        <BarStart>
+            <BarItem>
+                <BarLink To="/">Home</BarLink>
+            </BarItem>
+            <BarItem>
+                <AuthorizeView Roles="Admin">
+                    <Authorized>
+                        <BarLink To="/UserManagement">Управление пользователями</BarLink>
+                    </Authorized>
+                </AuthorizeView>
+            </BarItem>
+        </BarStart>
         <BarEnd Margin="Margin.Is3.FromEnd">
             <BarMenu>
                 <AuthorizeView>
@@ -25,10 +31,12 @@
                         <BarItem>
                             <BarDropdown RightAligned>
                                 <BarDropdownToggle>
-                                    <BarIcon IconName="IconName.User" />
+                                    <BarIcon IconName="IconName.User"/>
                                     @context.User.Identity?.Name
                                 </BarDropdownToggle>
                                 <BarDropdownMenu RightAligned>
+                                    <BarDropdownItem To="/settings">Настройки</BarDropdownItem>
+                                    <BarDropdownDivider />
                                     <BarDropdownItem Clicked="@LogoutAsync">Выйти</BarDropdownItem>
                                 </BarDropdownMenu>
                             </BarDropdown>
@@ -37,7 +45,7 @@
                     <NotAuthorized>
                         <BarItem>
                             <BarLink To="/login">
-                                <BarIcon IconName="IconName.User" />
+                                <BarIcon IconName="IconName.User"/>
                                 Войти
                             </BarLink>
                         </BarItem>
@@ -58,7 +66,7 @@
     private async Task LogoutAsync(MouseEventArgs arg)
     {
         await AuthStateProvider.MarkUserAsLoggedOut();
-        
+
         NavigationManager.NavigateTo("/login");
     }
 

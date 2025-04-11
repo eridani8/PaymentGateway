@@ -1,10 +1,10 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using FluentValidation;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
-using PaymentGateway.Core;
+using PaymentGateway.Application;
 using PaymentGateway.Core.Entities;
 using PaymentGateway.Core.Interfaces;
-using PaymentGateway.Core.Models;
+using PaymentGateway.Shared.Models;
 
 namespace PaymentGateway.Api.Controllers;
 
@@ -15,16 +15,19 @@ public class AuthController(
     UserManager<UserEntity> userManager,
     SignInManager<UserEntity> signInManager,
     ITokenService tokenService,
-    IOptions<AuthConfig> config) : ControllerBase
+    IValidator<LoginModel> validator) : ControllerBase
 {
     [HttpPost]
-    public async Task<IActionResult> Login([FromBody] LoginModel model)
+    public async Task<IActionResult> Login([FromBody] LoginModel? model)
     {
-        if (string.IsNullOrWhiteSpace(model.Username) || string.IsNullOrWhiteSpace(model.Password))
-        {
-            return BadRequest("Укажите логин и пароль");
-        }
+        if (model is null) return BadRequest("Неверные данные");
 
+        var validation = await validator.ValidateAsync(model);
+        if (!validation.IsValid)
+        {
+            return BadRequest(validation.Errors.GetErrors());
+        }
+            
         var user = await userManager.FindByNameAsync(model.Username);
         if (user == null)
         {

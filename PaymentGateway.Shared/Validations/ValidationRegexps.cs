@@ -1,8 +1,8 @@
 ﻿using System.Text.RegularExpressions;
 
-namespace PaymentGateway.Application.Validators;
+namespace PaymentGateway.Shared.Validations;
 
-public partial class ValidationRegexps
+public static partial class ValidationRegexps
 {
     [GeneratedRegex(@"^[А-Яа-яЁёA-Za-z\s]+$")]
     public static partial Regex FullNameRegex();

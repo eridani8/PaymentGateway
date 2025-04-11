@@ -3,7 +3,7 @@ using System.Text.Json;
 using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components.Authorization;
 
-namespace PaymentGateway.Web.Service;
+namespace PaymentGateway.Web.Services;
 
 public class CustomAuthStateProvider(IHttpClientFactory httpClientFactory, ILocalStorageService localStorage) : AuthenticationStateProvider
 {

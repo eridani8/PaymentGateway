@@ -1,7 +1,6 @@
 ﻿using System.Net.Http.Headers;
-using Microsoft.AspNetCore.Components.Authorization;
 
-namespace PaymentGateway.Web.Service;
+namespace PaymentGateway.Web.Services;
 
 public class AuthMessageHandler(CustomAuthStateProvider customAuthStateProvider) : DelegatingHandler
 {

@@ -1,10 +1,11 @@
 ﻿@page "/Login"
-@using PaymentGateway.Web.Models
-@using PaymentGateway.Web.Service
-@inject IHttpClientFactory Factory
+@using System.Net
+@using Blazorise.FluentValidation
+@using PaymentGateway.Shared.Models
+@using PaymentGateway.Web.Interfaces
 @inject CustomAuthStateProvider AuthStateProvider
 @inject NavigationManager NavigationManager
-@inject ILogger<Login> Logger
+@inject IUserService UserService
 
 <div class="d-flex justify-content-center align-items-center" style="min-height: 80vh;">
     <div style="width: 500px;" class="card">
@@ -13,12 +14,13 @@
         </div>
         <div class="card-body">
 
-            <Validations @ref="_validations" Mode="ValidationMode.Auto" Model="@_loginModel" ValidateOnLoad="false">
+            <Validations @ref="_validations" Mode="ValidationMode.Auto" Model="@_loginModel" ValidateOnLoad="false"
+                         HandlerType="typeof(FluentValidationHandler)">
                 <Validation>
                     <Field>
                         <TextEdit @bind-Text="@_loginModel.Username" Placeholder="Логин">
                             <Feedback>
-                                <ValidationError />
+                                <ValidationError/>
                             </Feedback>
                         </TextEdit>
                     </Field>
@@ -27,7 +29,7 @@
                     <Field>
                         <TextEdit type="password" @bind-Text="@_loginModel.Password" Placeholder="Пароль">
                             <Feedback>
-                                <ValidationError />
+                                <ValidationError/>
                             </Feedback>
                         </TextEdit>
                     </Field>
@@ -39,9 +41,9 @@
                         @_errorMessage
                     </Alert>
                 }
-                
+
                 <Button Color="Color.Primary" Clicked="@Submit" Block>Войти</Button>
-                
+
             </Validations>
         </div>
     </div>
@@ -55,30 +57,21 @@
     private async Task Submit()
     {
         _errorMessage = null;
-        
+
         if (_validations != null)
         {
             if (await _validations.ValidateAll())
             {
-                try
+                var (statusCode, content) = await UserService.Login(_loginModel);
+
+                if (statusCode == HttpStatusCode.OK && !string.IsNullOrEmpty(content))
                 {
-                    using var client = Factory.CreateClient("API");
-                    var response = await client.PostAsJsonAsync("auth/login", _loginModel);
-                    if (response.IsSuccessStatusCode)
-                    {
-                        var token = await response.Content.ReadAsStringAsync();
-                        await AuthStateProvider.MarkUserAsAuthenticated(token);
-                        NavigationManager.NavigateTo("/", forceLoad: true);
-                    }
-                    else
-                    {
-                        _errorMessage = "Неверное имя пользователя или пароль";
-                    }
+                    await AuthStateProvider.MarkUserAsAuthenticated(content);
+                    NavigationManager.NavigateTo("/", forceLoad: true);
                 }
-                catch (Exception e)
+                else
                 {
-                    Logger.LogError(e, "Ошибка авторизации");
-                    _errorMessage = "Ошибка при входе";
+                    _errorMessage = "Ошибка авторизации";
                 }
             }
         }

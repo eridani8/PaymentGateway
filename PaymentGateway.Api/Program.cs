@@ -186,9 +186,12 @@ try
                 throw new ApplicationException("Ошибка при создании root пользователя");
             }
 
-            if (!await userManager.IsInRoleAsync(rootUser, "Admin"))
+            foreach (var role in roles)
             {
-                await userManager.AddToRoleAsync(rootUser, "Admin");
+                if (!await userManager.IsInRoleAsync(rootUser, role))
+                {
+                    await userManager.AddToRoleAsync(rootUser, role);
+                }
             }
         }
     }

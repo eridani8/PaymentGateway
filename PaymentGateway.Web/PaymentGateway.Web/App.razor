@@ -1,5 +1,4 @@
-﻿@using PaymentGateway.Web.Layouts
-@using PaymentGateway.Web.Components
+﻿@using Blazorise.Components
 <Blazorise.ThemeProvider Theme="@_theme">
     <CascadingAuthenticationState>
         <Router AppAssembly="@typeof(App).Assembly">
@@ -31,6 +30,7 @@
 
     <MessageProvider/>
     <PageProgressProvider/>
+    <NotificationProvider />
 </Blazorise.ThemeProvider>
 
 @code {

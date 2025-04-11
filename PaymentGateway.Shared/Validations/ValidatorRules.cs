@@ -1,7 +1,6 @@
-﻿using System.Text.RegularExpressions;
-using FluentValidation;
+﻿using FluentValidation;
 
-namespace PaymentGateway.Application.Validators;
+namespace PaymentGateway.Shared.Validations;
 
 public static class ValidatorRules
 {
@@ -109,5 +108,21 @@ public static class ValidatorRules
             
             return from < to;
         }).WithMessage("Начало должно быть раньше конца");
+    }
+
+    public static IRuleBuilderOptions<T, string> ValidUsername<T>(this IRuleBuilder<T, string> rule)
+    {
+        return rule
+            .NotEmpty().WithMessage("Обязательное поле")
+            .MinimumLength(4).WithMessage("Минимальная длина логина 4 символа")
+            .MaximumLength(50).WithMessage("Максимальная длина логина 50 символов");
+    }
+    
+    public static IRuleBuilderOptions<T, string> ValidPassword<T>(this IRuleBuilder<T, string> rule)
+    {
+        return rule
+            .NotEmpty().WithMessage("Обязательное поле")
+            .MinimumLength(6).WithMessage("Минимальная длина пароля 6 символов")
+            .MaximumLength(100).WithMessage("Максимальная длина пароля 100 символов");
     }
 }
