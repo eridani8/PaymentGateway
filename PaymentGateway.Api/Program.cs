@@ -149,14 +149,14 @@ try
         app.UseSwagger();
         app.UseSwaggerUI();
     }
+    
+    app.UseCors("AllowAll"); // TODO
 
     app.UseHttpsRedirection();
     app.UseAuthentication();
     app.UseAuthorization();
     app.MapControllers();
     app.UseExceptionHandler();
-    
-    app.UseCors("AllowAll"); // TODO
 
     using (var scope = app.Services.CreateScope())
     {
