@@ -1,5 +1,7 @@
 ﻿@page "/UserManagement"
+@using PaymentGateway.Web.Interfaces
 @attribute [Authorize(Roles = "Admin")]
+@inject IAdminService AdminService
 
 @code {
     

@@ -39,6 +39,7 @@ try
     builder.Services.AddScoped<AuthMessageHandler>();
     
     builder.Services.AddScoped<IUserService, UserService>();
+    builder.Services.AddScoped<IAdminService, AdminService>();
 
     builder.Services.AddHttpClient("API", (serviceProvider, client) =>
         {

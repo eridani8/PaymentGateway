@@ -1,6 +1,4 @@
-﻿using System.Net;
-using PaymentGateway.Shared.DTOs;
-using PaymentGateway.Shared.DTOs.User;
+﻿using PaymentGateway.Shared.DTOs.User;
 using PaymentGateway.Web.Services;
 
 namespace PaymentGateway.Web.Interfaces;

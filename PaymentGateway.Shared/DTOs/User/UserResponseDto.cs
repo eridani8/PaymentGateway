@@ -2,5 +2,5 @@
 
 public class UserResponseDto
 {
-    public required string Username { get; init; }
+    public string Username { get; init; } = string.Empty;
 }

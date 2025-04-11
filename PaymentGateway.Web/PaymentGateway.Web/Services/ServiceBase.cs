@@ -26,4 +26,19 @@ public class ServiceBase(IHttpClientFactory factory, ILogger<ServiceBase> logger
             Content = content
         };
     }
+    
+    public async Task<T?> CreateRequest<T>(string url)
+    {
+        T? response = default;
+        try
+        {
+            using var client = factory.CreateClient("API");
+            response = await client.GetFromJsonAsync<T>(url);
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, e.Message);
+        }
+        return response;
+    }
 }
