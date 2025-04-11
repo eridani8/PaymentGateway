@@ -7,11 +7,11 @@ public class UserService(IHttpClientFactory factory, ILogger<UserService> logger
 {
     public Task<Response> Login(LoginModel model)
     {
-        return CreateRequest("auth/login", model);
+        return CreateRequest("user/login", model);
     }
 
     public Task<Response> ChangePasswordAsync(ChangePasswordModel model)
     {
-        return CreateRequest("users/changepassword", model);
+        return CreateRequest("user/changepassword", model);
     }
 }

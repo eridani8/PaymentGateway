@@ -2,5 +2,5 @@
 
 public class ApiSettings
 {
-    public required string BaseAddress { get; set; }
+    public required string BaseAddress { get; init; }
 }

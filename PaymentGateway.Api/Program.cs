@@ -120,7 +120,6 @@ try
             options.SaveToken = true;
             options.TokenValidationParameters = new TokenValidationParameters
             {
-                ValidateIssuerSigningKey = true,
                 IssuerSigningKey = new SymmetricSecurityKey(key),
                 ValidateIssuer = true,
                 ValidIssuer = authConfig.Issuer,
@@ -130,7 +129,7 @@ try
                 ClockSkew = TimeSpan.Zero
             };
         });
-    
+
     builder.Services.AddCors(options =>
     {
         options.AddPolicy("AllowAll", policy =>
@@ -149,7 +148,7 @@ try
         app.UseSwagger();
         app.UseSwaggerUI();
     }
-    
+
     app.UseCors("AllowAll"); // TODO
 
     app.UseHttpsRedirection();

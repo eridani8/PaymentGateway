@@ -1,4 +1,5 @@
 ﻿using FluentValidation;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using PaymentGateway.Application;
@@ -48,6 +49,7 @@ public class UserController(
     }
     
     [HttpPost]
+    [Authorize]
     public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordModel? model)
     {
         if (model is null) return BadRequest("Неверные данные");
