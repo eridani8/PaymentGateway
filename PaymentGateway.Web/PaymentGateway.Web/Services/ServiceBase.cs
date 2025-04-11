@@ -4,7 +4,7 @@ using PaymentGateway.Web.Interfaces;
 
 namespace PaymentGateway.Web.Services;
 
-public class ServiceBase(IHttpClientFactory factory) : IServiceBase
+public class ServiceBase(IHttpClientFactory factory, ILogger<ServiceBase> logger) : IServiceBase
 {
     public async Task<Response> CreateRequest(string url, object model)
     {
@@ -16,9 +16,9 @@ public class ServiceBase(IHttpClientFactory factory) : IServiceBase
             response = await client.PostAsJsonAsync(url, model);
             content = await response.Content.ReadAsStringAsync();
         }
-        catch
+        catch (Exception e)
         {
-            // ignore
+            logger.LogError(e, e.Message);
         }
         return new Response()
         {

@@ -11,18 +11,19 @@ namespace PaymentGateway.Api.Controllers;
 [ApiController]
 [Route("[controller]/[action]")]
 [Produces("application/json")]
-public class AuthController(
+public class UserController(
     UserManager<UserEntity> userManager,
     SignInManager<UserEntity> signInManager,
     ITokenService tokenService,
-    IValidator<LoginModel> validator) : ControllerBase
+    IValidator<LoginModel> loginValidator, 
+    IValidator<ChangePasswordModel> changePasswordValidator) : ControllerBase
 {
     [HttpPost]
     public async Task<IActionResult> Login([FromBody] LoginModel? model)
     {
         if (model is null) return BadRequest("Неверные данные");
 
-        var validation = await validator.ValidateAsync(model);
+        var validation = await loginValidator.ValidateAsync(model);
         if (!validation.IsValid)
         {
             return BadRequest(validation.Errors.GetErrors());
@@ -44,5 +45,35 @@ public class AuthController(
         var token = tokenService.GenerateJwtToken(user, roles);
         
         return Ok(token);
+    }
+    
+    [HttpPost]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordModel? model)
+    {
+        if (model is null) return BadRequest("Неверные данные");
+
+        var validation = await changePasswordValidator.ValidateAsync(model);
+        if (!validation.IsValid)
+        {
+            return BadRequest(validation.Errors.GetErrors());
+        }
+        
+        var user = await userManager.GetUserAsync(User);
+        if (user == null)
+        {
+            return NotFound();
+        }
+
+        var result = await userManager.ChangePasswordAsync(
+            user,
+            model.CurrentPassword,
+            model.NewPassword);
+
+        if (result.Succeeded)
+        {
+            return Ok();
+        }
+
+        return BadRequest(result.Errors.GetErrors());
     }
 }

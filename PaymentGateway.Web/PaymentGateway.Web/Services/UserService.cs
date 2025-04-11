@@ -3,7 +3,7 @@ using PaymentGateway.Web.Interfaces;
 
 namespace PaymentGateway.Web.Services;
 
-public class UserService(IHttpClientFactory factory) : ServiceBase(factory), IUserService
+public class UserService(IHttpClientFactory factory, ILogger<UserService> logger) : ServiceBase(factory, logger), IUserService
 {
     public Task<Response> Login(LoginModel model)
     {

@@ -14,8 +14,7 @@ namespace PaymentGateway.Api.Controllers;
 [Authorize(Roles = "Admin")]
 public class UsersController(
     UserManager<UserEntity> userManager,
-    RoleManager<IdentityRole> roleManager,
-    IValidator<ChangePasswordModel> validator) : ControllerBase
+    RoleManager<IdentityRole> roleManager) : ControllerBase
 {
     [HttpPost]
     public async Task<IActionResult> CreateUser([FromBody] UserCreateModel model)
@@ -128,35 +127,5 @@ public class UsersController(
         }
 
         return StatusCode(500);
-    }
-
-    [HttpPost]
-    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordModel? model)
-    {
-        if (model is null) return BadRequest("Неверные данные");
-
-        var validation = await validator.ValidateAsync(model);
-        if (!validation.IsValid)
-        {
-            return BadRequest(validation.Errors.GetErrors());
-        }
-        
-        var user = await userManager.GetUserAsync(User);
-        if (user == null)
-        {
-            return NotFound();
-        }
-
-        var result = await userManager.ChangePasswordAsync(
-            user,
-            model.CurrentPassword,
-            model.NewPassword);
-
-        if (result.Succeeded)
-        {
-            return Ok();
-        }
-
-        return BadRequest(result.Errors.GetErrors());
     }
 }
