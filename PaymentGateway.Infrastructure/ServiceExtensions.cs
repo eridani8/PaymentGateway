@@ -17,7 +17,7 @@ public static class ServiceExtensions
             o.UseNpgsql(connectionString);
         });
 
-        services.AddIdentity<UserEntity, IdentityRole>()
+        services.AddIdentity<UserEntity, IdentityRole<Guid>>()
             .AddEntityFrameworkStores<AppDbContext>()
             .AddDefaultTokenProviders();
     

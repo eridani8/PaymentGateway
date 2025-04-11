@@ -2,7 +2,6 @@
 
 namespace PaymentGateway.Core.Entities;
 
-public class UserEntity : IdentityUser
+public class UserEntity : IdentityUser<Guid>
 {
-     
 }
