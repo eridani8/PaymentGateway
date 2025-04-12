@@ -7,7 +7,7 @@
 @inject IUserService UserService
 
 <MudContainer MaxWidth="MaxWidth.Small" Class="d-flex justify-center align-center" Style="min-height: 80vh;">
-    <MudPaper Elevation="3" Class="pa-4" Style="width: 500px;">
+    <MudPaper Elevation="12" Class="pa-4" Style="width: 500px;">
         <MudText Typo="Typo.h4" Align="Align.Center" Class="mb-4">Авторизация</MudText>
 
         <MudForm @ref="_form" Model="@_loginDto" Validation="@(_validator.ValidateValue)" ValidationDelay="0">

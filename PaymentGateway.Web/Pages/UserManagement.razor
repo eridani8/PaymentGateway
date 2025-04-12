@@ -4,14 +4,16 @@
 @inject IAdminService AdminService
 @inject ILogger<UserManagement> Logger
 
-<MudGrid Spacing="7">
-    <MudItem xs="12">
+<MudContainer MaxWidth="MaxWidth.ExtraExtraLarge" Class="mt-4" Style="height: calc(100vh - 97px); padding: 0;">
+    <MudPaper Class="pa-4" Elevation="12" Style="height: 100%; display: flex; flex-direction: column;">
         <MudTable Items="@_users" 
                   Loading="@_isLoading" 
                   Hover="true" 
                   Breakpoint="Breakpoint.Sm" 
                   Dense="true"
-                  Elevation="2">
+                  FixedHeader="true"
+                  Height="100%"
+                  Width="100%">
             <HeaderContent>
                 <MudTh>ID</MudTh>
                 <MudTh>Логин</MudTh>
@@ -26,8 +28,8 @@
                 <MudTablePager />
             </PagerContent>
         </MudTable>
-    </MudItem>
-</MudGrid>
+    </MudPaper>
+</MudContainer>
 
 @code {
     private bool _isLoading = true;

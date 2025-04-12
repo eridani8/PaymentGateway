@@ -1,6 +1,8 @@
-﻿@inherits LayoutComponentBase
+﻿@using Blazored.LocalStorage
+@inherits LayoutComponentBase
 @inject CustomAuthStateProvider AuthStateProvider
 @inject NavigationManager Navigation
+@inject ILocalStorageService LocalStorage
 
 <MudThemeProvider Theme="_theme" IsDarkMode="_isDarkMode"/>
 <MudPopoverProvider/>
@@ -8,9 +10,10 @@
 <MudSnackbarProvider/>
 
 <MudLayout>
-    <MudAppBar Color="Color.Primary" Elevation="7">
-        <MudButton Href="/">
-            <MudText Typo="Typo.h5" Class="ml-3">PaymentGateway</MudText>
+    <MudAppBar Color="Color.Primary" Elevation="12">
+        <MudButton Href="/" Variant="Variant.Text"
+                   Class="ml-2" Color="Color.Inherit">
+            <MudText Typo="Typo.h5">PaymentGateway</MudText>
         </MudButton>
         <MudSpacer/>
         <MudIconButton Icon="@(DarkLightModeButtonIcon)" Color="Color.Inherit" OnClick="@DarkModeToggle"/>
@@ -30,14 +33,18 @@
                 </MudMenu>
             </Authorized>
             <NotAuthorized>
-                <MudButton Variant="Variant.Text" Href="/login">Вход</MudButton>
+                <MudButton Variant="Variant.Text"
+                           Href="/login"
+                           Class="ml-2">
+                    Вход
+                </MudButton>
             </NotAuthorized>
         </AuthorizeView>
     </MudAppBar>
     <AuthorizeView>
         <Authorized>
             <MudDrawer Variant="DrawerVariant.Responsive"
-                       Elevation="2"
+                       Elevation="12"
                        ClipMode="DrawerClipMode.Always"
                        Open="true">
                 <NavMenu/>
@@ -59,22 +66,29 @@
 
     private bool _isDarkMode = true;
     private MudTheme? _theme;
+    private const string ThemeKey = "preferred-theme";
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        base.OnInitialized();
-        
+        await base.OnInitializedAsync();
+
         _theme = new MudTheme
         {
             PaletteLight = _lightPalette,
             PaletteDark = _darkPalette,
             LayoutProperties = new LayoutProperties()
         };
+
+        if (await LocalStorage.ContainKeyAsync(ThemeKey))
+        {
+            _isDarkMode = await LocalStorage.GetItemAsync<bool>(ThemeKey);
+        }
     }
 
-    private void DarkModeToggle()
+    private async Task DarkModeToggle()
     {
         _isDarkMode = !_isDarkMode;
+        await LocalStorage.SetItemAsync(ThemeKey, _isDarkMode);
     }
 
     private const string Primary = "#663882";
@@ -94,6 +108,8 @@
         DrawerBackground = "#ffffff",
         GrayLight = "#e8e8e8",
         GrayLighter = "#f9f9f9",
+        TextPrimary = "#110e2d",
+        TextSecondary = "#424242",
         Info = Info,
         Success = Success,
         Warning = Warning,

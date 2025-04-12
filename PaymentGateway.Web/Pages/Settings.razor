@@ -8,9 +8,9 @@
 @inject ISnackbar Snackbar
 
 <MudContainer>
-    <MudGrid Justify="Justify.Center">
+    <MudGrid Justify="Justify.Center" Class="mt-6">
         <MudItem xs="12" sm="8" md="6">
-            <MudCard Elevation="3">
+            <MudCard Elevation="12" Class="mt-4">
                 <MudCardContent>
                     <MudForm @ref="_form" Model="@_changePasswordDto" Validation="@(_validator.ValidateValue)">
                         <MudTextField T="string"
