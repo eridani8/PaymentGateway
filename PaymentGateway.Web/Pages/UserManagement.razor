@@ -6,28 +6,25 @@
 
 <MudContainer MaxWidth="MaxWidth.ExtraExtraLarge" Class="mt-4" Style="height: calc(100vh - 97px); padding: 0;">
     <MudPaper Class="pa-4" Elevation="12" Style="height: 100%; display: flex; flex-direction: column;">
-        <MudTable Items="@_users" 
-                  Loading="@_isLoading" 
-                  Hover="true" 
-                  Breakpoint="Breakpoint.Sm" 
-                  Dense="true"
-                  FixedHeader="true"
-                  Height="100%"
-                  Width="100%">
-            <HeaderContent>
-                <MudTh>ID</MudTh>
-                <MudTh>Логин</MudTh>
-                <MudTh>Роль</MudTh>
-            </HeaderContent>
-            <RowTemplate>
-                <MudTd DataLabel="ID">@context.Id</MudTd>
-                <MudTd DataLabel="Логин">@context.Username</MudTd>
-                <MudTd DataLabel="Роли">@string.Join(", ", context.Roles)</MudTd>
-            </RowTemplate>
+        <MudDataGrid Items="@_users" 
+                    Loading="@_isLoading" 
+                    Hover="true" 
+                    Bordered="true"
+                    FixedHeader="true"
+                    Height="100%">
+            <Columns>
+                <PropertyColumn Property="x => x.Id" Title="ID" />
+                <PropertyColumn Property="x => x.Username" Title="Логин" />
+                <TemplateColumn Title="Роль">
+                    <CellTemplate>
+                        @string.Join(", ", context.Item.Roles)
+                    </CellTemplate>
+                </TemplateColumn>
+            </Columns>
             <PagerContent>
-                <MudTablePager />
+                <MudDataGridPager />
             </PagerContent>
-        </MudTable>
+        </MudDataGrid>
     </MudPaper>
 </MudContainer>
 
