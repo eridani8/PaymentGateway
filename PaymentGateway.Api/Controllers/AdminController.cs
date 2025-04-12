@@ -13,35 +13,35 @@ namespace PaymentGateway.Api.Controllers;
 [Authorize(Roles = "Admin")]
 public class UsersController(IAdminService service) : ControllerBase
 {
-    [HttpPost]
-    public async Task<ActionResult<UserResponseDto>> CreateUser([FromBody] CreateUserDto? dto)
-    {
-        if (dto is null) return BadRequest();
-
-        try
-        {
-            var user = await service.CreateUser(dto);
-            return Ok(user);
-        }
-        catch (DuplicateUserException)
-        {
-            return Conflict();
-        }
-        catch (ValidationException e)
-        {
-            return BadRequest(e.Errors.GetErrors());
-        }
-    }
+    // [HttpPost]
+    // public async Task<ActionResult<UserDto>> CreateUser([FromBody] CreateUserDto? dto)
+    // {
+    //     if (dto is null) return BadRequest();
+    //
+    //     try
+    //     {
+    //         var user = await service.CreateUser(dto);
+    //         return Ok(user);
+    //     }
+    //     catch (DuplicateUserException)
+    //     {
+    //         return Conflict();
+    //     }
+    //     catch (ValidationException e)
+    //     {
+    //         return BadRequest(e.Errors.GetErrors());
+    //     }
+    // }
 
     [HttpGet]
-    public async Task<ActionResult<List<UserResponseDto>>> GetAllUsers()
+    public async Task<ActionResult<List<UserDto>>> GetAllUsers()
     {
         var users = await service.GetAllUsers();
         return Ok(users);
     }
 
     [HttpGet("{id:guid}")]
-    public async Task<ActionResult<UserResponseDto>> GetUserById(Guid id)
+    public async Task<ActionResult<UserDto>> GetUserById(Guid id)
     {
         var user = await service.GetUserById(id);
         if (user is null)

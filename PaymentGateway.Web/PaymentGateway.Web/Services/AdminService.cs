@@ -7,9 +7,9 @@ public class AdminService(IHttpClientFactory factory, ILogger<AdminService> logg
 {
     private const string ApiEndpoint = "users";
     
-    public async Task<List<UserResponseDto>> GetUsers()
+    public async Task<List<UserDto>> GetUsers()
     {
-        var users = await CreateRequest<List<UserResponseDto>>($"{ApiEndpoint}/GetAllUsers");
+        var users = await CreateRequest<List<UserDto>>($"{ApiEndpoint}/GetAllUsers");
         return users ?? [];
     }
 }

@@ -1,11 +1,11 @@
 ﻿@inject CustomAuthStateProvider AuthStateProvider
 @inject NavigationManager NavigationManager
 
-<Bar Breakpoint="Breakpoint.Desktop" Background="Background.Primary" ThemeContrast="ThemeContrast.Light">
+<Bar Breakpoint="Breakpoint.Desktop" Background="Background.Primary" ThemeContrast="ThemeContrast.Dark">
     <BarBrand>
         <BarItem>
             <BarLink To="">
-                <BarIcon Margin="Margin.Is2.FromEnd" IconName="IconName.Home"/>
+                <BarIcon Margin="Margin.Is2.FromEnd" IconName="IconName.MoneyBillAlt"/>
                 PaymentGateway
             </BarLink>
         </BarItem>
@@ -13,9 +13,6 @@
     <BarToggler/>
     <BarMenu>
         <BarStart>
-            <BarItem>
-                <BarLink To="/">Home</BarLink>
-            </BarItem>
             <BarItem>
                 <AuthorizeView Roles="Admin">
                     <Authorized>

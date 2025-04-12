@@ -4,5 +4,10 @@
 @inject IAdminService AdminService
 
 @code {
-    
+
+    protected override void OnInitialized()
+    {
+        AdminService.GetUsers();
+    }
+
 }

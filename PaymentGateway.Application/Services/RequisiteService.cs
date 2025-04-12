@@ -13,12 +13,13 @@ namespace PaymentGateway.Application.Services;
 public class RequisiteService(
     IUnitOfWork unit,
     IMapper mapper,
-    IRequisiteValidator validator,
+    IValidator<RequisiteCreateDto> createValidator,
+    IValidator<RequisiteUpdateDto> updateValidator,
     ILogger<RequisiteService> logger) : IRequisiteService
 {
     public async Task<RequisiteResponseDto> CreateRequisite(RequisiteCreateDto dto)
     {
-        var validation = await validator.CreateValidator.ValidateAsync(dto);
+        var validation = await createValidator.ValidateAsync(dto);
         if (!validation.IsValid)
         {
             throw new ValidationException(validation.Errors);
@@ -55,7 +56,7 @@ public class RequisiteService(
 
     public async Task<bool> UpdateRequisite(Guid id, RequisiteUpdateDto dto)
     {
-        var validation = await validator.UpdateValidator.ValidateAsync(dto);
+        var validation = await updateValidator.ValidateAsync(dto);
         if (!validation.IsValid)
         {
             throw new ValidationException(validation.Errors);

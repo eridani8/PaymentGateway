@@ -27,7 +27,6 @@ public static class ServiceExtensions
         
         services.AddScoped<IValidator<RequisiteCreateDto>, RequisiteCreateDtoValidator>();
         services.AddScoped<IValidator<RequisiteUpdateDto>, RequisiteUpdateDtoValidator>();
-        services.AddScoped<IRequisiteValidator, RequisiteValidator>();
         services.AddScoped<IRequisiteService, RequisiteService>();
         
         services.AddScoped<IValidator<PaymentCreateDto>, PaymentCreateDtoValidator>();
@@ -39,7 +38,10 @@ public static class ServiceExtensions
         services.AddScoped<IValidator<LoginDto>, LoginModelValidator>();
         services.AddScoped<IValidator<ChangePasswordDto>, ChangePasswordValidator>();
 
+        // services.AddScoped<IValidator<CreateUserDto>, CreateUserValidator>(); // TODO
+
         services.AddScoped<ITokenService, TokenService>();
+        services.AddScoped<IAdminService, AdminService>();
         
         services.AddScoped<IGatewayHandler, GatewayHandler>();
 

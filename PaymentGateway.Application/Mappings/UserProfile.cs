@@ -8,7 +8,7 @@ public class UserProfile : Profile
 {
     public UserProfile()
     {
-        CreateMap<UserEntity, UserResponseDto>()
+        CreateMap<UserEntity, UserDto>()
             .ForMember(dest => dest.Username, opt => opt.MapFrom(src => src.UserName));
 
         CreateMap<CreateUserDto, UserEntity>()

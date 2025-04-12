@@ -1,6 +1,6 @@
 ﻿namespace PaymentGateway.Shared.DTOs.User;
 
-public class UserResponseDto
+public class UserDto
 {
     public string Username { get; init; } = string.Empty;
 }

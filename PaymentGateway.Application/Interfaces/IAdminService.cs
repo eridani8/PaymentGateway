@@ -1,12 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using PaymentGateway.Shared.DTOs.User;
+﻿using PaymentGateway.Shared.DTOs.User;
 
 namespace PaymentGateway.Application.Interfaces;
 
 public interface IAdminService
 {
-    Task<UserResponseDto> CreateUser(CreateUserDto dto);
-    Task<IEnumerable<UserResponseDto>> GetAllUsers();
-    Task<UserResponseDto?> GetUserById(Guid id);
+    // Task<UserDto> CreateUser(CreateUserDto dto);
+    Task<IEnumerable<UserDto>> GetAllUsers();
+    Task<UserDto?> GetUserById(Guid id);
     Task<bool> DeleteUser(Guid id, string? currentUserId);
 }

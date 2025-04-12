@@ -14,52 +14,52 @@ namespace PaymentGateway.Application.Services;
 public class AdminService(
     IMapper mapper,
     UserManager<UserEntity> userManager,
-    RoleManager<IdentityRole> roleManager,
-    IValidator<CreateUserDto> createValidator,
+    RoleManager<IdentityRole<Guid>> roleManager,
+    // IValidator<CreateUserDto> createValidator,
     ILogger<AdminService> logger) : IAdminService
 {
-    public async Task<UserResponseDto> CreateUser(CreateUserDto dto)
-    {
-        var validation = await createValidator.ValidateAsync(dto);
-        if (!validation.IsValid)
-        {
-            throw new ValidationException(validation.Errors);
-        }
+    // public async Task<UserDto> CreateUser(CreateUserDto dto)
+    // {
+    //     var validation = await createValidator.ValidateAsync(dto);
+    //     if (!validation.IsValid)
+    //     {
+    //         throw new ValidationException(validation.Errors);
+    //     }
+    //
+    //     var existingUser = await userManager.FindByNameAsync(dto.Username);
+    //     if (existingUser != null)
+    //     {
+    //         throw new DuplicatePaymentException();
+    //     }
+    //
+    //     var user = mapper.Map<UserEntity>(dto);
+    //
+    //     var result = await userManager.CreateAsync(user, dto.Password);
+    //     if (!result.Succeeded)
+    //     {
+    //         throw new ArgumentException();
+    //     }
+    //     
+    //     foreach (var role in dto.Roles)
+    //     {
+    //         await userManager.AddToRoleAsync(user, role);
+    //     }
+    //     
+    //     logger.LogInformation("Создание пользователя {username}", dto.Username);
+    //
+    //     return mapper.Map<UserDto>(user);
+    // }
 
-        var existingUser = await userManager.FindByNameAsync(dto.Username);
-        if (existingUser != null)
-        {
-            throw new DuplicatePaymentException();
-        }
-
-        var user = mapper.Map<UserEntity>(dto);
-
-        var result = await userManager.CreateAsync(user, dto.Password);
-        if (!result.Succeeded)
-        {
-            throw new ArgumentException();
-        }
-        
-        foreach (var role in dto.Roles)
-        {
-            await userManager.AddToRoleAsync(user, role);
-        }
-        
-        logger.LogInformation("Создание пользователя {username}", dto.Username);
-
-        return mapper.Map<UserResponseDto>(user);
-    }
-
-    public async Task<IEnumerable<UserResponseDto>> GetAllUsers()
+    public async Task<IEnumerable<UserDto>> GetAllUsers()
     {
         var users = await userManager.Users.AsNoTracking().ToListAsync();
-        return mapper.Map<List<UserResponseDto>>(users);
+        return mapper.Map<List<UserDto>>(users);
     }
 
-    public async Task<UserResponseDto?> GetUserById(Guid id)
+    public async Task<UserDto?> GetUserById(Guid id)
     {
         var user = await userManager.FindByIdAsync(id.ToString());
-        return mapper.Map<UserResponseDto>(user);
+        return mapper.Map<UserDto>(user);
     }
 
     public async Task<bool> DeleteUser(Guid id, string? currentUserId)

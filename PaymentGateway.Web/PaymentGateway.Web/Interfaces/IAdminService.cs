@@ -4,5 +4,5 @@ namespace PaymentGateway.Web.Interfaces;
 
 public interface IAdminService
 {
-    Task<List<UserResponseDto>> GetUsers();
+    Task<List<UserDto>> GetUsers();
 }
