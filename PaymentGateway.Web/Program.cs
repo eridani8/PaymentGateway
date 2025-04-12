@@ -12,64 +12,45 @@ using PaymentGateway.Shared.DTOs.User;
 using PaymentGateway.Shared.Validations;
 using PaymentGateway.Web.Interfaces;
 using PaymentGateway.Web.Services;
-using Serilog;
 
-Log.Logger = new LoggerConfiguration()
-    .MinimumLevel.Verbose()
-    .WriteTo.BrowserConsole()
-    .CreateLogger();
+var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
-try
-{
-    var builder = WebAssemblyHostBuilder.CreateDefault(args);
+builder.Services.Configure<ApiSettings>(builder.Configuration.GetSection(nameof(ApiSettings)));
+
+builder.RootComponents.Add<App>("#app");
+builder.RootComponents.Add<HeadOutlet>("head::after");
+
+builder.Services.AddScoped<IValidator<LoginDto>, LoginModelValidator>();
+builder.Services.AddScoped<IValidator<ChangePasswordDto>, ChangePasswordValidator>();
     
-    builder.Services.AddLogging(loggingBuilder => loggingBuilder.AddSerilog(dispose: true));
+builder.Services.AddScoped<CustomAuthStateProvider>();
+builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
+builder.Services.AddScoped<AuthMessageHandler>();
+builder.Services.AddAuthorizationCore();
 
-    builder.Services.Configure<ApiSettings>(builder.Configuration.GetSection(nameof(ApiSettings)));
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IAdminService, AdminService>();
 
-    builder.RootComponents.Add<App>("#app");
-    builder.RootComponents.Add<HeadOutlet>("head::after");
-
-    builder.Services.AddMudServices(c =>
+builder.Services.AddHttpClient("API", (serviceProvider, client) =>
     {
-        c.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.TopCenter;
-        c.SnackbarConfiguration.ShowCloseIcon = true;
-        c.SnackbarConfiguration.VisibleStateDuration = 5000;
-        c.SnackbarConfiguration.HideTransitionDuration = 500;
-        c.SnackbarConfiguration.ShowTransitionDuration = 500;
-        c.SnackbarConfiguration.SnackbarVariant = Variant.Filled;
-    });
-    builder.Services.AddBlazoredLocalStorage();
+        var settings = serviceProvider.GetRequiredService<IOptions<ApiSettings>>().Value;
 
-    builder.Services.AddScoped<IValidator<LoginDto>, LoginModelValidator>();
-    builder.Services.AddScoped<IValidator<ChangePasswordDto>, ChangePasswordValidator>();
+        client.BaseAddress = new Uri(settings.BaseAddress);
+        client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+    })
+    .AddHttpMessageHandler<AuthMessageHandler>();
 
-    builder.Services.AddAuthorizationCore();
-    builder.Services.AddScoped<CustomAuthStateProvider>();
-    builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
-    builder.Services.AddScoped<AuthMessageHandler>();
-
-    builder.Services.AddScoped<IUserService, UserService>();
-    builder.Services.AddScoped<IAdminService, AdminService>();
-
-    builder.Services.AddHttpClient("API", (serviceProvider, client) =>
-        {
-            var settings = serviceProvider.GetRequiredService<IOptions<ApiSettings>>().Value;
-
-            client.BaseAddress = new Uri(settings.BaseAddress);
-            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-        })
-        .AddHttpMessageHandler<AuthMessageHandler>();
-
-    var app = builder.Build();
-
-    await app.RunAsync();
-}
-catch (Exception e)
+builder.Services.AddMudServices(c =>
 {
-    Log.Error(e, "SPA не может запуститься");
-}
-finally
-{
-    await Log.CloseAndFlushAsync();
-}
+    c.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomCenter;
+    c.SnackbarConfiguration.ShowCloseIcon = true;
+    c.SnackbarConfiguration.VisibleStateDuration = 5000;
+    c.SnackbarConfiguration.HideTransitionDuration = 500;
+    c.SnackbarConfiguration.ShowTransitionDuration = 500;
+    c.SnackbarConfiguration.SnackbarVariant = Variant.Filled;
+});
+builder.Services.AddBlazoredLocalStorage();
+
+var app = builder.Build();
+
+await app.RunAsync();

@@ -1,6 +1,5 @@
 ﻿@page "/Login"
 @using System.Net
-@using FluentValidation
 @using PaymentGateway.Shared.DTOs.User
 @using PaymentGateway.Shared.Validations
 @inject CustomAuthStateProvider AuthStateProvider
@@ -33,7 +32,7 @@
 
             @if (!string.IsNullOrEmpty(_errorMessage))
             {
-                <MudAlert Severity="MudBlazor.Severity.Error" Class="mt-3 mb-3">@_errorMessage</MudAlert>
+                <MudAlert Severity="Severity.Error" Class="mt-3 mb-3">@_errorMessage</MudAlert>
             }
 
             <MudButton

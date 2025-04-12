@@ -35,7 +35,7 @@ public class CustomAuthStateProvider(IHttpClientFactory httpClientFactory, ILoca
         NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()))));
     }
 
-    private IEnumerable<Claim>? ParseClaimsFromJwt(string jwt)
+    private static IEnumerable<Claim> ParseClaimsFromJwt(string jwt)
     {
         var payload = jwt.Split('.')[1];
         var jsonBytes = ParseBase64WithoutPadding(payload);
@@ -82,7 +82,7 @@ public class CustomAuthStateProvider(IHttpClientFactory httpClientFactory, ILoca
         return claims;
     }
 
-    private byte[] ParseBase64WithoutPadding(string base64)
+    private static byte[] ParseBase64WithoutPadding(string base64)
     {
         switch (base64.Length % 4)
         {

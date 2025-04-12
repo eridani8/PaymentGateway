@@ -2,14 +2,13 @@
 @inject CustomAuthStateProvider AuthStateProvider
 @inject NavigationManager Navigation
 
-<MudThemeProvider Theme="_theme" IsDarkMode="_isDarkMode" />
+<MudThemeProvider Theme="_theme" IsDarkMode="_isDarkMode"/>
 <MudPopoverProvider/>
 <MudDialogProvider/>
 <MudSnackbarProvider/>
 
 <MudLayout>
     <MudAppBar Color="Color.Primary" Elevation="7">
-        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((_) => DrawerToggle())"/>
         <MudText Typo="Typo.h5" Class="ml-3">PaymentGateway</MudText>
         <MudSpacer/>
         <MudIconButton Icon="@(DarkLightModeButtonIcon)" Color="Color.Inherit" OnClick="@DarkModeToggle"/>
@@ -17,23 +16,32 @@
             <Authorized>
                 <MudMenu AnchorOrigin="Origin.BottomCenter">
                     <ActivatorContent>
-                        <MudChip T="string" Icon="@Icons.Material.Filled.Person" Color="Color.Primary">@context.User.Identity?.Name</MudChip>
+                        <MudChip T="string" Icon="@Icons.Material.Filled.Person"
+                                 Color="Color.Primary">@context.User.Identity?.Name</MudChip>
                     </ActivatorContent>
                     <ChildContent>
-                        <MudMenuItem OnClick="NavigateToSettings" Icon="@Icons.Material.Filled.Settings" Label="Настройки" />
-                        <MudDivider />
-                        <MudMenuItem OnClick="Logout" Icon="@Icons.Material.Filled.ExitToApp" Label="Выход" />
+                        <MudMenuItem OnClick="NavigateToSettings" Icon="@Icons.Material.Filled.Settings"
+                                     Label="Настройки"/>
+                        <MudDivider/>
+                        <MudMenuItem OnClick="Logout" Icon="@Icons.Material.Filled.ExitToApp" Label="Выход"/>
                     </ChildContent>
                 </MudMenu>
             </Authorized>
+            <NotAuthorized>
+                <MudButton Variant="Variant.Text" Href="/login">Вход</MudButton>
+            </NotAuthorized>
         </AuthorizeView>
     </MudAppBar>
-    @if (_isAuthenticated)
-    {
-        <MudDrawer id="nav-drawer" @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
-            <NavMenu/>
-        </MudDrawer>
-    }
+    <AuthorizeView>
+        <Authorized>
+            <MudDrawer Variant="DrawerVariant.Responsive"
+                       Elevation="2"
+                       ClipMode="DrawerClipMode.Always"
+                       Open="true">
+                <NavMenu/>
+            </MudDrawer>
+        </Authorized>
+    </AuthorizeView>
     <MudMainContent Class="pt-16 pa-4">
         @Body
     </MudMainContent>
@@ -47,17 +55,12 @@
 
 @code {
 
-    private bool _drawerOpen = true;
     private bool _isDarkMode = true;
     private MudTheme? _theme;
-    private bool _isAuthenticated;
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
-        await base.OnInitializedAsync();
-        
-        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        _isAuthenticated = authState.User.Identity?.IsAuthenticated ?? false;
+        base.OnInitialized();
         
         _theme = new MudTheme
         {
@@ -67,29 +70,38 @@
         };
     }
 
-    private void DrawerToggle()
-    {
-        _drawerOpen = !_drawerOpen;
-    }
-
     private void DarkModeToggle()
     {
         _isDarkMode = !_isDarkMode;
     }
 
+    private const string Primary = "#663882";
+    private const string Secondary = "#e3b178";
+    private const string Info = "#A594F9";
+    private const string Success = "#86BA90";
+    private const string Warning = "#F28123";
+    private const string Error = "#B9314F";
+
     private readonly PaletteLight _lightPalette = new()
     {
+        Primary = Primary,
+        Secondary = Secondary,
         Black = "#110e2d",
         AppbarText = "#424242",
         AppbarBackground = "rgba(255,255,255,0.8)",
         DrawerBackground = "#ffffff",
         GrayLight = "#e8e8e8",
         GrayLighter = "#f9f9f9",
+        Info = Info,
+        Success = Success,
+        Warning = Warning,
+        Error = Error,
     };
 
     private readonly PaletteDark _darkPalette = new()
     {
-        Primary = "#7e6fff",
+        Primary = Primary,
+        Secondary = Secondary,
         Surface = "#1e1e2d",
         Background = "#1a1a27",
         BackgroundGray = "#151521",
@@ -106,17 +118,17 @@
         DrawerText = "#92929f",
         GrayLight = "#2a2833",
         GrayLighter = "#1e1e2d",
-        Info = "#4a86ff",
-        Success = "#3dcb6c",
-        Warning = "#ffb545",
-        Error = "#ff3f5f",
+        Info = Info,
+        Success = Success,
+        Warning = Warning,
+        Error = Error,
         LinesDefault = "#33323e",
         TableLines = "#33323e",
         Divider = "#292838",
         OverlayLight = "#1e1e2d80",
     };
 
-    public string DarkLightModeButtonIcon => _isDarkMode switch
+    private string DarkLightModeButtonIcon => _isDarkMode switch
     {
         true => Icons.Material.Rounded.AutoMode,
         false => Icons.Material.Outlined.DarkMode,
