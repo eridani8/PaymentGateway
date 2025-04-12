@@ -1,7 +1,52 @@
 ﻿@page "/UserManagement"
+@using PaymentGateway.Shared.DTOs.User
 @attribute [Authorize(Roles = "Admin")]
 @inject IAdminService AdminService
+@inject ILogger<UserManagement> Logger
+
+<MudGrid Spacing="7">
+    <MudItem xs="12">
+        <MudTable Items="@_users" 
+                  Loading="@_isLoading" 
+                  Hover="true" 
+                  Breakpoint="Breakpoint.Sm" 
+                  Dense="true"
+                  Elevation="2">
+            <HeaderContent>
+                <MudTh>ID</MudTh>
+                <MudTh>Логин</MudTh>
+                <MudTh>Роль</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="ID">@context.Id</MudTd>
+                <MudTd DataLabel="Логин">@context.Username</MudTd>
+                <MudTd DataLabel="Роли">@string.Join(", ", context.Roles)</MudTd>
+            </RowTemplate>
+            <PagerContent>
+                <MudTablePager />
+            </PagerContent>
+        </MudTable>
+    </MudItem>
+</MudGrid>
 
 @code {
-    
+    private bool _isLoading = true;
+    private List<UserDto> _users = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _isLoading = true;
+            _users = await AdminService.GetUsers();
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e, e.Message);
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
 }
