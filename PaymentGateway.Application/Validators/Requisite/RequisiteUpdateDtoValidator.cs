@@ -4,7 +4,7 @@ using PaymentGateway.Shared.Validations;
 
 namespace PaymentGateway.Application.Validators.Requisite;
 
-public class RequisiteUpdateDtoValidator : AbstractValidator<RequisiteUpdateDto>
+public class RequisiteUpdateDtoValidator : BaseValidator<RequisiteUpdateDto>
 {
     public RequisiteUpdateDtoValidator()
     {

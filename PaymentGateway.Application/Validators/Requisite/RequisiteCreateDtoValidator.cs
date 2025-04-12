@@ -4,7 +4,7 @@ using PaymentGateway.Shared.Validations;
 
 namespace PaymentGateway.Application.Validators.Requisite;
 
-public class RequisiteCreateDtoValidator : AbstractValidator<RequisiteCreateDto>
+public class RequisiteCreateDtoValidator : BaseValidator<RequisiteCreateDto>
 {
     public RequisiteCreateDtoValidator()
     {

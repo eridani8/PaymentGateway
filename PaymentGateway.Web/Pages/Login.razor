@@ -1,0 +1,84 @@
+﻿@page "/Login"
+@using System.Net
+@using FluentValidation
+@using PaymentGateway.Shared.DTOs.User
+@using PaymentGateway.Shared.Validations
+@inject CustomAuthStateProvider AuthStateProvider
+@inject NavigationManager NavigationManager
+@inject IUserService UserService
+
+<MudContainer MaxWidth="MaxWidth.Small" Class="d-flex justify-center align-center" Style="min-height: 80vh;">
+    <MudPaper Elevation="3" Class="pa-4" Style="width: 500px;">
+        <MudText Typo="Typo.h4" Align="Align.Center" Class="mb-4">Авторизация</MudText>
+
+        <MudForm @ref="_form" Model="@_loginDto" Validation="@(_validator.ValidateValue)" ValidationDelay="0">
+            <MudTextField
+                @bind-Value="_loginDto.Username"
+                Label="Логин"
+                Variant="Variant.Outlined"
+                Margin="Margin.Dense"
+                For="@(() => _loginDto.Username)"
+                FullWidth="true"
+                Immediate="true"/>
+
+            <MudTextField
+                @bind-Value="_loginDto.Password"
+                Label="Пароль"
+                Variant="Variant.Outlined"
+                Margin="Margin.Dense"
+                InputType="InputType.Password"
+                For="@(() => _loginDto.Password)"
+                FullWidth="true"
+                Immediate="true"/>
+
+            @if (!string.IsNullOrEmpty(_errorMessage))
+            {
+                <MudAlert Severity="MudBlazor.Severity.Error" Class="mt-3 mb-3">@_errorMessage</MudAlert>
+            }
+
+            <MudButton
+                Variant="Variant.Filled"
+                Color="Color.Primary"
+                FullWidth="true"
+                OnClick="@Submit"
+                Class="mt-4">
+                Войти
+            </MudButton>
+        </MudForm>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private readonly LoginDto _loginDto = new();
+    private string? _errorMessage;
+    private MudForm _form;
+
+    private readonly LoginModelValidator _validator = new();
+
+    private async Task Submit()
+    {
+        _errorMessage = null;
+
+        await _form.Validate();
+
+        if (_form.IsValid)
+        {
+            var response = await UserService.Login(_loginDto);
+
+            switch (response.Code)
+            {
+                case HttpStatusCode.OK when !string.IsNullOrEmpty(response.Content):
+                    await AuthStateProvider.MarkUserAsAuthenticated(response.Content.Trim('"'));
+                    NavigationManager.NavigateTo("/", forceLoad: true);
+                    break;
+                case HttpStatusCode.Unauthorized:
+                    _errorMessage = "Неверный логин или пароль";
+                    break;
+                default:
+                    _errorMessage = "Ошибка аутентификации";
+                    break;
+            }
+        }
+    }
+
+}

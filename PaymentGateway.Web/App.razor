@@ -1,0 +1,29 @@
+﻿<CascadingAuthenticationState>
+    <Router AppAssembly="@typeof(App).Assembly">
+
+        <Found Context="routeData">
+            <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
+                <NotAuthorized>
+                    @if (context.User.Identity is { IsAuthenticated: false })
+                    {
+                        <RedirectToLogin/>
+                    }
+                    else
+                    {
+                        <p>У вас нет доступа к этой странице.</p>
+                    }
+                </NotAuthorized>
+                <Authorizing>
+                    <p>Проверка авторизации...</p>
+                </Authorizing>
+            </AuthorizeRouteView>
+            <FocusOnNavigate RouteData="@routeData" Selector="h1"/>
+        </Found>
+
+        <NotFound>
+            <PageTitle>Not found</PageTitle>
+            <p>Извините, по этому адресу ничего не найдено.</p>
+        </NotFound>
+        
+    </Router>
+</CascadingAuthenticationState>

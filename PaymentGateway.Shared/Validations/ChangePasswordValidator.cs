@@ -4,7 +4,7 @@ using PaymentGateway.Shared.DTOs.User;
 
 namespace PaymentGateway.Shared.Validations;
 
-public class ChangePasswordValidator : AbstractValidator<ChangePasswordDto>
+public class ChangePasswordValidator : BaseValidator<ChangePasswordDto>
 {
     public ChangePasswordValidator()
     {

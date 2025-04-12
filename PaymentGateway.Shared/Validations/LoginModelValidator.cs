@@ -4,7 +4,7 @@ using PaymentGateway.Shared.DTOs.User;
 
 namespace PaymentGateway.Shared.Validations;
 
-public class LoginModelValidator : AbstractValidator<LoginDto>
+public class LoginModelValidator : BaseValidator<LoginDto>
 {
     public LoginModelValidator()
     {
