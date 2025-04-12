@@ -12,6 +12,8 @@ using PaymentGateway.Shared.DTOs.User;
 using PaymentGateway.Shared.Validations;
 using PaymentGateway.Web.Interfaces;
 using PaymentGateway.Web.Services;
+using Microsoft.Extensions.Localization;
+using System.Globalization;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
@@ -50,6 +52,14 @@ builder.Services.AddMudServices(c =>
     c.SnackbarConfiguration.SnackbarVariant = Variant.Filled;
 });
 builder.Services.AddBlazoredLocalStorage();
+
+builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
+builder.Services.AddSingleton<IStringLocalizer<MudResources>, StringLocalizer<MudResources>>();
+
+CultureInfo.DefaultThreadCurrentCulture = new CultureInfo("ru-RU");
+CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo("ru-RU");
+
+builder.Services.AddTransient<MudLocalizer, ResXMudLocalizer>();
 
 var app = builder.Build();
 
