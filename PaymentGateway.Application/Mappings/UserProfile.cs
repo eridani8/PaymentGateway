@@ -11,11 +11,10 @@ public class UserProfile : Profile
         CreateMap<UserEntity, UserDto>()
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
             .ForMember(dest => dest.Username, opt => opt.MapFrom(src => src.UserName))
-            .ForMember(dest => dest.Roles, opt => opt.MapFrom(src => src.Roles));
+            .ForMember(dest => dest.Roles, opt => opt.Ignore());
 
         CreateMap<CreateUserDto, UserEntity>()
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => Guid.CreateVersion7()))
-            .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.Username))
-            .ForMember(dest => dest.Roles, opt => opt.MapFrom(src => src.Roles));
+            .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.Username));
     }   
 }

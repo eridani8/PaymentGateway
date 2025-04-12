@@ -53,13 +53,30 @@ public class AdminService(
     public async Task<IEnumerable<UserDto>> GetAllUsers()
     {
         var users = await userManager.Users.AsNoTracking().ToListAsync();
-        return mapper.Map<List<UserDto>>(users);
+        var userDtos = new List<UserDto>();
+        
+        foreach (var user in users)
+        {
+            var roles = await userManager.GetRolesAsync(user);
+            var userDto = mapper.Map<UserDto>(user);
+            userDto.Roles.AddRange(roles);
+            userDtos.Add(userDto);
+        }
+        
+        return userDtos;
     }
 
     public async Task<UserDto?> GetUserById(Guid id)
     {
         var user = await userManager.FindByIdAsync(id.ToString());
-        return mapper.Map<UserDto>(user);
+        if (user == null)
+            return null;
+            
+        var roles = await userManager.GetRolesAsync(user);
+        var userDto = mapper.Map<UserDto>(user);
+        userDto.Roles.AddRange(roles);
+        
+        return userDto;
     }
 
     public async Task<bool> DeleteUser(Guid id, string? currentUserId)

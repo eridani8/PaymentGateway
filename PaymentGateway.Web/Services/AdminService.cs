@@ -12,4 +12,9 @@ public class AdminService(IHttpClientFactory factory, ILogger<AdminService> logg
         var users = await CreateRequest<List<UserDto>>($"{ApiEndpoint}/GetAllUsers");
         return users ?? [];
     }
+    
+    public async Task<UserDto?> CreateUser(CreateUserDto dto)
+    {
+        return await CreateRequest<UserDto>($"{ApiEndpoint}/CreateUser", dto);
+    }
 }
