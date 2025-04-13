@@ -14,6 +14,8 @@ using PaymentGateway.Web.Interfaces;
 using PaymentGateway.Web.Services;
 using Microsoft.Extensions.Localization;
 using System.Globalization;
+using PaymentGateway.Shared.Validations.Validators;
+using PaymentGateway.Shared.Validations.Validators.User;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 

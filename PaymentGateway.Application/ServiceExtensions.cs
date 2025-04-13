@@ -13,6 +13,8 @@ using PaymentGateway.Core.Interfaces;
 using PaymentGateway.Shared.DTOs;
 using PaymentGateway.Shared.DTOs.User;
 using PaymentGateway.Shared.Validations;
+using PaymentGateway.Shared.Validations.Validators;
+using PaymentGateway.Shared.Validations.Validators.User;
 
 namespace PaymentGateway.Application;
 
@@ -37,6 +39,7 @@ public static class ServiceExtensions
 
         services.AddScoped<IValidator<LoginDto>, LoginModelValidator>();
         services.AddScoped<IValidator<ChangePasswordDto>, ChangePasswordValidator>();
+        services.AddScoped<IValidator<CreateUserDto>, CreateUserValidator>();
 
         // services.AddScoped<IValidator<CreateUserDto>, CreateUserValidator>(); // TODO
 

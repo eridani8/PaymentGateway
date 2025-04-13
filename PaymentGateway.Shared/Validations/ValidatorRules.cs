@@ -94,7 +94,8 @@ public static class ValidatorRules
             .LessThanOrEqualTo(DateTime.UtcNow).WithMessage("Дата не может быть в будущем");
     }
 
-    public static IRuleBuilderOptions<T, T> ValidTimeRange<T>(this IRuleBuilder<T, T> rule, Func<T, TimeOnly> fromSelector, Func<T, TimeOnly> toSelector)
+    public static IRuleBuilderOptions<T, T> ValidTimeRange<T>(this IRuleBuilder<T, T> rule,
+        Func<T, TimeOnly> fromSelector, Func<T, TimeOnly> toSelector)
     {
         return rule.Must(x =>
         {
@@ -105,7 +106,7 @@ public static class ValidatorRules
             {
                 return true;
             }
-            
+
             return from < to;
         }).WithMessage("Начало должно быть раньше конца");
     }
@@ -117,12 +118,24 @@ public static class ValidatorRules
             .MinimumLength(4).WithMessage("Минимальная длина логина 4 символа")
             .MaximumLength(50).WithMessage("Максимальная длина логина 50 символов");
     }
-    
+
     public static IRuleBuilderOptions<T, string> ValidPassword<T>(this IRuleBuilder<T, string> rule)
     {
         return rule
             .NotEmpty().WithMessage("Обязательное поле")
             .MinimumLength(6).WithMessage("Минимальная длина пароля 6 символов")
             .MaximumLength(100).WithMessage("Максимальная длина пароля 100 символов");
+    }
+
+    public static IRuleBuilderOptions<T, List<string>> ValidRoles<T>(this IRuleBuilder<T, List<string>> rule)
+    {
+        var allowedValues = new[] { "User", "Admin", "Support" };
+
+        return rule
+            .NotEmpty().WithMessage("Обязательное поле")
+            .Must(roles => roles.All(role => allowedValues.Contains(role)))
+            .WithMessage("Роли содержат недопустимые значения")
+            .Must(roles => roles.Intersect(allowedValues).Any())
+            .WithMessage("Требуется хотя бы одна роль");
     }
 }

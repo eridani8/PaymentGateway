@@ -13,25 +13,29 @@ namespace PaymentGateway.Api.Controllers;
 [Authorize(Roles = "Admin")]
 public class UsersController(IAdminService service) : ControllerBase
 {
-    // [HttpPost]
-    // public async Task<ActionResult<UserDto>> CreateUser([FromBody] CreateUserDto? dto)
-    // {
-    //     if (dto is null) return BadRequest();
-    //
-    //     try
-    //     {
-    //         var user = await service.CreateUser(dto);
-    //         return Ok(user);
-    //     }
-    //     catch (DuplicateUserException)
-    //     {
-    //         return Conflict();
-    //     }
-    //     catch (ValidationException e)
-    //     {
-    //         return BadRequest(e.Errors.GetErrors());
-    //     }
-    // }
+    [HttpPost]
+    public async Task<ActionResult<UserDto>> CreateUser([FromBody] CreateUserDto? dto)
+    {
+        if (dto is null) return BadRequest();
+
+        try
+        {
+            var user = await service.CreateUser(dto);
+            return Ok(user);
+        }
+        catch (DuplicateUserException)
+        {
+            return Conflict();
+        }
+        catch (CreateUserException e)
+        {
+            return BadRequest(e.Message);
+        }
+        catch (ValidationException e)
+        {
+            return BadRequest(e.Errors.GetErrors());
+        }
+    }
 
     [HttpGet]
     public async Task<ActionResult<List<UserDto>>> GetAllUsers()

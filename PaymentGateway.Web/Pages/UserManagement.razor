@@ -1,11 +1,25 @@
 ﻿@page "/UserManagement"
 @using PaymentGateway.Shared.DTOs.User
+@using PaymentGateway.Web.Dialogs
 @attribute [Authorize(Roles = "Admin")]
 @inject IAdminService AdminService
 @inject ILogger<UserManagement> Logger
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
 
 <MudContainer MaxWidth="MaxWidth.ExtraExtraLarge" Class="mt-4" Style="height: calc(100vh - 97px); padding: 0;">
     <MudPaper Class="pa-4" Elevation="12" Style="height: 100%; display: flex; flex-direction: column;">
+        <MudToolBar Dense="true">
+            <MudText Typo="Typo.h6">Список пользователей</MudText>
+            <MudSpacer />
+            <MudButton 
+                Variant="Variant.Filled" 
+                Color="Color.Primary" 
+                StartIcon="@Icons.Material.Filled.Add" 
+                OnClick="OpenCreateDialog">
+                Создать пользователя
+            </MudButton>
+        </MudToolBar>
         <MudTable Items="@_users" 
                   Loading="@_isLoading" 
                   Hover="true" 
@@ -38,6 +52,11 @@
 
     protected override async Task OnInitializedAsync()
     {
+        await LoadUsers();
+    }
+
+    private async Task LoadUsers()
+    {
         try
         {
             _isLoading = true;
@@ -46,10 +65,23 @@
         catch (Exception e)
         {
             Logger.LogError(e, e.Message);
+            Snackbar.Add("Ошибка при загрузке пользователей", Severity.Error);
         }
         finally
         {
             _isLoading = false;
+        }
+    }
+
+    private async Task OpenCreateDialog()
+    {
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium };
+        var dialog = await DialogService.ShowAsync<CreateUserDialog>("Создание пользователя", options);
+        var result = await dialog.Result;
+
+        if (result is { Canceled: false })
+        {
+            await LoadUsers();
         }
     }
 }

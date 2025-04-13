@@ -1,0 +1,125 @@
+﻿@using PaymentGateway.Shared.DTOs.User
+@using PaymentGateway.Shared.Validations.Validators.User
+@using PaymentGateway.Web.Interfaces
+@using MudBlazor
+@inject ISnackbar Snackbar
+@inject IAdminService AdminService
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">Создание нового пользователя</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudForm @ref="_form" Model="@_createUserDto" Validation="@(_validator.ValidateValue)" ValidationDelay="0">
+            <MudTextField T="string"
+                         Label="Логин"
+                         FullWidth="true"
+                         @bind-Value="_createUserDto.Username"
+                         For="@(() => _createUserDto.Username)"
+                         Immediate="true"
+                         Margin="Margin.Dense" />
+
+            <MudTextField T="string"
+                         Label="Пароль"
+                         FullWidth="true"
+                         @bind-Value="_createUserDto.Password"
+                         InputType="InputType.Password"
+                         For="@(() => _createUserDto.Password)"
+                         Immediate="true"
+                         Margin="Margin.Dense" />
+
+            <MudText Typo="Typo.subtitle1" Class="mt-2 mb-1">Роль</MudText>
+            <MudPaper Outlined="true" Class="pa-3" For="@(() => _createUserDto.Roles)">
+                <MudRadioGroup @bind-SelectedOption="SelectedRole" T="string">
+                    <MudRadio T="string" Option="@("User")" Color="Color.Primary">Пользователь</MudRadio>
+                    <MudRadio T="string" Option="@("Admin")" Color="Color.Primary">Администратор</MudRadio>
+                    <MudRadio T="string" Option="@("Support")" Color="Color.Primary">Поддержка</MudRadio>
+                </MudRadioGroup>
+            </MudPaper>
+
+            @if (!string.IsNullOrEmpty(_errorMessage))
+            {
+                <MudAlert Severity="Severity.Error" Class="mt-3 mb-3">@_errorMessage</MudAlert>
+            }
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Отмена</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit" Disabled="@(_processing)">
+            @if (_processing)
+            {
+                <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                <MudText Class="ms-2">Обработка</MudText>
+            }
+            else
+            {
+                <MudText>Создать</MudText>
+            }
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] public required IMudDialogInstance MudDialog { get; set; }
+    
+    private MudForm _form = null!;
+    private readonly CreateUserDto _createUserDto = new();
+    private string? _errorMessage;
+    private bool _processing;
+    private string _selectedRole = "User";
+
+    private readonly CreateUserValidator _validator = new();
+
+    protected override void OnInitialized()
+    {
+        _createUserDto.Roles = [_selectedRole];
+    }
+    
+    private string SelectedRole
+    {
+        get => _selectedRole;
+        set
+        {
+            _selectedRole = value;
+            _createUserDto.Roles.Clear();
+            _createUserDto.Roles.Add(_selectedRole);
+        }
+    }
+
+    private async Task Submit()
+    {
+        _errorMessage = null;
+        
+        await _form.Validate();
+        
+        if (_form.IsValid)
+        {
+            _processing = true;
+            
+            try
+            {
+                var result = await AdminService.CreateUser(_createUserDto);
+                
+                if (result != null)
+                {
+                    Snackbar.Add($"Пользователь {result.Username} успешно создан", Severity.Success);
+                    MudDialog.Close(DialogResult.Ok(result));
+                }
+                else
+                {
+                    _errorMessage = "Ошибка при создании пользователя";
+                }
+            }
+            catch (Exception ex)
+            {
+                _errorMessage = ex.Message;
+            }
+            finally
+            {
+                _processing = false;
+            }
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}

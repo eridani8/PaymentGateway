@@ -14,41 +14,40 @@ namespace PaymentGateway.Application.Services;
 public class AdminService(
     IMapper mapper,
     UserManager<UserEntity> userManager,
-    RoleManager<IdentityRole<Guid>> roleManager,
-    // IValidator<CreateUserDto> createValidator,
+    IValidator<CreateUserDto> createValidator,
     ILogger<AdminService> logger) : IAdminService
 {
-    // public async Task<UserDto> CreateUser(CreateUserDto dto)
-    // {
-    //     var validation = await createValidator.ValidateAsync(dto);
-    //     if (!validation.IsValid)
-    //     {
-    //         throw new ValidationException(validation.Errors);
-    //     }
-    //
-    //     var existingUser = await userManager.FindByNameAsync(dto.Username);
-    //     if (existingUser != null)
-    //     {
-    //         throw new DuplicatePaymentException();
-    //     }
-    //
-    //     var user = mapper.Map<UserEntity>(dto);
-    //
-    //     var result = await userManager.CreateAsync(user, dto.Password);
-    //     if (!result.Succeeded)
-    //     {
-    //         throw new ArgumentException();
-    //     }
-    //     
-    //     foreach (var role in dto.Roles)
-    //     {
-    //         await userManager.AddToRoleAsync(user, role);
-    //     }
-    //     
-    //     logger.LogInformation("Создание пользователя {username}", dto.Username);
-    //
-    //     return mapper.Map<UserDto>(user);
-    // }
+    public async Task<UserDto> CreateUser(CreateUserDto dto)
+    {
+        var validation = await createValidator.ValidateAsync(dto);
+        if (!validation.IsValid)
+        {
+            throw new ValidationException(validation.Errors);
+        }
+    
+        var existingUser = await userManager.FindByNameAsync(dto.Username);
+        if (existingUser != null)
+        {
+            throw new DuplicatePaymentException();
+        }
+    
+        var user = mapper.Map<UserEntity>(dto);
+    
+        var result = await userManager.CreateAsync(user, dto.Password);
+        if (!result.Succeeded)
+        {
+            throw new CreateUserException(result.Errors.GetErrors());
+        }
+        
+        foreach (var role in dto.Roles)
+        {
+            await userManager.AddToRoleAsync(user, role);
+        }
+        
+        logger.LogInformation("Создание пользователя {username}", dto.Username);
+    
+        return mapper.Map<UserDto>(user);
+    }
 
     public async Task<IEnumerable<UserDto>> GetAllUsers()
     {
