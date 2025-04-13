@@ -99,6 +99,33 @@
                 </MudItem>
             </MudGrid>
 
+            <MudStack Row="true" Class="mt-2 mb-2">
+                <MudSwitch T="bool"
+                           @bind-Value="_useWorkingHours"
+                           Color="Color.Primary"
+                           Label="Использовать рабочее время"
+                           Class="mr-4"/>
+                           
+                @if (_useWorkingHours)
+                {
+                    <MudText Typo="Typo.subtitle1">Часы работы</MudText>
+                    <MudGrid>
+                        <MudItem xs="6">
+                            <MudTimePicker Label="С" 
+                                          @bind-Time="_workFromTime"
+                                          TimeEditMode="TimeEditMode.Normal"
+                                          Margin="Margin.Dense" />
+                        </MudItem>
+                        <MudItem xs="6">
+                            <MudTimePicker Label="До" 
+                                          @bind-Time="_workToTime"
+                                          TimeEditMode="TimeEditMode.Normal"
+                                          Margin="Margin.Dense" />
+                        </MudItem>
+                    </MudGrid>
+                }
+            </MudStack>
+
             @if (!string.IsNullOrEmpty(_errorMessage))
             {
                 <MudAlert Severity="Severity.Error" Class="mt-3 mb-3">@_errorMessage</MudAlert>
@@ -129,6 +156,9 @@
     private RequisiteUpdateDto _updateRequisiteDto = new();
     private string? _errorMessage;
     private bool _processing;
+    private bool _useWorkingHours;
+    private TimeSpan? _workFromTime;
+    private TimeSpan? _workToTime;
 
     private readonly RequisiteUpdateDtoValidator _validator = new();
 
@@ -147,6 +177,14 @@
             WorkFrom = Requisite.WorkFrom,
             WorkTo = Requisite.WorkTo
         };
+        
+        _useWorkingHours = Requisite.WorkFrom != TimeOnly.MinValue && Requisite.WorkTo != TimeOnly.MinValue;
+        _workFromTime = _useWorkingHours ? 
+            new TimeSpan(Requisite.WorkFrom.Hour, Requisite.WorkFrom.Minute, 0) : 
+            new TimeSpan(9, 0, 0);
+        _workToTime = _useWorkingHours ? 
+            new TimeSpan(Requisite.WorkTo.Hour, Requisite.WorkTo.Minute, 0) : 
+            new TimeSpan(18, 0, 0);
     }
 
     private async Task Submit()
@@ -161,6 +199,17 @@
 
             try
             {
+                if (_useWorkingHours && _workFromTime.HasValue && _workToTime.HasValue)
+                {
+                    _updateRequisiteDto.WorkFrom = TimeOnly.FromTimeSpan(_workFromTime.Value);
+                    _updateRequisiteDto.WorkTo = TimeOnly.FromTimeSpan(_workToTime.Value);
+                }
+                else
+                {
+                    _updateRequisiteDto.WorkFrom = TimeOnly.MinValue;
+                    _updateRequisiteDto.WorkTo = TimeOnly.MinValue;
+                }
+                
                 var result = await RequisiteService.UpdateRequisite(Requisite.Id, _updateRequisiteDto);
 
                 if (result is { Code: HttpStatusCode.OK })

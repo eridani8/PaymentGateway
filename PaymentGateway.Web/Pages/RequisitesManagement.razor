@@ -40,9 +40,10 @@
                         <MudTh>Имя</MudTh>
                         <MudTh>Тип</MudTh>
                         <MudTh>Платежные данные</MudTh>
-                        <MudTh>Статус</MudTh>
-                        <MudTh>Использовано/Лимит</MudTh>
                         <MudTh>Задержка</MudTh>
+                        <MudTh>Использовано/Лимит</MudTh>
+                        <MudTh>Статус</MudTh>
+                        <MudTh>Активное время</MudTh>
                         <MudTh>Приоритет</MudTh>
                         <MudTh>Действия</MudTh>
                     </HeaderContent>
@@ -52,6 +53,8 @@
                         <MudTd
                             DataLabel="Тип">@(requisite.PaymentType == PaymentType.PhoneNumber ? "Телефон" : "Карта")</MudTd>
                         <MudTd DataLabel="Платежные данные">@requisite.PaymentData</MudTd>
+                        <MudTd DataLabel="Задержка">@($"{(int)requisite.Cooldown.TotalMinutes} мин")</MudTd>
+                        <MudTd DataLabel="Использовано/Лимит">@($"{requisite.ReceivedFunds}/{requisite.MaxAmount}")</MudTd>
                         <MudTd DataLabel="Статус">
                             <MudChip T="string" Color="@GetStatusColor(requisite.Status)" Size="Size.Medium">
                                 @GetStatusText(requisite.Status)
@@ -61,9 +64,16 @@
                                 }
                             </MudChip>
                         </MudTd>
-                        <MudTd
-                            DataLabel="Использовано/Лимит">@($"{requisite.ReceivedFunds}/{requisite.MaxAmount}")</MudTd>
-                        <MudTd DataLabel="Задержка">@($"{(int)requisite.Cooldown.TotalMinutes} мин")</MudTd>
+                        <MudTd DataLabel="Активное время">
+                            @if (requisite.WorkFrom == TimeOnly.MinValue && requisite.WorkTo == TimeOnly.MinValue)
+                            {
+                                @("Всегда")
+                            }
+                            else
+                            {
+                                @($"{requisite.WorkFrom:HH:mm} - {requisite.WorkTo:HH:mm}")
+                            }
+                        </MudTd>
                         <MudTd DataLabel="Приоритет">@requisite.Priority</MudTd>
                         <MudTd DataLabel="Действия">
                             <MudIconButton Icon="@Icons.Material.Filled.Edit" 
