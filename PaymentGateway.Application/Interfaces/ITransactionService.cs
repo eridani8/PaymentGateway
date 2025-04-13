@@ -1,4 +1,4 @@
-﻿using PaymentGateway.Application.DTOs.Transaction;
+﻿using PaymentGateway.Shared.DTOs.Transaction;
 
 namespace PaymentGateway.Application.Interfaces;
 

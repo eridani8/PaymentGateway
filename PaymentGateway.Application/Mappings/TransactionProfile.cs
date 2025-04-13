@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
-using PaymentGateway.Application.DTOs.Transaction;
 using PaymentGateway.Application.Mappings.Converters;
 using PaymentGateway.Core.Entities;
+using PaymentGateway.Shared.DTOs.Transaction;
 
 namespace PaymentGateway.Application.Mappings;
 

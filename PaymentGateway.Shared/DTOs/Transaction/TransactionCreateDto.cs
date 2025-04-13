@@ -1,12 +1,10 @@
 ﻿using PaymentGateway.Shared.Enums;
 
-namespace PaymentGateway.Application.DTOs.Transaction;
+namespace PaymentGateway.Shared.DTOs.Transaction;
 
-public class TransactionDto
+public class TransactionCreateDto
 {
-    public required Guid Id { get; init; }
-    public required Guid? RequisiteId { get; init; }
-    public required Guid? PaymentId { get; init; }
+    public required string PaymentData { get; init; }
     public required TransactionSource Source { get; init; }
     public required decimal ExtractedAmount { get; init; }
     public required DateTime ReceivedAt { get; init; }

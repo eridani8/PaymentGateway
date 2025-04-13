@@ -1,9 +1,9 @@
 ﻿using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using PaymentGateway.Application;
-using PaymentGateway.Application.DTOs.Transaction;
 using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Core.Exceptions;
+using PaymentGateway.Shared.DTOs.Transaction;
 
 namespace PaymentGateway.Api.Controllers;
 

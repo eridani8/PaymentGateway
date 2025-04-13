@@ -1,19 +1,16 @@
 ﻿using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
-using PaymentGateway.Application.DTOs.Payment;
-using PaymentGateway.Application.DTOs.Transaction;
 using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Application.Mappings;
 using PaymentGateway.Application.Services;
-using PaymentGateway.Application.Validators.Payment;
-using PaymentGateway.Application.Validators.Transaction;
 using PaymentGateway.Core.Interfaces;
-using PaymentGateway.Shared.DTOs;
+using PaymentGateway.Shared.DTOs.Payment;
 using PaymentGateway.Shared.DTOs.Requisite;
+using PaymentGateway.Shared.DTOs.Transaction;
 using PaymentGateway.Shared.DTOs.User;
-using PaymentGateway.Shared.Validations;
-using PaymentGateway.Shared.Validations.Validators;
+using PaymentGateway.Shared.Validations.Validators.Payment;
 using PaymentGateway.Shared.Validations.Validators.Requisite;
+using PaymentGateway.Shared.Validations.Validators.Transaction;
 using PaymentGateway.Shared.Validations.Validators.User;
 
 namespace PaymentGateway.Application;
@@ -40,8 +37,6 @@ public static class ServiceExtensions
         services.AddScoped<IValidator<LoginDto>, LoginModelValidator>();
         services.AddScoped<IValidator<ChangePasswordDto>, ChangePasswordValidator>();
         services.AddScoped<IValidator<CreateUserDto>, CreateUserValidator>();
-
-        // services.AddScoped<IValidator<CreateUserDto>, CreateUserValidator>(); // TODO
 
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IAdminService, AdminService>();

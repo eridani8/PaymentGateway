@@ -1,4 +1,4 @@
-﻿namespace PaymentGateway.Application.DTOs.Payment;
+﻿namespace PaymentGateway.Shared.DTOs.Payment;
 
 public class PaymentCreateDto
 {

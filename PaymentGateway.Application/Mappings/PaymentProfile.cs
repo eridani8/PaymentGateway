@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
-using PaymentGateway.Application.DTOs.Payment;
 using PaymentGateway.Application.Mappings.Converters;
 using PaymentGateway.Core.Entities;
+using PaymentGateway.Shared.DTOs.Payment;
 using PaymentGateway.Shared.Enums;
 
 namespace PaymentGateway.Application.Mappings;
@@ -26,7 +26,7 @@ public class PaymentProfile : Profile
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => Guid.CreateVersion7()))
             .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
             .ForMember(dest => dest.Status, opt => opt.MapFrom(src => PaymentStatus.Created))
-            .ForMember(dest => dest.ExpiresAt, opt => opt.MapFrom(src => DateTime.UtcNow.AddSeconds(15))) // TODO
+            .ForMember(dest => dest.ExpiresAt, opt => opt.MapFrom(src => DateTime.UtcNow.AddMinutes(5)))
             
             .ForMember(dest => dest.Amount, opt => opt.MapFrom(src => src.Amount))
             .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId))

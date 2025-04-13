@@ -5,7 +5,10 @@ using PaymentGateway.Shared.Enums;
 
 namespace PaymentGateway.Application.Services;
 
-public class GatewayHandler(ILogger<GatewayHandler> logger, ICache cache) : IGatewayHandler
+public class GatewayHandler(
+    ILogger<GatewayHandler> logger,
+    ICache cache)
+    : IGatewayHandler
 {
     public async Task HandleRequisites(IUnitOfWork unit)
     {
@@ -91,6 +94,7 @@ public class GatewayHandler(ILogger<GatewayHandler> logger, ICache cache) : IGat
                 {
                     expiredPayment.Requisite.Status = RequisiteStatus.Active;
                 }
+                
                 logger.LogInformation("Платеж {paymentId} на сумму {amount} отменен из-за истечения срока ожидания", expiredPayment.Id, expiredPayment.Amount);
             }
         

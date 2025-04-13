@@ -1,8 +1,6 @@
-﻿using FluentValidation;
-using PaymentGateway.Application.DTOs.Transaction;
-using PaymentGateway.Shared.Validations;
+﻿using PaymentGateway.Shared.DTOs.Transaction;
 
-namespace PaymentGateway.Application.Validators.Transaction;
+namespace PaymentGateway.Shared.Validations.Validators.Transaction;
 
 public class TransactionCreateDtoValidator : BaseValidator<TransactionCreateDto>
 {

@@ -2,9 +2,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PaymentGateway.Application;
-using PaymentGateway.Application.DTOs.Payment;
 using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Core.Exceptions;
+using PaymentGateway.Shared.DTOs.Payment;
 
 namespace PaymentGateway.Api.Controllers;
 
