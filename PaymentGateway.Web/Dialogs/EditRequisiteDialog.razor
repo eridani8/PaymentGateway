@@ -1,0 +1,188 @@
+@using System.Net
+@using PaymentGateway.Shared.DTOs.Requisite
+@using PaymentGateway.Shared.Enums
+@using PaymentGateway.Shared.Validations.Validators.Requisite
+@inject ISnackbar Snackbar
+@inject IRequisiteService RequisiteService
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">Редактирование реквизита</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudForm @ref="_form" Model="@_updateRequisiteDto" Validation="@(_validator.ValidateValue)" ValidationDelay="0">
+            <MudGrid>
+                <MudItem xs="12" sm="6">
+                    <MudTextField T="string"
+                                  Label="ФИО"
+                                  FullWidth="true"
+                                  @bind-Value="_updateRequisiteDto.FullName"
+                                  For="@(() => _updateRequisiteDto.FullName)"
+                                  Immediate="true"
+                                  Margin="Margin.Dense"/>
+                </MudItem>
+
+                <MudItem xs="12" sm="6">
+                    <MudStack Spacing="1">
+                        <MudText Typo="Typo.subtitle2" Class="mb-1">Тип платежа</MudText>
+                        <MudToggleGroup T="PaymentType" SelectionMode="SelectionMode.ToggleSelection"
+                                        @bind-Value="_updateRequisiteDto.PaymentType"
+                                        For="@(() => _updateRequisiteDto.PaymentType)"
+                                        Color="Color.Primary"
+                                        Class="ml-2">
+                            <MudToggleItem Value="PaymentType.PhoneNumber" Color="Color.Primary"
+                                           Dense="true">Телефон
+                            </MudToggleItem>
+                            <MudToggleItem Value="PaymentType.BankCard" Color="Color.Primary"
+                                           Dense="true">Карта
+                            </MudToggleItem>
+                        </MudToggleGroup>
+                    </MudStack>
+                </MudItem>
+
+                <MudItem xs="12" sm="6">
+                    <MudTextField T="string"
+                                  Label="@(_updateRequisiteDto.PaymentType == PaymentType.PhoneNumber ? "Номер телефона" : "Номер карты")"
+                                  FullWidth="true"
+                                  @bind-Value="_updateRequisiteDto.PaymentData"
+                                  For="@(() => _updateRequisiteDto.PaymentData)"
+                                  Immediate="true"
+                                  Margin="Margin.Dense"/>
+                </MudItem>
+
+                <MudItem xs="12" sm="6">
+                    <MudTextField T="string"
+                                  Label="Номер банковского счета"
+                                  FullWidth="true"
+                                  @bind-Value="_updateRequisiteDto.BankNumber"
+                                  For="@(() => _updateRequisiteDto.BankNumber)"
+                                  Immediate="true"
+                                  Margin="Margin.Dense"/>
+                </MudItem>
+
+                <MudItem xs="12" sm="4">
+                    <MudNumericField T="decimal"
+                                     Label="Суточная сумма"
+                                     @bind-Value="_updateRequisiteDto.MaxAmount"
+                                     For="@(() => _updateRequisiteDto.MaxAmount)"
+                                     Format="N2"
+                                     Adornment="Adornment.Start"
+                                     AdornmentIcon="@Icons.Material.Filled.AttachMoney"
+                                     Min="0"
+                                     Margin="Margin.Dense"/>
+                </MudItem>
+
+                <MudItem xs="12" sm="4">
+                    <MudNumericField T="int"
+                                     Label="Приоритет"
+                                     @bind-Value="_updateRequisiteDto.Priority"
+                                     For="@(() => _updateRequisiteDto.Priority)"
+                                     Min="1"
+                                     Max="100"
+                                     Margin="Margin.Dense"/>
+                </MudItem>
+
+                <MudItem xs="12" sm="4">
+                    <MudTextField T="TimeSpan"
+                                  Label="Задержка (часы:минуты:секунды)"
+                                  @bind-Value="_updateRequisiteDto.Cooldown"
+                                  For="@(() => _updateRequisiteDto.Cooldown)"
+                                  Margin="Margin.Dense"/>
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudSwitch T="bool"
+                               @bind-Value="_updateRequisiteDto.IsActive"
+                               Color="Color.Primary"
+                               Label="Активный"
+                               Class="mt-2"/>
+                </MudItem>
+            </MudGrid>
+
+            @if (!string.IsNullOrEmpty(_errorMessage))
+            {
+                <MudAlert Severity="Severity.Error" Class="mt-3 mb-3">@_errorMessage</MudAlert>
+            }
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Отмена</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit" Disabled="@(_processing)">
+            @if (_processing)
+            {
+                <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
+                <MudText Class="ms-2">Обработка</MudText>
+            }
+            else
+            {
+                <MudText>Сохранить</MudText>
+            }
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] public required IMudDialogInstance MudDialog { get; set; }
+    [Parameter] public required RequisiteDto Requisite { get; set; }
+
+    private MudForm _form = null!;
+    private RequisiteUpdateDto _updateRequisiteDto = new();
+    private string? _errorMessage;
+    private bool _processing;
+
+    private readonly RequisiteUpdateDtoValidator _validator = new();
+
+    protected override void OnInitialized()
+    {
+        _updateRequisiteDto = new RequisiteUpdateDto
+        {
+            FullName = Requisite.FullName,
+            PaymentType = Requisite.PaymentType, 
+            PaymentData = Requisite.PaymentData,
+            BankNumber = Requisite.BankNumber,
+            IsActive = Requisite.IsActive,
+            MaxAmount = Requisite.MaxAmount,
+            Cooldown = Requisite.Cooldown,
+            Priority = Requisite.Priority,
+            WorkFrom = Requisite.WorkFrom,
+            WorkTo = Requisite.WorkTo
+        };
+    }
+
+    private async Task Submit()
+    {
+        _errorMessage = null;
+
+        await _form.Validate();
+
+        if (_form.IsValid)
+        {
+            _processing = true;
+
+            try
+            {
+                var result = await RequisiteService.UpdateRequisite(Requisite.Id, _updateRequisiteDto);
+
+                if (result is { Code: HttpStatusCode.OK })
+                {
+                    Snackbar.Add($"Реквизит {_updateRequisiteDto.FullName} успешно обновлен", Severity.Success);
+                    MudDialog.Close(DialogResult.Ok(true));
+                }
+                else
+                {
+                    _errorMessage = "Ошибка при обновлении реквизита";
+                }
+            }
+            catch (Exception e)
+            {
+                _errorMessage = e.Message;
+            }
+            finally
+            {
+                _processing = false;
+            }
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+} 

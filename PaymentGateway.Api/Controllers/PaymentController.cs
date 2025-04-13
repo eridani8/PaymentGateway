@@ -63,6 +63,6 @@ public class PaymentController(IPaymentService service) : ControllerBase
             return NotFound();
         }
         
-        return NoContent();
+        return Ok();
     }
 }

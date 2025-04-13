@@ -66,7 +66,11 @@
                         <MudTd DataLabel="Задержка">@($"{(int)requisite.Cooldown.TotalMinutes} мин")</MudTd>
                         <MudTd DataLabel="Приоритет">@requisite.Priority</MudTd>
                         <MudTd DataLabel="Действия">
-
+                            <MudIconButton Icon="@Icons.Material.Filled.Edit" 
+                                          Color="Color.Primary" 
+                                          Size="Size.Small"
+                                          OnClick="@(() => OpenEditDialog(requisite))" 
+                                          Title="Редактировать" />
                         </MudTd>
                     </RowTemplate>
                     <PagerContent>
@@ -128,6 +132,22 @@
     private async Task OpenCreateDialog()
     {
         var dialog = await DialogService.ShowAsync<CreateRequisiteDialog>("Создание реквизита");
+        var result = await dialog.Result;
+
+        if (result is { Canceled: false })
+        {
+            await LoadRequisites();
+        }
+    }
+
+    private async Task OpenEditDialog(RequisiteDto requisite)
+    {
+        var parameters = new DialogParameters
+        {
+            ["Requisite"] = requisite
+        };
+        
+        var dialog = await DialogService.ShowAsync<EditRequisiteDialog>("Редактирование реквизита", parameters);
         var result = await dialog.Result;
 
         if (result is { Canceled: false })

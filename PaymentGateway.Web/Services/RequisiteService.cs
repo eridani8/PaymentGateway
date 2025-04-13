@@ -26,6 +26,11 @@ public class RequisiteService(
         return await PostRequest<RequisiteDto>($"{ApiEndpoint}/Create", dto);
     }
     
+    public async Task<Response> UpdateRequisite(Guid id, RequisiteUpdateDto dto)
+    {
+        return await PutRequest($"{ApiEndpoint}/Update/{id}", dto);
+    }
+    
     public async Task<bool> DeleteRequisite(Guid id)
     {
         return await DeleteRequest($"{ApiEndpoint}/Delete/{id}");

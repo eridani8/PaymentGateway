@@ -68,7 +68,7 @@ public class RequisiteController(IRequisiteService service) : ControllerBase
                 return NotFound();
             }
             
-            return NoContent();
+            return Ok();
         }
         catch (ValidationException e)
         {
@@ -85,6 +85,6 @@ public class RequisiteController(IRequisiteService service) : ControllerBase
             return NotFound();
         }
         
-        return NoContent();
+        return Ok();
     }
 }
