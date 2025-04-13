@@ -1,4 +1,8 @@
 ﻿<MudNavMenu>
+    <AuthorizeView Roles="User">
     <MudNavLink Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.RequestPage" Href="RequisitesManagement">Реквизиты</MudNavLink>
-    <MudNavLink Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.VerifiedUser" Href="UserManagement">Пользователи</MudNavLink>
+    </AuthorizeView>
+    <AuthorizeView Roles="Admin">
+        <MudNavLink Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.VerifiedUser" Href="UserManagement">Пользователи</MudNavLink>
+    </AuthorizeView>
 </MudNavMenu>

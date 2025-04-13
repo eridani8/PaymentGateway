@@ -72,39 +72,58 @@ public class CustomAuthStateProvider(IHttpClientFactory httpClientFactory, ILoca
         
         foreach (var (key, value) in keyValuePairs)
         {
-            if (key.Equals("http://schemas.microsoft.com/ws/2008/06/identity/claims/role", StringComparison.OrdinalIgnoreCase))
+            // Check for role claims with various possible key names
+            if (key.Equals("http://schemas.microsoft.com/ws/2008/06/identity/claims/role", StringComparison.OrdinalIgnoreCase) || 
+                key.Equals("role", StringComparison.OrdinalIgnoreCase) ||
+                key.Equals("roles", StringComparison.OrdinalIgnoreCase) ||
+                key.Equals(ClaimTypes.Role, StringComparison.OrdinalIgnoreCase))
             {
                 switch (value)
                 {
                     case JsonElement { ValueKind: JsonValueKind.Array } rolesElement:
                     {
                         claims.AddRange(rolesElement.EnumerateArray().Select(role => new Claim(ClaimTypes.Role, role.GetString() ?? string.Empty)));
-
                         break;
                     }
                     case string rolesString:
                     {
-                        var roles = rolesString.Split(';');
-                        claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
-
+                        // Handle various delimiter formats
+                        foreach (var separator in new[] { ';', ',', ' ' })
+                        {
+                            if (rolesString.Contains(separator))
+                            {
+                                claims.AddRange(rolesString.Split(separator)
+                                    .Where(r => !string.IsNullOrWhiteSpace(r))
+                                    .Select(role => new Claim(ClaimTypes.Role, role.Trim())));
+                                break;
+                            }
+                        }
+                        
+                        if (claims.All(c => c.Type != ClaimTypes.Role))
+                        {
+                            claims.Add(new Claim(ClaimTypes.Role, rolesString.Trim()));
+                        }
+                        
                         break;
                     }
                     default:
                     {
-                        if (value is string singleRole)
+                        var roleValue = value?.ToString()?.Trim();
+                        if (!string.IsNullOrEmpty(roleValue))
                         {
-                            claims.Add(new Claim(ClaimTypes.Role, singleRole));
+                            claims.Add(new Claim(ClaimTypes.Role, roleValue));
                         }
-
+                        
                         break;
                     }
                 }
             }
             else
             {
-                claims.Add(new Claim(key, value.ToString() ?? string.Empty));
+                claims.Add(new Claim(key, value?.ToString() ?? string.Empty));
             }
         }
+        
         return claims;
     }
 
