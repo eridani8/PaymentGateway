@@ -46,7 +46,11 @@ public class AdminService(
         
         logger.LogInformation("Создание пользователя {username}", dto.Username);
     
-        return mapper.Map<UserDto>(user);
+        var roles = await userManager.GetRolesAsync(user);
+        var userDto = mapper.Map<UserDto>(user);
+        userDto.Roles.AddRange(roles);
+        
+        return userDto;
     }
 
     public async Task<IEnumerable<UserDto>> GetAllUsers()

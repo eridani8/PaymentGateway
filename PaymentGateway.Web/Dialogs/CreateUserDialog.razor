@@ -29,11 +29,12 @@
                          Margin="Margin.Dense" />
 
             <MudText Typo="Typo.subtitle1" Class="mt-2 mb-1">Роль</MudText>
-            <MudPaper Outlined="true" Class="pa-3" For="@(() => _createUserDto.Roles)">
-                <MudRadioGroup @bind-SelectedOption="SelectedRole" T="string">
-                    <MudRadio T="string" Option="@("User")" Color="Color.Primary">Пользователь</MudRadio>
-                    <MudRadio T="string" Option="@("Admin")" Color="Color.Primary">Администратор</MudRadio>
-                    <MudRadio T="string" Option="@("Support")" Color="Color.Primary">Поддержка</MudRadio>
+            <MudPaper Outlined="true" Class="pa-3">
+                <MudRadioGroup T="string" @bind-Value="SelectedRole">
+                    @foreach (var role in _availableRoles)
+                    {
+                        <MudRadio T="string" Value="@role" Color="Color.Primary">@GetRoleDisplayName(role)</MudRadio>
+                    }
                 </MudRadioGroup>
             </MudPaper>
 
@@ -66,25 +67,28 @@
     private readonly CreateUserDto _createUserDto = new();
     private string? _errorMessage;
     private bool _processing;
-    private string _selectedRole = "User";
+    private readonly string[] _availableRoles = ["User", "Admin", "Support"];
+    
+    private string SelectedRole
+    {
+        get => _createUserDto.Roles.FirstOrDefault() ?? "User";
+        set => _createUserDto.Roles = [value];
+    }
 
     private readonly CreateUserValidator _validator = new();
 
     protected override void OnInitialized()
     {
-        _createUserDto.Roles = [_selectedRole];
+        _createUserDto.Roles = ["User"];
     }
-    
-    private string SelectedRole
+
+    private static string GetRoleDisplayName(string role) => role switch
     {
-        get => _selectedRole;
-        set
-        {
-            _selectedRole = value;
-            _createUserDto.Roles.Clear();
-            _createUserDto.Roles.Add(_selectedRole);
-        }
-    }
+        "User" => "Пользователь",
+        "Admin" => "Администратор",
+        "Support" => "Поддержка",
+        _ => role
+    };
 
     private async Task Submit()
     {
