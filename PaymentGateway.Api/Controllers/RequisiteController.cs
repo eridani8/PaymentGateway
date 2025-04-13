@@ -16,7 +16,7 @@ namespace PaymentGateway.Api.Controllers;
 public class RequisiteController(IRequisiteService service) : ControllerBase
 {
     [HttpPost]
-    public async Task<ActionResult<RequisiteResponseDto>> Create([FromBody] RequisiteCreateDto? dto)
+    public async Task<ActionResult<RequisiteDto>> Create([FromBody] RequisiteCreateDto? dto)
     {
         if (dto is null) return BadRequest();
 
@@ -37,7 +37,7 @@ public class RequisiteController(IRequisiteService service) : ControllerBase
     }
     
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<RequisiteResponseDto>>> GetAll()
+    public async Task<ActionResult<IEnumerable<RequisiteDto>>> GetAll()
     {
         var requisites = await service.GetAllRequisites();
         
@@ -45,7 +45,7 @@ public class RequisiteController(IRequisiteService service) : ControllerBase
     }
     
     [HttpGet("{id:guid}")]
-    public async Task<ActionResult<RequisiteResponseDto>> GetById(Guid id)
+    public async Task<ActionResult<RequisiteDto>> GetById(Guid id)
     {
         var requisite = await service.GetRequisiteById(id);
         if (requisite is null)

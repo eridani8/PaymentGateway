@@ -15,7 +15,7 @@ namespace PaymentGateway.Api.Controllers;
 public class PaymentController(IPaymentService service) : ControllerBase
 {
     [HttpPost]
-    public async Task<ActionResult<PaymentResponseDto>> Create([FromBody] PaymentCreateDto? dto)
+    public async Task<ActionResult<PaymentDto>> Create([FromBody] PaymentCreateDto? dto)
     {
         if (dto is null) return BadRequest();
 
@@ -35,7 +35,7 @@ public class PaymentController(IPaymentService service) : ControllerBase
     }
     
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<PaymentResponseDto>>> GetAll()
+    public async Task<ActionResult<IEnumerable<PaymentDto>>> GetAll()
     {
         var requisites = await service.GetAllPayments();
         
@@ -43,7 +43,7 @@ public class PaymentController(IPaymentService service) : ControllerBase
     }
     
     [HttpGet("{id:guid}")]
-    public async Task<ActionResult<PaymentResponseDto>> GetById(Guid id)
+    public async Task<ActionResult<PaymentDto>> GetById(Guid id)
     {
         var requisite = await service.GetPaymentById(id);
         if (requisite is null)

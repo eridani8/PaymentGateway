@@ -11,7 +11,7 @@ public class RequisiteProfile : Profile
 {
     public RequisiteProfile()
     {
-        CreateMap<RequisiteEntity, RequisiteResponseDto>()
+        CreateMap<RequisiteEntity, RequisiteDto>()
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
             .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.FullName))
             .ForMember(dest => dest.PaymentType, opt => opt.MapFrom(src => src.PaymentType))

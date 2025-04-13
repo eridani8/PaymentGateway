@@ -17,7 +17,7 @@ public class RequisiteService(
     IValidator<RequisiteUpdateDto> updateValidator,
     ILogger<RequisiteService> logger) : IRequisiteService
 {
-    public async Task<RequisiteResponseDto> CreateRequisite(RequisiteCreateDto dto)
+    public async Task<RequisiteDto> CreateRequisite(RequisiteCreateDto dto)
     {
         var validation = await createValidator.ValidateAsync(dto);
         if (!validation.IsValid)
@@ -39,19 +39,19 @@ public class RequisiteService(
 
         logger.LogInformation("Создание реквизита {requisiteId}", entity.Id);
 
-        return mapper.Map<RequisiteResponseDto>(entity);
+        return mapper.Map<RequisiteDto>(entity);
     }
 
-    public async Task<IEnumerable<RequisiteResponseDto>> GetAllRequisites()
+    public async Task<IEnumerable<RequisiteDto>> GetAllRequisites()
     {
         var entities = await unit.RequisiteRepository.QueryableGetAll().AsNoTracking().ToListAsync();
-        return mapper.Map<IEnumerable<RequisiteResponseDto>>(entities);
+        return mapper.Map<IEnumerable<RequisiteDto>>(entities);
     }
 
-    public async Task<RequisiteResponseDto?> GetRequisiteById(Guid id)
+    public async Task<RequisiteDto?> GetRequisiteById(Guid id)
     {
         var entity = await unit.RequisiteRepository.GetById(id);
-        return entity is not null ? mapper.Map<RequisiteResponseDto>(entity) : null;
+        return entity is not null ? mapper.Map<RequisiteDto>(entity) : null;
     }
 
     public async Task<bool> UpdateRequisite(Guid id, RequisiteUpdateDto dto)

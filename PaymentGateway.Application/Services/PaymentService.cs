@@ -16,7 +16,7 @@ public class PaymentService(
     IValidator<PaymentCreateDto> validator,
     ILogger<PaymentService> logger) : IPaymentService
 {
-    public async Task<PaymentResponseDto> CreatePayment(PaymentCreateDto dto)
+    public async Task<PaymentDto> CreatePayment(PaymentCreateDto dto)
     {
         var validation = await validator.ValidateAsync(dto);
         if (!validation.IsValid)
@@ -40,19 +40,19 @@ public class PaymentService(
         
         logger.LogInformation("Создание платежа {paymentId} на сумму {amount}", entity.Id, entity.Amount);
 
-        return mapper.Map<PaymentResponseDto>(entity);
+        return mapper.Map<PaymentDto>(entity);
     }
 
-    public async Task<IEnumerable<PaymentResponseDto>> GetAllPayments()
+    public async Task<IEnumerable<PaymentDto>> GetAllPayments()
     {
         var entities = await unit.PaymentRepository.QueryableGetAll().AsNoTracking().ToListAsync();
-        return mapper.Map<IEnumerable<PaymentResponseDto>>(entities);
+        return mapper.Map<IEnumerable<PaymentDto>>(entities);
     }
 
-    public async Task<PaymentResponseDto?> GetPaymentById(Guid id)
+    public async Task<PaymentDto?> GetPaymentById(Guid id)
     {
         var entity = await unit.PaymentRepository.GetById(id);
-        return entity is not null ? mapper.Map<PaymentResponseDto>(entity) : null;
+        return entity is not null ? mapper.Map<PaymentDto>(entity) : null;
     }
 
     public async Task<bool> DeletePayment(Guid id)

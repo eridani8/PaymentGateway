@@ -2,7 +2,7 @@
 
 namespace PaymentGateway.Application.DTOs.Payment;
 
-public class PaymentResponseDto
+public class PaymentDto
 {
     public Guid Id { get; init; }
     public Guid ExternalPaymentId { get; init; }

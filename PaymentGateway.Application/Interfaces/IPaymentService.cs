@@ -5,8 +5,8 @@ namespace PaymentGateway.Application.Interfaces;
 
 public interface IPaymentService
 {
-    Task<PaymentResponseDto> CreatePayment(PaymentCreateDto dto);
-    Task<IEnumerable<PaymentResponseDto>> GetAllPayments();
-    Task<PaymentResponseDto?> GetPaymentById(Guid id);
+    Task<PaymentDto> CreatePayment(PaymentCreateDto dto);
+    Task<IEnumerable<PaymentDto>> GetAllPayments();
+    Task<PaymentDto?> GetPaymentById(Guid id);
     Task<bool> DeletePayment(Guid id);
 }

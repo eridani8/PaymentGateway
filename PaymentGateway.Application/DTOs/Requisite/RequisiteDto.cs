@@ -2,7 +2,7 @@
 
 namespace PaymentGateway.Application.DTOs.Requisite;
 
-public class RequisiteResponseDto
+public class RequisiteDto
 {
     public required Guid Id { get; init; }
     public required string FullName { get; init; }
