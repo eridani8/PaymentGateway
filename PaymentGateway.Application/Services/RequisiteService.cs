@@ -7,6 +7,7 @@ using PaymentGateway.Core.Entities;
 using PaymentGateway.Core.Exceptions;
 using PaymentGateway.Core.Interfaces;
 using PaymentGateway.Shared.DTOs.Requisite;
+using PaymentGateway.Shared.Enums;
 
 namespace PaymentGateway.Application.Services;
 
@@ -64,6 +65,7 @@ public class RequisiteService(
         
         var entity = await unit.RequisiteRepository.GetById(id);
         if (entity is null) return false;
+        if (entity.Status == RequisiteStatus.Pending) return false;
 
         mapper.Map(dto, entity);
         unit.RequisiteRepository.Update(entity);

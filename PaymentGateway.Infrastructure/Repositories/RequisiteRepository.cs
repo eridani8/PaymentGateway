@@ -24,6 +24,7 @@ public class RequisiteRepository(AppDbContext context, ICache cache)
                                 (r.WorkFrom > r.WorkTo && (currentTimeOnly >= r.WorkFrom || currentTimeOnly <= r.WorkTo))
                             ))
                 .OrderByDescending(r => r.Priority)
+                .ThenBy(r => r.LastOperationTime ?? DateTime.MaxValue)
                 .ToListAsync();
         return requisites;
     }

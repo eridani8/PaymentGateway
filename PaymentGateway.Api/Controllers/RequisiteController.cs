@@ -65,7 +65,7 @@ public class RequisiteController(IRequisiteService service) : ControllerBase
             var result = await service.UpdateRequisite(id, dto);
             if (!result)
             {
-                return NotFound();
+                return BadRequest();
             }
             
             return Ok();
