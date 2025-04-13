@@ -9,7 +9,7 @@ public class TransactionProfile : Profile
 {
     public TransactionProfile()
     {
-        CreateMap<TransactionEntity, TransactionResponseDto>()
+        CreateMap<TransactionEntity, TransactionDto>()
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
             .ForMember(dest => dest.RequisiteId, opt => opt.MapFrom(src => src.RequisiteId))
             .ForMember(dest => dest.PaymentId, opt => opt.MapFrom(src => src.PaymentId))

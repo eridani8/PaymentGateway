@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel;
-using PaymentGateway.Core.Enums;
+using PaymentGateway.Shared.Enums;
 
-namespace PaymentGateway.Application.DTOs.Requisite;
+namespace PaymentGateway.Shared.DTOs.Requisite;
 
 public class RequisiteUpdateDto
 {

@@ -1,5 +1,5 @@
 ﻿using PaymentGateway.Core.Entities;
-using PaymentGateway.Core.Enums;
+using PaymentGateway.Shared.Enums;
 
 namespace PaymentGateway.Core.Interfaces;
 

@@ -2,11 +2,11 @@
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using PaymentGateway.Application.DTOs.Requisite;
 using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Core.Entities;
 using PaymentGateway.Core.Exceptions;
 using PaymentGateway.Core.Interfaces;
+using PaymentGateway.Shared.DTOs.Requisite;
 
 namespace PaymentGateway.Application.Services;
 

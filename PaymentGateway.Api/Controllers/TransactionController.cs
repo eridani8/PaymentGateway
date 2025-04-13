@@ -13,7 +13,7 @@ namespace PaymentGateway.Api.Controllers;
 public class TransactionController(ITransactionService service) : ControllerBase
 {
     [HttpPost]
-    public async Task<ActionResult<TransactionResponseDto>> Create([FromBody] TransactionCreateDto? dto)
+    public async Task<ActionResult<TransactionDto>> Create([FromBody] TransactionCreateDto? dto)
     {
         if (dto is null) return BadRequest();
 

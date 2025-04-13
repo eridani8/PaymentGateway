@@ -4,5 +4,5 @@ namespace PaymentGateway.Application.Interfaces;
 
 public interface ITransactionService
 {
-    Task<TransactionResponseDto> CreateTransaction(TransactionCreateDto dto);
+    Task<TransactionDto> CreateTransaction(TransactionCreateDto dto);
 }

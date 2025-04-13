@@ -30,12 +30,13 @@
 
             <MudText Typo="Typo.subtitle1" Class="mt-2 mb-1">Роль</MudText>
             <MudPaper Outlined="true" Class="pa-3">
-                <MudRadioGroup T="string" @bind-Value="SelectedRole">
+                <MudToggleGroup T="string" SelectionMode="SelectionMode.ToggleSelection" @bind-Value="SelectedRole">
                     @foreach (var role in _availableRoles)
                     {
-                        <MudRadio T="string" Value="@role" Color="Color.Primary">@GetRoleDisplayName(role)</MudRadio>
+                        <MudToggleItem Value="@role" Color="Color.Primary"
+                                       Dense="true">@GetRoleDisplayName(role)</MudToggleItem>
                     }
-                </MudRadioGroup>
+                </MudToggleGroup>
             </MudPaper>
 
             @if (!string.IsNullOrEmpty(_errorMessage))
@@ -114,9 +115,9 @@
                     _errorMessage = "Ошибка при создании пользователя";
                 }
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                _errorMessage = ex.Message;
+                _errorMessage = e.Message;
             }
             finally
             {

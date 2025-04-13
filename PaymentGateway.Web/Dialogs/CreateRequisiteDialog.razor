@@ -1,0 +1,197 @@
+@using PaymentGateway.Shared.DTOs.Requisite
+@using PaymentGateway.Shared.Enums
+@using PaymentGateway.Shared.Validations.Validators.Requisite
+@inject ISnackbar Snackbar
+@inject IRequisiteService RequisiteService
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">Создание нового реквизита</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudForm @ref="_form" Model="@_createRequisiteDto" Validation="@(_validator.ValidateValue)" ValidationDelay="0">
+            <MudGrid>
+                <MudItem xs="12" sm="6">
+                    <MudTextField T="string"
+                                  Label="ФИО"
+                                  FullWidth="true"
+                                  @bind-Value="_createRequisiteDto.FullName"
+                                  For="@(() => _createRequisiteDto.FullName)"
+                                  Immediate="true"
+                                  Margin="Margin.Dense"/>
+                </MudItem>
+
+                <MudItem xs="12" sm="6">
+                    <MudStack Spacing="1">
+                        <MudText Typo="Typo.subtitle2" Class="mb-1">Тип платежа</MudText>
+                        <MudToggleGroup T="PaymentType" SelectionMode="SelectionMode.ToggleSelection"
+                                        @bind-Value="_createRequisiteDto.PaymentType"
+                                        For="@(() => _createRequisiteDto.PaymentType)"
+                                        Color="Color.Primary"
+                                        Class="ml-2">
+                            <MudToggleItem Value="PaymentType.PhoneNumber" Color="Color.Primary"
+                                           Dense="true">Телефон
+                            </MudToggleItem>
+                            <MudToggleItem Value="PaymentType.BankCard" Color="Color.Primary"
+                                           Dense="true">Карта
+                            </MudToggleItem>
+                        </MudToggleGroup>
+                    </MudStack>
+                </MudItem>
+
+                <MudItem xs="12" sm="6">
+                    <MudTextField T="string"
+                                  Label="@(_createRequisiteDto.PaymentType == PaymentType.PhoneNumber ? "Номер телефона" : "Номер карты")"
+                                  FullWidth="true"
+                                  @bind-Value="_createRequisiteDto.PaymentData"
+                                  For="@(() => _createRequisiteDto.PaymentData)"
+                                  Immediate="true"
+                                  Margin="Margin.Dense"/>
+                </MudItem>
+
+                <MudItem xs="12" sm="6">
+                    <MudTextField T="string"
+                                  Label="Номер банковского счета"
+                                  FullWidth="true"
+                                  @bind-Value="_createRequisiteDto.BankNumber"
+                                  For="@(() => _createRequisiteDto.BankNumber)"
+                                  Immediate="true"
+                                  Margin="Margin.Dense"/>
+                </MudItem>
+
+                <MudItem xs="12" sm="4">
+                    <MudNumericField T="decimal"
+                                     Label="Суточная сумма"
+                                     @bind-Value="_createRequisiteDto.MaxAmount"
+                                     For="@(() => _createRequisiteDto.MaxAmount)"
+                                     Format="N2"
+                                     Adornment="Adornment.Start"
+                                     AdornmentIcon="@Icons.Material.Filled.AttachMoney"
+                                     Min="0"
+                                     Margin="Margin.Dense"/>
+                </MudItem>
+
+                <MudItem xs="12" sm="4">
+                    <MudNumericField T="int"
+                                     Label="Приоритет"
+                                     @bind-Value="_createRequisiteDto.Priority"
+                                     For="@(() => _createRequisiteDto.Priority)"
+                                     Min="1"
+                                     Max="100"
+                                     Margin="Margin.Dense"/>
+                </MudItem>
+
+                <MudItem xs="12" sm="4">
+                    <MudTextField T="TimeSpan"
+                                  Label="Задержка (часы:минуты:секунды)"
+                                  @bind-Value="_createRequisiteDto.Cooldown"
+                                  For="@(() => _createRequisiteDto.Cooldown)"
+                                  Margin="Margin.Dense"/>
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudSwitch T="bool"
+                               @bind-Value="_createRequisiteDto.IsActive"
+                               Color="Color.Primary"
+                               Label="Активный"
+                               Class="mt-2"/>
+                </MudItem>
+            </MudGrid>
+
+            @* <MudText Typo="Typo.subtitle1" Class="mt-3 mb-2">Часы работы</MudText> *@
+            @* <MudGrid> *@
+            @*     <MudItem xs="6"> *@
+            @*         <MudTimePicker T="TimeSpan?" *@
+            @*             Label="С"  *@
+            @*             @bind-Time="_createRequisiteDto.WorkFrom" *@
+            @*             TimeEditMode="TimeEditMode.Normal" *@
+            @*             Margin="Margin.Dense" /> *@
+            @*     </MudItem> *@
+            @*     <MudItem xs="6"> *@
+            @*         <MudTimePicker T="TimeSpan?" *@
+            @*             Label="До"  *@
+            @*             @bind-Time="_createRequisiteDto.WorkTo" *@
+            @*             TimeEditMode="TimeEditMode.Normal" *@
+            @*             Margin="Margin.Dense" /> *@
+            @*     </MudItem> *@
+            @* </MudGrid> *@
+
+            @if (!string.IsNullOrEmpty(_errorMessage))
+            {
+                <MudAlert Severity="Severity.Error" Class="mt-3 mb-3">@_errorMessage</MudAlert>
+            }
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Отмена</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit" Disabled="@(_processing)">
+            @if (_processing)
+            {
+                <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
+                <MudText Class="ms-2">Обработка</MudText>
+            }
+            else
+            {
+                <MudText>Создать</MudText>
+            }
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] public required IMudDialogInstance MudDialog { get; set; }
+
+    private MudForm _form = null!;
+    private readonly RequisiteCreateDto _createRequisiteDto = new();
+    private string? _errorMessage;
+    private bool _processing;
+
+    private readonly RequisiteCreateDtoValidator _validator = new();
+
+    protected override void OnInitialized()
+    {
+        _createRequisiteDto.IsActive = true;
+        _createRequisiteDto.Priority = 1;
+        _createRequisiteDto.MaxAmount = 5000;
+        _createRequisiteDto.Cooldown = TimeSpan.Parse("03:00:00");
+        _createRequisiteDto.WorkFrom = new TimeOnly(9, 0);
+        _createRequisiteDto.WorkTo = new TimeOnly(18, 0);
+    }
+
+    private async Task Submit()
+    {
+        _errorMessage = null;
+
+        await _form.Validate();
+
+        if (_form.IsValid)
+        {
+            _processing = true;
+
+            try
+            {
+                var result = await RequisiteService.CreateRequisite(_createRequisiteDto);
+
+                if (result != null)
+                {
+                    Snackbar.Add($"Реквизит {result.FullName} успешно создан", Severity.Success);
+                    MudDialog.Close(DialogResult.Ok(result));
+                }
+                else
+                {
+                    _errorMessage = "Ошибка при создании реквизита";
+                }
+            }
+            catch (Exception e)
+            {
+                _errorMessage = e.Message;
+            }
+            finally
+            {
+                _processing = false;
+            }
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}

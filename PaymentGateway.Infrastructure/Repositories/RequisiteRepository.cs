@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PaymentGateway.Core.Entities;
-using PaymentGateway.Core.Enums;
 using PaymentGateway.Core.Interfaces;
 using PaymentGateway.Infrastructure.Data;
+using PaymentGateway.Shared.Enums;
 
 namespace PaymentGateway.Infrastructure.Repositories;
 

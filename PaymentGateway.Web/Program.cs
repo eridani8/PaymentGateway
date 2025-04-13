@@ -14,7 +14,9 @@ using PaymentGateway.Web.Interfaces;
 using PaymentGateway.Web.Services;
 using Microsoft.Extensions.Localization;
 using System.Globalization;
+using PaymentGateway.Shared.DTOs.Requisite;
 using PaymentGateway.Shared.Validations.Validators;
+using PaymentGateway.Shared.Validations.Validators.Requisite;
 using PaymentGateway.Shared.Validations.Validators.User;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
@@ -26,6 +28,8 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.AddScoped<IValidator<LoginDto>, LoginModelValidator>();
 builder.Services.AddScoped<IValidator<ChangePasswordDto>, ChangePasswordValidator>();
+
+builder.Services.AddScoped<IValidator<RequisiteCreateDto>, RequisiteCreateDtoValidator>();
     
 builder.Services.AddScoped<CustomAuthStateProvider>();
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
@@ -34,6 +38,7 @@ builder.Services.AddAuthorizationCore();
 
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
+builder.Services.AddScoped<IRequisiteService, RequisiteService>();
 
 builder.Services.AddHttpClient("API", (serviceProvider, client) =>
     {

@@ -1,4 +1,4 @@
-﻿namespace PaymentGateway.Core.Enums;
+﻿namespace PaymentGateway.Shared.Enums;
 
 public enum PaymentType
 {

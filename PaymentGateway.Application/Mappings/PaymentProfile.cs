@@ -2,7 +2,7 @@
 using PaymentGateway.Application.DTOs.Payment;
 using PaymentGateway.Application.Mappings.Converters;
 using PaymentGateway.Core.Entities;
-using PaymentGateway.Core.Enums;
+using PaymentGateway.Shared.Enums;
 
 namespace PaymentGateway.Application.Mappings;
 

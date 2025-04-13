@@ -1,8 +1,8 @@
-﻿using PaymentGateway.Core.Enums;
+﻿using PaymentGateway.Shared.Enums;
 
 namespace PaymentGateway.Application.DTOs.Transaction;
 
-public class TransactionResponseDto
+public class TransactionDto
 {
     public required Guid Id { get; init; }
     public required Guid? RequisiteId { get; init; }

@@ -1,8 +1,6 @@
-﻿using FluentValidation;
-using PaymentGateway.Application.DTOs.Requisite;
-using PaymentGateway.Shared.Validations;
+﻿using PaymentGateway.Shared.DTOs.Requisite;
 
-namespace PaymentGateway.Application.Validators.Requisite;
+namespace PaymentGateway.Shared.Validations.Validators.Requisite;
 
 public class RequisiteCreateDtoValidator : BaseValidator<RequisiteCreateDto>
 {

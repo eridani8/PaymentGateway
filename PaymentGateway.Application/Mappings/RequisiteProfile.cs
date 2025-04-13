@@ -1,9 +1,9 @@
 ﻿using AutoMapper;
 using PaymentGateway.Application.DTOs;
-using PaymentGateway.Application.DTOs.Requisite;
 using PaymentGateway.Application.Mappings.Converters;
 using PaymentGateway.Core.Entities;
-using PaymentGateway.Core.Enums;
+using PaymentGateway.Shared.DTOs.Requisite;
+using PaymentGateway.Shared.Enums;
 
 namespace PaymentGateway.Application.Mappings;
 

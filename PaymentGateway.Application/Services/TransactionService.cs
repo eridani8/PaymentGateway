@@ -5,9 +5,9 @@ using Microsoft.Extensions.Logging;
 using PaymentGateway.Application.DTOs.Transaction;
 using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Core.Entities;
-using PaymentGateway.Core.Enums;
 using PaymentGateway.Core.Exceptions;
 using PaymentGateway.Core.Interfaces;
+using PaymentGateway.Shared.Enums;
 
 namespace PaymentGateway.Application.Services;
 
@@ -18,7 +18,7 @@ public class TransactionService(
     ILogger<TransactionService> logger)
     : ITransactionService
 {
-    public async Task<TransactionResponseDto> CreateTransaction(TransactionCreateDto dto)
+    public async Task<TransactionDto> CreateTransaction(TransactionCreateDto dto)
     {
         var validation = await validator.ValidateAsync(dto);
         if (!validation.IsValid)
@@ -56,6 +56,6 @@ public class TransactionService(
         await unit.TransactionRepository.Add(transaction);
         await unit.Commit();
 
-        return mapper.Map<TransactionResponseDto>(transaction);
+        return mapper.Map<TransactionDto>(transaction);
     }
 }

@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using PaymentGateway.Core.Enums;
 using PaymentGateway.Core.Interfaces;
+using PaymentGateway.Shared.Enums;
 
 namespace PaymentGateway.Core.Entities;
 

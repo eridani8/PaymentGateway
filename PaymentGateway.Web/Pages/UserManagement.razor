@@ -94,8 +94,7 @@
 
     private async Task OpenCreateDialog()
     {
-        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium };
-        var dialog = await DialogService.ShowAsync<CreateUserDialog>("Создание пользователя", options);
+        var dialog = await DialogService.ShowAsync<CreateUserDialog>("Создание пользователя");
         var result = await dialog.Result;
 
         if (result is { Canceled: false })
@@ -107,8 +106,7 @@
     private async Task OpenDeleteDialog(UserDto user)
     {
         var parameters = new DialogParameters { ["User"] = user };
-        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small };
-        var dialog = await DialogService.ShowAsync<DeleteUserDialog>("", parameters, options);
+        var dialog = await DialogService.ShowAsync<DeleteUserDialog>("", parameters);
         var result = await dialog.Result;
 
         if (result is { Canceled: false })

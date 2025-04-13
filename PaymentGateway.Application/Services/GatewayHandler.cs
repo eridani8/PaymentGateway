@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using PaymentGateway.Application.Interfaces;
-using PaymentGateway.Core.Enums;
 using PaymentGateway.Core.Interfaces;
+using PaymentGateway.Shared.Enums;
 
 namespace PaymentGateway.Application.Services;
 

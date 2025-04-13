@@ -1,6 +1,133 @@
 ﻿@page "/RequisitesManagement"
+@using PaymentGateway.Shared.DTOs.Requisite
+@using PaymentGateway.Shared.Enums
+@using PaymentGateway.Web.Dialogs
 @attribute [Authorize(Roles = "User")]
+@inject IRequisiteService RequisiteService
+@inject ILogger<RequisitesManagement> Logger
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
+
+<AuthorizeView Roles="User">
+    <Authorized>
+        <MudContainer MaxWidth="MaxWidth.ExtraExtraLarge" Class="mt-4" Style="height: calc(100vh - 97px); padding: 0;">
+            <MudPaper Class="pa-4" Elevation="12" Style="height: 100%; display: flex; flex-direction: column;">
+                <MudToolBar Dense="true">
+                    <MudText Typo="Typo.h6">Список реквизитов</MudText>
+                    <MudSpacer/>
+                    <MudButton
+                        Variant="Variant.Filled"
+                        Color="Color.Primary"
+                        StartIcon="@Icons.Material.Filled.Add"
+                        OnClick="OpenCreateDialog">
+                        Создать реквизит
+                    </MudButton>
+                </MudToolBar>
+                <MudTable Items="@_requisites"
+                          Loading="@_isLoading"
+                          Hover="true"
+                          Breakpoint="Breakpoint.Sm"
+                          Dense="false"
+                          Bordered="true"
+                          FixedHeader="true"
+                          Height="100%"
+                          Width="100%">
+                    <HeaderContent>
+                        <MudTh>ID</MudTh>
+                        <MudTh>Имя</MudTh>
+                        <MudTh>Тип</MudTh>
+                        <MudTh>Платежные данные</MudTh>
+                        <MudTh>Номер счета</MudTh>
+                        <MudTh>Статус</MudTh>
+                        <MudTh>Дата создания</MudTh>
+                        <MudTh>Действия</MudTh>
+                    </HeaderContent>
+                    <RowTemplate Context="requisite">
+                        <MudTd DataLabel="ID">@requisite.Id</MudTd>
+                        <MudTd DataLabel="Имя">@requisite.FullName</MudTd>
+                        <MudTd
+                            DataLabel="Тип">@(requisite.PaymentType == PaymentType.PhoneNumber ? "Телефон" : "Карта")</MudTd>
+                        <MudTd DataLabel="Платежные данные">@requisite.PaymentData</MudTd>
+                        <MudTd DataLabel="Номер счета">@requisite.BankNumber</MudTd>
+                        <MudTd DataLabel="Статус">
+                            <MudChip T="string" Color="@GetStatusColor(requisite.Status)"
+                                     Size="Size.Small">
+                                @GetStatusText(requisite.Status)
+                            </MudChip>
+                        </MudTd>
+                        <MudTd DataLabel="Дата создания">@requisite.CreatedAt.ToString("dd.MM.yyyy HH:mm")</MudTd>
+                        <MudTd DataLabel="Действия">
+                            
+                        </MudTd>
+                    </RowTemplate>
+                    <PagerContent>
+                        <MudTablePager/>
+                    </PagerContent>
+                </MudTable>
+            </MudPaper>
+        </MudContainer>
+    </Authorized>
+    <NotAuthorized>
+        @{
+            NavigationManager.NavigateTo("/");
+        }
+    </NotAuthorized>
+</AuthorizeView>
 
 @code {
-    
+    private bool _isLoading = true;
+    private List<RequisiteDto> _requisites = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadRequisites();
+    }
+
+    private async Task LoadRequisites()
+    {
+        try
+        {
+            _isLoading = true;
+            _requisites = await RequisiteService.GetRequisites();
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e, e.Message);
+            Snackbar.Add("Ошибка при загрузке реквизитов", Severity.Error);
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task OpenCreateDialog()
+    {
+        var dialog = await DialogService.ShowAsync<CreateRequisiteDialog>("Создание реквизита");
+        var result = await dialog.Result;
+
+        if (result is { Canceled: false })
+        {
+            await LoadRequisites();
+        }
+    }
+
+    private Color GetStatusColor(RequisiteStatus status) => status switch
+    {
+        RequisiteStatus.Active => Color.Success,
+        RequisiteStatus.Pending => Color.Warning,
+        RequisiteStatus.Cooldown => Color.Info,
+        RequisiteStatus.Inactive => Color.Error,
+        _ => Color.Default
+    };
+
+    private string GetStatusText(RequisiteStatus status) => status switch
+    {
+        RequisiteStatus.Active => "Активный",
+        RequisiteStatus.Pending => "Ожидание",
+        RequisiteStatus.Cooldown => "Перерыв",
+        RequisiteStatus.Inactive => "Неактивный",
+        _ => "Неизвестно"
+    };
 }

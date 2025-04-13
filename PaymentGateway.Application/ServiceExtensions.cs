@@ -1,19 +1,19 @@
 ﻿using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using PaymentGateway.Application.DTOs.Payment;
-using PaymentGateway.Application.DTOs.Requisite;
 using PaymentGateway.Application.DTOs.Transaction;
 using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Application.Mappings;
 using PaymentGateway.Application.Services;
 using PaymentGateway.Application.Validators.Payment;
-using PaymentGateway.Application.Validators.Requisite;
 using PaymentGateway.Application.Validators.Transaction;
 using PaymentGateway.Core.Interfaces;
 using PaymentGateway.Shared.DTOs;
+using PaymentGateway.Shared.DTOs.Requisite;
 using PaymentGateway.Shared.DTOs.User;
 using PaymentGateway.Shared.Validations;
 using PaymentGateway.Shared.Validations.Validators;
+using PaymentGateway.Shared.Validations.Validators.Requisite;
 using PaymentGateway.Shared.Validations.Validators.User;
 
 namespace PaymentGateway.Application;

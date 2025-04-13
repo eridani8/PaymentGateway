@@ -56,9 +56,9 @@
                 _errorMessage = "Ошибка при удалении пользователя";
             }
         }
-        catch (Exception ex)
+        catch (Exception e)
         {
-            _errorMessage = ex.Message;
+            _errorMessage = e.Message;
         }
         finally
         {
