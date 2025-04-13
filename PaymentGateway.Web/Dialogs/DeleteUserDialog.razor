@@ -1,0 +1,70 @@
+@using PaymentGateway.Shared.DTOs.User
+@inject ISnackbar Snackbar
+@inject IAdminService AdminService
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">Подтверждение удаления</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudText>Вы действительно хотите удалить пользователя <b>@User.Username</b>?</MudText>
+        
+        @if (!string.IsNullOrEmpty(_errorMessage))
+        {
+            <MudAlert Severity="Severity.Error" Class="mt-3 mb-3">@_errorMessage</MudAlert>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Нет</MudButton>
+        <MudButton Color="Color.Error" OnClick="ConfirmDelete" Disabled="@(_processing)">
+            @if (_processing)
+            {
+                <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                <MudText Class="ms-2">Обработка</MudText>
+            }
+            else
+            {
+                <MudText>Да</MudText>
+            }
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] public required IMudDialogInstance MudDialog { get; set; }
+    [Parameter] public required UserDto User { get; set; }
+    
+    private string? _errorMessage;
+    private bool _processing;
+
+    private async Task ConfirmDelete()
+    {
+        _errorMessage = null;
+        _processing = true;
+        
+        try
+        {
+            var result = await AdminService.DeleteUser(User.Id);
+            
+            if (result)
+            {
+                Snackbar.Add($"Пользователь {User.Username} успешно удален", Severity.Success);
+                MudDialog.Close(DialogResult.Ok(true));
+            }
+            else
+            {
+                _errorMessage = "Ошибка при удалении пользователя";
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+        }
+        finally
+        {
+            _processing = false;
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+} 

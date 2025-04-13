@@ -66,7 +66,7 @@ public class UsersController(IAdminService service) : ControllerBase
         {
             return NotFound();
         }
-        
-        return NoContent();
+
+        return Ok(true);
     }
 }

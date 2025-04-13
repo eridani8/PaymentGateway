@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Components.Authorization;
-using PaymentGateway.Shared.DTOs;
 using PaymentGateway.Shared.DTOs.User;
 using PaymentGateway.Web.Interfaces;
 
@@ -9,13 +8,15 @@ public class UserService(
     IHttpClientFactory factory,
     ILogger<UserService> logger) : ServiceBase(factory, logger), IUserService
 {
+    private const string ApiEndpoint = "user";
+    
     public Task<Response> Login(LoginDto dto)
     {
-        return CreateRequest("user/login", dto);
+        return PostRequest($"{ApiEndpoint}/login", dto);
     }
 
     public Task<Response> ChangePasswordAsync(ChangePasswordDto dto)
     {
-        return CreateRequest("user/changepassword", dto);
+        return PostRequest($"{ApiEndpoint}/ChangePassword", dto);
     }
 }

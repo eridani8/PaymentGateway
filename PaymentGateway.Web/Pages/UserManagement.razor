@@ -7,7 +7,6 @@
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 @inject NavigationManager NavigationManager
-@inject AuthenticationStateProvider AuthStateProvider
 
 <AuthorizeView Roles="Admin">
     <Authorized>
@@ -37,11 +36,20 @@
                         <MudTh>ID</MudTh>
                         <MudTh>Логин</MudTh>
                         <MudTh>Роль</MudTh>
+                        <MudTh>Действия</MudTh>
                     </HeaderContent>
                     <RowTemplate Context="user">
                         <MudTd DataLabel="ID">@user.Id</MudTd>
                         <MudTd DataLabel="Логин">@user.Username</MudTd>
                         <MudTd DataLabel="Роли">@string.Join(", ", user.Roles)</MudTd>
+                        <MudTd DataLabel="Действия">
+                            <MudIconButton 
+                                Icon="@Icons.Material.Filled.Delete" 
+                                Color="Color.Error" 
+                                Size="Size.Small"
+                                OnClick="@(() => OpenDeleteDialog(user))" 
+                                aria-label="delete" />
+                        </MudTd>
                     </RowTemplate>
                     <PagerContent>
                         <MudTablePager />
@@ -88,6 +96,19 @@
     {
         var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium };
         var dialog = await DialogService.ShowAsync<CreateUserDialog>("Создание пользователя", options);
+        var result = await dialog.Result;
+
+        if (result is { Canceled: false })
+        {
+            await LoadUsers();
+        }
+    }
+    
+    private async Task OpenDeleteDialog(UserDto user)
+    {
+        var parameters = new DialogParameters { ["User"] = user };
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small };
+        var dialog = await DialogService.ShowAsync<DeleteUserDialog>("", parameters, options);
         var result = await dialog.Result;
 
         if (result is { Canceled: false })

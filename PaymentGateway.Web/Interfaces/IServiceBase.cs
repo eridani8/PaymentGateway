@@ -4,7 +4,10 @@ namespace PaymentGateway.Web.Interfaces;
 
 public interface IServiceBase
 {
-    Task<Response> CreateRequest(string url, object model);
-    Task<T?> CreateRequest<T>(string url, object model);
-    Task<T?> CreateRequest<T>(string url);
+    Task<T?> PostRequest<T>(string url, object model);
+    Task<Response> PostRequest(string url, object model);
+    Task<Response> GetRequest(string url);
+    Task<Response> PutRequest(string url, object model);
+    Task<T?> PutRequest<T>(string url, object model);
+    Task<bool> DeleteRequest(string url);
 }
