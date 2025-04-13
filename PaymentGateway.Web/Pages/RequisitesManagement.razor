@@ -15,7 +15,7 @@
     <Authorized>
         <MudContainer MaxWidth="MaxWidth.ExtraExtraLarge" Class="mt-4" Style="height: calc(100vh - 97px); padding: 0;">
             <MudPaper Class="pa-4" Elevation="12" Style="height: 100%; display: flex; flex-direction: column;">
-                <MudToolBar Dense="true">
+                <MudToolBar>
                     <MudText Typo="Typo.h6">Список реквизитов</MudText>
                     <MudSpacer/>
                     <MudButton
@@ -30,7 +30,6 @@
                           Loading="@_isLoading"
                           Hover="true"
                           Breakpoint="Breakpoint.Sm"
-                          Dense="false"
                           Bordered="true"
                           FixedHeader="true"
                           Height="100%"
@@ -40,9 +39,9 @@
                         <MudTh>Имя</MudTh>
                         <MudTh>Тип</MudTh>
                         <MudTh>Платежные данные</MudTh>
-                        <MudTh>Задержка</MudTh>
                         <MudTh>Использовано/Лимит</MudTh>
                         <MudTh>Статус</MudTh>
+                        <MudTh>Задержка</MudTh>
                         <MudTh>Активное время</MudTh>
                         <MudTh>Приоритет</MudTh>
                         <MudTh>Действия</MudTh>
@@ -53,7 +52,6 @@
                         <MudTd
                             DataLabel="Тип">@(requisite.PaymentType == PaymentType.PhoneNumber ? "Телефон" : "Карта")</MudTd>
                         <MudTd DataLabel="Платежные данные">@requisite.PaymentData</MudTd>
-                        <MudTd DataLabel="Задержка">@($"{(int)requisite.Cooldown.TotalMinutes} мин")</MudTd>
                         <MudTd DataLabel="Использовано/Лимит">@($"{requisite.ReceivedFunds}/{requisite.MaxAmount}")</MudTd>
                         <MudTd DataLabel="Статус">
                             <MudChip T="string" Color="@GetStatusColor(requisite.Status)" Size="Size.Medium">
@@ -64,6 +62,7 @@
                                 }
                             </MudChip>
                         </MudTd>
+                        <MudTd DataLabel="Задержка">@($"{(int)requisite.Cooldown.TotalMinutes} мин")</MudTd>
                         <MudTd DataLabel="Активное время">
                             @if (requisite.WorkFrom == TimeOnly.MinValue && requisite.WorkTo == TimeOnly.MinValue)
                             {

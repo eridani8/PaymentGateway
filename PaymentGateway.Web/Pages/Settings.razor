@@ -22,7 +22,7 @@
                                      InputType="InputType.Password"
                                      For="@(() => _changePasswordDto.CurrentPassword)"
                                      Immediate="true"
-                                     Margin="Margin.Dense"/>
+                                     Margin="Margin.Normal"/>
 
                         <MudTextField T="string"
                                      Label="Новый пароль"
@@ -31,7 +31,7 @@
                                      InputType="InputType.Password"
                                      For="@(() => _changePasswordDto.NewPassword)"
                                      Immediate="true"
-                                     Margin="Margin.Dense"/>
+                                     Margin="Margin.Normal"/>
 
                         <MudTextField T="string"
                                      Label="Подтверждение пароля"
@@ -40,7 +40,7 @@
                                      InputType="InputType.Password"
                                      For="@(() => _changePasswordDto.ConfirmPassword)"
                                      Immediate="true"
-                                     Margin="Margin.Dense"/>
+                                     Margin="Margin.Normal"/>
 
                         @if (!string.IsNullOrEmpty(_errorMessage))
                         {

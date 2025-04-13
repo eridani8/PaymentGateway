@@ -19,7 +19,7 @@
                                   @bind-Value="_updateRequisiteDto.FullName"
                                   For="@(() => _updateRequisiteDto.FullName)"
                                   Immediate="true"
-                                  Margin="Margin.Dense"/>
+                                  Margin="Margin.Normal"/>
                 </MudItem>
 
                 <MudItem xs="12" sm="6">
@@ -30,12 +30,8 @@
                                         For="@(() => _updateRequisiteDto.PaymentType)"
                                         Color="Color.Primary"
                                         Class="ml-2">
-                            <MudToggleItem Value="PaymentType.PhoneNumber" Color="Color.Primary"
-                                           Dense="true">Телефон
-                            </MudToggleItem>
-                            <MudToggleItem Value="PaymentType.BankCard" Color="Color.Primary"
-                                           Dense="true">Карта
-                            </MudToggleItem>
+                            <MudToggleItem Value="PaymentType.PhoneNumber" Color="Color.Primary">Телефон</MudToggleItem>
+                            <MudToggleItem Value="PaymentType.BankCard" Color="Color.Primary">Карта</MudToggleItem>
                         </MudToggleGroup>
                     </MudStack>
                 </MudItem>
@@ -47,7 +43,7 @@
                                   @bind-Value="_updateRequisiteDto.PaymentData"
                                   For="@(() => _updateRequisiteDto.PaymentData)"
                                   Immediate="true"
-                                  Margin="Margin.Dense"/>
+                                  Margin="Margin.Normal"/>
                 </MudItem>
 
                 <MudItem xs="12" sm="6">
@@ -57,7 +53,7 @@
                                   @bind-Value="_updateRequisiteDto.BankNumber"
                                   For="@(() => _updateRequisiteDto.BankNumber)"
                                   Immediate="true"
-                                  Margin="Margin.Dense"/>
+                                  Margin="Margin.Normal"/>
                 </MudItem>
 
                 <MudItem xs="12" sm="4">
@@ -69,7 +65,7 @@
                                      Adornment="Adornment.Start"
                                      AdornmentIcon="@Icons.Material.Filled.AttachMoney"
                                      Min="0"
-                                     Margin="Margin.Dense"/>
+                                     Margin="Margin.Normal"/>
                 </MudItem>
 
                 <MudItem xs="12" sm="4">
@@ -79,7 +75,7 @@
                                      For="@(() => _updateRequisiteDto.Priority)"
                                      Min="1"
                                      Max="100"
-                                     Margin="Margin.Dense"/>
+                                     Margin="Margin.Normal"/>
                 </MudItem>
 
                 <MudItem xs="12" sm="4">
@@ -87,7 +83,7 @@
                                   Label="Задержка (часы:минуты:секунды)"
                                   @bind-Value="_updateRequisiteDto.Cooldown"
                                   For="@(() => _updateRequisiteDto.Cooldown)"
-                                  Margin="Margin.Dense"/>
+                                  Margin="Margin.Normal"/>
                 </MudItem>
 
                 <MudItem xs="12">
@@ -114,13 +110,13 @@
                             <MudTimePicker Label="С" 
                                           @bind-Time="_workFromTime"
                                           TimeEditMode="TimeEditMode.Normal"
-                                          Margin="Margin.Dense" />
+                                          Margin="Margin.Normal" />
                         </MudItem>
                         <MudItem xs="6">
                             <MudTimePicker Label="До" 
                                           @bind-Time="_workToTime"
                                           TimeEditMode="TimeEditMode.Normal"
-                                          Margin="Margin.Dense" />
+                                          Margin="Margin.Normal" />
                         </MudItem>
                     </MudGrid>
                 }

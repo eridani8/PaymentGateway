@@ -17,7 +17,7 @@
                          @bind-Value="_createUserDto.Username"
                          For="@(() => _createUserDto.Username)"
                          Immediate="true"
-                         Margin="Margin.Dense" />
+                         Margin="Margin.Normal" />
 
             <MudTextField T="string"
                          Label="Пароль"
@@ -26,18 +26,15 @@
                          InputType="InputType.Password"
                          For="@(() => _createUserDto.Password)"
                          Immediate="true"
-                         Margin="Margin.Dense" />
+                         Margin="Margin.Normal" />
 
             <MudText Typo="Typo.subtitle1" Class="mt-2 mb-1">Роль</MudText>
-            <MudPaper Outlined="true" Class="pa-3">
-                <MudToggleGroup T="string" SelectionMode="SelectionMode.ToggleSelection" @bind-Value="SelectedRole">
-                    @foreach (var role in _availableRoles)
-                    {
-                        <MudToggleItem Value="@role" Color="Color.Primary"
-                                       Dense="true">@GetRoleDisplayName(role)</MudToggleItem>
-                    }
-                </MudToggleGroup>
-            </MudPaper>
+            <MudToggleGroup T="string" SelectionMode="SelectionMode.ToggleSelection" @bind-Value="SelectedRole">
+                @foreach (var role in _availableRoles)
+                {
+                    <MudToggleItem Value="@role" Color="Color.Primary">@GetRoleDisplayName(role)</MudToggleItem>
+                }
+            </MudToggleGroup>
 
             @if (!string.IsNullOrEmpty(_errorMessage))
             {
