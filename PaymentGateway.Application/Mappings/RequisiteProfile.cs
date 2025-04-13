@@ -20,7 +20,7 @@ public class RequisiteProfile : Profile
             .ForMember(dest => dest.PaymentId, opt => opt.MapFrom(src => src.PaymentId))
             .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status))
             .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive))
-            .ForMember(dest => dest.LastOperationTime, opt => opt.MapFrom(src => src.LastOperationTime))
+            .ForMember(dest => dest.LastOperationTime, opt => opt.ConvertUsing(new UtcToLocalNullableDateTimeConverter(), src => src.LastOperationTime))
             .ForMember(dest => dest.ReceivedFunds, opt => opt.MapFrom(src => src.ReceivedFunds))
             .ForMember(dest => dest.MaxAmount, opt => opt.MapFrom(src => src.MaxAmount))
             .ForMember(dest => dest.Cooldown, opt => opt.MapFrom(src => src.Cooldown))

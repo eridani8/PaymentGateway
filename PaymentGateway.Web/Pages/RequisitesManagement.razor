@@ -42,6 +42,7 @@
                         <MudTh>Платежные данные</MudTh>
                         <MudTh>Статус</MudTh>
                         <MudTh>Использовано/Лимит</MudTh>
+                        <MudTh>Задержка</MudTh>
                         <MudTh>Приоритет</MudTh>
                         <MudTh>Действия</MudTh>
                     </HeaderContent>
@@ -55,12 +56,18 @@
                             <MudChip T="string" Color="@GetStatusColor(requisite.Status)"
                                      Size="Size.Small">
                                 @GetStatusText(requisite.Status)
+                                @if (requisite.Status == RequisiteStatus.Cooldown)
+                                {
+                                    @GetRemainingCooldownTime(requisite)
+                                }
                             </MudChip>
                         </MudTd>
-                        <MudTd DataLabel="Использовано/Лимит">@($"{requisite.ReceivedFunds}/{requisite.MaxAmount}")</MudTd>
+                        <MudTd
+                            DataLabel="Использовано/Лимит">@($"{requisite.ReceivedFunds}/{requisite.MaxAmount}")</MudTd>
+                        <MudTd DataLabel="Задержка">@($"{(int)requisite.Cooldown.TotalMinutes} мин")</MudTd>
                         <MudTd DataLabel="Приоритет">@requisite.Priority</MudTd>
                         <MudTd DataLabel="Действия">
-                            
+
                         </MudTd>
                     </RowTemplate>
                     <PagerContent>
@@ -85,9 +92,9 @@
     protected override async Task OnInitializedAsync()
     {
         await LoadRequisites();
-        
-        _timer = new Timer(5000);
-        _timer.Elapsed += async (_, _) => await InvokeAsync(async () => 
+
+        _timer = new Timer(3000);
+        _timer.Elapsed += async (_, _) => await InvokeAsync(async () =>
         {
             await LoadRequisites();
             StateHasChanged();
@@ -130,7 +137,7 @@
         }
     }
 
-    private Color GetStatusColor(RequisiteStatus status) => status switch
+    private static Color GetStatusColor(RequisiteStatus status) => status switch
     {
         RequisiteStatus.Active => Color.Success,
         RequisiteStatus.Pending => Color.Warning,
@@ -139,7 +146,7 @@
         _ => Color.Default
     };
 
-    private string GetStatusText(RequisiteStatus status) => status switch
+    private static string GetStatusText(RequisiteStatus status) => status switch
     {
         RequisiteStatus.Active => "Активный",
         RequisiteStatus.Pending => "Ожидание",
@@ -147,4 +154,19 @@
         RequisiteStatus.Inactive => "Неактивный",
         _ => "Неизвестно"
     };
+
+    private static string GetRemainingCooldownTime(RequisiteDto requisite)
+    {
+        if (requisite.LastOperationTime == null)
+        {
+            return "";
+        }
+
+        var cooldownEnd = requisite.LastOperationTime.Value.Add(requisite.Cooldown);
+        var remaining = cooldownEnd - DateTime.Now;
+
+        var totalMinutes = Math.Ceiling(remaining.TotalMinutes);
+        return $"{totalMinutes} мин";
+    }
+
 }
