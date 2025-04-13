@@ -22,7 +22,7 @@ public class GatewayHandler(
             {
                 if (requisite is { Status: RequisiteStatus.Pending, PaymentId: not null }) continue;
 
-                var status = requisite.DetermineStatus(now, nowTimeOnly);
+                var status = !requisite.IsActive ? RequisiteStatus.Inactive : requisite.DetermineStatus(now, nowTimeOnly);
 
                 if (status != requisite.Status)
                 {
