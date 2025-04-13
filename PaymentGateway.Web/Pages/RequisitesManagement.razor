@@ -2,12 +2,14 @@
 @using PaymentGateway.Shared.DTOs.Requisite
 @using PaymentGateway.Shared.Enums
 @using PaymentGateway.Web.Dialogs
+@using System.Timers
 @attribute [Authorize(Roles = "User")]
 @inject IRequisiteService RequisiteService
 @inject ILogger<RequisitesManagement> Logger
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 @inject NavigationManager NavigationManager
+@implements IDisposable
 
 <AuthorizeView Roles="User">
     <Authorized>
@@ -38,9 +40,9 @@
                         <MudTh>Имя</MudTh>
                         <MudTh>Тип</MudTh>
                         <MudTh>Платежные данные</MudTh>
-                        <MudTh>Номер счета</MudTh>
                         <MudTh>Статус</MudTh>
-                        <MudTh>Дата создания</MudTh>
+                        <MudTh>Использовано/Лимит</MudTh>
+                        <MudTh>Приоритет</MudTh>
                         <MudTh>Действия</MudTh>
                     </HeaderContent>
                     <RowTemplate Context="requisite">
@@ -49,14 +51,14 @@
                         <MudTd
                             DataLabel="Тип">@(requisite.PaymentType == PaymentType.PhoneNumber ? "Телефон" : "Карта")</MudTd>
                         <MudTd DataLabel="Платежные данные">@requisite.PaymentData</MudTd>
-                        <MudTd DataLabel="Номер счета">@requisite.BankNumber</MudTd>
                         <MudTd DataLabel="Статус">
                             <MudChip T="string" Color="@GetStatusColor(requisite.Status)"
                                      Size="Size.Small">
                                 @GetStatusText(requisite.Status)
                             </MudChip>
                         </MudTd>
-                        <MudTd DataLabel="Дата создания">@requisite.CreatedAt.ToString("dd.MM.yyyy HH:mm")</MudTd>
+                        <MudTd DataLabel="Использовано/Лимит">@($"{requisite.ReceivedFunds}/{requisite.MaxAmount}")</MudTd>
+                        <MudTd DataLabel="Приоритет">@requisite.Priority</MudTd>
                         <MudTd DataLabel="Действия">
                             
                         </MudTd>
@@ -78,10 +80,25 @@
 @code {
     private bool _isLoading = true;
     private List<RequisiteDto> _requisites = [];
+    private Timer _timer = null!;
 
     protected override async Task OnInitializedAsync()
     {
         await LoadRequisites();
+        
+        _timer = new Timer(5000);
+        _timer.Elapsed += async (_, _) => await InvokeAsync(async () => 
+        {
+            await LoadRequisites();
+            StateHasChanged();
+        });
+        _timer.AutoReset = true;
+        _timer.Enabled = true;
+    }
+
+    public void Dispose()
+    {
+        _timer?.Dispose();
     }
 
     private async Task LoadRequisites()
