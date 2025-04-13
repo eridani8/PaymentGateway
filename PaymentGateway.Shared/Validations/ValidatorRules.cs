@@ -107,8 +107,8 @@ public static class ValidatorRules
                 return true;
             }
 
-            return from < to;
-        }).WithMessage("Начало должно быть раньше конца");
+            return true;
+        }).WithMessage("Время работы указано корректно");
     }
 
     public static IRuleBuilderOptions<T, string> ValidUsername<T>(this IRuleBuilder<T, string> rule)

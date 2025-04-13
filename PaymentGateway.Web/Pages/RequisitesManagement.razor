@@ -70,7 +70,14 @@
                             }
                             else
                             {
-                                @($"{requisite.WorkFrom:HH:mm} - {requisite.WorkTo:HH:mm}")
+                                if (requisite.WorkFrom <= requisite.WorkTo)
+                                {
+                                    @($"{requisite.WorkFrom:HH:mm} - {requisite.WorkTo:HH:mm}")
+                                }
+                                else
+                                {
+                                    @($"{requisite.WorkFrom:HH:mm} - {requisite.WorkTo:HH:mm} (через полночь)")
+                                }
                             }
                         </MudTd>
                         <MudTd DataLabel="Приоритет">@requisite.Priority</MudTd>

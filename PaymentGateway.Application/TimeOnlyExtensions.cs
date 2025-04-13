@@ -10,11 +10,12 @@ public static class TimeOnlyExtensions
         
         var userTimeZone = TimeZoneInfo.FindSystemTimeZoneById(UserTimeZoneId);
 
-        var utcNow = DateTime.UtcNow;
-        var userLocalNow = TimeZoneInfo.ConvertTimeFromUtc(utcNow, userTimeZone);
-        var userLocalDate = userLocalNow.Date;
-
-        var localDateTime = userLocalDate + localTime.ToTimeSpan();
+        var fixedDate = new DateTime(2000, 1, 1);
+        
+        var localDateTime = fixedDate + localTime.ToTimeSpan();
+        localDateTime = DateTime.SpecifyKind(localDateTime, DateTimeKind.Unspecified);
+        
+        // Преобразуем в UTC
         var utcDateTime = TimeZoneInfo.ConvertTimeToUtc(localDateTime, userTimeZone);
 
         return TimeOnly.FromDateTime(utcDateTime);
@@ -26,10 +27,11 @@ public static class TimeOnlyExtensions
         
         var userTimeZone = TimeZoneInfo.FindSystemTimeZoneById(UserTimeZoneId);
 
-        var utcNow = DateTime.UtcNow;
-        var utcDate = utcNow.Date;
-
-        var utcDateTime = utcDate + utcTime.ToTimeSpan();
+        var fixedDate = new DateTime(2000, 1, 1);
+        
+        var utcDateTime = fixedDate + utcTime.ToTimeSpan();
+        utcDateTime = DateTime.SpecifyKind(utcDateTime, DateTimeKind.Utc);
+        
         var localDateTime = TimeZoneInfo.ConvertTimeFromUtc(utcDateTime, userTimeZone);
 
         return TimeOnly.FromDateTime(localDateTime);
