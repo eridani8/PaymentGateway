@@ -16,11 +16,37 @@ public class CustomAuthStateProvider(IHttpClientFactory httpClientFactory, ILoca
             return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
         }
 
+        if (IsTokenExpired(token))
+        {
+            await RemoveTokenFromLocalStorageAsync();
+            return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
+        }
+
         var claims = ParseClaimsFromJwt(token);
         var identity = new ClaimsIdentity(claims, "jwt");
         var principal = new ClaimsPrincipal(identity);
 
         return new AuthenticationState(principal);
+    }
+
+    private static bool IsTokenExpired(string token)
+    {
+        try
+        {
+            var claims = ParseClaimsFromJwt(token);
+            var expiry = claims.FirstOrDefault(c => c.Type.Equals("exp"))?.Value;
+            
+            if (string.IsNullOrEmpty(expiry) || !long.TryParse(expiry, out var expiryTimeStamp))
+                return true;
+                
+            var expiryDateTimeOffset = DateTimeOffset.FromUnixTimeSeconds(expiryTimeStamp);
+            
+            return expiryDateTimeOffset <= DateTimeOffset.UtcNow;
+        }
+        catch
+        {
+            return true;
+        }
     }
 
     public async Task MarkUserAsAuthenticated(string token)

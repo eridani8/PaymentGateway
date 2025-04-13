@@ -1,10 +1,13 @@
-﻿using PaymentGateway.Shared.DTOs;
+﻿using Microsoft.AspNetCore.Components.Authorization;
+using PaymentGateway.Shared.DTOs;
 using PaymentGateway.Shared.DTOs.User;
 using PaymentGateway.Web.Interfaces;
 
 namespace PaymentGateway.Web.Services;
 
-public class UserService(IHttpClientFactory factory, ILogger<UserService> logger) : ServiceBase(factory, logger), IUserService
+public class UserService(
+    IHttpClientFactory factory,
+    ILogger<UserService> logger) : ServiceBase(factory, logger), IUserService
 {
     public Task<Response> Login(LoginDto dto)
     {

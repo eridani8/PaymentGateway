@@ -1,10 +1,13 @@
 ﻿using System.Net;
 using System.Net.Http.Json;
+using Microsoft.AspNetCore.Components.Authorization;
 using PaymentGateway.Web.Interfaces;
 
 namespace PaymentGateway.Web.Services;
 
-public class ServiceBase(IHttpClientFactory factory, ILogger<ServiceBase> logger) : IServiceBase
+public class ServiceBase(
+    IHttpClientFactory factory, 
+    ILogger<ServiceBase> logger) : IServiceBase
 {
     public async Task<Response> CreateRequest(string url, object model)
     {
@@ -33,7 +36,12 @@ public class ServiceBase(IHttpClientFactory factory, ILogger<ServiceBase> logger
         try
         {
             using var client = factory.CreateClient("API");
-            response = await client.GetFromJsonAsync<T>(url);
+            var httpResponse = await client.PostAsJsonAsync(url, model);
+            
+            if (httpResponse.IsSuccessStatusCode)
+            {
+                response = await httpResponse.Content.ReadFromJsonAsync<T>();
+            }
         }
         catch (Exception e)
         {
@@ -48,7 +56,12 @@ public class ServiceBase(IHttpClientFactory factory, ILogger<ServiceBase> logger
         try
         {
             using var client = factory.CreateClient("API");
-            response = await client.GetFromJsonAsync<T>(url);
+            var httpResponse = await client.GetAsync(url);
+            
+            if (httpResponse.IsSuccessStatusCode)
+            {
+                response = await httpResponse.Content.ReadFromJsonAsync<T>();
+            }
         }
         catch (Exception e)
         {

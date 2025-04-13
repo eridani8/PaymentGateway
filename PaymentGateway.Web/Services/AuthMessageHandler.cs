@@ -1,8 +1,12 @@
-﻿using System.Net.Http.Headers;
+﻿using System.Net;
+using System.Net.Http.Headers;
+using Microsoft.AspNetCore.Components;
 
 namespace PaymentGateway.Web.Services;
 
-public class AuthMessageHandler(CustomAuthStateProvider customAuthStateProvider) : DelegatingHandler
+public class AuthMessageHandler(
+    CustomAuthStateProvider customAuthStateProvider,
+    NavigationManager navigationManager) : DelegatingHandler
 {
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
@@ -13,6 +17,18 @@ public class AuthMessageHandler(CustomAuthStateProvider customAuthStateProvider)
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
         }
 
-        return await base.SendAsync(request, cancellationToken);
+        var response = await base.SendAsync(request, cancellationToken);
+
+        if (response.StatusCode == HttpStatusCode.Unauthorized)
+        {
+            await customAuthStateProvider.MarkUserAsLoggedOut();
+            
+            _ = Task.Run(() => 
+            {
+                navigationManager.NavigateTo("/login", true);
+            }, cancellationToken);
+        }
+
+        return response;
     }
 }
