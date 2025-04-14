@@ -73,7 +73,7 @@
                     NavigationManager.NavigateTo("/", forceLoad: true);
                     break;
                 case HttpStatusCode.Unauthorized:
-                    _errorMessage = "Неверный логин или пароль";
+                    _errorMessage = response.Content;
                     break;
                 default:
                     _errorMessage = "Ошибка аутентификации";

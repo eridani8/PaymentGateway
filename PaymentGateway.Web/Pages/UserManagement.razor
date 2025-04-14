@@ -158,16 +158,7 @@
             var updateDto = (UpdateUserDto)result.Data;
             try
             {
-                var success = await AdminService.UpdateUser(updateDto);
-                if (success)
-                {
-                    await LoadUsers();
-                    Snackbar.Add($"Пользователь {user.Username} обновлен", Severity.Success);
-                }
-                else
-                {
-                    Snackbar.Add("Ошибка при обновлении пользователя", Severity.Error);
-                }
+                await AdminService.UpdateUser(updateDto);
             }
             catch (Exception e)
             {
