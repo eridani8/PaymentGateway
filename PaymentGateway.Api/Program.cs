@@ -180,7 +180,8 @@ try
             rootUser = new UserEntity
             {
                 Id = Guid.CreateVersion7(),
-                UserName = "root"
+                UserName = "root",
+                IsActive = true
             };
             var result = await userManager.CreateAsync(rootUser, "Qwerty123_");
             if (!result.Succeeded)
