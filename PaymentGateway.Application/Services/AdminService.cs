@@ -83,29 +83,29 @@ public class AdminService(
         return userDto;
     }
 
-    public async Task<bool> DeleteUser(Guid id, string? currentUserId)
+    public async Task<UserDto?> DeleteUser(Guid id, string? currentUserId)
     {
         var user = await userManager.FindByIdAsync(id.ToString());
-        if (user is null) return false;
+        if (user is null) return null;
 
         if (user.UserName == "root")
         {
-            return false;
+            return null;
         }
 
         if (id.ToString() == currentUserId)
         {
-            return false;
+            return null;
         }
 
         await userManager.DeleteAsync(user);
         
         logger.LogInformation("Удаление пользователя {username}", user.UserName);
         
-        return true;
+        return mapper.Map<UserDto>(user);
     }
 
-    public async Task<bool> UpdateUser(UpdateUserDto dto)
+    public async Task<UserDto?> UpdateUser(UpdateUserDto dto)
     {
         var validation = await updateValidator.ValidateAsync(dto);
         if (!validation.IsValid)
@@ -116,7 +116,7 @@ public class AdminService(
         var user = await userManager.FindByIdAsync(dto.Id.ToString());
         if (user is null)
         {
-            return false;
+            return null;
         }
 
         if (user.UserName == "root")
@@ -129,7 +129,7 @@ public class AdminService(
         
         if (!result.Succeeded)
         {
-            return false;
+            return null;
         }
 
         var currentRoles = await userManager.GetRolesAsync(user);
@@ -138,6 +138,6 @@ public class AdminService(
         
         logger.LogInformation("Обновление пользователя {username}", user.UserName);
         
-        return true;
+        return mapper.Map<UserDto>(user);
     }
 }

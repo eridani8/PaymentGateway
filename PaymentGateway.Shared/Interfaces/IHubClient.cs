@@ -1,9 +1,13 @@
+using PaymentGateway.Shared.DTOs.Payment;
+using PaymentGateway.Shared.DTOs.Requisite;
+using PaymentGateway.Shared.DTOs.User;
+
 namespace PaymentGateway.Shared.Interfaces;
 
 public interface IHubClient
 {
-    Task UserUpdated();
-    Task PaymentUpdated();
-    Task RequisiteUpdated();
-    Task PaymentStatusChanged(string paymentId);
+    Task UserUpdated(UserDto user);
+    Task PaymentUpdated(PaymentDto payment);
+    Task RequisiteUpdated(RequisiteDto requisite);
+    Task PaymentStatusChanged(PaymentDto payment);
 } 

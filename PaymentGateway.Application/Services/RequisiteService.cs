@@ -18,7 +18,7 @@ public class RequisiteService(
     IValidator<RequisiteUpdateDto> updateValidator,
     ILogger<RequisiteService> logger) : IRequisiteService
 {
-    public async Task<RequisiteDto> CreateRequisite(RequisiteCreateDto dto, Guid userId)
+    public async Task<RequisiteDto?> CreateRequisite(RequisiteCreateDto dto, Guid userId)
     {
         var validation = await createValidator.ValidateAsync(dto);
         if (!validation.IsValid)
@@ -33,17 +33,17 @@ public class RequisiteService(
             throw new DuplicateRequisiteException("Реквизит с такими платежными данными уже существует");
         }
 
-        var entity = mapper.Map<RequisiteEntity>(dto, opts => 
+        var requisite = mapper.Map<RequisiteEntity>(dto, opts => 
         {
             opts.Items["UserId"] = userId;
         });
         
-        await unit.RequisiteRepository.Add(entity);
+        await unit.RequisiteRepository.Add(requisite);
         await unit.Commit();
 
-        logger.LogInformation("Создание реквизита {requisiteId}", entity.Id);
+        logger.LogInformation("Создание реквизита {requisiteId}", requisite.Id);
 
-        return mapper.Map<RequisiteDto>(entity);
+        return mapper.Map<RequisiteDto>(requisite);
     }
 
     public async Task<IEnumerable<RequisiteDto>> GetAllRequisites()
@@ -67,15 +67,15 @@ public class RequisiteService(
 
     public async Task<RequisiteDto?> GetRequisiteById(Guid id, Guid userId)
     {
-        var entity = await unit.RequisiteRepository.QueryableGetAll()
+        var requisite = await unit.RequisiteRepository.QueryableGetAll()
             .FirstOrDefaultAsync(r => r.Id == id && r.UserId == userId);
             
-        if (entity is null) return null;
+        if (requisite is null) return null;
         
-        return mapper.Map<RequisiteDto>(entity);
+        return mapper.Map<RequisiteDto>(requisite);
     }
 
-    public async Task<bool> UpdateRequisite(Guid id, RequisiteUpdateDto dto)
+    public async Task<RequisiteDto?> UpdateRequisite(Guid id, RequisiteUpdateDto dto)
     {
         var validation = await updateValidator.ValidateAsync(dto);
         if (!validation.IsValid)
@@ -83,29 +83,29 @@ public class RequisiteService(
             throw new ValidationException(validation.Errors);
         }
         
-        var entity = await unit.RequisiteRepository.GetById(id);
-        if (entity is null) return false;
-        if (entity.Status == RequisiteStatus.Pending) return false;
+        var requisite = await unit.RequisiteRepository.GetById(id);
+        if (requisite is null) return null;
+        if (requisite.Status == RequisiteStatus.Pending) return null;
 
-        mapper.Map(dto, entity);
-        unit.RequisiteRepository.Update(entity);
+        mapper.Map(dto, requisite);
+        unit.RequisiteRepository.Update(requisite);
         await unit.Commit();
         
-        logger.LogInformation("Обновление реквизита {requisiteId}", entity.Id);
+        logger.LogInformation("Обновление реквизита {requisiteId}", requisite.Id);
 
-        return true;
+        return mapper.Map<RequisiteDto>(requisite);
     }
 
-    public async Task<bool> DeleteRequisite(Guid id)
+    public async Task<RequisiteDto?> DeleteRequisite(Guid id)
     {
-        var entity = await unit.RequisiteRepository.GetById(id);
-        if (entity is null) return false;
+        var requisite = await unit.RequisiteRepository.GetById(id);
+        if (requisite is null) return null;
 
-        unit.RequisiteRepository.Delete(entity);
+        unit.RequisiteRepository.Delete(requisite);
         await unit.Commit();
         
-        logger.LogInformation("Удаление реквизита {requisiteId}", entity.Id);
+        logger.LogInformation("Удаление реквизита {requisiteId}", requisite.Id);
 
-        return true;
+        return mapper.Map<RequisiteDto>(requisite);
     }
 }

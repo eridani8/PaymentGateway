@@ -1,4 +1,7 @@
 using Microsoft.AspNetCore.SignalR.Client;
+using PaymentGateway.Shared.DTOs.Payment;
+using PaymentGateway.Shared.DTOs.Requisite;
+using PaymentGateway.Shared.DTOs.User;
 using PaymentGateway.Shared.Interfaces;
 
 namespace PaymentGateway.Web.Services;
@@ -8,10 +11,10 @@ public class NotificationService : INotificationService, IAsyncDisposable
     private readonly HubConnection _hubConnection;
     private readonly ILogger<NotificationService> _logger;
 
-    public event Action<string>? OnPaymentStatusChanged;
-    public event Action? OnUserUpdated;
-    public event Action? OnPaymentUpdated;
-    public event Action? OnRequisiteUpdated;
+    public event Action<UserDto>? OnUserUpdated;
+    public event Action<PaymentDto>? OnPaymentUpdated;
+    public event Action<RequisiteDto>? OnRequisiteUpdated;
+    public event Action<PaymentDto>? OnPaymentStatusChanged;
 
     public NotificationService(IConfiguration configuration, ILogger<NotificationService> logger)
     {
@@ -22,24 +25,24 @@ public class NotificationService : INotificationService, IAsyncDisposable
             .WithAutomaticReconnect()
             .Build();
 
-        _hubConnection.On<string>("PaymentStatusChanged", (paymentId) =>
+        _hubConnection.On<UserDto>("UserUpdated", (user) =>
         {
-            OnPaymentStatusChanged?.Invoke(paymentId);
+            OnUserUpdated?.Invoke(user);
         });
 
-        _hubConnection.On("UserUpdated", () =>
+        _hubConnection.On<PaymentDto>("PaymentUpdated", (payment) =>
         {
-            OnUserUpdated?.Invoke();
+            OnPaymentUpdated?.Invoke(payment);
         });
 
-        _hubConnection.On("PaymentUpdated", () =>
+        _hubConnection.On<RequisiteDto>("RequisiteUpdated", (requisite) =>
         {
-            OnPaymentUpdated?.Invoke();
+            OnRequisiteUpdated?.Invoke(requisite);
         });
 
-        _hubConnection.On("RequisiteUpdated", () =>
+        _hubConnection.On<PaymentDto>("PaymentStatusChanged", (payment) =>
         {
-            OnRequisiteUpdated?.Invoke();
+            OnPaymentStatusChanged?.Invoke(payment);
         });
     }
 
@@ -64,22 +67,22 @@ public class NotificationService : INotificationService, IAsyncDisposable
         }
     }
 
-    public Task NotifyUserUpdated()
+    public Task NotifyUserUpdated(UserDto user)
     {
         return Task.CompletedTask;
     }
 
-    public Task NotifyPaymentUpdated()
+    public Task NotifyPaymentUpdated(PaymentDto payment)
     {
         return Task.CompletedTask;
     }
 
-    public Task NotifyRequisiteUpdated()
+    public Task NotifyRequisiteUpdated(RequisiteDto requisite)
     {
         return Task.CompletedTask;
     }
 
-    public Task NotifyPaymentStatusChanged(string paymentId)
+    public Task NotifyPaymentStatusChanged(PaymentDto payment)
     {
         return Task.CompletedTask;
     }

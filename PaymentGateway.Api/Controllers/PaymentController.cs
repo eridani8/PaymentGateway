@@ -26,7 +26,8 @@ public class PaymentController(
         try
         {
             var payment = await paymentService.CreatePayment(dto);
-            await notificationService.NotifyPaymentUpdated();
+            if (payment is null) return BadRequest();
+            await notificationService.NotifyPaymentUpdated(payment);
             return Ok(payment);
         }
         catch (DuplicatePaymentException)
@@ -50,25 +51,25 @@ public class PaymentController(
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<PaymentDto>> GetById(Guid id)
     {
-        var requisite = await paymentService.GetPaymentById(id);
-        if (requisite is null)
+        var payment = await paymentService.GetPaymentById(id);
+        if (payment is null)
         {
             return NotFound();
         }
         
-        return Ok(requisite);
+        return Ok(payment);
     }
     
     [HttpDelete("{id:guid}")]
-    public async Task<ActionResult> Delete(Guid id)
+    public async Task<ActionResult<PaymentDto>> Delete(Guid id)
     {
-        var result = await paymentService.DeletePayment(id);
-        if (!result)
+        var payment = await paymentService.DeletePayment(id);
+        if (payment is null)
         {
             return NotFound();
         }
 
-        await notificationService.NotifyPaymentUpdated();
-        return Ok();
+        await notificationService.NotifyPaymentUpdated(payment);
+        return Ok(payment);
     }
 }

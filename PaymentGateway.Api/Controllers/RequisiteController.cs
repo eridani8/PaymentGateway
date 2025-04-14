@@ -25,7 +25,8 @@ public class RequisiteController(IRequisiteService service, INotificationService
         {
             var userId = User.GetCurrentUserId();
             var requisite = await service.CreateRequisite(dto, userId);
-            await notificationService.NotifyRequisiteUpdated();
+            if (requisite is null) return BadRequest();
+            await notificationService.NotifyRequisiteUpdated(requisite);
             return Ok(requisite);
         }
         catch (DuplicateRequisiteException e)
@@ -68,20 +69,20 @@ public class RequisiteController(IRequisiteService service, INotificationService
     }
     
     [HttpPut("{id:guid}")]
-    public async Task<ActionResult> Update(Guid id, [FromBody] RequisiteUpdateDto? dto)
+    public async Task<ActionResult<RequisiteDto>> Update(Guid id, [FromBody] RequisiteUpdateDto? dto)
     {
         if (dto is null) return BadRequest();
 
         try
         {
-            var result = await service.UpdateRequisite(id, dto);
-            if (!result)
+            var requisite = await service.UpdateRequisite(id, dto);
+            if (requisite is null)
             {
                 return BadRequest();
             }
             
-            await notificationService.NotifyRequisiteUpdated();
-            return Ok();
+            await notificationService.NotifyRequisiteUpdated(requisite);
+            return Ok(requisite);
         }
         catch (ValidationException e)
         {
@@ -90,15 +91,15 @@ public class RequisiteController(IRequisiteService service, INotificationService
     }
     
     [HttpDelete("{id:guid}")]
-    public async Task<ActionResult> Delete(Guid id)
+    public async Task<ActionResult<RequisiteDto>> Delete(Guid id)
     {
-        var result = await service.DeleteRequisite(id);
-        if (!result)
+        var requisite = await service.DeleteRequisite(id);
+        if (requisite is null)
         {
             return NotFound();
         }
         
-        await notificationService.NotifyRequisiteUpdated();
-        return Ok();
+        await notificationService.NotifyRequisiteUpdated(requisite);
+        return Ok(requisite);
     }
 }

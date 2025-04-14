@@ -7,6 +7,6 @@ public interface IAdminService
     Task<UserDto?> CreateUser(CreateUserDto dto);
     Task<IEnumerable<UserDto>> GetAllUsers();
     Task<UserDto?> GetUserById(Guid id);
-    Task<bool> DeleteUser(Guid id, string? currentUserId);
-    Task<bool> UpdateUser(UpdateUserDto dto);
+    Task<UserDto?> DeleteUser(Guid id, string? currentUserId);
+    Task<UserDto?> UpdateUser(UpdateUserDto dto);
 }

@@ -1,6 +1,9 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using AutoMapper;
+using Microsoft.Extensions.Logging;
 using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Core.Interfaces;
+using PaymentGateway.Shared.DTOs.Payment;
+using PaymentGateway.Shared.DTOs.Requisite;
 using PaymentGateway.Shared.Enums;
 using PaymentGateway.Shared.Interfaces;
 
@@ -9,7 +12,8 @@ namespace PaymentGateway.Application.Services;
 public class GatewayHandler(
     ILogger<GatewayHandler> logger,
     ICache cache,
-    INotificationService notificationService)
+    INotificationService notificationService,
+    IMapper mapper)
     : IGatewayHandler
 {
     public async Task HandleRequisites(IUnitOfWork unit)
@@ -17,7 +21,6 @@ public class GatewayHandler(
         var requisites = await unit.RequisiteRepository.GetAll();
         var now = DateTime.UtcNow;
         var nowTimeOnly = TimeOnly.FromDateTime(now);
-        var hasChanges = false;
         
         foreach (var requisite in requisites)
         {
@@ -32,7 +35,7 @@ public class GatewayHandler(
                     logger.LogInformation("Статус реквизита {requisiteId} изменен с {oldStatus} на {newStatus}", requisite.Id, requisite.Status.ToString(), status.ToString());
                     requisite.Status = status;
                     unit.RequisiteRepository.Update(requisite);
-                    hasChanges = true;
+                    await notificationService.NotifyRequisiteUpdated(mapper.Map<RequisiteDto>(requisite));
                 }
                 
                 if (requisite.LastFundsResetAt.Date < now.Date)
@@ -41,18 +44,13 @@ public class GatewayHandler(
                     requisite.ReceivedFunds = 0;
                     requisite.LastFundsResetAt = now;
                     unit.RequisiteRepository.Update(requisite);
-                    hasChanges = true;
+                    await notificationService.NotifyRequisiteUpdated(mapper.Map<RequisiteDto>(requisite));
                 }
             }
             catch (Exception e)
             {
                 logger.LogError(e, "Ошибка при обработке реквизита {requisiteId}", requisite.Id);
             }
-        }
-
-        if (hasChanges)
-        {
-            await notificationService.NotifyRequisiteUpdated();
         }
     }
 
@@ -71,7 +69,6 @@ public class GatewayHandler(
             return;
         }
         
-        var hasChanges = false;
         foreach (var payment in unprocessedPayments)
         {
             if (freeRequisites.Count == 0)
@@ -90,15 +87,11 @@ public class GatewayHandler(
             
             requisite.AssignToPayment(payment);
             payment.MarkAsPending(requisite);
-            hasChanges = true;
+
+            await notificationService.NotifyPaymentUpdated(mapper.Map<PaymentDto>(payment));
+            await notificationService.NotifyRequisiteUpdated(mapper.Map<RequisiteDto>(requisite));
 
             logger.LogInformation("Платеж {payment} назначен реквизиту {requisite}", payment.Id, requisite.Id);
-        }
-
-        if (hasChanges)
-        {
-            await notificationService.NotifyPaymentUpdated();
-            await notificationService.NotifyRequisiteUpdated();
         }
     }
     
@@ -107,25 +100,18 @@ public class GatewayHandler(
         var expiredPayments = await unit.PaymentRepository.GetExpiredPayments();
         if (expiredPayments.Count > 0)
         {
-            var hasChanges = false;
             foreach (var expiredPayment in expiredPayments)
             {
                 if (expiredPayment.Requisite != null)
                 {
                     expiredPayment.Requisite.Status = RequisiteStatus.Active;
-                    hasChanges = true;
+                    await notificationService.NotifyRequisiteUpdated(mapper.Map<RequisiteDto>(expiredPayment.Requisite));
                 }
-                
+                await notificationService.NotifyPaymentUpdated(mapper.Map<PaymentDto>(expiredPayment));
                 logger.LogInformation("Платеж {paymentId} на сумму {amount} отменен из-за истечения срока ожидания", expiredPayment.Id, expiredPayment.Amount);
             }
         
             unit.PaymentRepository.DeletePayments(expiredPayments);
-
-            if (hasChanges)
-            {
-                await notificationService.NotifyPaymentUpdated();
-                await notificationService.NotifyRequisiteUpdated();
-            }
         }
     }
 }

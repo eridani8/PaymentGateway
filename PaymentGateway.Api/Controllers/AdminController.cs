@@ -22,7 +22,11 @@ public class UsersController(IAdminService service, INotificationService notific
         try
         {
             var user = await service.CreateUser(dto);
-            await notificationService.NotifyUserUpdated();
+            if (user is null)
+            {
+                return BadRequest();
+            }
+            await notificationService.NotifyUserUpdated(user);
             return Ok(user);
         }
         catch (DuplicateUserException)
@@ -62,32 +66,32 @@ public class UsersController(IAdminService service, INotificationService notific
     public async Task<ActionResult> DeleteUser(Guid id)
     {
         var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-        var result = await service.DeleteUser(id, currentUserId);
+        var user = await service.DeleteUser(id, currentUserId);
 
-        if (!result)
+        if (user is null)
         {
             return NotFound();
         }
 
-        await notificationService.NotifyUserUpdated();
+        await notificationService.NotifyUserUpdated(user);
         return Ok(true);
     }
 
     [HttpPut]
-    public async Task<ActionResult> UpdateUser([FromBody] UpdateUserDto? dto)
+    public async Task<ActionResult<UserDto>> UpdateUser([FromBody] UpdateUserDto? dto)
     {
         if (dto is null) return BadRequest();
 
         try
         {
-            var result = await service.UpdateUser(dto);
-            if (!result)
+            var user = await service.UpdateUser(dto);
+            if (user is null)
             {
                 return NotFound();
             }
             
-            await notificationService.NotifyUserUpdated();
-            return Ok(true);
+            await notificationService.NotifyUserUpdated(user);
+            return Ok(user);
         }
         catch (ValidationException e)
         {
