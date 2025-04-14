@@ -16,6 +16,7 @@ public interface IRequisiteEntity
     Guid? PaymentId { get; set; }
     PaymentEntity? Payment { get; set; }
     RequisiteStatus Status { get; set; }
+    bool IsActive { get; set; }
     decimal ReceivedFunds { get; set; }
     decimal MaxAmount { get; set; }
     TimeSpan Cooldown { get; set; }

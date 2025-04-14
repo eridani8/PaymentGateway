@@ -12,12 +12,12 @@ public sealed class PaymentEntity : IPaymentEntity, ICacheable
     /// <summary>
     /// Идентификатор платежа
     /// </summary>
-    public required Guid Id { get; init; }
+    public Guid Id { get; init; }
 
     /// <summary>
     /// Идентификатор платежа во внешней системе
     /// </summary>
-    public required Guid ExternalPaymentId { get; init; }
+    public Guid ExternalPaymentId { get; init; }
     
     /// <summary>
     /// Идентификатор пользователя
@@ -29,7 +29,7 @@ public sealed class PaymentEntity : IPaymentEntity, ICacheable
     /// </summary>
     [Range(0, 9999999999999999.99)]
     [Column(TypeName = "decimal(18,2)")] 
-    public required decimal Amount { get; init; }
+    public decimal Amount { get; init; }
 
     /// <summary>
     /// Идентификатор связанного реквизита
@@ -46,7 +46,7 @@ public sealed class PaymentEntity : IPaymentEntity, ICacheable
     /// <summary>
     /// Дата и время создания платежа
     /// </summary>
-    public required DateTime CreatedAt { get; init; }
+    public DateTime CreatedAt { get; init; }
 
     /// <summary>
     /// Дата и время обработки платежа
@@ -56,7 +56,7 @@ public sealed class PaymentEntity : IPaymentEntity, ICacheable
     /// <summary>
     /// Дата и время истечения срока действия платежа (null для подтвержденных)
     /// </summary>
-    public required DateTime? ExpiresAt { get; set; }
+    public DateTime? ExpiresAt { get; set; }
     
     /// <summary>
     /// Идентификатор связанной транзакции

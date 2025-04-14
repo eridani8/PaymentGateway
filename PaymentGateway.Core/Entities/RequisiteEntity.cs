@@ -14,18 +14,18 @@ public class RequisiteEntity : IRequisiteEntity, ICacheable
     /// <summary>
     /// Идентификатор реквизита
     /// </summary>
-    public required Guid Id { get; init; }
+    public Guid Id { get; init; }
 
     /// <summary>
     /// Идентификатор пользователя
     /// </summary>
-    public required Guid UserId { get; init; }
+    public Guid UserId { get; init; }
 
     /// <summary>
     /// Имя и фамилия
     /// </summary>
-    [MaxLength(40)]
-    public required string FullName { get; init; }
+    [MaxLength(100)]
+    public string FullName { get; init; } = string.Empty;
 
     /// <summary>
     /// Тип реквизита
@@ -37,19 +37,19 @@ public class RequisiteEntity : IRequisiteEntity, ICacheable
     /// </summary>
     [MaxLength(255)]
     [Encrypted]
-    public required string PaymentData { get; init; }
+    public string PaymentData { get; init; } = string.Empty;
 
     /// <summary>
     /// Номер банковского счета
     /// </summary>
     [MaxLength(255)]
     [Encrypted]
-    public required string BankNumber { get; init; }
+    public string BankNumber { get; init; } = string.Empty;
 
     /// <summary>
     /// Дата и время создания
     /// </summary>
-    public required DateTime CreatedAt { get; init; }
+    public DateTime CreatedAt { get; init; }
 
     /// <summary>
     /// Дата и время последней операции
@@ -66,9 +66,9 @@ public class RequisiteEntity : IRequisiteEntity, ICacheable
     /// <summary>
     /// Статус реквизита
     /// </summary>
-    public required RequisiteStatus Status { get; set; }
+    public RequisiteStatus Status { get; set; }
 
-    public required bool IsActive { get; set; }
+    public bool IsActive { get; set; }
 
     /// <summary>
     /// Полученные средства
@@ -82,7 +82,7 @@ public class RequisiteEntity : IRequisiteEntity, ICacheable
     /// </summary>
     [Range(0, 9999999999999999.99)]
     [Column(TypeName = "decimal(18,2)")]
-    public required decimal MaxAmount { get; set; }
+    public decimal MaxAmount { get; set; }
 
     /// <summary>
     /// Дата последнего сброса полученных средств
@@ -92,22 +92,22 @@ public class RequisiteEntity : IRequisiteEntity, ICacheable
     /// <summary>
     /// Задержка перед следующей операцией
     /// </summary>
-    public required TimeSpan Cooldown { get; set; }
+    public TimeSpan Cooldown { get; set; }
 
     /// <summary>
     /// Приоритет использования
     /// </summary>
-    public required int Priority { get; set; }
+    public int Priority { get; set; }
 
     /// <summary>
     /// Временное ограничение от
     /// </summary>
-    public required TimeOnly WorkFrom { get; set; }
+    public TimeOnly WorkFrom { get; set; }
 
     /// <summary>
     /// Временное ограничение до
     /// </summary>
-    public required TimeOnly WorkTo { get; set; }
+    public TimeOnly WorkTo { get; set; }
 
     public void AssignToPayment(PaymentEntity payment)
     {

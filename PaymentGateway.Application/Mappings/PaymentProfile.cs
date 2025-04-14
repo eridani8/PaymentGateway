@@ -24,18 +24,16 @@ public class PaymentProfile : Profile
         
         CreateMap<PaymentCreateDto, PaymentEntity>()
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => Guid.CreateVersion7()))
+            .ForMember(dest => dest.ExternalPaymentId, opt => opt.MapFrom(src => src.ExternalPaymentId))
+            .ForMember(dest => dest.Amount, opt => opt.MapFrom(src => src.Amount))
+            .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId))
             .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
             .ForMember(dest => dest.Status, opt => opt.MapFrom(src => PaymentStatus.Created))
             .ForMember(dest => dest.ExpiresAt, opt => opt.MapFrom(src => DateTime.UtcNow.AddMinutes(5)))
-            
-            .ForMember(dest => dest.Amount, opt => opt.MapFrom(src => src.Amount))
-            .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId))
-            .ForMember(dest => dest.ExternalPaymentId, opt => opt.MapFrom(src => src.ExternalPaymentId))
-            
-            .ForMember(dest => dest.RequisiteId, opt => opt.Ignore())
-            .ForMember(dest => dest.Requisite, opt => opt.Ignore())
-            .ForMember(dest => dest.ProcessedAt, opt => opt.Ignore())
-            .ForMember(dest => dest.TransactionId, opt => opt.Ignore())
-            .ForMember(dest => dest.Transaction, opt => opt.Ignore());
+            .ForMember(dest => dest.RequisiteId, opt => opt.MapFrom(src => (Guid?)null))
+            .ForMember(dest => dest.Requisite, opt => opt.MapFrom(src => (RequisiteEntity?)null))
+            .ForMember(dest => dest.ProcessedAt, opt => opt.MapFrom(src => (DateTime?)null))
+            .ForMember(dest => dest.TransactionId, opt => opt.MapFrom(src => (Guid?)null))
+            .ForMember(dest => dest.Transaction, opt => opt.MapFrom(src => (TransactionEntity?)null));
     }
 }

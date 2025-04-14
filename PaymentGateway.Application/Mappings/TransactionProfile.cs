@@ -15,7 +15,7 @@ public class TransactionProfile : Profile
             .ForMember(dest => dest.PaymentId, opt => opt.MapFrom(src => src.PaymentId))
             .ForMember(dest => dest.Source, opt => opt.MapFrom(src => src.Source))
             .ForMember(dest => dest.ExtractedAmount, opt => opt.MapFrom(src => src.ExtractedAmount))
-            
+            .ForMember(dest => dest.RawMessage, opt => opt.MapFrom(src => src.RawMessage))
             .ForMember(dest => dest.ReceivedAt, opt => opt.ConvertUsing(new UtcToLocalDateTimeConverter(), src => src.ReceivedAt));
         
         CreateMap<TransactionCreateDto, TransactionEntity>()

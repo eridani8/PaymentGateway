@@ -12,42 +12,42 @@ public sealed class TransactionEntity : ITransactionEntity, ICacheable
     /// <summary>
     /// Идентификатор транзакции
     /// </summary>
-    public required Guid Id { get; init; }
+    public Guid Id { get; init; }
     
     /// <summary>
     /// Идентификатор реквизита
     /// </summary>
-    public required Guid? RequisiteId { get; init; }
+    public Guid? RequisiteId { get; init; }
     
-    public required RequisiteEntity? Requisite { get; init; }
+    public RequisiteEntity? Requisite { get; init; }
     
     /// <summary>
     /// Идентификатор платежа
     /// </summary>
-    public required Guid? PaymentId { get; init; }
+    public Guid? PaymentId { get; init; }
     
     public PaymentEntity? Payment { get; init; }
     
     /// <summary>
     /// Источник транзакции
     /// </summary>
-    public required TransactionSource Source { get; init; }
+    public TransactionSource Source { get; init; }
     
     /// <summary>
     /// Сумма, извлечённая из платежа
     /// </summary>
     [Range(0, 9999999999999999.99)]
     [Column(TypeName = "decimal(18,2)")]
-    public required decimal ExtractedAmount { get; init; }
+    public decimal ExtractedAmount { get; init; }
     
     /// <summary>
     /// Дата и время получения транзакции
     /// </summary>
-    public required DateTime ReceivedAt { get; init; }
+    public DateTime ReceivedAt { get; init; }
     
     /// <summary>
     /// Оригинальный текст сообщения
     /// </summary>
     [MaxLength(300)]
-    public required string? RawMessage { get; init; }
+    public string? RawMessage { get; init; }
 }
