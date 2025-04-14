@@ -14,6 +14,7 @@ using PaymentGateway.Web.Services;
 using Microsoft.Extensions.Localization;
 using System.Globalization;
 using PaymentGateway.Shared.DTOs.Requisite;
+using PaymentGateway.Shared.Interfaces;
 using PaymentGateway.Shared.Validations.Validators.Requisite;
 using PaymentGateway.Shared.Validations.Validators.User;
 
@@ -37,6 +38,7 @@ builder.Services.AddAuthorizationCore();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.AddScoped<IRequisiteService, RequisiteService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
 
 builder.Services.AddHttpClient("API", (serviceProvider, client) =>
     {
@@ -65,6 +67,7 @@ CultureInfo.DefaultThreadCurrentCulture = new CultureInfo("ru-RU");
 CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo("ru-RU");
 
 builder.Services.AddTransient<MudLocalizer, ResXMudLocalizer>();
+builder.Services.AddSingleton<SignalRService>();
 
 var app = builder.Build();
 

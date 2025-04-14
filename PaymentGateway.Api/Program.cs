@@ -6,7 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using NpgsqlTypes;
 using PaymentGateway.Api;
-using PaymentGateway.Api.Filters;
+using PaymentGateway.Api.Hubs;
 using PaymentGateway.Application;
 using PaymentGateway.Core;
 using PaymentGateway.Core.Entities;
@@ -17,6 +17,8 @@ using Serilog.Events;
 using Serilog.Sinks.PostgreSQL;
 using Serilog.Sinks.PostgreSQL.ColumnWriters;
 using UserStatusFilter = PaymentGateway.Api.Filters.UserStatusFilter;
+using PaymentGateway.Api.Services;
+using PaymentGateway.Shared.Interfaces;
 
 try
 {
@@ -113,6 +115,9 @@ try
     builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
     builder.Services.AddProblemDetails();
 
+    builder.Services.AddSignalR();
+    builder.Services.AddScoped<INotificationService, NotificationService>();
+
     var secretKey = authConfig.SecretKey;
     var key = Encoding.ASCII.GetBytes(secretKey);
     builder.Services.AddAuthentication(options =>
@@ -163,6 +168,8 @@ try
     app.UseAuthorization();
     app.MapControllers();
     app.UseExceptionHandler();
+
+    app.MapHub<NotificationHub>("/notificationHub");
 
     using (var scope = app.Services.CreateScope())
     {

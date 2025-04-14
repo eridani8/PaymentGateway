@@ -1,8 +1,6 @@
 ﻿@page "/RequisitesManagement"
 @using PaymentGateway.Shared.DTOs.Requisite
 @using PaymentGateway.Shared.Enums
-@using PaymentGateway.Web.Dialogs
-@using System.Timers
 @attribute [Authorize(Roles = "User,Admin,Support")]
 @inject IRequisiteService RequisiteService
 @inject ILogger<RequisitesManagement> Logger
@@ -10,7 +8,8 @@
 @inject ISnackbar Snackbar
 @inject NavigationManager NavigationManager
 @inject AuthenticationStateProvider AuthStateProvider
-@implements IDisposable
+@inject SignalRService SignalRService
+@implements IAsyncDisposable
 
 <AuthorizeView Roles="User,Admin,Support">
     <Authorized>
@@ -102,7 +101,6 @@
 @code {
     private bool _isLoading = true;
     private List<RequisiteDto> _requisites = [];
-    private Timer _timer = null!;
     private bool _isRootUser;
 
     protected override async Task OnInitializedAsync()
@@ -113,20 +111,25 @@
                       authState.User.IsInRole("User");
 
         await LoadRequisites();
-
-        _timer = new Timer(3000);
-        _timer.Elapsed += async (_, _) => await InvokeAsync(async () =>
+        await SignalRService.InitializeAsync();
+        SignalRService.SubscribeToUpdates("RequisiteUpdated", async void () =>
         {
-            await LoadRequisites();
-            StateHasChanged();
+            try
+            {
+                await LoadRequisites();
+                StateHasChanged();
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e, e.Message);
+            }
         });
-        _timer.AutoReset = true;
-        _timer.Enabled = true;
     }
 
-    public void Dispose()
+    public async ValueTask DisposeAsync()
     {
-        _timer?.Dispose();
+        SignalRService.UnsubscribeFromUpdates("RequisiteUpdated");
+        await SignalRService.DisposeAsync();
     }
 
     private async Task LoadRequisites()
@@ -207,5 +210,4 @@
         var totalMinutes = Math.Ceiling(remaining.TotalMinutes);
         return $" - {totalMinutes} мин";
     }
-
 }

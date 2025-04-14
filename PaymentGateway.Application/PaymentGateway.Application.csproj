@@ -10,6 +10,7 @@
         <ProjectReference Include="..\PaymentGateway.Core\PaymentGateway.Core.csproj" />
         <ProjectReference Include="..\PaymentGateway.Infrastructure\PaymentGateway.Infrastructure.csproj" />
         <ProjectReference Include="..\PaymentGateway.Shared\PaymentGateway.Shared.csproj" />
+        <ProjectReference Include="..\PaymentGateway.Web\PaymentGateway.Web.csproj" />
     </ItemGroup>
 
     <ItemGroup>

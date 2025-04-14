@@ -2,12 +2,14 @@
 using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Core.Interfaces;
 using PaymentGateway.Shared.Enums;
+using PaymentGateway.Shared.Interfaces;
 
 namespace PaymentGateway.Application.Services;
 
 public class GatewayHandler(
     ILogger<GatewayHandler> logger,
-    ICache cache)
+    ICache cache,
+    INotificationService notificationService)
     : IGatewayHandler
 {
     public async Task HandleRequisites(IUnitOfWork unit)
@@ -15,6 +17,7 @@ public class GatewayHandler(
         var requisites = await unit.RequisiteRepository.GetAll();
         var now = DateTime.UtcNow;
         var nowTimeOnly = TimeOnly.FromDateTime(now);
+        var hasChanges = false;
         
         foreach (var requisite in requisites)
         {
@@ -29,6 +32,7 @@ public class GatewayHandler(
                     logger.LogInformation("Статус реквизита {requisiteId} изменен с {oldStatus} на {newStatus}", requisite.Id, requisite.Status.ToString(), status.ToString());
                     requisite.Status = status;
                     unit.RequisiteRepository.Update(requisite);
+                    hasChanges = true;
                 }
                 
                 if (requisite.LastFundsResetAt.Date < now.Date)
@@ -36,12 +40,19 @@ public class GatewayHandler(
                     logger.LogInformation("Сброс полученных средств с реквизита {requisiteId}", requisite.Id);
                     requisite.ReceivedFunds = 0;
                     requisite.LastFundsResetAt = now;
+                    unit.RequisiteRepository.Update(requisite);
+                    hasChanges = true;
                 }
             }
             catch (Exception e)
             {
                 logger.LogError(e, "Ошибка при обработке реквизита {requisiteId}", requisite.Id);
             }
+        }
+
+        if (hasChanges)
+        {
+            await notificationService.NotifyRequisiteUpdated();
         }
     }
 
@@ -60,6 +71,7 @@ public class GatewayHandler(
             return;
         }
         
+        var hasChanges = false;
         foreach (var payment in unprocessedPayments)
         {
             if (freeRequisites.Count == 0)
@@ -78,8 +90,15 @@ public class GatewayHandler(
             
             requisite.AssignToPayment(payment);
             payment.MarkAsPending(requisite);
+            hasChanges = true;
 
             logger.LogInformation("Платеж {payment} назначен реквизиту {requisite}", payment.Id, requisite.Id);
+        }
+
+        if (hasChanges)
+        {
+            await notificationService.NotifyPaymentUpdated();
+            await notificationService.NotifyRequisiteUpdated();
         }
     }
     
@@ -88,17 +107,25 @@ public class GatewayHandler(
         var expiredPayments = await unit.PaymentRepository.GetExpiredPayments();
         if (expiredPayments.Count > 0)
         {
+            var hasChanges = false;
             foreach (var expiredPayment in expiredPayments)
             {
                 if (expiredPayment.Requisite != null)
                 {
                     expiredPayment.Requisite.Status = RequisiteStatus.Active;
+                    hasChanges = true;
                 }
                 
                 logger.LogInformation("Платеж {paymentId} на сумму {amount} отменен из-за истечения срока ожидания", expiredPayment.Id, expiredPayment.Amount);
             }
         
             unit.PaymentRepository.DeletePayments(expiredPayments);
+
+            if (hasChanges)
+            {
+                await notificationService.NotifyPaymentUpdated();
+                await notificationService.NotifyRequisiteUpdated();
+            }
         }
     }
 }

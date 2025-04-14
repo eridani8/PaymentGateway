@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Mvc;
 using PaymentGateway.Application;
 using PaymentGateway.Core.Entities;
 using PaymentGateway.Core.Interfaces;
-using PaymentGateway.Shared.DTOs;
 using PaymentGateway.Shared.DTOs.User;
 
 namespace PaymentGateway.Api.Controllers;

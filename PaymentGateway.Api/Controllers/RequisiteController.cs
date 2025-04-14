@@ -5,7 +5,7 @@ using PaymentGateway.Application;
 using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Core.Exceptions;
 using PaymentGateway.Shared.DTOs.Requisite;
-using System.Security.Claims;
+using PaymentGateway.Shared.Interfaces;
 
 namespace PaymentGateway.Api.Controllers;
 
@@ -13,7 +13,8 @@ namespace PaymentGateway.Api.Controllers;
 [Route("[controller]/[action]")]
 [Produces("application/json")]
 [Authorize]
-public class RequisiteController(IRequisiteService service) : ControllerBase
+public class RequisiteController(IRequisiteService service, INotificationService notificationService)
+    : ControllerBase
 {
     [HttpPost]
     public async Task<ActionResult<RequisiteDto>> Create([FromBody] RequisiteCreateDto? dto)
@@ -24,6 +25,7 @@ public class RequisiteController(IRequisiteService service) : ControllerBase
         {
             var userId = User.GetCurrentUserId();
             var requisite = await service.CreateRequisite(dto, userId);
+            await notificationService.NotifyRequisiteUpdated();
             return Ok(requisite);
         }
         catch (DuplicateRequisiteException e)
@@ -78,6 +80,7 @@ public class RequisiteController(IRequisiteService service) : ControllerBase
                 return BadRequest();
             }
             
+            await notificationService.NotifyRequisiteUpdated();
             return Ok();
         }
         catch (ValidationException e)
@@ -95,6 +98,7 @@ public class RequisiteController(IRequisiteService service) : ControllerBase
             return NotFound();
         }
         
+        await notificationService.NotifyRequisiteUpdated();
         return Ok();
     }
 }

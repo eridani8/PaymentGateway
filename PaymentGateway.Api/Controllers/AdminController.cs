@@ -5,13 +5,14 @@ using PaymentGateway.Application;
 using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Core.Exceptions;
 using PaymentGateway.Shared.DTOs.User;
+using PaymentGateway.Shared.Interfaces;
 
 namespace PaymentGateway.Api.Controllers;
 
 [ApiController]
 [Route("[controller]/[action]")]
 [Authorize(Roles = "Admin")]
-public class UsersController(IAdminService service) : ControllerBase
+public class UsersController(IAdminService service, INotificationService notificationService) : ControllerBase
 {
     [HttpPost]
     public async Task<ActionResult<UserDto>> CreateUser([FromBody] CreateUserDto? dto)
@@ -21,6 +22,7 @@ public class UsersController(IAdminService service) : ControllerBase
         try
         {
             var user = await service.CreateUser(dto);
+            await notificationService.NotifyUserUpdated();
             return Ok(user);
         }
         catch (DuplicateUserException)
@@ -67,11 +69,12 @@ public class UsersController(IAdminService service) : ControllerBase
             return NotFound();
         }
 
+        await notificationService.NotifyUserUpdated();
         return Ok(true);
     }
 
     [HttpPut]
-    public async Task<ActionResult> UpdateUser([FromBody] UpdateUserDto dto)
+    public async Task<ActionResult> UpdateUser([FromBody] UpdateUserDto? dto)
     {
         if (dto is null) return BadRequest();
 
@@ -82,7 +85,8 @@ public class UsersController(IAdminService service) : ControllerBase
             {
                 return NotFound();
             }
-
+            
+            await notificationService.NotifyUserUpdated();
             return Ok(true);
         }
         catch (ValidationException e)

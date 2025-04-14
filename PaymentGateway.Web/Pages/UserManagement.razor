@@ -1,14 +1,13 @@
 ﻿@page "/UserManagement"
 @using PaymentGateway.Shared.DTOs.User
-@using PaymentGateway.Web.Dialogs
-@using System.Timers
 @attribute [Authorize(Roles = "Admin")]
 @inject IAdminService AdminService
-@inject ILogger<UserManagement> Logger
 @inject IDialogService DialogService
+@inject ILogger<UserManagement> Logger
 @inject ISnackbar Snackbar
 @inject NavigationManager NavigationManager
-@implements IDisposable
+@inject SignalRService SignalRService
+@implements IAsyncDisposable
 
 <AuthorizeView Roles="Admin">
     <Authorized>
@@ -57,12 +56,12 @@
                                         Size="Size.Small"
                                         OnClick="@(() => OpenEditDialog(cellContext.Item))" 
                                         Title="Редактировать"/>
-                                        <MudIconButton 
-                                    Icon="@Icons.Material.Filled.Delete" 
-                                    Color="Color.Error" 
-                                    Size="Size.Small"
-                                    OnClick="@(() => OpenDeleteDialog(cellContext.Item))" 
-                                    aria-label="delete"/>
+                                    <MudIconButton 
+                                        Icon="@Icons.Material.Filled.Delete" 
+                                        Color="Color.Error" 
+                                        Size="Size.Small"
+                                        OnClick="@(() => OpenDeleteDialog(cellContext.Item))" 
+                                        aria-label="delete"/>
                                 }
                             </CellTemplate>
                         </TemplateColumn>
@@ -81,25 +80,29 @@
 @code {
     private bool _isLoading = true;
     private List<UserDto> _users = [];
-    private Timer _timer = null!;
 
     protected override async Task OnInitializedAsync()
     {
         await LoadUsers();
-
-        _timer = new Timer(3000);
-        _timer.Elapsed += async (_, _) => await InvokeAsync(async () =>
+        await SignalRService.InitializeAsync();
+        SignalRService.SubscribeToUpdates("UserUpdated", async void () =>
         {
-            await LoadUsers();
-            StateHasChanged();
+            try
+            {
+                await LoadUsers();
+                StateHasChanged();
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e, e.Message);
+            }
         });
-        _timer.AutoReset = true;
-        _timer.Enabled = true;
     }
 
-    public void Dispose()
+    public async ValueTask DisposeAsync()
     {
-        _timer?.Dispose();
+        SignalRService.UnsubscribeFromUpdates("UserUpdated");
+        await SignalRService.DisposeAsync();
     }
 
     private async Task LoadUsers()
@@ -155,7 +158,7 @@
 
         if (result is { Canceled: false })
         {
-            var updateDto = (UpdateUserDto)result.Data;
+            var updateDto = (UpdateUserDto)result.Data!;
             try
             {
                 await AdminService.UpdateUser(updateDto);

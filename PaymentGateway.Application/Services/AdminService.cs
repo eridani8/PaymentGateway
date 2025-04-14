@@ -18,7 +18,7 @@ public class AdminService(
     IValidator<UpdateUserDto> updateValidator,
     ILogger<AdminService> logger) : IAdminService
 {
-    public async Task<UserDto> CreateUser(CreateUserDto dto)
+    public async Task<UserDto?> CreateUser(CreateUserDto dto)
     {
         var validation = await createValidator.ValidateAsync(dto);
         if (!validation.IsValid)

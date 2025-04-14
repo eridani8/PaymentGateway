@@ -4,7 +4,7 @@ namespace PaymentGateway.Application.Interfaces;
 
 public interface IAdminService
 {
-    Task<UserDto> CreateUser(CreateUserDto dto);
+    Task<UserDto?> CreateUser(CreateUserDto dto);
     Task<IEnumerable<UserDto>> GetAllUsers();
     Task<UserDto?> GetUserById(Guid id);
     Task<bool> DeleteUser(Guid id, string? currentUserId);

@@ -5,6 +5,7 @@ using PaymentGateway.Application;
 using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Core.Exceptions;
 using PaymentGateway.Shared.DTOs.Payment;
+using PaymentGateway.Shared.Interfaces;
 
 namespace PaymentGateway.Api.Controllers;
 
@@ -12,7 +13,10 @@ namespace PaymentGateway.Api.Controllers;
 [Route("[controller]/[action]")]
 [Produces("application/json")]
 [Authorize]
-public class PaymentController(IPaymentService service) : ControllerBase
+public class PaymentController(
+    IPaymentService paymentService,
+    INotificationService notificationService)
+    : ControllerBase
 {
     [HttpPost]
     public async Task<ActionResult<PaymentDto>> Create([FromBody] PaymentCreateDto? dto)
@@ -21,7 +25,8 @@ public class PaymentController(IPaymentService service) : ControllerBase
 
         try
         {
-            var payment = await service.CreatePayment(dto);
+            var payment = await paymentService.CreatePayment(dto);
+            await notificationService.NotifyPaymentUpdated();
             return Ok(payment);
         }
         catch (DuplicatePaymentException)
@@ -37,7 +42,7 @@ public class PaymentController(IPaymentService service) : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IEnumerable<PaymentDto>>> GetAll()
     {
-        var requisites = await service.GetAllPayments();
+        var requisites = await paymentService.GetAllPayments();
         
         return Ok(requisites);
     }
@@ -45,7 +50,7 @@ public class PaymentController(IPaymentService service) : ControllerBase
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<PaymentDto>> GetById(Guid id)
     {
-        var requisite = await service.GetPaymentById(id);
+        var requisite = await paymentService.GetPaymentById(id);
         if (requisite is null)
         {
             return NotFound();
@@ -57,12 +62,13 @@ public class PaymentController(IPaymentService service) : ControllerBase
     [HttpDelete("{id:guid}")]
     public async Task<ActionResult> Delete(Guid id)
     {
-        var result = await service.DeletePayment(id);
+        var result = await paymentService.DeletePayment(id);
         if (!result)
         {
             return NotFound();
         }
-        
+
+        await notificationService.NotifyPaymentUpdated();
         return Ok();
     }
 }
