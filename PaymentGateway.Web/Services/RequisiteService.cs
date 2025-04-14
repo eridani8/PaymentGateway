@@ -3,6 +3,7 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Components.Authorization;
 using PaymentGateway.Shared.DTOs.Requisite;
 using PaymentGateway.Web.Interfaces;
+using System.Security.Claims;
 
 namespace PaymentGateway.Web.Services;
 

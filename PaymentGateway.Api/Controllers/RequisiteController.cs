@@ -34,7 +34,6 @@ public class RequisiteController(IRequisiteService service) : ControllerBase
         {
             var userId = GetCurrentUserId();
             var requisite = await service.CreateRequisite(dto, userId);
-
             return Ok(requisite);
         }
         catch (DuplicateRequisiteException e)

@@ -33,7 +33,7 @@ public class RequisiteService(
             throw new DuplicateRequisiteException("Реквизит с такими платежными данными уже существует");
         }
 
-        var entity = mapper.Map<RequisiteEntity>(dto);
+        var entity = mapper.Map<RequisiteEntity>(dto, opts => opts.Items["UserId"] = userId);
         
         await unit.RequisiteRepository.Add(entity);
         await unit.Commit();

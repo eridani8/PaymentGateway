@@ -37,6 +37,7 @@ public class RequisiteProfile : Profile
 
         CreateMap<RequisiteCreateDto, RequisiteEntity>()
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => Guid.CreateVersion7()))
+            .ForMember(dest => dest.UserId, opt => opt.MapFrom((src, dest, member, context) => context.Items["UserId"]))
             .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.FullName))
             .ForMember(dest => dest.PaymentType, opt => opt.MapFrom(src => src.PaymentType))
             .ForMember(dest => dest.PaymentData, opt => opt.MapFrom(src => src.PaymentData))
