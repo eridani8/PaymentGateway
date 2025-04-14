@@ -8,4 +8,5 @@ public interface IAdminService
     Task<IEnumerable<UserDto>> GetAllUsers();
     Task<UserDto?> GetUserById(Guid id);
     Task<bool> DeleteUser(Guid id, string? currentUserId);
+    Task<bool> UpdateUser(UpdateUserDto dto);
 }

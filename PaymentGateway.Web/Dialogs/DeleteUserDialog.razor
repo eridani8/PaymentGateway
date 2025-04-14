@@ -15,7 +15,7 @@
         }
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="Cancel">Нет</MudButton>
+        <MudButton Color="Color.Secondary" OnClick="Cancel">Нет</MudButton>
         <MudButton Color="Color.Error" OnClick="ConfirmDelete" Disabled="@(_processing)">
             @if (_processing)
             {

@@ -2,7 +2,8 @@
 
 public class UserDto
 {
-    public Guid Id { get; init; }
-    public string Username { get; init; } = string.Empty;
-    public List<string> Roles { get; init; } = [];
+    public Guid Id { get; set; }
+    public string Username { get; set; } = string.Empty;
+    public List<string> Roles { get; set; } = [];
+    public bool IsActive { get; set; }
 }

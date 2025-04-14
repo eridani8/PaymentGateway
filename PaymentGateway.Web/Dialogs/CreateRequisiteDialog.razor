@@ -130,8 +130,8 @@
         </MudForm>
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="Cancel">Отмена</MudButton>
-        <MudButton Color="Color.Primary" OnClick="Submit" Disabled="@(_processing)">
+        <MudButton Color="Color.Error" OnClick="Cancel">Отмена</MudButton>
+        <MudButton Color="Color.Secondary" OnClick="Submit" Disabled="@(_processing)">
             @if (_processing)
             {
                 <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>

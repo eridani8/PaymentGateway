@@ -40,8 +40,21 @@
                                 @string.Join(", ", cellContext.Item.Roles)
                             </CellTemplate>
                         </TemplateColumn>
+                        <TemplateColumn Title="Статус">
+                            <CellTemplate Context="cellContext">
+                                <MudChip Color="@(cellContext.Item.IsActive ? Color.Success : Color.Error)" Size="Size.Small">
+                                    @(cellContext.Item.IsActive ? "Активен" : "Неактивен")
+                                </MudChip>
+                            </CellTemplate>
+                        </TemplateColumn>
                         <TemplateColumn Title="Действия">
                             <CellTemplate Context="cellContext">
+                                <MudIconButton 
+                                    Icon="@Icons.Material.Filled.Edit" 
+                                    Color="Color.Primary" 
+                                    Size="Size.Small"
+                                    OnClick="@(() => OpenEditDialog(cellContext.Item))" 
+                                    Title="Редактировать"/>
                                 <MudIconButton 
                                     Icon="@Icons.Material.Filled.Delete" 
                                     Color="Color.Error" 
@@ -124,6 +137,40 @@
         if (result is { Canceled: false })
         {
             await LoadUsers();
+        }
+    }
+
+    private async Task OpenEditDialog(UserDto user)
+    {
+        var parameters = new DialogParameters
+        {
+            ["User"] = user
+        };
+
+        var dialog = await DialogService.ShowAsync<EditUserDialog>(null, parameters);
+        var result = await dialog.Result;
+
+        if (result is { Canceled: false })
+        {
+            var updateDto = (UpdateUserDto)result.Data;
+            try
+            {
+                var success = await AdminService.UpdateUser(updateDto);
+                if (success)
+                {
+                    await LoadUsers();
+                    Snackbar.Add($"Пользователь {user.Username} обновлен", Severity.Success);
+                }
+                else
+                {
+                    Snackbar.Add("Ошибка при обновлении пользователя", Severity.Error);
+                }
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e, e.Message);
+                Snackbar.Add("Ошибка при обновлении пользователя", Severity.Error);
+            }
         }
     }
 }

@@ -69,4 +69,25 @@ public class UsersController(IAdminService service) : ControllerBase
 
         return Ok(true);
     }
+
+    [HttpPut]
+    public async Task<ActionResult> UpdateUser([FromBody] UpdateUserDto dto)
+    {
+        if (dto is null) return BadRequest();
+
+        try
+        {
+            var result = await service.UpdateUser(dto);
+            if (!result)
+            {
+                return NotFound();
+            }
+
+            return Ok(true);
+        }
+        catch (ValidationException e)
+        {
+            return BadRequest(e.Errors.GetErrors());
+        }
+    }
 }

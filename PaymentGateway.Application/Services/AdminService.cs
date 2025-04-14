@@ -15,6 +15,7 @@ public class AdminService(
     IMapper mapper,
     UserManager<UserEntity> userManager,
     IValidator<CreateUserDto> createValidator,
+    IValidator<UpdateUserDto> updateValidator,
     ILogger<AdminService> logger) : IAdminService
 {
     public async Task<UserDto> CreateUser(CreateUserDto dto)
@@ -95,6 +96,37 @@ public class AdminService(
         await userManager.DeleteAsync(user);
         
         logger.LogInformation("Удаление пользователя {username}", user.UserName);
+        
+        return true;
+    }
+
+    public async Task<bool> UpdateUser(UpdateUserDto dto)
+    {
+        var validation = await updateValidator.ValidateAsync(dto);
+        if (!validation.IsValid)
+        {
+            throw new ValidationException(validation.Errors);
+        }
+
+        var user = await userManager.FindByIdAsync(dto.Id.ToString());
+        if (user is null)
+        {
+            return false;
+        }
+
+        mapper.Map(dto, user);
+        var result = await userManager.UpdateAsync(user);
+        
+        if (!result.Succeeded)
+        {
+            return false;
+        }
+
+        var currentRoles = await userManager.GetRolesAsync(user);
+        await userManager.RemoveFromRolesAsync(user, currentRoles);
+        await userManager.AddToRolesAsync(user, dto.Roles);
+        
+        logger.LogInformation("Обновление пользователя {username}", user.UserName);
         
         return true;
     }

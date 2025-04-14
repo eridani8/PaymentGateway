@@ -1,0 +1,145 @@
+@using PaymentGateway.Shared.DTOs.User
+@using PaymentGateway.Shared.Validations.Validators.User
+@using MudBlazor
+@inject ISnackbar Snackbar
+@inject IAdminService AdminService
+
+@namespace PaymentGateway.Web.Dialogs
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">Редактирование пользователя</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudForm @ref="_form" Model="@_updateUserDto" Validation="@(_validator.ValidateValue)" ValidationDelay="0">
+            <MudStack>
+                <MudTextField T="string" 
+                            Label="Логин" 
+                            Value="@User.Username" 
+                            Disabled="true"
+                            Margin="Margin.Normal"/>
+                
+                <MudText Typo="Typo.subtitle1" Class="mt-2 mb-1">Роль</MudText>
+                <MudToggleGroup T="string" 
+                              SelectionMode="SelectionMode.ToggleSelection" 
+                              @bind-Value="SelectedRole"
+                              Color="Color.Primary">
+                    @foreach (var role in _availableRoles)
+                    {
+                        <MudToggleItem Value="@role" Color="Color.Primary">@GetRoleDisplayName(role)</MudToggleItem>
+                    }
+                </MudToggleGroup>
+                
+                <MudSwitch T="bool" 
+                          Label="Активен" 
+                          @bind-Value="_updateUserDto.IsActive" 
+                          Color="Color.Success"
+                          Margin="Margin.Normal"/>
+            </MudStack>
+
+            @if (!string.IsNullOrEmpty(_errorMessage))
+            {
+                <MudAlert Severity="Severity.Error" Class="mt-3 mb-3">@_errorMessage</MudAlert>
+            }
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Color="Color.Error" OnClick="Cancel">Отмена</MudButton>
+        <MudButton Color="Color.Secondary" OnClick="Submit" Disabled="@(_processing)">
+            @if (_processing)
+            {
+                <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                <MudText Class="ms-2">Обработка</MudText>
+            }
+            else
+            {
+                <MudText>Сохранить</MudText>
+            }
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] public required IMudDialogInstance MudDialog { get; set; }
+    [Parameter] public required UserDto User { get; set; }
+
+    private MudForm _form = null!;
+    private UpdateUserDto _updateUserDto = new()
+    {
+        Id = Guid.Empty,
+        IsActive = false,
+        Roles = []
+    };
+    private string? _errorMessage;
+    private bool _processing;
+    private readonly string[] _availableRoles = ["User", "Admin", "Support"];
+    private readonly UpdateUserValidator _validator = new();
+
+    private string SelectedRole
+    {
+        get => _updateUserDto.Roles.FirstOrDefault() ?? "User";
+        set => _updateUserDto.Roles = [value];
+    }
+
+    protected override void OnInitialized()
+    {
+        _updateUserDto = new()
+        {
+            Id = User.Id,
+            IsActive = User.IsActive,
+            Roles = User.Roles.ToList()
+        };
+    }
+
+    private static string GetRoleDisplayName(string role) => role switch
+    {
+        "User" => "Пользователь",
+        "Admin" => "Администратор",
+        "Support" => "Поддержка",
+        _ => role
+    };
+
+    private async Task Submit()
+    {
+        _errorMessage = null;
+        
+        await _form.Validate();
+        
+        if (_form.IsValid)
+        {
+            _processing = true;
+            
+            try
+            {
+                _updateUserDto = new()
+                {
+                    Id = User.Id,
+                    IsActive = _updateUserDto.IsActive,
+                    Roles = [SelectedRole]
+                };
+                
+                var result = await AdminService.UpdateUser(_updateUserDto);
+                
+                if (result)
+                {
+                    Snackbar.Add($"Пользователь {User.Username} успешно обновлен", Severity.Success);
+                    MudDialog.Close(DialogResult.Ok(_updateUserDto));
+                }
+                else
+                {
+                    _errorMessage = "Ошибка при обновлении пользователя";
+                }
+            }
+            catch (Exception e)
+            {
+                _errorMessage = e.Message;
+            }
+            finally
+            {
+                _processing = false;
+            }
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+} 

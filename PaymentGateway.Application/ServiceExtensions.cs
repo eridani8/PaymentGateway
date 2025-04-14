@@ -37,6 +37,7 @@ public static class ServiceExtensions
         services.AddScoped<IValidator<LoginDto>, LoginModelValidator>();
         services.AddScoped<IValidator<ChangePasswordDto>, ChangePasswordValidator>();
         services.AddScoped<IValidator<CreateUserDto>, CreateUserValidator>();
+        services.AddScoped<IValidator<UpdateUserDto>, UpdateUserValidator>();
 
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IAdminService, AdminService>();
