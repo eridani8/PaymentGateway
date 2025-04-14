@@ -37,7 +37,7 @@ public class RequisiteProfile : Profile
 
         CreateMap<RequisiteCreateDto, RequisiteEntity>()
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => Guid.CreateVersion7()))
-            .ForMember(dest => dest.UserId, opt => opt.MapFrom((src, dest, member, context) => 
+            .ForMember(dest => dest.UserId, opt => opt.MapFrom((_, _, _, context) => 
             {
                 if (context.Items.TryGetValue("UserId", out var userId) && userId is Guid guid)
                 {
