@@ -83,7 +83,7 @@
 
     protected override void OnInitialized()
     {
-        _updateUserDto = new()
+        _updateUserDto = new UpdateUserDto
         {
             Id = User.Id,
             IsActive = User.IsActive,
@@ -111,7 +111,7 @@
             
             try
             {
-                _updateUserDto = new()
+                _updateUserDto = new UpdateUserDto
                 {
                     Id = User.Id,
                     IsActive = _updateUserDto.IsActive,
