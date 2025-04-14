@@ -17,8 +17,21 @@ public class UserStatusFilter(UserManager<UserEntity> userManager) : IAsyncAutho
 
         if (context.HttpContext.User.Identity?.IsAuthenticated == true)
         {
-            var user = await userManager.FindByNameAsync(context.HttpContext.User.Identity.Name!);
-            if (user is { IsActive: false })
+            var username = context.HttpContext.User.Identity.Name;
+            if (string.IsNullOrEmpty(username))
+            {
+                context.Result = new UnauthorizedObjectResult("Пользователь не найден");
+                return;
+            }
+
+            var user = await userManager.FindByNameAsync(username);
+            if (user == null)
+            {
+                context.Result = new UnauthorizedObjectResult("Пользователь не найден");
+                return;
+            }
+
+            if (!user.IsActive)
             {
                 context.Result = new UnauthorizedObjectResult("Пользователь деактивирован");
             }
