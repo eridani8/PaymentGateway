@@ -15,16 +15,6 @@ namespace PaymentGateway.Api.Controllers;
 [Authorize]
 public class RequisiteController(IRequisiteService service) : ControllerBase
 {
-    private Guid GetCurrentUserId()
-    {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-        if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))
-        {
-            throw new UnauthorizedAccessException("User ID not found in claims");
-        }
-        return userId;
-    }
-
     [HttpPost]
     public async Task<ActionResult<RequisiteDto>> Create([FromBody] RequisiteCreateDto? dto)
     {
@@ -32,7 +22,7 @@ public class RequisiteController(IRequisiteService service) : ControllerBase
 
         try
         {
-            var userId = GetCurrentUserId();
+            var userId = User.GetCurrentUserId();
             var requisite = await service.CreateRequisite(dto, userId);
             return Ok(requisite);
         }
@@ -57,7 +47,7 @@ public class RequisiteController(IRequisiteService service) : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IEnumerable<RequisiteDto>>> GetUserRequisites()
     {
-        var userId = GetCurrentUserId();
+        var userId = User.GetCurrentUserId();
         var requisites = await service.GetUserRequisites(userId);
         return Ok(requisites);
     }
@@ -65,7 +55,7 @@ public class RequisiteController(IRequisiteService service) : ControllerBase
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<RequisiteDto>> GetById(Guid id)
     {
-        var userId = GetCurrentUserId();
+        var userId = User.GetCurrentUserId();
         var requisite = await service.GetRequisiteById(id, userId);
         if (requisite is null)
         {

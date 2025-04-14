@@ -72,7 +72,6 @@ public class CustomAuthStateProvider(IHttpClientFactory httpClientFactory, ILoca
         
         foreach (var (key, value) in keyValuePairs)
         {
-            // Check for role claims with various possible key names
             if (key.Equals("http://schemas.microsoft.com/ws/2008/06/identity/claims/role", StringComparison.OrdinalIgnoreCase) || 
                 key.Equals("role", StringComparison.OrdinalIgnoreCase) ||
                 key.Equals("roles", StringComparison.OrdinalIgnoreCase) ||
@@ -117,6 +116,12 @@ public class CustomAuthStateProvider(IHttpClientFactory httpClientFactory, ILoca
                         break;
                     }
                 }
+            }
+            else if (key.Equals("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier", StringComparison.OrdinalIgnoreCase) ||
+                     key.Equals("nameidentifier", StringComparison.OrdinalIgnoreCase) ||
+                     key.Equals(ClaimTypes.NameIdentifier, StringComparison.OrdinalIgnoreCase))
+            {
+                claims.Add(new Claim(ClaimTypes.NameIdentifier, value?.ToString() ?? string.Empty));
             }
             else
             {
