@@ -6,6 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using NpgsqlTypes;
 using PaymentGateway.Api;
+using PaymentGateway.Api.Middleware;
 using PaymentGateway.Application;
 using PaymentGateway.Core;
 using PaymentGateway.Core.Entities;
@@ -156,6 +157,7 @@ try
     app.UseHttpsRedirection();
     app.UseAuthentication();
     app.UseAuthorization();
+    app.UseMiddleware<UserStatusMiddleware>();
     app.MapControllers();
     app.UseExceptionHandler();
 
