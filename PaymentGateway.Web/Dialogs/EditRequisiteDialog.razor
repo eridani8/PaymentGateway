@@ -174,7 +174,7 @@
             WorkTo = Requisite.WorkTo
         };
         
-        _useWorkingHours = Requisite.WorkFrom != TimeOnly.MinValue && Requisite.WorkTo != TimeOnly.MinValue;
+        _useWorkingHours = Requisite.WorkTo != TimeOnly.MinValue;
         _workFromTime = _useWorkingHours ? 
             new TimeSpan(Requisite.WorkFrom.Hour, Requisite.WorkFrom.Minute, 0) : 
             new TimeSpan(9, 0, 0);
