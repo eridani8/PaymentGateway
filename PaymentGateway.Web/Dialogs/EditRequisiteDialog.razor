@@ -61,10 +61,11 @@
                                      Label="Суточная сумма"
                                      @bind-Value="_updateRequisiteDto.MaxAmount"
                                      For="@(() => _updateRequisiteDto.MaxAmount)"
-                                     Format="N2"
+                                     Format="N0"
                                      Adornment="Adornment.Start"
                                      AdornmentIcon="@Icons.Material.Filled.AttachMoney"
                                      Min="0"
+                                     Step="1000"
                                      Margin="Margin.Normal"/>
                 </MudItem>
 

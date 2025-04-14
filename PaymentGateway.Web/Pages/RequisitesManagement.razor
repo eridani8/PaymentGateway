@@ -52,7 +52,7 @@
                         <MudTd
                             DataLabel="Тип">@(requisite.PaymentType == PaymentType.PhoneNumber ? "Телефон" : "Карта")</MudTd>
                         <MudTd DataLabel="Платежные данные">@requisite.PaymentData</MudTd>
-                        <MudTd DataLabel="Использовано/Лимит">@($"{requisite.ReceivedFunds}/{requisite.MaxAmount}")</MudTd>
+                        <MudTd DataLabel="Использовано/Лимит">@($"{requisite.ReceivedFunds:N0}/{requisite.MaxAmount:N0}")</MudTd>
                         <MudTd DataLabel="Статус">
                             <MudChip T="string" Color="@GetStatusColor(requisite.Status)" Size="Size.Medium">
                                 @GetStatusText(requisite.Status)
