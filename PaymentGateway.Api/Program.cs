@@ -6,7 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using NpgsqlTypes;
 using PaymentGateway.Api;
-using PaymentGateway.Api.Middleware;
+using PaymentGateway.Api.Filters;
 using PaymentGateway.Application;
 using PaymentGateway.Core;
 using PaymentGateway.Core.Entities;
@@ -16,6 +16,7 @@ using Serilog.Core;
 using Serilog.Events;
 using Serilog.Sinks.PostgreSQL;
 using Serilog.Sinks.PostgreSQL.ColumnWriters;
+using UserStatusFilter = PaymentGateway.Api.Filters.UserStatusFilter;
 
 try
 {
@@ -72,7 +73,10 @@ try
 
     builder.Host.UseSerilog(Log.Logger);
 
-    builder.Services.AddControllers();
+    builder.Services.AddControllers(options =>
+    {
+        options.Filters.Add<UserStatusFilter>();
+    });
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen(o =>
     {
@@ -157,7 +161,6 @@ try
     app.UseHttpsRedirection();
     app.UseAuthentication();
     app.UseAuthorization();
-    app.UseMiddleware<UserStatusMiddleware>();
     app.MapControllers();
     app.UseExceptionHandler();
 

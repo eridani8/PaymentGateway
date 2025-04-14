@@ -52,7 +52,7 @@
 @code {
     private readonly LoginDto _loginDto = new();
     private string? _errorMessage;
-    private MudForm _form;
+    private MudForm _form = null!;
 
     private readonly LoginModelValidator _validator = new();
 
@@ -73,7 +73,7 @@
                     NavigationManager.NavigateTo("/", forceLoad: true);
                     break;
                 case HttpStatusCode.Unauthorized:
-                    _errorMessage = response.Content;
+                    _errorMessage = response.Content?.Trim('"');
                     break;
                 default:
                     _errorMessage = "Ошибка аутентификации";

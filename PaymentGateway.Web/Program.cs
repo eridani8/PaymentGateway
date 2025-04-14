@@ -9,13 +9,11 @@ using Microsoft.Extensions.Options;
 using MudBlazor;
 using MudBlazor.Services;
 using PaymentGateway.Shared.DTOs.User;
-using PaymentGateway.Shared.Validations;
 using PaymentGateway.Web.Interfaces;
 using PaymentGateway.Web.Services;
 using Microsoft.Extensions.Localization;
 using System.Globalization;
 using PaymentGateway.Shared.DTOs.Requisite;
-using PaymentGateway.Shared.Validations.Validators;
 using PaymentGateway.Shared.Validations.Validators.Requisite;
 using PaymentGateway.Shared.Validations.Validators.User;
 
