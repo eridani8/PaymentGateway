@@ -10,6 +10,11 @@ public class UserStatusFilter(UserManager<UserEntity> userManager) : IAsyncAutho
 {
     public async Task OnAuthorizationAsync(AuthorizationFilterContext context)
     {
+        if (context.HttpContext.Request.Path.Value?.Contains("/user/login", StringComparison.OrdinalIgnoreCase) == true)
+        {
+            return;
+        }
+
         if (context.HttpContext.User.Identity?.IsAuthenticated == true)
         {
             var user = await userManager.FindByNameAsync(context.HttpContext.User.Identity.Name!);
