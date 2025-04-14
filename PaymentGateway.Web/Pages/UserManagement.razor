@@ -1,12 +1,14 @@
 ﻿@page "/UserManagement"
 @using PaymentGateway.Shared.DTOs.User
 @using PaymentGateway.Web.Dialogs
+@using System.Timers
 @attribute [Authorize(Roles = "Admin")]
 @inject IAdminService AdminService
 @inject ILogger<UserManagement> Logger
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 @inject NavigationManager NavigationManager
+@implements IDisposable
 
 <AuthorizeView Roles="Admin">
     <Authorized>
@@ -67,10 +69,25 @@
 @code {
     private bool _isLoading = true;
     private List<UserDto> _users = [];
+    private Timer _timer = null!;
 
     protected override async Task OnInitializedAsync()
     {
         await LoadUsers();
+
+        _timer = new Timer(3000);
+        _timer.Elapsed += async (_, _) => await InvokeAsync(async () =>
+        {
+            await LoadUsers();
+            StateHasChanged();
+        });
+        _timer.AutoReset = true;
+        _timer.Enabled = true;
+    }
+
+    public void Dispose()
+    {
+        _timer?.Dispose();
     }
 
     private async Task LoadUsers()
@@ -93,7 +110,7 @@
 
     private async Task OpenCreateDialog()
     {
-        var dialog = await DialogService.ShowAsync<CreateUserDialog>("Создание пользователя");
+        var dialog = await DialogService.ShowAsync<CreateUserDialog>(null);
         var result = await dialog.Result;
 
         if (result is { Canceled: false })
@@ -105,7 +122,7 @@
     private async Task OpenDeleteDialog(UserDto user)
     {
         var parameters = new DialogParameters { ["User"] = user };
-        var dialog = await DialogService.ShowAsync<DeleteUserDialog>("", parameters);
+        var dialog = await DialogService.ShowAsync<DeleteUserDialog>(null, parameters);
         var result = await dialog.Result;
 
         if (result is { Canceled: false })

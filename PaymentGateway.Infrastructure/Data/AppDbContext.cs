@@ -67,6 +67,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICryptographyS
             entity.HasIndex(e => e.Status);
             entity.HasIndex(e => e.Priority);
             entity.HasIndex(e => e.PaymentData);
+            entity.HasIndex(e => e.UserId);
             
             entity.HasOne(e => e.Payment)
                 .WithOne()

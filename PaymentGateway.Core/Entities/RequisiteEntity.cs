@@ -17,7 +17,12 @@ public class RequisiteEntity : IRequisiteEntity, ICacheable
     public required Guid Id { get; init; }
 
     /// <summary>
-    /// Имя и фамилия владельца
+    /// Идентификатор пользователя
+    /// </summary>
+    public required Guid UserId { get; init; }
+
+    /// <summary>
+    /// Имя и фамилия
     /// </summary>
     [MaxLength(40)]
     public required string FullName { get; init; }

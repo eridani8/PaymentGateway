@@ -5,6 +5,7 @@ using PaymentGateway.Application;
 using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Core.Exceptions;
 using PaymentGateway.Shared.DTOs.Requisite;
+using System.Security.Claims;
 
 namespace PaymentGateway.Api.Controllers;
 
@@ -14,6 +15,16 @@ namespace PaymentGateway.Api.Controllers;
 [Authorize]
 public class RequisiteController(IRequisiteService service) : ControllerBase
 {
+    private Guid GetCurrentUserId()
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))
+        {
+            throw new UnauthorizedAccessException("User ID not found in claims");
+        }
+        return userId;
+    }
+
     [HttpPost]
     public async Task<ActionResult<RequisiteDto>> Create([FromBody] RequisiteCreateDto? dto)
     {
@@ -21,7 +32,8 @@ public class RequisiteController(IRequisiteService service) : ControllerBase
 
         try
         {
-            var requisite = await service.CreateRequisite(dto);
+            var userId = GetCurrentUserId();
+            var requisite = await service.CreateRequisite(dto, userId);
 
             return Ok(requisite);
         }
@@ -36,17 +48,26 @@ public class RequisiteController(IRequisiteService service) : ControllerBase
     }
     
     [HttpGet]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<IEnumerable<RequisiteDto>>> GetAll()
     {
         var requisites = await service.GetAllRequisites();
-        
+        return Ok(requisites);
+    }
+
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<RequisiteDto>>> GetUserRequisites()
+    {
+        var userId = GetCurrentUserId();
+        var requisites = await service.GetUserRequisites(userId);
         return Ok(requisites);
     }
     
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<RequisiteDto>> GetById(Guid id)
     {
-        var requisite = await service.GetRequisiteById(id);
+        var userId = GetCurrentUserId();
+        var requisite = await service.GetRequisiteById(id, userId);
         if (requisite is null)
         {
             return NotFound();

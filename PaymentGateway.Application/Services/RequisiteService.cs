@@ -18,7 +18,7 @@ public class RequisiteService(
     IValidator<RequisiteUpdateDto> updateValidator,
     ILogger<RequisiteService> logger) : IRequisiteService
 {
-    public async Task<RequisiteDto> CreateRequisite(RequisiteCreateDto dto)
+    public async Task<RequisiteDto> CreateRequisite(RequisiteCreateDto dto, Guid userId)
     {
         var validation = await createValidator.ValidateAsync(dto);
         if (!validation.IsValid)
@@ -45,13 +45,25 @@ public class RequisiteService(
 
     public async Task<IEnumerable<RequisiteDto>> GetAllRequisites()
     {
-        var entities = await unit.RequisiteRepository.QueryableGetAll().AsNoTracking().ToListAsync();
+        var entities = await unit.RequisiteRepository.QueryableGetAll()
+            .AsNoTracking()
+            .ToListAsync();
         return mapper.Map<IEnumerable<RequisiteDto>>(entities);
     }
 
-    public async Task<RequisiteDto?> GetRequisiteById(Guid id)
+    public async Task<IEnumerable<RequisiteDto>> GetUserRequisites(Guid userId)
     {
-        var entity = await unit.RequisiteRepository.GetById(id);
+        var entities = await unit.RequisiteRepository.QueryableGetAll()
+            .Where(r => r.UserId == userId)
+            .AsNoTracking()
+            .ToListAsync();
+        return mapper.Map<IEnumerable<RequisiteDto>>(entities);
+    }
+
+    public async Task<RequisiteDto?> GetRequisiteById(Guid id, Guid userId)
+    {
+        var entity = await unit.RequisiteRepository.QueryableGetAll()
+            .FirstOrDefaultAsync(r => r.Id == id && r.UserId == userId);
         return entity is not null ? mapper.Map<RequisiteDto>(entity) : null;
     }
 

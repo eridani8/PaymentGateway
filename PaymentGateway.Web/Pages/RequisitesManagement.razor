@@ -132,7 +132,7 @@
         try
         {
             _isLoading = true;
-            _requisites = await RequisiteService.GetRequisites();
+            _requisites = await RequisiteService.GetUserRequisites();
         }
         catch (Exception e)
         {
@@ -147,7 +147,7 @@
 
     private async Task OpenCreateDialog()
     {
-        var dialog = await DialogService.ShowAsync<CreateRequisiteDialog>("Создание реквизита");
+        var dialog = await DialogService.ShowAsync<CreateRequisiteDialog>(null);
         var result = await dialog.Result;
 
         if (result is { Canceled: false })
@@ -163,7 +163,7 @@
             ["Requisite"] = requisite
         };
         
-        var dialog = await DialogService.ShowAsync<EditRequisiteDialog>("Редактирование реквизита", parameters);
+        var dialog = await DialogService.ShowAsync<EditRequisiteDialog>(null, parameters);
         var result = await dialog.Result;
 
         if (result is { Canceled: false })

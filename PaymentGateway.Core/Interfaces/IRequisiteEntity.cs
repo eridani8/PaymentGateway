@@ -5,6 +5,8 @@ namespace PaymentGateway.Core.Interfaces;
 
 public interface IRequisiteEntity
 {
+    Guid Id { get; init; }
+    Guid UserId { get; init; }
     string FullName { get; init; }
     PaymentType PaymentType { get; init; }
     string PaymentData { get; init; }

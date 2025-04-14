@@ -6,6 +6,7 @@ namespace PaymentGateway.Shared.DTOs.Requisite;
 public class RequisiteDto
 {
     public Guid Id { get; set; }
+    public Guid UserId { get; set; }
     public string FullName { get; set; } = string.Empty;
     public PaymentType PaymentType { get; set; }
     public string PaymentData { get; set; } = string.Empty;

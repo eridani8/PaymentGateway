@@ -5,6 +5,7 @@ namespace PaymentGateway.Core.Interfaces;
 
 public interface IPaymentEntity
 {
+    Guid Id { get; init; }
     Guid ExternalPaymentId { get; init; }
     Guid? UserId { get; init; }
     decimal Amount { get; init; }
