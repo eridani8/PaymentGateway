@@ -9,5 +9,5 @@ public interface IServiceBase
     Task<Response> GetRequest(string url);
     Task<Response> PutRequest(string url, object model);
     Task<T?> PutRequest<T>(string url, object model);
-    Task<bool> DeleteRequest(string url);
+    Task<T?> DeleteRequest<T>(string url);
 }

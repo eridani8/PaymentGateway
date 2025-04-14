@@ -44,10 +44,12 @@ public class ServiceBase(IHttpClientFactory factory, ILogger<ServiceBase> logger
             : default;
     }
 
-    public async Task<bool> DeleteRequest(string url)
+    public async Task<T?> DeleteRequest<T>(string url)
     {
         var response = await SendRequest(HttpMethod.Delete, url);
-        return response.Code is HttpStatusCode.OK && JsonSerializer.Deserialize<bool>(response.Content ?? string.Empty, JsonOptions);
+        return response.Code is HttpStatusCode.OK 
+            ? JsonSerializer.Deserialize<T>(response.Content ?? string.Empty, JsonOptions)
+            : default;
     }
 
     private async Task<Response> SendRequest(HttpMethod method, string url, object? model = null, CancellationToken cancellationToken = default)

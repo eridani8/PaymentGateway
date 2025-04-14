@@ -84,6 +84,11 @@
                                                Size="Size.Small"
                                                OnClick="@(() => OpenEditDialog(cellContext.Item))"
                                                Title="Редактировать"/>
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                               Color="Color.Error"
+                                               Size="Size.Small"
+                                               OnClick="@(() => OpenDeleteDialog(cellContext.Item))"
+                                               Title="Удалить"/>
                             </CellTemplate>
                         </TemplateColumn>
                     </Columns>
@@ -113,6 +118,7 @@
         await LoadRequisites();
         await SignalRService.InitializeAsync();
         SignalRService.SubscribeToRequisiteUpdates(HandleRequisiteUpdate);
+        SignalRService.SubscribeToRequisiteDeletions(HandleRequisiteDeleted);
     }
 
     private void HandleRequisiteUpdate(RequisiteDto updatedRequisite)
@@ -133,13 +139,31 @@
         }
         catch (Exception e)
         {
-            Logger.LogError(e, "Ошибка при обновлении реквизита {RequisiteId}", updatedRequisite.Id);
+            Logger.LogError(e, "Ошибка при обновлении реквизита {RequisiteId}", updatedRequisite?.Id);
+        }
+    }
+
+    private void HandleRequisiteDeleted(Guid requisiteId)
+    {
+        try
+        {
+            var requisite = _requisites.FirstOrDefault(r => r.Id == requisiteId);
+            if (requisite != null)
+            {
+                _requisites.Remove(requisite);
+                StateHasChanged();
+            }
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e, "Ошибка при удалении реквизита {RequisiteId}", requisiteId);
         }
     }
 
     public async ValueTask DisposeAsync()
     {
         SignalRService.UnsubscribeFromUpdates("RequisiteUpdated");
+        SignalRService.UnsubscribeFromUpdates("RequisiteDeleted");
         await SignalRService.DisposeAsync();
     }
 
@@ -182,6 +206,22 @@
         };
 
         var dialog = await DialogService.ShowAsync<EditRequisiteDialog>(null, parameters);
+        var result = await dialog.Result;
+
+        if (result is { Canceled: false })
+        {
+            await LoadRequisites();
+        }
+    }
+
+    private async Task OpenDeleteDialog(RequisiteDto requisite)
+    {
+        var parameters = new DialogParameters
+        {
+            ["Requisite"] = requisite
+        };
+
+        var dialog = await DialogService.ShowAsync<DeleteRequisiteDialog>(null, parameters);
         var result = await dialog.Result;
 
         if (result is { Canceled: false })

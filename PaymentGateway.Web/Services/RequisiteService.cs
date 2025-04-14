@@ -3,7 +3,6 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Components.Authorization;
 using PaymentGateway.Shared.DTOs.Requisite;
 using PaymentGateway.Web.Interfaces;
-using System.Security.Claims;
 
 namespace PaymentGateway.Web.Services;
 
@@ -25,35 +24,52 @@ public class RequisiteService(
         }
 
         var response = await GetRequest($"{ApiEndpoint}/GetAll");
-        if (response.Code == HttpStatusCode.OK)
+        if (response.Code == HttpStatusCode.OK && !string.IsNullOrEmpty(response.Content))
         {
-            return JsonSerializer.Deserialize<List<RequisiteDto>>(response.Content ?? string.Empty, JsonOptions) ?? [];
+            return JsonSerializer.Deserialize<List<RequisiteDto>>(response.Content, JsonOptions) ?? [];
         }
+        logger.LogWarning("Failed to get requisites. Status code: {StatusCode}", response.Code);
         return [];
     }
     
     public async Task<List<RequisiteDto>> GetUserRequisites()
     {
         var response = await GetRequest($"{ApiEndpoint}/GetUserRequisites");
-        if (response.Code == HttpStatusCode.OK)
+        if (response.Code == HttpStatusCode.OK && !string.IsNullOrEmpty(response.Content))
         {
-            return JsonSerializer.Deserialize<List<RequisiteDto>>(response.Content ?? string.Empty, JsonOptions) ?? [];
+            return JsonSerializer.Deserialize<List<RequisiteDto>>(response.Content, JsonOptions) ?? [];
         }
+        logger.LogWarning("Failed to get user requisites. Status code: {StatusCode}", response.Code);
         return [];
     }
     
     public async Task<RequisiteDto?> CreateRequisite(RequisiteCreateDto dto)
     {
-        return await PostRequest<RequisiteDto>($"{ApiEndpoint}/Create", dto);
+        var response = await PostRequest<RequisiteDto>($"{ApiEndpoint}/Create", dto);
+        if (response == null)
+        {
+            logger.LogWarning("Failed to create requisite");
+        }
+        return response;
     }
     
     public async Task<Response> UpdateRequisite(Guid id, RequisiteUpdateDto dto)
     {
-        return await PutRequest($"{ApiEndpoint}/Update/{id}", dto);
+        var response = await PutRequest($"{ApiEndpoint}/Update/{id}", dto);
+        if (response.Code != HttpStatusCode.OK)
+        {
+            logger.LogWarning("Failed to update requisite {Id}. Status code: {StatusCode}", id, response.Code);
+        }
+        return response;
     }
     
-    public async Task<bool> DeleteRequisite(Guid id)
+    public async Task<RequisiteDto?> DeleteRequisite(Guid id)
     {
-        return await DeleteRequest($"{ApiEndpoint}/Delete/{id}");
+        var response = await DeleteRequest<RequisiteDto>($"{ApiEndpoint}/Delete/{id}");
+        if (response is null)
+        {
+            logger.LogWarning("Failed to delete requisite {Id}", id);
+        }
+        return response;
     }
 } 

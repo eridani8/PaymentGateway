@@ -99,7 +99,7 @@ public class RequisiteController(IRequisiteService service, INotificationService
             return NotFound();
         }
         
-        await notificationService.NotifyRequisiteUpdated(requisite);
+        await notificationService.NotifyRequisiteDeleted(requisite.Id, requisite.UserId);
         return Ok(requisite);
     }
 }

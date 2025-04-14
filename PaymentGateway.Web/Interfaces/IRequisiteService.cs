@@ -9,5 +9,5 @@ public interface IRequisiteService
     Task<List<RequisiteDto>> GetUserRequisites();
     Task<RequisiteDto?> CreateRequisite(RequisiteCreateDto dto);
     Task<Response> UpdateRequisite(Guid id, RequisiteUpdateDto dto);
-    Task<bool> DeleteRequisite(Guid id);
+    Task<RequisiteDto?> DeleteRequisite(Guid id);
 } 

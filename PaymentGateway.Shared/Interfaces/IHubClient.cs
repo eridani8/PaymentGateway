@@ -9,5 +9,6 @@ public interface IHubClient
     Task UserUpdated(UserDto user);
     Task PaymentUpdated(PaymentDto payment);
     Task RequisiteUpdated(RequisiteDto requisite);
+    Task RequisiteDeleted(Guid requisiteId);
     Task PaymentStatusChanged(PaymentDto payment);
 } 

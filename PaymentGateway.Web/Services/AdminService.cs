@@ -25,14 +25,18 @@ public class AdminService(
         return await PostRequest<UserDto>($"{ApiEndpoint}/CreateUser", dto);
     }
     
-    public async Task<bool> DeleteUser(Guid id)
+    public async Task<UserDto?> DeleteUser(Guid id)
     {
-        return await DeleteRequest($"{ApiEndpoint}/DeleteUser/{id}");
+        return await DeleteRequest<UserDto?>($"{ApiEndpoint}/DeleteUser/{id}");
     }
 
-    public async Task<bool> UpdateUser(UpdateUserDto dto)
+    public async Task<UserDto?> UpdateUser(UpdateUserDto dto)
     {
         var response = await PutRequest($"{ApiEndpoint}/UpdateUser", dto);
-        return response.Code == System.Net.HttpStatusCode.OK;
+        if (response.Code == System.Net.HttpStatusCode.OK)
+        {
+            return JsonSerializer.Deserialize<UserDto>(response.Content ?? string.Empty, JsonOptions);
+        }
+        return null;
     }
 }

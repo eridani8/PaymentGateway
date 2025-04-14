@@ -9,5 +9,6 @@ public interface INotificationService
     Task NotifyUserUpdated(UserDto user);
     Task NotifyPaymentUpdated(PaymentDto payment);
     Task NotifyRequisiteUpdated(RequisiteDto requisite);
+    Task NotifyRequisiteDeleted(Guid requisiteId, Guid userId);
     Task NotifyPaymentStatusChanged(PaymentDto payment);
 } 

@@ -99,6 +99,17 @@ public class SignalRService(
         _hubConnection.On("RequisiteUpdated", handler);
     }
 
+    public void SubscribeToRequisiteDeletions(Action<Guid> handler)
+    {
+        if (_hubConnection == null)
+        {
+            logger.LogWarning("Попытка подписаться на удаления реквизитов до инициализации соединения");
+            return;
+        }
+
+        _hubConnection.On("RequisiteDeleted", handler);
+    }
+
     public void UnsubscribeFromUpdates(string methodName)
     {
         _hubConnection?.Remove(methodName);

@@ -82,6 +82,11 @@ public class NotificationService : INotificationService, IAsyncDisposable
         return Task.CompletedTask;
     }
 
+    public Task NotifyRequisiteDeleted(Guid requisiteId, Guid userId)
+    {
+        return Task.CompletedTask;
+    }
+
     public Task NotifyPaymentStatusChanged(PaymentDto payment)
     {
         return Task.CompletedTask;

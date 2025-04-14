@@ -120,7 +120,7 @@
                 
                 var result = await AdminService.UpdateUser(_updateUserDto);
                 
-                if (result)
+                if (result is not null)
                 {
                     Snackbar.Add($"Пользователь {User.Username} успешно обновлен", Severity.Success);
                     MudDialog.Close(DialogResult.Ok(_updateUserDto));

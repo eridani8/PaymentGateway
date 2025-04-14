@@ -1,13 +1,13 @@
-@using PaymentGateway.Shared.DTOs.User
+@using PaymentGateway.Shared.DTOs.Requisite
 @inject ISnackbar Snackbar
-@inject IAdminService AdminService
+@inject IRequisiteService RequisiteService
 
 <MudDialog>
     <TitleContent>
         <MudText Typo="Typo.h6">Подтверждение удаления</MudText>
     </TitleContent>
     <DialogContent>
-        <MudText>Вы действительно хотите удалить пользователя <b>@User.Username</b>?</MudText>
+        <MudText>Вы действительно хотите удалить реквизит <b>@Requisite.FullName</b>?</MudText>
         
         @if (!string.IsNullOrEmpty(_errorMessage))
         {
@@ -32,7 +32,7 @@
 
 @code {
     [CascadingParameter] public required IMudDialogInstance MudDialog { get; set; }
-    [Parameter] public required UserDto User { get; set; }
+    [Parameter] public required RequisiteDto Requisite { get; set; }
     
     private string? _errorMessage;
     private bool _processing;
@@ -44,15 +44,16 @@
         
         try
         {
-            var result = await AdminService.DeleteUser(User.Id);
+            var result = await RequisiteService.DeleteRequisite(Requisite.Id);
             
             if (result is not null)
             {
+                Snackbar.Add($"Реквизит {Requisite.FullName} успешно удален", Severity.Success);
                 MudDialog.Close(DialogResult.Ok(true));
             }
             else
             {
-                _errorMessage = "Ошибка при удалении пользователя";
+                _errorMessage = "Ошибка при удалении реквизита";
             }
         }
         catch (Exception e)
