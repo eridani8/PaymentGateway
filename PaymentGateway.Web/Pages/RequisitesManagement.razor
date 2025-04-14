@@ -27,74 +27,68 @@
                         Создать реквизит
                     </MudButton>
                 </MudToolBar>
-                <MudTable Items="@_requisites"
-                          Loading="@_isLoading"
-                          Hover="true"
-                          Breakpoint="Breakpoint.Sm"
-                          Bordered="true"
-                          FixedHeader="true"
-                          Height="100%"
-                          Width="100%">
-                    <HeaderContent>
-                        <MudTh>ID</MudTh>
-                        @if (_showUserLogin)
-                        {
-                            <MudTh>ID пользователя</MudTh>
-                        }
-                        <MudTh>Имя</MudTh>
-                        <MudTh>Тип</MudTh>
-                        <MudTh>Платежные данные</MudTh>
-                        <MudTh>Использовано/Лимит</MudTh>
-                        <MudTh>Статус</MudTh>
-                        <MudTh>Задержка</MudTh>
-                        <MudTh>Активное время</MudTh>
-                        <MudTh>Приоритет</MudTh>
-                        <MudTh>Действия</MudTh>
-                    </HeaderContent>
-                    <RowTemplate Context="requisite">
-                        <MudTd DataLabel="ID">@requisite.Id</MudTd>
-                        @if (_showUserLogin)
-                        {
-                            <MudTd DataLabel="ID пользователя">@requisite.UserId.ToString()</MudTd>
-                        }
-                        <MudTd DataLabel="Имя">@requisite.FullName</MudTd>
-                        <MudTd
-                            DataLabel="Тип">@(requisite.PaymentType == PaymentType.PhoneNumber ? "Телефон" : "Карта")</MudTd>
-                        <MudTd DataLabel="Платежные данные">@requisite.PaymentData</MudTd>
-                        <MudTd DataLabel="Использовано/Лимит">@($"{requisite.ReceivedFunds:N0}/{requisite.MaxAmount:N0}")</MudTd>
-                        <MudTd DataLabel="Статус">
-                            <MudChip T="string" Color="@GetStatusColor(requisite.Status)" Size="Size.Medium">
-                                @GetStatusText(requisite.Status)
-                                @if (requisite.Status == RequisiteStatus.Cooldown)
+                <MudDataGrid T="RequisiteDto" 
+                             Items="_requisites" 
+                             Loading="@_isLoading"
+                             SortMode="SortMode.Multiple"
+                             Filterable="true"
+                             Hideable="true" 
+                             Bordered="true">
+                    <Columns>
+                        <PropertyColumn Property="x => x.Id" Title="ID"/>
+                        <PropertyColumn Property="x => x.UserId" Title="ID пользователя" Hidden="@(!_isRootUser)"/>
+                        <PropertyColumn Property="x => x.FullName" Title="Имя"/>
+                        <TemplateColumn Title="Тип">
+                            <CellTemplate Context="cellContext">
+                                @(cellContext.Item.PaymentType == PaymentType.PhoneNumber ? "Телефон" : "Карта")
+                            </CellTemplate>
+                        </TemplateColumn>
+                        <PropertyColumn Property="x => x.PaymentData" Title="Платежные данные"/>
+                        <TemplateColumn Title="Использовано/Лимит">
+                            <CellTemplate Context="cellContext">
+                                @($"{cellContext.Item.ReceivedFunds:N0}/{cellContext.Item.MaxAmount:N0}")
+                            </CellTemplate>
+                        </TemplateColumn>
+                        <TemplateColumn Title="Статус">
+                            <CellTemplate Context="cellContext">
+                                <MudChip Color="@GetStatusColor(cellContext.Item.Status)" Size="Size.Medium">
+                                    @GetStatusText(cellContext.Item.Status)
+                                    @if (cellContext.Item.Status == RequisiteStatus.Cooldown)
+                                    {
+                                        @GetRemainingCooldownTime(cellContext.Item)
+                                    }
+                                </MudChip>
+                            </CellTemplate>
+                        </TemplateColumn>
+                        <TemplateColumn Title="Задержка">
+                            <CellTemplate Context="cellContext">
+                                @($"{(int)cellContext.Item.Cooldown.TotalMinutes} мин")
+                            </CellTemplate>
+                        </TemplateColumn>
+                        <TemplateColumn Title="Активное время">
+                            <CellTemplate Context="cellContext">
+                                @if (cellContext.Item.WorkFrom == TimeOnly.MinValue && cellContext.Item.WorkTo == TimeOnly.MinValue)
                                 {
-                                    @GetRemainingCooldownTime(requisite)
+                                    @("Всегда")
                                 }
-                            </MudChip>
-                        </MudTd>
-                        <MudTd DataLabel="Задержка">@($"{(int)requisite.Cooldown.TotalMinutes} мин")</MudTd>
-                        <MudTd DataLabel="Активное время">
-                            @if (requisite.WorkFrom == TimeOnly.MinValue && requisite.WorkTo == TimeOnly.MinValue)
-                            {
-                                @("Всегда")
-                            }
-                            else
-                            {
-                                @($"{requisite.WorkFrom:HH:mm} - {requisite.WorkTo:HH:mm}")
-                            }
-                        </MudTd>
-                        <MudTd DataLabel="Приоритет">@requisite.Priority</MudTd>
-                        <MudTd DataLabel="Действия">
-                            <MudIconButton Icon="@Icons.Material.Filled.Edit" 
-                                          Color="Color.Primary" 
-                                          Size="Size.Small"
-                                          OnClick="@(() => OpenEditDialog(requisite))" 
-                                          Title="Редактировать" />
-                        </MudTd>
-                    </RowTemplate>
-                    <PagerContent>
-                        <MudTablePager/>
-                    </PagerContent>
-                </MudTable>
+                                else
+                                {
+                                    @($"{cellContext.Item.WorkFrom:HH:mm} - {cellContext.Item.WorkTo:HH:mm}")
+                                }
+                            </CellTemplate>
+                        </TemplateColumn>
+                        <PropertyColumn Property="x => x.Priority" Title="Приоритет"/>
+                        <TemplateColumn Title="Действия">
+                            <CellTemplate Context="cellContext">
+                                <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                               Color="Color.Primary"
+                                               Size="Size.Small"
+                                               OnClick="@(() => OpenEditDialog(cellContext.Item))"
+                                               Title="Редактировать"/>
+                            </CellTemplate>
+                        </TemplateColumn>
+                    </Columns>
+                </MudDataGrid>
             </MudPaper>
         </MudContainer>
     </Authorized>
@@ -109,14 +103,14 @@
     private bool _isLoading = true;
     private List<RequisiteDto> _requisites = [];
     private Timer _timer = null!;
-    private bool _showUserLogin;
+    private bool _isRootUser;
 
     protected override async Task OnInitializedAsync()
     {
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        _showUserLogin = authState.User.IsInRole("Admin") && 
-                        authState.User.IsInRole("Support") && 
-                        authState.User.IsInRole("User");
+        _isRootUser = authState.User.IsInRole("Admin") &&
+                      authState.User.IsInRole("Support") &&
+                      authState.User.IsInRole("User");
 
         await LoadRequisites();
 
@@ -140,8 +134,8 @@
         try
         {
             _isLoading = true;
-            _requisites = _showUserLogin 
-                ? await RequisiteService.GetRequisites() 
+            _requisites = _isRootUser
+                ? await RequisiteService.GetRequisites()
                 : await RequisiteService.GetUserRequisites();
         }
         catch (Exception e)
@@ -172,7 +166,7 @@
         {
             ["Requisite"] = requisite
         };
-        
+
         var dialog = await DialogService.ShowAsync<EditRequisiteDialog>(null, parameters);
         var result = await dialog.Result;
 
@@ -213,4 +207,5 @@
         var totalMinutes = Math.Ceiling(remaining.TotalMinutes);
         return $" - {totalMinutes} мин";
     }
+
 }
