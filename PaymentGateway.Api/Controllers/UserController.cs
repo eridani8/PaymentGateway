@@ -37,6 +37,11 @@ public class UserController(
             return Unauthorized("Неверный логин или пароль");
         }
 
+        if (!user.IsActive)
+        {
+            return Unauthorized("Пользователь деактивирован");
+        }
+
         var result = await signInManager.CheckPasswordSignInAsync(user, model.Password, false);
         if (!result.Succeeded)
         {
