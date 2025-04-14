@@ -16,6 +16,7 @@ public class UserProfile : Profile
 
         CreateMap<CreateUserDto, UserEntity>()
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => Guid.CreateVersion7()))
+            .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive))
             .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.Username));
 
         CreateMap<UpdateUserDto, UserEntity>()
