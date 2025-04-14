@@ -78,6 +78,7 @@
     protected override void OnInitialized()
     {
         _createUserDto.Roles = ["User"];
+        _createUserDto.IsActive = true;
     }
 
     private static string GetRoleDisplayName(string role) => role switch

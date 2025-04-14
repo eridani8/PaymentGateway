@@ -88,6 +88,11 @@ public class AdminService(
         var user = await userManager.FindByIdAsync(id.ToString());
         if (user is null) return false;
 
+        if (user.UserName == "root")
+        {
+            return false;
+        }
+
         if (id.ToString() == currentUserId)
         {
             return false;
@@ -112,6 +117,11 @@ public class AdminService(
         if (user is null)
         {
             return false;
+        }
+
+        if (user.UserName == "root")
+        {
+            throw new InvalidOperationException("Root user cannot be modified");
         }
 
         mapper.Map(dto, user);
