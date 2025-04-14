@@ -161,7 +161,7 @@
     private async Task Logout()
     {
         await AuthStateProvider.MarkUserAsLoggedOut();
-        Navigation.Refresh(true);
+        Navigation.NavigateTo("/login", forceLoad: true);
     }
 
 }
