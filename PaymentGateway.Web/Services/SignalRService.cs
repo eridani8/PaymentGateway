@@ -1,9 +1,15 @@
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Options;
+using PaymentGateway.Shared.DTOs.Requisite;
+using Blazored.LocalStorage;
+using System.Security.Claims;
 
 namespace PaymentGateway.Web.Services;
 
-public class SignalRService(IOptions<ApiSettings> settings, ILogger<SignalRService> logger)
+public class SignalRService(
+    IOptions<ApiSettings> settings, 
+    ILogger<SignalRService> logger,
+    CustomAuthStateProvider authStateProvider)
 {
     private HubConnection? _hubConnection;
     private readonly string _hubUrl = $"{settings.Value.BaseAddress}/notificationHub";
@@ -12,14 +18,48 @@ public class SignalRService(IOptions<ApiSettings> settings, ILogger<SignalRServi
     {
         try
         {
+            var token = await authStateProvider.GetTokenFromLocalStorageAsync();
+            
+            if (string.IsNullOrEmpty(token))
+            {
+                logger.LogWarning("Токен не найден в localStorage");
+                return;
+            }
+
+            var authState = await authStateProvider.GetAuthenticationStateAsync();
+            if (!authState.User.Identity?.IsAuthenticated ?? true)
+            {
+                logger.LogWarning("Пользователь не аутентифицирован");
+                return;
+            }
+
+            var userId = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var roles = authState.User.FindAll(ClaimTypes.Role).Select(c => c.Value).ToList();
+            
+            logger.LogInformation("Инициализация SignalR для пользователя: {UserId}, роли: {Roles}", 
+                userId, string.Join(", ", roles));
+
             _hubConnection = new HubConnectionBuilder()
-                .WithUrl(_hubUrl)
-                .WithAutomaticReconnect()
+                .WithUrl(_hubUrl, options =>
+                {
+                    options.AccessTokenProvider = () => Task.FromResult(token)!;
+                })
+                .WithAutomaticReconnect([TimeSpan.Zero, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(10)])
                 .Build();
 
             _hubConnection.Closed += async (error) =>
             {
-                logger.LogWarning("Соединение с SignalR закрыто: {Error}", error?.Message);
+                if (error != null)
+                {
+                    logger.LogWarning("Соединение с SignalR закрыто с ошибкой: {Error}", error.Message);
+                    if (error.Message.Contains("Unauthorized") || error.Message.Contains("401"))
+                    {
+                        await authStateProvider.MarkUserAsLoggedOut();
+                        return;
+                    }
+                }
+                
+                logger.LogInformation("Попытка переподключения к SignalR...");
                 await Task.Delay(new Random().Next(0, 5) * 1000);
                 await _hubConnection.StartAsync();
             };
@@ -30,6 +70,10 @@ public class SignalRService(IOptions<ApiSettings> settings, ILogger<SignalRServi
         catch (Exception ex)
         {
             logger.LogError(ex, "Ошибка при инициализации SignalR соединения");
+            if (ex.Message.Contains("Unauthorized") || ex.Message.Contains("401"))
+            {
+                await authStateProvider.MarkUserAsLoggedOut();
+            }
         }
     }
 
@@ -42,6 +86,17 @@ public class SignalRService(IOptions<ApiSettings> settings, ILogger<SignalRServi
         }
 
         _hubConnection.On(methodName, handler);
+    }
+
+    public void SubscribeToRequisiteUpdates(Action<RequisiteDto> handler)
+    {
+        if (_hubConnection == null)
+        {
+            logger.LogWarning("Попытка подписаться на обновления реквизитов до инициализации соединения");
+            return;
+        }
+
+        _hubConnection.On("RequisiteUpdated", handler);
     }
 
     public void UnsubscribeFromUpdates(string methodName)
