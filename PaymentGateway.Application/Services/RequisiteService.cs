@@ -51,6 +51,7 @@ public class RequisiteService(
         var entities = await unit.RequisiteRepository.QueryableGetAll()
             .AsNoTracking()
             .ToListAsync();
+            
         return mapper.Map<IEnumerable<RequisiteDto>>(entities);
     }
 
@@ -60,6 +61,7 @@ public class RequisiteService(
             .Where(r => r.UserId == userId)
             .AsNoTracking()
             .ToListAsync();
+            
         return mapper.Map<IEnumerable<RequisiteDto>>(entities);
     }
 
@@ -67,7 +69,10 @@ public class RequisiteService(
     {
         var entity = await unit.RequisiteRepository.QueryableGetAll()
             .FirstOrDefaultAsync(r => r.Id == id && r.UserId == userId);
-        return entity is not null ? mapper.Map<RequisiteDto>(entity) : null;
+            
+        if (entity is null) return null;
+        
+        return mapper.Map<RequisiteDto>(entity);
     }
 
     public async Task<bool> UpdateRequisite(Guid id, RequisiteUpdateDto dto)

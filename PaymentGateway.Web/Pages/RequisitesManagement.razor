@@ -3,15 +3,16 @@
 @using PaymentGateway.Shared.Enums
 @using PaymentGateway.Web.Dialogs
 @using System.Timers
-@attribute [Authorize(Roles = "User")]
+@attribute [Authorize(Roles = "User,Admin,Support")]
 @inject IRequisiteService RequisiteService
 @inject ILogger<RequisitesManagement> Logger
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 @inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthStateProvider
 @implements IDisposable
 
-<AuthorizeView Roles="User">
+<AuthorizeView Roles="User,Admin,Support">
     <Authorized>
         <MudContainer MaxWidth="MaxWidth.ExtraExtraLarge" Class="mt-4" Style="height: calc(100vh - 97px); padding: 0;">
             <MudPaper Class="pa-4" Elevation="12" Style="height: 100%; display: flex; flex-direction: column;">
@@ -36,6 +37,10 @@
                           Width="100%">
                     <HeaderContent>
                         <MudTh>ID</MudTh>
+                        @if (_showUserLogin)
+                        {
+                            <MudTh>ID пользователя</MudTh>
+                        }
                         <MudTh>Имя</MudTh>
                         <MudTh>Тип</MudTh>
                         <MudTh>Платежные данные</MudTh>
@@ -48,6 +53,10 @@
                     </HeaderContent>
                     <RowTemplate Context="requisite">
                         <MudTd DataLabel="ID">@requisite.Id</MudTd>
+                        @if (_showUserLogin)
+                        {
+                            <MudTd DataLabel="ID пользователя">@requisite.UserId.ToString()</MudTd>
+                        }
                         <MudTd DataLabel="Имя">@requisite.FullName</MudTd>
                         <MudTd
                             DataLabel="Тип">@(requisite.PaymentType == PaymentType.PhoneNumber ? "Телефон" : "Карта")</MudTd>
@@ -100,9 +109,15 @@
     private bool _isLoading = true;
     private List<RequisiteDto> _requisites = [];
     private Timer _timer = null!;
+    private bool _showUserLogin;
 
     protected override async Task OnInitializedAsync()
     {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        _showUserLogin = authState.User.IsInRole("Admin") && 
+                        authState.User.IsInRole("Support") && 
+                        authState.User.IsInRole("User");
+
         await LoadRequisites();
 
         _timer = new Timer(3000);
@@ -125,7 +140,9 @@
         try
         {
             _isLoading = true;
-            _requisites = await RequisiteService.GetUserRequisites();
+            _requisites = _showUserLogin 
+                ? await RequisiteService.GetRequisites() 
+                : await RequisiteService.GetUserRequisites();
         }
         catch (Exception e)
         {
@@ -196,5 +213,4 @@
         var totalMinutes = Math.Ceiling(remaining.TotalMinutes);
         return $" - {totalMinutes} мин";
     }
-
 }

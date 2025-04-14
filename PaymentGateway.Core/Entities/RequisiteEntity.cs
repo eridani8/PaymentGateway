@@ -22,6 +22,11 @@ public class RequisiteEntity : IRequisiteEntity, ICacheable
     public Guid UserId { get; init; }
 
     /// <summary>
+    /// Пользователь
+    /// </summary>
+    public UserEntity? User { get; set; }
+
+    /// <summary>
     /// Имя и фамилия
     /// </summary>
     [MaxLength(100)]
