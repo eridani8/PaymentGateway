@@ -130,7 +130,11 @@ public static class ValidatorRules
         return rule
             .NotEmpty().WithMessage("Обязательное поле")
             .MinimumLength(6).WithMessage("Минимальная длина пароля 6 символов")
-            .MaximumLength(100).WithMessage("Максимальная длина пароля 100 символов");
+            .MaximumLength(100).WithMessage("Максимальная длина пароля 100 символов")
+            .Matches("[A-Z]").WithMessage("Пароль должен содержать хотя бы одну заглавную букву")
+            .Matches("[a-z]").WithMessage("Пароль должен содержать хотя бы одну строчную букву")
+            .Matches("[0-9]").WithMessage("Пароль должен содержать хотя бы одну цифру")
+            .Matches("[^a-zA-Z0-9]").WithMessage("Пароль должен содержать хотя бы один специальный символ");
     }
 
     public static IRuleBuilderOptions<T, List<string>> ValidRoles<T>(this IRuleBuilder<T, List<string>> rule)
