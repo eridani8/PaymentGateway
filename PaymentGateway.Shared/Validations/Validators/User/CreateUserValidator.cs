@@ -9,5 +9,7 @@ public class CreateUserValidator : BaseValidator<CreateUserDto>
         RuleFor(x => x.Username).ValidUsername();
         RuleFor(x => x.Password).ValidPassword();
         RuleFor(x => x.Roles).ValidRoles();
+        RuleFor(x => x.MaxRequisitesCount).ValidNumber();
+        RuleFor(x => x.MaxDailyMoneyReceptionLimit).ValidMoneyAmount();
     }
 }

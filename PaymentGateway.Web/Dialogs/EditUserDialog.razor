@@ -19,21 +19,24 @@
                             Disabled="true"
                             Margin="Margin.Normal"/>
                 
-                <MudNumericField T="int"
-                               Label="Максимальное количество реквизитов"
-                               @bind-Value="_updateUserDto.MaxRequisitesCount"
-                               Min="0"
-                               For="@(() => _updateUserDto.MaxRequisitesCount)"
-                               Immediate="true"
-                               Margin="Margin.Normal" />
-                               
-                <MudNumericField T="decimal"
-                               Label="Максимальная суточная сумма"
-                               @bind-Value="_updateUserDto.MaxDailyMoneyReceptionLimit"
-                               Min="0"
-                               For="@(() => _updateUserDto.MaxDailyMoneyReceptionLimit)"
-                               Immediate="true"
-                               Margin="Margin.Normal" />
+                <MudGrid>
+                    <MudItem xs="6">
+                        <MudNumericField T="int"
+                                       Label="Максимальное количество реквизитов"
+                                       @bind-Value="_updateUserDto.MaxRequisitesCount"
+                                       Min="0"
+                                       For="@(() => _updateUserDto.MaxRequisitesCount)"
+                                       Margin="Margin.Normal" />
+                    </MudItem>
+                    <MudItem xs="6">
+                        <MudNumericField T="decimal"
+                                       Label="Максимальная суточная сумма"
+                                       @bind-Value="_updateUserDto.MaxDailyMoneyReceptionLimit"
+                                       Min="0"
+                                       For="@(() => _updateUserDto.MaxDailyMoneyReceptionLimit)"
+                                       Margin="Margin.Normal" />
+                    </MudItem>
+                </MudGrid>
                 
                 <MudText Typo="Typo.subtitle1" Class="mt-2 mb-1">Роль</MudText>
                 <MudToggleGroup T="string" 

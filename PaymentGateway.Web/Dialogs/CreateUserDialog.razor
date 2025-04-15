@@ -12,39 +12,42 @@
     <DialogContent>
         <MudForm @ref="_form" Model="@_createUserDto" Validation="@(_validator.ValidateValue)" ValidationDelay="0">
             <MudTextField T="string"
-                         Label="Логин"
-                         FullWidth="true"
-                         @bind-Value="_createUserDto.Username"
-                         For="@(() => _createUserDto.Username)"
-                         Immediate="true"
-                         Margin="Margin.Normal" />
+                          Label="Логин"
+                          FullWidth="true"
+                          @bind-Value="_createUserDto.Username"
+                          For="@(() => _createUserDto.Username)"
+                          Margin="Margin.Normal"/>
 
             <MudTextField T="string"
-                         Label="Пароль"
-                         FullWidth="true"
-                         @bind-Value="_createUserDto.Password"
-                         InputType="InputType.Password"
-                         For="@(() => _createUserDto.Password)"
-                         Immediate="true"
-                         Margin="Margin.Normal" />
+                          Label="Пароль"
+                          FullWidth="true"
+                          @bind-Value="_createUserDto.Password"
+                          InputType="InputType.Password"
+                          For="@(() => _createUserDto.Password)"
+                          Margin="Margin.Normal"/>
 
-            <MudNumericField T="int"
-                         Label="Максимальное количество реквизитов"
-                         FullWidth="true"
-                         @bind-Value="_createUserDto.MaxRequisitesCount"
-                         Min="0"
-                         For="@(() => _createUserDto.MaxRequisitesCount)"
-                         Immediate="true"
-                         Margin="Margin.Normal" />
-
-            <MudNumericField T="decimal"
-                         Label="Максимальная суточная сумма"
-                         FullWidth="true"
-                         @bind-Value="_createUserDto.MaxDailyMoneyReceptionLimit"
-                         Min="0"
-                         For="@(() => _createUserDto.MaxDailyMoneyReceptionLimit)"
-                         Immediate="true"
-                         Margin="Margin.Normal" />
+            <MudGrid>
+                <MudItem xs="6">
+                    <MudNumericField T="int"
+                                     Label="Максимальное количество реквизитов"
+                                     @bind-Value="_createUserDto.MaxRequisitesCount"
+                                     Min="0"
+                                     For="@(() => _createUserDto.MaxRequisitesCount)"
+                                     Margin="Margin.Normal"/>
+                </MudItem>
+                <MudItem xs="6">
+                    <MudNumericField T="decimal"
+                                     Label="Максимальная суточная сумма"
+                                     @bind-Value="_createUserDto.MaxDailyMoneyReceptionLimit"
+                                     For="@(() => _createUserDto.MaxDailyMoneyReceptionLimit)"
+                                     Format="N0"
+                                     Adornment="Adornment.Start"
+                                     AdornmentIcon="@Icons.Material.Filled.AttachMoney"
+                                     Min="0"
+                                     Step="1000"
+                                     Margin="Margin.Normal"/>
+                </MudItem>
+            </MudGrid>
 
             <MudText Typo="Typo.subtitle1" Class="mt-2 mb-1">Роль</MudText>
             <MudToggleGroup T="string" SelectionMode="SelectionMode.ToggleSelection" @bind-Value="SelectedRole">
@@ -65,7 +68,7 @@
         <MudButton Color="Color.Secondary" OnClick="Submit" Disabled="@(_processing)">
             @if (_processing)
             {
-                <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
                 <MudText Class="ms-2">Обработка</MudText>
             }
             else
@@ -78,13 +81,13 @@
 
 @code {
     [CascadingParameter] public required IMudDialogInstance MudDialog { get; set; }
-    
+
     private MudForm _form = null!;
     private readonly CreateUserDto _createUserDto = new();
     private string? _errorMessage;
     private bool _processing;
     private readonly string[] _availableRoles = ["User", "Admin", "Support"];
-    
+
     private string SelectedRole
     {
         get => _createUserDto.Roles.FirstOrDefault() ?? "User";
@@ -97,6 +100,8 @@
     {
         _createUserDto.Roles = ["User"];
         _createUserDto.IsActive = true;
+        _createUserDto.MaxRequisitesCount = 10;
+        _createUserDto.MaxDailyMoneyReceptionLimit = 50000;
     }
 
     private static string GetRoleDisplayName(string role) => role switch
@@ -110,17 +115,17 @@
     private async Task Submit()
     {
         _errorMessage = null;
-        
+
         await _form.Validate();
-        
+
         if (_form.IsValid)
         {
             _processing = true;
-            
+
             try
             {
                 var result = await AdminService.CreateUser(_createUserDto);
-                
+
                 if (result != null)
                 {
                     Snackbar.Add($"Пользователь {result.Username} успешно создан", Severity.Success);

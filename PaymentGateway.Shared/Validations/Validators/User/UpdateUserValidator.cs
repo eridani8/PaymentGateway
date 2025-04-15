@@ -7,7 +7,8 @@ public class UpdateUserValidator : BaseValidator<UpdateUserDto>
 {
     public UpdateUserValidator()
     {
-        RuleFor(x => x.Id).ValidGuid();
         RuleFor(x => x.Roles).ValidRoles();
+        RuleFor(x => x.MaxRequisitesCount).ValidNumber();
+        RuleFor(x => x.MaxDailyMoneyReceptionLimit).ValidMoneyAmount();
     }
 } 

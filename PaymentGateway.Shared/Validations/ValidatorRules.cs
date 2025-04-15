@@ -85,6 +85,12 @@ public static class ValidatorRules
             .GreaterThan(0).WithMessage("Приоритет должен быть больше 0")
             .LessThanOrEqualTo(maxPriority).WithMessage($"Приоритет должен быть меньше или равен {maxPriority}");
     }
+    
+    public static IRuleBuilderOptions<T, int> ValidNumber<T>(this IRuleBuilder<T, int> rule)
+    {
+        return rule
+            .LessThanOrEqualTo(int.MaxValue).WithMessage($"Число должно быть меньше или равно {int.MaxValue}");
+    }
 
     public static IRuleBuilderOptions<T, DateTime> ValidDate<T>(this IRuleBuilder<T, DateTime> rule)
     {

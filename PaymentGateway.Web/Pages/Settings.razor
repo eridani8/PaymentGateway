@@ -21,7 +21,6 @@
                                      @bind-Value="_changePasswordDto.CurrentPassword"
                                      InputType="InputType.Password"
                                      For="@(() => _changePasswordDto.CurrentPassword)"
-                                     Immediate="true"
                                      Margin="Margin.Normal"/>
 
                         <MudTextField T="string"
@@ -30,7 +29,6 @@
                                      @bind-Value="_changePasswordDto.NewPassword"
                                      InputType="InputType.Password"
                                      For="@(() => _changePasswordDto.NewPassword)"
-                                     Immediate="true"
                                      Margin="Margin.Normal"/>
 
                         <MudTextField T="string"
@@ -39,7 +37,6 @@
                                      @bind-Value="_changePasswordDto.ConfirmPassword"
                                      InputType="InputType.Password"
                                      For="@(() => _changePasswordDto.ConfirmPassword)"
-                                     Immediate="true"
                                      Margin="Margin.Normal"/>
 
                         @if (!string.IsNullOrEmpty(_errorMessage))
