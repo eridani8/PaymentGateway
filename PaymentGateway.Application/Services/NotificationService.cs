@@ -1,12 +1,12 @@
 using Microsoft.AspNetCore.SignalR;
-using PaymentGateway.Api.Hubs;
+using Microsoft.Extensions.Logging;
+using PaymentGateway.Application.Hubs;
 using PaymentGateway.Shared.DTOs.Payment;
 using PaymentGateway.Shared.DTOs.Requisite;
 using PaymentGateway.Shared.DTOs.User;
 using PaymentGateway.Shared.Interfaces;
-using System.Security.Claims;
 
-namespace PaymentGateway.Api.Services;
+namespace PaymentGateway.Application.Services;
 
 public class NotificationService(
     IHubContext<NotificationHub, IHubClient> hubContext,

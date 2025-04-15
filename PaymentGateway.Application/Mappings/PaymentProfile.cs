@@ -29,7 +29,7 @@ public class PaymentProfile : Profile
             .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId))
             .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
             .ForMember(dest => dest.Status, opt => opt.MapFrom(src => PaymentStatus.Created))
-            .ForMember(dest => dest.ExpiresAt, opt => opt.MapFrom(src => DateTime.UtcNow.AddMinutes(5)))
+            .ForMember(dest => dest.ExpiresAt, opt => opt.MapFrom(src => DateTime.UtcNow.AddMinutes(5))) // ~
             .ForMember(dest => dest.RequisiteId, opt => opt.MapFrom(src => (Guid?)null))
             .ForMember(dest => dest.Requisite, opt => opt.MapFrom(src => (RequisiteEntity?)null))
             .ForMember(dest => dest.ProcessedAt, opt => opt.MapFrom(src => (DateTime?)null))

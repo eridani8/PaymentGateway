@@ -32,8 +32,4 @@
       <ProjectReference Include="..\PaymentGateway.Shared\PaymentGateway.Shared.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="Services\" />
-    </ItemGroup>
-
 </Project>

@@ -6,8 +6,9 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using NpgsqlTypes;
 using PaymentGateway.Api;
-using PaymentGateway.Api.Hubs;
 using PaymentGateway.Application;
+using PaymentGateway.Application.Hubs;
+using PaymentGateway.Application.Services;
 using PaymentGateway.Core;
 using PaymentGateway.Core.Entities;
 using PaymentGateway.Infrastructure;
@@ -17,7 +18,6 @@ using Serilog.Events;
 using Serilog.Sinks.PostgreSQL;
 using Serilog.Sinks.PostgreSQL.ColumnWriters;
 using UserStatusFilter = PaymentGateway.Api.Filters.UserStatusFilter;
-using PaymentGateway.Api.Services;
 using PaymentGateway.Shared.Interfaces;
 
 try

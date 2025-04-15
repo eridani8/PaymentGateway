@@ -1,4 +1,4 @@
-﻿using System;
+﻿using PaymentGateway.Shared.DTOs.Payment;
 using PaymentGateway.Shared.Enums;
 
 namespace PaymentGateway.Shared.DTOs.Requisite;
@@ -14,6 +14,7 @@ public class RequisiteDto
     public bool IsActive { get; set; }
     public DateTime CreatedAt { get; set; }
     public Guid? PaymentId { get; init; }
+    public PaymentDto? Payment { get; init; }
     public RequisiteStatus Status { get; init; }
     public DateTime? LastOperationTime { get; init; }
     public decimal ReceivedFunds { get; init; }

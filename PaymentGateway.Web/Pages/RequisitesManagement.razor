@@ -53,9 +53,14 @@
                             <CellTemplate Context="cellContext">
                                 <MudChip Color="@GetStatusColor(cellContext.Item.Status)" Size="Size.Medium">
                                     @GetStatusText(cellContext.Item.Status)
-                                    @if (cellContext.Item.Status == RequisiteStatus.Cooldown)
+                                    @switch (cellContext.Item.Status)
                                     {
-                                        @GetRemainingCooldownTime(cellContext.Item)
+                                        case RequisiteStatus.Cooldown:
+                                            @GetRemainingCooldownTime(cellContext.Item)
+                                            break;
+                                        case RequisiteStatus.Pending:
+                                            @GetRemainingPendingTime(cellContext.Item)
+                                            break;
                                     }
                                 </MudChip>
                             </CellTemplate>
@@ -255,6 +260,19 @@
 
         var cooldownEnd = requisite.LastOperationTime.Value.Add(requisite.Cooldown);
         var remaining = cooldownEnd - DateTime.Now;
+
+        var totalMinutes = Math.Ceiling(remaining.TotalMinutes);
+        return $" - {totalMinutes} мин";
+    }
+    
+    private static string GetRemainingPendingTime(RequisiteDto requisite)
+    {
+        if (requisite.Payment?.ExpiresAt == null)
+        {
+            return "";
+        }
+
+        var remaining = requisite.Payment.ExpiresAt.Value - DateTime.Now;
 
         var totalMinutes = Math.Ceiling(remaining.TotalMinutes);
         return $" - {totalMinutes} мин";

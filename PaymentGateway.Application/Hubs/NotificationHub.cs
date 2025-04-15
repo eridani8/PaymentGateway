@@ -1,8 +1,9 @@
-using Microsoft.AspNetCore.SignalR;
-using PaymentGateway.Shared.Interfaces;
 using System.Security.Claims;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Logging;
+using PaymentGateway.Shared.Interfaces;
 
-namespace PaymentGateway.Api.Hubs;
+namespace PaymentGateway.Application.Hubs;
 
 public class NotificationHub(ILogger<NotificationHub> logger) : Hub<IHubClient>
 {

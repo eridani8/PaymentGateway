@@ -104,7 +104,7 @@ public class GatewayHandler(
             {
                 if (expiredPayment.Requisite != null)
                 {
-                    expiredPayment.Requisite.Status = RequisiteStatus.Active;
+                    expiredPayment.Requisite.ReleaseWithoutPayment();
                     await notificationService.NotifyRequisiteUpdated(mapper.Map<RequisiteDto>(expiredPayment.Requisite));
                 }
                 await notificationService.NotifyPaymentUpdated(mapper.Map<PaymentDto>(expiredPayment));
