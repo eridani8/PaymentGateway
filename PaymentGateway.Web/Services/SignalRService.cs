@@ -1,7 +1,8 @@
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Options;
 using PaymentGateway.Shared.DTOs.Requisite;
-using Blazored.LocalStorage;
+using PaymentGateway.Shared.DTOs.User;
+using PaymentGateway.Shared.Constants;
 using System.Security.Claims;
 
 namespace PaymentGateway.Web.Services;
@@ -13,6 +14,26 @@ public class SignalRService(
 {
     private HubConnection? _hubConnection;
     private readonly string _hubUrl = $"{settings.Value.BaseAddress}/notificationHub";
+
+    private void EnsureConnectionInitialized()
+    {
+        if (_hubConnection == null)
+        {
+            throw new InvalidOperationException("SignalR соединение не инициализировано");
+        }
+    }
+
+    private void Subscribe<T>(string eventName, Action<T> handler)
+    {
+        EnsureConnectionInitialized();
+        _hubConnection!.On(eventName, handler);
+    }
+
+    private void Unsubscribe(string eventName)
+    {
+        EnsureConnectionInitialized();
+        _hubConnection!.Remove(eventName);
+    }
 
     public async Task InitializeAsync()
     {
@@ -77,42 +98,44 @@ public class SignalRService(
         }
     }
 
-    public void SubscribeToUpdates(string methodName, Action handler)
-    {
-        if (_hubConnection == null)
-        {
-            logger.LogWarning("Попытка подписаться на обновления до инициализации соединения");
-            return;
-        }
-
-        _hubConnection.On(methodName, handler);
-    }
-
     public void SubscribeToRequisiteUpdates(Action<RequisiteDto> handler)
     {
-        if (_hubConnection == null)
-        {
-            logger.LogWarning("Попытка подписаться на обновления реквизитов до инициализации соединения");
-            return;
-        }
-
-        _hubConnection.On("RequisiteUpdated", handler);
+        Subscribe(SignalREvents.RequisiteUpdated, handler);
     }
 
     public void SubscribeToRequisiteDeletions(Action<Guid> handler)
     {
-        if (_hubConnection == null)
-        {
-            logger.LogWarning("Попытка подписаться на удаления реквизитов до инициализации соединения");
-            return;
-        }
-
-        _hubConnection.On("RequisiteDeleted", handler);
+        Subscribe(SignalREvents.RequisiteDeleted, handler);
     }
 
-    public void UnsubscribeFromUpdates(string methodName)
+    public void SubscribeToUserUpdates(Action<UserDto> handler)
     {
-        _hubConnection?.Remove(methodName);
+        Subscribe(SignalREvents.UserUpdated, handler);
+    }
+
+    public void SubscribeToUserDeletions(Action<Guid> handler)
+    {
+        Subscribe(SignalREvents.UserDeleted, handler);
+    }
+
+    public void UnsubscribeFromUserUpdates()
+    {
+        Unsubscribe(SignalREvents.UserUpdated);
+    }
+
+    public void UnsubscribeFromUserDeletions()
+    {
+        Unsubscribe(SignalREvents.UserDeleted);
+    }
+
+    public void UnsubscribeFromRequisiteUpdates()
+    {
+        Unsubscribe(SignalREvents.RequisiteUpdated);
+    }
+
+    public void UnsubscribeFromRequisiteDeletions()
+    {
+        Unsubscribe(SignalREvents.RequisiteDeleted);
     }
 
     public async Task DisposeAsync()

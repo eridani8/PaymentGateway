@@ -85,23 +85,53 @@
     {
         await LoadUsers();
         await SignalRService.InitializeAsync();
-        SignalRService.SubscribeToUpdates("UserUpdated", async void () =>
+        SignalRService.SubscribeToUserUpdates(HandleUserUpdate);
+        SignalRService.SubscribeToUserDeletions(HandleUserDeleted);
+    }
+
+    private void HandleUserUpdate(UserDto updatedUser)
+    {
+        try
         {
-            try
+            var existingUser = _users.FirstOrDefault(u => u.Id == updatedUser.Id);
+            if (existingUser != null)
             {
-                await LoadUsers();
+                var index = _users.IndexOf(existingUser);
+                _users[index] = updatedUser;
+            }
+            else
+            {
+                _users.Add(updatedUser);
+            }
+            StateHasChanged();
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e, "Ошибка при обновлении пользователя {UserId}", updatedUser?.Id);
+        }
+    }
+
+    private void HandleUserDeleted(Guid userId)
+    {
+        try
+        {
+            var user = _users.FirstOrDefault(u => u.Id == userId);
+            if (user != null)
+            {
+                _users.Remove(user);
                 StateHasChanged();
             }
-            catch (Exception e)
-            {
-                Logger.LogError(e, e.Message);
-            }
-        });
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e, "Ошибка при удалении пользователя {UserId}", userId);
+        }
     }
 
     public async ValueTask DisposeAsync()
     {
-        SignalRService.UnsubscribeFromUpdates("UserUpdated");
+        SignalRService.UnsubscribeFromUserUpdates();
+        SignalRService.UnsubscribeFromUserDeletions();
         await SignalRService.DisposeAsync();
     }
 
@@ -130,7 +160,7 @@
 
         if (result is { Canceled: false })
         {
-            await LoadUsers();
+            Snackbar.Add("Пользователь успешно создан", Severity.Success);
         }
     }
     
@@ -142,7 +172,7 @@
 
         if (result is { Canceled: false })
         {
-            await LoadUsers();
+            Snackbar.Add("Пользователь успешно удален", Severity.Success);
         }
     }
 
@@ -162,6 +192,7 @@
             try
             {
                 await AdminService.UpdateUser(updateDto);
+                Snackbar.Add("Пользователь успешно обновлен", Severity.Success);
             }
             catch (Exception e)
             {
