@@ -49,6 +49,7 @@ public class RequisiteService(
     public async Task<IEnumerable<RequisiteDto>> GetAllRequisites()
     {
         var entities = await unit.RequisiteRepository.QueryableGetAll()
+            .Include(r => r.Payment)
             .AsNoTracking()
             .ToListAsync();
             
@@ -58,6 +59,7 @@ public class RequisiteService(
     public async Task<IEnumerable<RequisiteDto>> GetUserRequisites(Guid userId)
     {
         var entities = await unit.RequisiteRepository.QueryableGetAll()
+            .Include(r => r.Payment)
             .Where(r => r.UserId == userId)
             .AsNoTracking()
             .ToListAsync();
