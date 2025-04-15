@@ -45,10 +45,10 @@ public class NotificationService(
         {
             await hubContext.Clients.User(requisite.UserId.ToString()).RequisiteUpdated(requisite);
             
-            var rootUserIds = NotificationHub.GetRootUserIds();
-            if (rootUserIds.Count > 0)
+            var adminIds = NotificationHub.GetRootUserIds();
+            if (adminIds.Count > 0)
             {
-                await hubContext.Clients.Users(rootUserIds).RequisiteUpdated(requisite);
+                await hubContext.Clients.Users(adminIds).RequisiteUpdated(requisite);
             }
             
             logger.LogInformation("Requisite updated notification sent for requisite {RequisiteId}", requisite.Id);
@@ -65,10 +65,10 @@ public class NotificationService(
         {
             await hubContext.Clients.User(userId.ToString()).RequisiteDeleted(requisiteId);
             
-            var rootUserIds = NotificationHub.GetRootUserIds();
-            if (rootUserIds.Count > 0)
+            var adminIds = NotificationHub.GetRootUserIds();
+            if (adminIds.Count > 0)
             {
-                await hubContext.Clients.Users(rootUserIds).RequisiteDeleted(requisiteId);
+                await hubContext.Clients.Users(adminIds).RequisiteDeleted(requisiteId);
             }
             
             logger.LogInformation("Requisite deleted notification sent for requisite {RequisiteId}", requisiteId);

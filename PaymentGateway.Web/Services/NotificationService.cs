@@ -61,10 +61,7 @@ public class NotificationService : INotificationService, IAsyncDisposable
 
     public async ValueTask DisposeAsync()
     {
-        if (_hubConnection is not null)
-        {
-            await _hubConnection.DisposeAsync();
-        }
+        await _hubConnection.DisposeAsync();
     }
 
     public Task NotifyUserUpdated(UserDto user)

@@ -6,8 +6,10 @@ using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Core.Entities;
 using PaymentGateway.Core.Exceptions;
 using PaymentGateway.Core.Interfaces;
+using PaymentGateway.Shared.DTOs.Requisite;
 using PaymentGateway.Shared.DTOs.Transaction;
 using PaymentGateway.Shared.Enums;
+using PaymentGateway.Shared.Interfaces;
 
 namespace PaymentGateway.Application.Services;
 
@@ -15,7 +17,8 @@ public class TransactionService(
     IUnitOfWork unit,
     IMapper mapper,
     IValidator<TransactionCreateDto> validator,
-    ILogger<TransactionService> logger)
+    ILogger<TransactionService> logger,
+    INotificationService notificationService)
     : ITransactionService
 {
     public async Task<TransactionDto> CreateTransaction(TransactionCreateDto dto)
@@ -53,8 +56,11 @@ public class TransactionService(
             logger.LogInformation("Статус реквизита {status} {requisiteId} на {sec} сек.", status, requisite.Id, (int)requisite.Cooldown.TotalSeconds);   
         }
 
+        unit.RequisiteRepository.Update(requisite);
         await unit.TransactionRepository.Add(transaction);
         await unit.Commit();
+        
+        await notificationService.NotifyRequisiteUpdated(mapper.Map<RequisiteDto>(requisite));
 
         return mapper.Map<TransactionDto>(transaction);
     }
