@@ -8,7 +8,9 @@ using PaymentGateway.Core.Entities;
 using PaymentGateway.Core.Exceptions;
 using PaymentGateway.Core.Interfaces;
 using PaymentGateway.Shared.DTOs.Requisite;
+using PaymentGateway.Shared.DTOs.User;
 using PaymentGateway.Shared.Enums;
+using PaymentGateway.Shared.Interfaces;
 
 namespace PaymentGateway.Application.Services;
 
@@ -18,7 +20,8 @@ public class RequisiteService(
     IValidator<RequisiteCreateDto> createValidator,
     IValidator<RequisiteUpdateDto> updateValidator,
     ILogger<RequisiteService> logger,
-    UserManager<UserEntity> userManager) : IRequisiteService
+    UserManager<UserEntity> userManager,
+    INotificationService notificationService) : IRequisiteService
 {
     public async Task<RequisiteDto?> CreateRequisite(RequisiteCreateDto dto, Guid userId)
     {
@@ -58,10 +61,16 @@ public class RequisiteService(
         await unit.Commit();
 
         user.RequisitesCount++;
+        await userManager.UpdateAsync(user);
+
+        var requisiteDto = mapper.Map<RequisiteDto>(requisite);
+        
+        await notificationService.NotifyRequisiteUpdated(requisiteDto);
+        await notificationService.NotifyUserUpdated(mapper.Map<UserDto>(user));
 
         logger.LogInformation("Создание реквизита {requisiteId}", requisite.Id);
 
-        return mapper.Map<RequisiteDto>(requisite);
+        return requisiteDto;
     }
 
     public async Task<IEnumerable<RequisiteDto>> GetAllRequisites()
@@ -114,9 +123,12 @@ public class RequisiteService(
         unit.RequisiteRepository.Update(requisite);
         await unit.Commit();
         
+        var requisiteDto = mapper.Map<RequisiteDto>(requisite);
+        
+        await notificationService.NotifyRequisiteUpdated(requisiteDto);
         logger.LogInformation("Обновление реквизита {requisiteId}", requisite.Id);
 
-        return mapper.Map<RequisiteDto>(requisite);
+        return requisiteDto;
     }
 
     public async Task<RequisiteDto?> DeleteRequisite(Guid id)
@@ -129,6 +141,8 @@ public class RequisiteService(
         unit.RequisiteRepository.Delete(requisite);
         await unit.Commit();
         
+        await notificationService.NotifyRequisiteDeleted(requisite.Id, requisite.UserId);
+        await notificationService.NotifyUserUpdated(mapper.Map<UserDto>(requisite.User));
         logger.LogInformation("Удаление реквизита {requisiteId}", requisite.Id);
 
         return mapper.Map<RequisiteDto>(requisite);

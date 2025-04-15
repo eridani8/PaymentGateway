@@ -48,6 +48,7 @@
             
             if (result is not null)
             {
+                Snackbar.Add($"Пользователь {result.Username} успешно удален", Severity.Success);
                 MudDialog.Close(DialogResult.Ok(true));
             }
             else

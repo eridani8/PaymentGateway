@@ -169,26 +169,14 @@
     }
 
     private async Task OpenCreateDialog()
-    {
-        var dialog = await DialogService.ShowAsync<CreateUserDialog>(null);
-        var result = await dialog.Result;
-
-        if (result is { Canceled: false })
-        {
-            Snackbar.Add("Пользователь успешно создан", Severity.Success);
-        }
+    { 
+        await DialogService.ShowAsync<CreateUserDialog>(null);
     }
 
     private async Task OpenDeleteDialog(UserDto user)
     {
         var parameters = new DialogParameters { ["User"] = user };
-        var dialog = await DialogService.ShowAsync<DeleteUserDialog>(null, parameters);
-        var result = await dialog.Result;
-
-        if (result is { Canceled: false })
-        {
-            Snackbar.Add("Пользователь успешно удален", Severity.Success);
-        }
+        await DialogService.ShowAsync<DeleteUserDialog>(null, parameters);
     }
 
     private async Task OpenEditDialog(UserDto user)

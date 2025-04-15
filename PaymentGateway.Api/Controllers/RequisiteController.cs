@@ -13,7 +13,7 @@ namespace PaymentGateway.Api.Controllers;
 [Route("[controller]/[action]")]
 [Produces("application/json")]
 [Authorize]
-public class RequisiteController(IRequisiteService service, INotificationService notificationService)
+public class RequisiteController(IRequisiteService service)
     : ControllerBase
 {
     [HttpPost]
@@ -26,7 +26,6 @@ public class RequisiteController(IRequisiteService service, INotificationService
             var userId = User.GetCurrentUserId();
             var requisite = await service.CreateRequisite(dto, userId);
             if (requisite is null) return BadRequest();
-            await notificationService.NotifyRequisiteUpdated(requisite);
             return Ok(requisite);
         }
         catch (DuplicateRequisiteException e)
@@ -85,7 +84,6 @@ public class RequisiteController(IRequisiteService service, INotificationService
                 return BadRequest();
             }
             
-            await notificationService.NotifyRequisiteUpdated(requisite);
             return Ok(requisite);
         }
         catch (ValidationException e)
@@ -103,7 +101,6 @@ public class RequisiteController(IRequisiteService service, INotificationService
             return NotFound();
         }
         
-        await notificationService.NotifyRequisiteDeleted(requisite.Id, requisite.UserId);
         return Ok(requisite);
     }
 }
