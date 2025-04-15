@@ -1,7 +1,9 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using PaymentGateway.Application.Interfaces;
+using PaymentGateway.Core.Entities;
 using PaymentGateway.Core.Interfaces;
 
 namespace PaymentGateway.Application.Services;
@@ -10,14 +12,17 @@ public class GatewayHost(IServiceProvider serviceProvider, ILogger<GatewayHost> 
 {
     private readonly TimeSpan _startDelay = TimeSpan.FromSeconds(1);
     private readonly TimeSpan _gatewayProcessDelay = TimeSpan.FromSeconds(3);
+    private readonly TimeSpan _fundsResetDelay = TimeSpan.FromHours(12);
     
     private Task _paymentProcessing = null!;
+    private Task _fundsResetProcessing = null!;
     private CancellationTokenSource _cts = null!;
     
     public Task StartAsync(CancellationToken cancellationToken)
     {
         _cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         _paymentProcessing = GatewayProcess();
+        _fundsResetProcessing = UserFundsResetProcess();
         return Task.CompletedTask;
     }
 
@@ -27,7 +32,7 @@ public class GatewayHost(IServiceProvider serviceProvider, ILogger<GatewayHost> 
         {
             logger.LogInformation("Сервис останавливается");
             await _cts.CancelAsync();
-            await Task.WhenAny(_paymentProcessing, Task.Delay(Timeout.Infinite, cancellationToken));
+            await Task.WhenAll(_paymentProcessing, _fundsResetProcessing);
             
             using var scope = serviceProvider.CreateScope();
             var unit = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
@@ -41,6 +46,7 @@ public class GatewayHost(IServiceProvider serviceProvider, ILogger<GatewayHost> 
         {
             _cts.Dispose();
             _paymentProcessing.Dispose();
+            _fundsResetProcessing.Dispose();
             logger.LogInformation("Сервис остановлен");
         }
     }
@@ -72,6 +78,33 @@ public class GatewayHost(IServiceProvider serviceProvider, ILogger<GatewayHost> 
             finally
             {
                 await Task.Delay(_gatewayProcessDelay, _cts.Token);
+            }
+        }
+    }
+    
+    private async Task UserFundsResetProcess()
+    {
+        await Task.Delay(_startDelay, _cts.Token);
+        logger.LogInformation("Цикл сброса средств пользователей запущен");
+        
+        while (!_cts.IsCancellationRequested)
+        {
+            try
+            {
+                using var scope = serviceProvider.CreateScope();
+                var handler = scope.ServiceProvider.GetRequiredService<IGatewayHandler>();
+                var userManager = scope.ServiceProvider.GetRequiredService<UserManager<UserEntity>>();
+
+                await handler.HandleUserFundsReset(userManager);
+            }
+            catch (OperationCanceledException) { }
+            catch (Exception e)
+            {
+                logger.LogError(e, "Ошибка при обработке цикла сброса средств пользователей");
+            }
+            finally
+            {
+                await Task.Delay(_fundsResetDelay, _cts.Token);
             }
         }
     }

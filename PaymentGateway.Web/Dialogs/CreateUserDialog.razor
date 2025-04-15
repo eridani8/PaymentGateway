@@ -28,6 +28,24 @@
                          Immediate="true"
                          Margin="Margin.Normal" />
 
+            <MudNumericField T="int"
+                         Label="Максимальное количество реквизитов"
+                         FullWidth="true"
+                         @bind-Value="_createUserDto.MaxRequisitesCount"
+                         Min="0"
+                         For="@(() => _createUserDto.MaxRequisitesCount)"
+                         Immediate="true"
+                         Margin="Margin.Normal" />
+
+            <MudNumericField T="decimal"
+                         Label="Максимальная суточная сумма"
+                         FullWidth="true"
+                         @bind-Value="_createUserDto.MaxDailyMoneyReceptionLimit"
+                         Min="0"
+                         For="@(() => _createUserDto.MaxDailyMoneyReceptionLimit)"
+                         Immediate="true"
+                         Margin="Margin.Normal" />
+
             <MudText Typo="Typo.subtitle1" Class="mt-2 mb-1">Роль</MudText>
             <MudToggleGroup T="string" SelectionMode="SelectionMode.ToggleSelection" @bind-Value="SelectedRole">
                 @foreach (var role in _availableRoles)
