@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using FluentValidation;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using PaymentGateway.Application.Interfaces;
@@ -16,7 +17,8 @@ public class RequisiteService(
     IMapper mapper,
     IValidator<RequisiteCreateDto> createValidator,
     IValidator<RequisiteUpdateDto> updateValidator,
-    ILogger<RequisiteService> logger) : IRequisiteService
+    ILogger<RequisiteService> logger,
+    UserManager<UserEntity> userManager) : IRequisiteService
 {
     public async Task<RequisiteDto?> CreateRequisite(RequisiteCreateDto dto, Guid userId)
     {
@@ -24,6 +26,20 @@ public class RequisiteService(
         if (!validation.IsValid)
         {
             throw new ValidationException(validation.Errors);
+        }
+        
+        var user = await userManager.FindByIdAsync(userId.ToString());
+        if (user == null)
+        {
+            throw new Exception("Пользователь не найден");
+        }
+        
+        var userRequisitesCount = await unit.RequisiteRepository.QueryableGetAll()
+            .CountAsync(r => r.UserId == userId);
+            
+        if (userRequisitesCount >= user.MaxRequisitesCount)
+        {
+            throw new RequisiteLimitExceededException($"Достигнут лимит реквизитов. Максимум: {user.MaxRequisitesCount}");
         }
         
         var requisites = await unit.RequisiteRepository.GetAll();

@@ -45,12 +45,29 @@ public class RequisiteService(
     
     public async Task<RequisiteDto?> CreateRequisite(RequisiteCreateDto dto)
     {
-        var response = await PostRequest<RequisiteDto>($"{ApiEndpoint}/Create", dto);
-        if (response == null)
+        try
         {
-            logger.LogWarning("Failed to create requisite");
+            var response = await PostRequest($"{ApiEndpoint}/Create", dto);
+            
+            if (response.Code == HttpStatusCode.OK && !string.IsNullOrEmpty(response.Content))
+            {
+                return JsonSerializer.Deserialize<RequisiteDto>(response.Content, JsonOptions);
+            }
+            
+            if (response.Code == HttpStatusCode.BadRequest && !string.IsNullOrEmpty(response.Content))
+            {
+                var errorMessage = response.Content.Trim('"');
+                throw new Exception(errorMessage);
+            }
+            
+            logger.LogWarning("Failed to create requisite. Status code: {StatusCode}", response.Code);
+            return null;
         }
-        return response;
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error creating requisite");
+            throw;
+        }
     }
     
     public async Task<Response> UpdateRequisite(Guid id, RequisiteUpdateDto dto)

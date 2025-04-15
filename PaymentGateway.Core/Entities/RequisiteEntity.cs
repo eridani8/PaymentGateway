@@ -24,7 +24,7 @@ public class RequisiteEntity : IRequisiteEntity, ICacheable
     /// <summary>
     /// Пользователь
     /// </summary>
-    public UserEntity? User { get; set; }
+    public UserEntity User { get; set; }
 
     /// <summary>
     /// Имя и фамилия

@@ -33,6 +33,10 @@ public class RequisiteController(IRequisiteService service, INotificationService
         {
             return BadRequest(e.Message);
         }
+        catch (RequisiteLimitExceededException e)
+        {
+            return BadRequest(e.Message);
+        }
         catch (ValidationException e)
         {
             return BadRequest(e.Errors.GetErrors());

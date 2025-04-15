@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using FluentValidation;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using PaymentGateway.Application.Interfaces;
@@ -18,7 +19,8 @@ public class TransactionService(
     IMapper mapper,
     IValidator<TransactionCreateDto> validator,
     ILogger<TransactionService> logger,
-    INotificationService notificationService)
+    INotificationService notificationService,
+    UserManager<UserEntity> userManager)
     : ITransactionService
 {
     public async Task<TransactionDto> CreateTransaction(TransactionCreateDto dto)
@@ -32,6 +34,7 @@ public class TransactionService(
         var requisite = await unit.RequisiteRepository
             .QueryableGetAll()
             .Include(r => r.Payment)
+            .Include(r => r.User)
             .FirstOrDefaultAsync(r => r.PaymentData == dto.PaymentData);
 
         if (requisite?.Payment is not { } payment)
@@ -55,6 +58,10 @@ public class TransactionService(
         {
             logger.LogInformation("Статус реквизита {status} {requisiteId} на {sec} сек.", status, requisite.Id, (int)requisite.Cooldown.TotalSeconds);   
         }
+
+        requisite.User.ReceivedDailyFunds += dto.ExtractedAmount;
+        logger.LogInformation("Увеличение суточных поступлений пользователя {userId} на {amount}, текущая сумма: {total}", requisite.User.Id, dto.ExtractedAmount, requisite.User.ReceivedDailyFunds);
+        await userManager.UpdateAsync(requisite.User);
 
         unit.RequisiteRepository.Update(requisite);
         await unit.TransactionRepository.Add(transaction);
