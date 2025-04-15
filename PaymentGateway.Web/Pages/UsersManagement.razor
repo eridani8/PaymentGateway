@@ -15,33 +15,38 @@
             <MudPaper Class="pa-4" Elevation="12" Style="height: 100%; display: flex; flex-direction: column;">
                 <MudToolBar>
                     <MudText Typo="Typo.h6">Список пользователей</MudText>
-                    <MudSpacer />
-                    <MudButton 
-                        Variant="Variant.Filled" 
-                        Color="Color.Primary" 
-                        StartIcon="@Icons.Material.Filled.Add" 
+                    <MudSpacer/>
+                    <MudButton
+                        Variant="Variant.Filled"
+                        Color="Color.Primary"
+                        StartIcon="@Icons.Material.Filled.Add"
                         OnClick="OpenCreateDialog">
                         Создать пользователя
                     </MudButton>
                 </MudToolBar>
-                <MudDataGrid T="UserDto" 
-                            Items="@_users" 
-                            Loading="@_isLoading" 
-                            SortMode="SortMode.Multiple" 
-                            Filterable="true"
-                            Hideable="true"
-                            Bordered="true">
+                <MudDataGrid T="UserDto"
+                             Items="@_users"
+                             Loading="@_isLoading"
+                             LoadingProgressColor="Color.Primary"
+                             SortMode="SortMode.Multiple"
+                             Filterable="true"
+                             Hideable="true"
+                             Bordered="true">
                     <Columns>
                         <PropertyColumn Property="x => x.Id" Title="ID"/>
                         <PropertyColumn Property="x => x.Username" Title="Логин"/>
                         <TemplateColumn Title="Роли">
                             <CellTemplate Context="cellContext">
-                                @string.Join(", ", cellContext.Item.Roles)
+                                @foreach (var role in cellContext.Item.Roles)
+                                {
+                                    <MudChip Color="@GetRoleColor(role)">@role</MudChip>
+                                }
                             </CellTemplate>
                         </TemplateColumn>
                         <TemplateColumn Title="Статус">
                             <CellTemplate Context="cellContext">
-                                <MudChip Color="@(cellContext.Item.IsActive ? Color.Success : Color.Error)" Size="Size.Small">
+                                <MudChip Color="@(cellContext.Item.IsActive ? Color.Success : Color.Error)"
+                                         Size="Size.Medium">
                                     @(cellContext.Item.IsActive ? "Активен" : "Неактивен")
                                 </MudChip>
                             </CellTemplate>
@@ -50,17 +55,17 @@
                             <CellTemplate Context="cellContext">
                                 @if (cellContext.Item.Username != "root")
                                 {
-                                    <MudIconButton 
-                                        Icon="@Icons.Material.Filled.Edit" 
-                                        Color="Color.Primary" 
+                                    <MudIconButton
+                                        Icon="@Icons.Material.Filled.Edit"
+                                        Color="Color.Primary"
                                         Size="Size.Small"
-                                        OnClick="@(() => OpenEditDialog(cellContext.Item))" 
+                                        OnClick="@(() => OpenEditDialog(cellContext.Item))"
                                         Title="Редактировать"/>
-                                    <MudIconButton 
-                                        Icon="@Icons.Material.Filled.Delete" 
-                                        Color="Color.Error" 
+                                    <MudIconButton
+                                        Icon="@Icons.Material.Filled.Delete"
+                                        Color="Color.Error"
                                         Size="Size.Small"
-                                        OnClick="@(() => OpenDeleteDialog(cellContext.Item))" 
+                                        OnClick="@(() => OpenDeleteDialog(cellContext.Item))"
                                         aria-label="delete"/>
                                 }
                             </CellTemplate>
@@ -103,6 +108,7 @@
             {
                 _users.Add(updatedUser);
             }
+
             StateHasChanged();
         }
         catch (Exception e)
@@ -161,7 +167,7 @@
             Snackbar.Add("Пользователь успешно создан", Severity.Success);
         }
     }
-    
+
     private async Task OpenDeleteDialog(UserDto user)
     {
         var parameters = new DialogParameters { ["User"] = user };
@@ -198,4 +204,13 @@
             }
         }
     }
+
+    private static Color GetRoleColor(string role) => role switch
+    {
+        "Admin" => Color.Primary,
+        "User" => Color.Secondary,
+        "Support" => Color.Info,
+        _ => Color.Default
+    };
+
 }

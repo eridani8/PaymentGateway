@@ -26,12 +26,13 @@
                         Создать реквизит
                     </MudButton>
                 </MudToolBar>
-                <MudDataGrid T="RequisiteDto" 
-                             Items="_requisites" 
+                <MudDataGrid T="RequisiteDto"
+                             Items="_requisites"
                              Loading="@_isLoading"
+                             LoadingProgressColor="Color.Primary"
                              SortMode="SortMode.Multiple"
                              Filterable="true"
-                             Hideable="true" 
+                             Hideable="true"
                              Bordered="true">
                     <Columns>
                         <PropertyColumn Property="x => x.Id" Title="ID"/>
@@ -133,6 +134,7 @@
             {
                 _requisites.Add(updatedRequisite);
             }
+
             StateHasChanged();
         }
         catch (Exception e)
@@ -257,4 +259,5 @@
         var totalMinutes = Math.Ceiling(remaining.TotalMinutes);
         return $" - {totalMinutes} мин";
     }
+
 }
