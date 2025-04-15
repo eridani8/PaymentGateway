@@ -10,6 +10,7 @@
 @inject AuthenticationStateProvider AuthStateProvider
 @inject SignalRService SignalRService
 @implements IAsyncDisposable
+@implements IDisposable
 
 <AuthorizeView Roles="User,Admin,Support">
     <Authorized>
@@ -31,13 +32,11 @@
                              Loading="@_isLoading"
                              LoadingProgressColor="Color.Primary"
                              SortMode="SortMode.Multiple"
-                             Filterable="true"
-                             Hideable="true"
-                             Bordered="true">
+                             Bordered="true"
+                             Hover="true">
                     <Columns>
-                        <PropertyColumn Property="x => x.Id" Title="ID"/>
-                        <PropertyColumn Property="x => x.UserId" Title="ID пользователя" Hidden="@(!_isAdminUser)"/>
-                        <PropertyColumn Property="x => x.FullName" Title="Имя"/>
+                        <HierarchyColumn />
+                        <PropertyColumn Property="x => x.FullName" Title="Владелец"/>
                         <TemplateColumn Title="Тип">
                             <CellTemplate Context="cellContext">
                                 @(cellContext.Item.PaymentType == PaymentType.PhoneNumber ? "Телефон" : "Карта")
@@ -82,22 +81,41 @@
                                 }
                             </CellTemplate>
                         </TemplateColumn>
-                        <PropertyColumn Property="x => x.Priority" Title="Приоритет"/>
+                        <PropertyColumn Property="x => x.Priority" Title="Приоритет" />
                         <TemplateColumn Title="Действия">
                             <CellTemplate Context="cellContext">
                                 <MudIconButton Icon="@Icons.Material.Filled.Edit"
                                                Color="Color.Primary"
                                                Size="Size.Small"
                                                OnClick="@(() => OpenEditDialog(cellContext.Item))"
-                                               Title="Редактировать"/>
+                                               Title="Редактировать"
+                                               Disabled="@(cellContext.Item.Status == RequisiteStatus.Pending)"/>
                                 <MudIconButton Icon="@Icons.Material.Filled.Delete"
                                                Color="Color.Error"
                                                Size="Size.Small"
                                                OnClick="@(() => OpenDeleteDialog(cellContext.Item))"
-                                               Title="Удалить"/>
+                                               Title="Удалить"
+                                               Disabled="@(cellContext.Item.Status == RequisiteStatus.Pending)"/>
                             </CellTemplate>
                         </TemplateColumn>
                     </Columns>
+                    <ChildRowContent Context="rowContext">
+                        <MudCard>
+                            <MudCardContent>
+                                <MudText>Id: @rowContext.Item.Id</MudText>
+                                <AuthorizeView Roles="Admin">
+                                    <Authorized Context="_">
+                                        <MudText>Id пользователя: @rowContext.Item.UserId</MudText>
+                                    </Authorized>
+                                </AuthorizeView>
+                                @if (rowContext.Item.Payment != null)
+                                {
+                                    <MudText>Связанный платеж: @rowContext.Item.Payment.Id</MudText>
+                                    <MudText>Сумма: @rowContext.Item.Payment.Amount.ToString("N0")</MudText>
+                                }
+                            </MudCardContent>
+                        </MudCard>
+                    </ChildRowContent>
                 </MudDataGrid>
             </MudPaper>
         </MudContainer>
@@ -113,6 +131,8 @@
     private bool _isLoading = true;
     private List<RequisiteDto> _requisites = [];
     private bool _isAdminUser;
+    private Timer _refreshTimer = null!;
+    private const int RefreshInterval = 10000;
 
     protected override async Task OnInitializedAsync()
     {
@@ -123,6 +143,17 @@
         await SignalRService.InitializeAsync();
         SignalRService.SubscribeToRequisiteUpdates(HandleRequisiteUpdate);
         SignalRService.SubscribeToRequisiteDeletions(HandleRequisiteDeleted);
+        _refreshTimer = new Timer(async void (_) =>
+        {
+            try
+            {
+                await InvokeAsync(StateHasChanged);
+            }
+            catch
+            {
+                // ignore
+            }
+        }, null, RefreshInterval, RefreshInterval);
     }
 
     private void HandleRequisiteUpdate(RequisiteDto updatedRequisite)
@@ -162,12 +193,18 @@
             Logger.LogError(e, "Ошибка при удалении реквизита {RequisiteId}", requisiteId);
         }
     }
+    
+    public void Dispose()
+    {
+        _refreshTimer.Dispose();
+    }
 
     public async ValueTask DisposeAsync()
     {
         SignalRService.UnsubscribeFromRequisiteUpdates();
         SignalRService.UnsubscribeFromRequisiteDeletions();
         await SignalRService.DisposeAsync();
+        await _refreshTimer.DisposeAsync();
     }
 
     private async Task LoadRequisites()
@@ -277,5 +314,4 @@
         var totalMinutes = Math.Ceiling(remaining.TotalMinutes);
         return $" - {totalMinutes} мин";
     }
-
 }
