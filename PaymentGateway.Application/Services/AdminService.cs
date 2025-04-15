@@ -138,6 +138,10 @@ public class AdminService(
         
         logger.LogInformation("Обновление пользователя {username}", user.UserName);
         
-        return mapper.Map<UserDto>(user);
+        var updatedRoles = await userManager.GetRolesAsync(user);
+        var userDto = mapper.Map<UserDto>(user);
+        userDto.Roles.AddRange(updatedRoles);
+        
+        return userDto;
     }
 }
