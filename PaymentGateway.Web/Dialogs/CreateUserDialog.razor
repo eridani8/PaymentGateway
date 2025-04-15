@@ -16,6 +16,7 @@
                           FullWidth="true"
                           @bind-Value="_createUserDto.Username"
                           For="@(() => _createUserDto.Username)"
+                          Immediate="true"
                           Margin="Margin.Normal"/>
 
             <MudTextField T="string"
@@ -24,6 +25,7 @@
                           @bind-Value="_createUserDto.Password"
                           InputType="InputType.Password"
                           For="@(() => _createUserDto.Password)"
+                          Immediate="true"
                           Margin="Margin.Normal"/>
 
             <MudGrid>
@@ -33,6 +35,7 @@
                                      @bind-Value="_createUserDto.MaxRequisitesCount"
                                      Min="0"
                                      For="@(() => _createUserDto.MaxRequisitesCount)"
+                                     Immediate="true"
                                      Margin="Margin.Normal"/>
                 </MudItem>
                 <MudItem xs="6">
@@ -45,6 +48,7 @@
                                      AdornmentIcon="@Icons.Material.Filled.AttachMoney"
                                      Min="0"
                                      Step="1000"
+                                     Immediate="true"
                                      Margin="Margin.Normal"/>
                 </MudItem>
             </MudGrid>

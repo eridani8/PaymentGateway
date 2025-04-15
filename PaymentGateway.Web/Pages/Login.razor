@@ -19,6 +19,7 @@
                 Variant="Variant.Outlined"
                 Margin="Margin.Normal"
                 For="@(() => _loginDto.Username)"
+                Immediate="true"
                 FullWidth="true"/>
 
             <MudTextField
@@ -28,6 +29,7 @@
                 Margin="Margin.Normal"
                 InputType="InputType.Password"
                 For="@(() => _loginDto.Password)"
+                Immediate="true"
                 FullWidth="true"/>
 
             @if (!string.IsNullOrEmpty(_errorMessage))

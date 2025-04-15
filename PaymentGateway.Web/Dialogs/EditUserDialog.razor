@@ -17,6 +17,7 @@
                             Label="Логин" 
                             Value="@User.Username" 
                             Disabled="true"
+                            Immediate="true"
                             Margin="Margin.Normal"/>
                 
                 <MudGrid>
@@ -26,6 +27,7 @@
                                        @bind-Value="_updateUserDto.MaxRequisitesCount"
                                        Min="0"
                                        For="@(() => _updateUserDto.MaxRequisitesCount)"
+                                       Immediate="true"
                                        Margin="Margin.Normal" />
                     </MudItem>
                     <MudItem xs="6">
@@ -34,6 +36,7 @@
                                        @bind-Value="_updateUserDto.MaxDailyMoneyReceptionLimit"
                                        Min="0"
                                        For="@(() => _updateUserDto.MaxDailyMoneyReceptionLimit)"
+                                       Immediate="true"
                                        Margin="Margin.Normal" />
                     </MudItem>
                 </MudGrid>

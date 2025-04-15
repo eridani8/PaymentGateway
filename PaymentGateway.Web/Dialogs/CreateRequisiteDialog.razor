@@ -17,6 +17,7 @@
                                   FullWidth="true"
                                   @bind-Value="_createRequisiteDto.FullName"
                                   For="@(() => _createRequisiteDto.FullName)"
+                                  Immediate="true"
                                   Margin="Margin.Normal"/>
                 </MudItem>
 
@@ -41,6 +42,7 @@
                                   FullWidth="true"
                                   @bind-Value="_createRequisiteDto.PaymentData"
                                   For="@(() => _createRequisiteDto.PaymentData)"
+                                  Immediate="true"
                                   Margin="Margin.Normal"/>
                 </MudItem>
 
@@ -50,6 +52,7 @@
                                   FullWidth="true"
                                   @bind-Value="_createRequisiteDto.BankNumber"
                                   For="@(() => _createRequisiteDto.BankNumber)"
+                                  Immediate="true"
                                   Margin="Margin.Normal"/>
                 </MudItem>
 
@@ -63,6 +66,7 @@
                                      AdornmentIcon="@Icons.Material.Filled.AttachMoney"
                                      Min="0"
                                      Step="1000"
+                                     Immediate="true"
                                      Margin="Margin.Normal"/>
                 </MudItem>
 
@@ -73,6 +77,7 @@
                                      For="@(() => _createRequisiteDto.Priority)"
                                      Min="1"
                                      Max="100"
+                                     Immediate="true"
                                      Margin="Margin.Normal"/>
                 </MudItem>
 
@@ -81,6 +86,7 @@
                                   Label="Задержка (часы:минуты:секунды)"
                                   @bind-Value="_createRequisiteDto.Cooldown"
                                   For="@(() => _createRequisiteDto.Cooldown)"
+                                  Immediate="true"
                                   Margin="Margin.Normal"/>
                 </MudItem>
 
