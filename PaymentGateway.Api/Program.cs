@@ -115,7 +115,12 @@ try
     builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
     builder.Services.AddProblemDetails();
 
-    builder.Services.AddSignalR();
+    builder.Services.AddSignalR(options =>
+    {
+        options.ClientTimeoutInterval = TimeSpan.FromMinutes(30);
+        options.KeepAliveInterval = TimeSpan.FromMinutes(1);
+        options.HandshakeTimeout = TimeSpan.FromMinutes(1);
+    });
     builder.Services.AddScoped<INotificationService, NotificationService>();
 
     var secretKey = authConfig.SecretKey;
