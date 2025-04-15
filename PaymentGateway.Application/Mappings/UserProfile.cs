@@ -13,6 +13,7 @@ public class UserProfile : Profile
             .ForMember(dest => dest.Username, opt => opt.MapFrom(src => src.UserName))
             .ForMember(dest => dest.Roles, opt => opt.Ignore())
             .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive))
+            .ForMember(dest => dest.RequisitesCount, opt => opt.MapFrom(src => src.RequisitesCount))
             .ForMember(dest => dest.MaxRequisitesCount, opt => opt.MapFrom(src => src.MaxRequisitesCount))
             .ForMember(dest => dest.MaxDailyMoneyReceptionLimit, opt => opt.MapFrom(src => src.MaxDailyMoneyReceptionLimit))
             .ForMember(dest => dest.ReceivedDailyFunds, opt => opt.MapFrom(src => src.ReceivedDailyFunds))

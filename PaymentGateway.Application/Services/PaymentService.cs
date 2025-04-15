@@ -51,7 +51,9 @@ public class PaymentService(
 
     public async Task<PaymentDto?> GetPaymentById(Guid id)
     {
-        var entity = await unit.PaymentRepository.GetById(id);
+        var entity = await unit.PaymentRepository.GetById(id, 
+            p => p.Requisite, 
+            p => p.Transaction);
         return entity is not null ? mapper.Map<PaymentDto>(entity) : null;
     }
 

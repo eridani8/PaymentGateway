@@ -31,7 +31,7 @@ public class RequisiteService(
         var user = await userManager.FindByIdAsync(userId.ToString());
         if (user == null)
         {
-            throw new Exception("Пользователь не найден");
+            return null;
         }
         
         var userRequisitesCount = await unit.RequisiteRepository.QueryableGetAll()
@@ -56,6 +56,8 @@ public class RequisiteService(
         
         await unit.RequisiteRepository.Add(requisite);
         await unit.Commit();
+
+        user.RequisitesCount++;
 
         logger.LogInformation("Создание реквизита {requisiteId}", requisite.Id);
 
@@ -86,6 +88,7 @@ public class RequisiteService(
     public async Task<RequisiteDto?> GetRequisiteById(Guid id, Guid userId)
     {
         var requisite = await unit.RequisiteRepository.QueryableGetAll()
+            .Include(r => r.User)
             .FirstOrDefaultAsync(r => r.Id == id && r.UserId == userId);
             
         if (requisite is null) return null;
@@ -101,7 +104,9 @@ public class RequisiteService(
             throw new ValidationException(validation.Errors);
         }
         
-        var requisite = await unit.RequisiteRepository.GetById(id);
+        var requisite = await unit.RequisiteRepository.GetById(id,
+            r => r.User,
+            r => r.Payment);
         if (requisite is null) return null;
         if (requisite.Status == RequisiteStatus.Pending) return null;
 
@@ -118,6 +123,8 @@ public class RequisiteService(
     {
         var requisite = await unit.RequisiteRepository.GetById(id);
         if (requisite is null) return null;
+
+        requisite.User.RequisitesCount--;
 
         unit.RequisiteRepository.Delete(requisite);
         await unit.Commit();
