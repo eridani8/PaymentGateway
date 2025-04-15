@@ -116,11 +116,9 @@
         try
         {
             var user = _users.FirstOrDefault(u => u.Id == userId);
-            if (user != null)
-            {
-                _users.Remove(user);
-                StateHasChanged();
-            }
+            if (user == null) return;
+            _users.Remove(user);
+            StateHasChanged();
         }
         catch (Exception e)
         {

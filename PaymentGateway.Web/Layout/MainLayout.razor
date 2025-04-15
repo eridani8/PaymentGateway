@@ -4,7 +4,7 @@
 @inject NavigationManager Navigation
 @inject ILocalStorageService LocalStorage
 
-<MudThemeProvider Theme="_theme" IsDarkMode="_isDarkMode"/>
+<MudThemeProvider @ref="_themeProvider" Theme="_theme" IsDarkMode="_isDarkMode"/>
 <MudPopoverProvider/>
 <MudDialogProvider FullWidth="true" MaxWidth="MaxWidth.Medium" CloseButton="true" BackdropClick="false"
                    Position="DialogPosition.Center" CloseOnEscapeKey="true"/>
@@ -66,9 +66,19 @@
 @code {
 
     private bool _isDarkMode = true;
+    private MudThemeProvider _themeProvider = null!;
     private MudTheme? _theme;
     private const string ThemeKey = "preferred-theme";
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _isDarkMode = await _themeProvider.GetSystemPreference();
+            StateHasChanged();
+        }
+    }
+    
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
@@ -93,7 +103,7 @@
     }
 
     private const string Primary = "#663882";
-    private const string Secondary = "#FFD3BA";
+    private const string Secondary = "#69b4ac";
     private const string Info = "#2374AB";
     private const string Success = "#169873";
     private const string Warning = "#F28123";

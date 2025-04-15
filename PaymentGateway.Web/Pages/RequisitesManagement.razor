@@ -146,11 +146,9 @@
         try
         {
             var requisite = _requisites.FirstOrDefault(r => r.Id == requisiteId);
-            if (requisite != null)
-            {
-                _requisites.Remove(requisite);
-                StateHasChanged();
-            }
+            if (requisite == null) return;
+            _requisites.Remove(requisite);
+            StateHasChanged();
         }
         catch (Exception e)
         {
