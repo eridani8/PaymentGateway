@@ -213,7 +213,9 @@ try
             {
                 Id = Guid.CreateVersion7(),
                 UserName = "root",
-                IsActive = true
+                IsActive = true,
+                MaxRequisitesCount = int.MaxValue,
+                MaxDailyMoneyReceptionLimit = decimal.MaxValue
             };
             var result = await userManager.CreateAsync(rootUser, "Qwerty123_");
             if (!result.Succeeded)
