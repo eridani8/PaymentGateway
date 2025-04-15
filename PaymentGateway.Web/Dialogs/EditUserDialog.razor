@@ -78,7 +78,11 @@
     private string SelectedRole
     {
         get => _updateUserDto.Roles.FirstOrDefault() ?? "User";
-        set => _updateUserDto.Roles = [value];
+        set
+        {
+            _updateUserDto.Roles.Clear();
+            _updateUserDto.Roles.Add(value);
+        }
     }
 
     protected override void OnInitialized()
@@ -111,13 +115,6 @@
             
             try
             {
-                _updateUserDto = new UpdateUserDto
-                {
-                    Id = User.Id,
-                    IsActive = _updateUserDto.IsActive,
-                    Roles = [SelectedRole]
-                };
-                
                 var result = await AdminService.UpdateUser(_updateUserDto);
                 
                 if (result is not null)
