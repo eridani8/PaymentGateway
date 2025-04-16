@@ -7,9 +7,6 @@ using PaymentGateway.Shared;
 using PaymentGateway.Shared.DTOs.Payment;
 using Polly;
 using Polly.Retry;
-using Microsoft.AspNetCore.SignalR.Protocol;
-using Microsoft.AspNetCore.Http.Connections;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace PaymentGateway.Web.Services;
 
@@ -23,12 +20,15 @@ public class SignalRService(
     private bool _isDisposing;
     private bool _isDisposed;
     private readonly SemaphoreSlim _connectionLock = new(1, 1);
+    private Timer? _pingTimer;
+    private const int PingInterval = 15000;
+    private DateTime _lastConnectionTime = DateTime.UtcNow;
 
     private readonly AsyncRetryPolicy _reconnectionPolicy = Policy
         .Handle<Exception>()
         .WaitAndRetryAsync(
-            10,
-            retryAttempt => TimeSpan.FromSeconds(Math.Pow(1.5, retryAttempt)),
+            20,
+            retryAttempt => TimeSpan.FromSeconds(Math.Min(30, Math.Pow(1.5, retryAttempt))),
             (exception, timeSpan, retryCount, _) =>
             {
                 logger.LogWarning(exception,
@@ -93,6 +93,38 @@ public class SignalRService(
         }
     }
 
+    private async Task SendPingAsync(object? state)
+    {
+        if (_isDisposing || _isDisposed || _hubConnection == null || 
+            _hubConnection.State != HubConnectionState.Connected)
+        {
+            return;
+        }
+
+        try 
+        {
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+            await _hubConnection.InvokeAsync("Ping", cts.Token);
+            logger.LogDebug("Ping отправлен успешно");
+        }
+        catch (OperationCanceledException)
+        {
+            logger.LogDebug("Ping был отменен из-за таймаута");
+        }
+        catch (Exception ex)
+        {
+            if (ex.Message.Contains("Connection was stopped before invocation result was received") ||
+                ex.Message.Contains("Connection not active") ||
+                ex.Message.Contains("The connection was stopped during invocation"))
+            {
+                logger.LogDebug("Соединение было закрыто во время ping");
+                return;
+            }
+            
+            logger.LogDebug(ex, "Ошибка отправки ping");
+        }
+    }
+
     private async Task StartConnectionWithRetryAsync()
     {
         await _reconnectionPolicy.ExecuteAsync(async () =>
@@ -110,8 +142,20 @@ public class SignalRService(
                 return;
             }
 
-            await _hubConnection.StartAsync();
-            logger.LogInformation("SignalR соединение установлено успешно");
+            try
+            {
+                await _hubConnection.StartAsync();
+                _lastConnectionTime = DateTime.UtcNow;
+                logger.LogInformation("SignalR соединение установлено успешно");
+                
+                _pingTimer?.Dispose();
+                _pingTimer = new Timer(async _ => await SendPingAsync(null), null, PingInterval, PingInterval);
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Ошибка при подключении SignalR");
+                throw;
+            }
         });
     }
 
@@ -165,6 +209,8 @@ public class SignalRService(
             if (_hubConnection != null)
             {
                 await _hubConnection.DisposeAsync();
+                _pingTimer?.Dispose();
+                _pingTimer = null;
             }
 
             _hubConnection = new HubConnectionBuilder()
@@ -174,30 +220,55 @@ public class SignalRService(
                     options.SkipNegotiation = false;
                     options.Transports = Microsoft.AspNetCore.Http.Connections.HttpTransportType.WebSockets | 
                                          Microsoft.AspNetCore.Http.Connections.HttpTransportType.ServerSentEvents;
+                    options.WebSocketConfiguration = conf => 
+                    {
+                        conf.RemoteCertificateValidationCallback = (sender, certificate, chain, policyErrors) => true;
+                        conf.KeepAliveInterval = TimeSpan.FromSeconds(30);
+                    };
                 })
                 .WithAutomaticReconnect([
                     TimeSpan.FromSeconds(0), 
                     TimeSpan.FromSeconds(2), 
-                    TimeSpan.FromSeconds(10), 
+                    TimeSpan.FromSeconds(5), 
+                    TimeSpan.FromSeconds(10),
+                    TimeSpan.FromSeconds(20), 
                     TimeSpan.FromSeconds(30),
                     TimeSpan.FromMinutes(1),
                     TimeSpan.FromMinutes(2), 
                     TimeSpan.FromMinutes(5),
                     TimeSpan.FromMinutes(10),
-                    TimeSpan.FromMinutes(15),
-                    TimeSpan.FromMinutes(30)
+                    TimeSpan.FromMinutes(15)
                 ])
-                .WithKeepAliveInterval(TimeSpan.FromMinutes(1))
+                .WithKeepAliveInterval(TimeSpan.FromSeconds(30))
+                .WithServerTimeout(TimeSpan.FromMinutes(60))
                 .WithStatefulReconnect()
                 .Build();
 
+            _hubConnection.On("KeepAlive", () => Task.CompletedTask);
+
+            _hubConnection.Reconnecting += error =>
+            {
+                logger.LogWarning("Попытка переподключения SignalR: {Error}", error?.Message);
+                return Task.CompletedTask;
+            };
+
+            _hubConnection.Reconnected += connectionId =>
+            {
+                logger.LogInformation("SignalR успешно переподключен: {ConnectionId}", connectionId);
+                return Task.CompletedTask;
+            };
+
             _hubConnection.Closed += async (error) =>
             {
+                _pingTimer?.Dispose();
+                _pingTimer = null;
+
                 if (_isDisposing || _isDisposed) return;
 
                 if (error != null)
                 {
                     logger.LogWarning("Соединение с SignalR закрыто с ошибкой: {Error}", error.Message);
+                    
                     if (error.Message.Contains("Unauthorized") || error.Message.Contains("401"))
                     {
                         await authStateProvider.MarkUserAsLoggedOut();
@@ -205,18 +276,35 @@ public class SignalRService(
                     }
                     
                     if (error.Message.Contains("runtime.lastError") || 
-                        error.Message.Contains("message channel closed"))
+                        error.Message.Contains("message channel closed") ||
+                        error.Message.Contains("Error: A listener indicated an asynchronous response"))
                     {
-                        logger.LogWarning("Обнаружена ошибка channel closed/runtime.lastError, пересоздание соединения");
-                        
-                        await Task.Delay(1000);
+                        logger.LogWarning("Обнаружена ошибка 'runtime.lastError', инициируем переподключение через 2 секунды");
+                        await Task.Delay(2000);
+                        _hubConnection?.Remove("KeepAlive");
                     }
                 }
 
-                logger.LogInformation("Попытка переподключения к SignalR через Polly...");
+                logger.LogInformation("Попытка переподключения к SignalR...");
                 try
                 {
-                    await StartConnectionWithRetryAsync();
+                    // Ждем небольшой случайный интервал перед переподключением
+                    await Task.Delay(new Random().Next(100, 1000));
+                    
+                    // Проверяем состояние перед попыткой переподключения
+                    if (_hubConnection != null && _hubConnection.State != HubConnectionState.Connected)
+                    {
+                        // Полностью пересоздаем соединение, если прошло больше 30 минут с момента закрытия
+                        if (DateTime.UtcNow - _lastConnectionTime > TimeSpan.FromMinutes(30))
+                        {
+                            logger.LogInformation("Прошло более 30 минут с момента закрытия, полностью пересоздаем соединение");
+                            await InitializeAsync();
+                        }
+                        else
+                        {
+                            await StartConnectionWithRetryAsync();
+                        }
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -333,6 +421,9 @@ public class SignalRService(
 
         try
         {
+            _pingTimer?.Dispose();
+            _pingTimer = null;
+            
             if (_hubConnection != null)
             {
                 await _hubConnection.DisposeAsync();

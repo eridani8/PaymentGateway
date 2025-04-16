@@ -2,6 +2,7 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using NpgsqlTypes;
@@ -19,6 +20,7 @@ using Serilog.Sinks.PostgreSQL;
 using Serilog.Sinks.PostgreSQL.ColumnWriters;
 using UserStatusFilter = PaymentGateway.Api.Filters.UserStatusFilter;
 using PaymentGateway.Shared.Interfaces;
+using Microsoft.AspNetCore.SignalR;
 
 try
 {
@@ -194,6 +196,12 @@ try
     app.UseExceptionHandler();
 
     app.MapHub<NotificationHub>("/notificationHub");
+    
+    using (var scope = app.Services.CreateScope())
+    {
+        var hubContext = scope.ServiceProvider.GetRequiredService<IHubContext<NotificationHub, IHubClient>>();
+        NotificationHub.Initialize(hubContext);
+    }
 
     using (var scope = app.Services.CreateScope())
     {

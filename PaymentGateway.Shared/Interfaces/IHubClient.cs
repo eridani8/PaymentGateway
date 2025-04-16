@@ -12,4 +12,5 @@ public interface IHubClient
     Task UserDeleted(Guid userId);
     Task PaymentUpdated(PaymentDto payment);
     Task PaymentDeleted(Guid paymentId);
+    Task KeepAlive();
 } 
