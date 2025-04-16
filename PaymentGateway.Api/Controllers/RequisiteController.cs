@@ -62,11 +62,7 @@ public class RequisiteController(IRequisiteService service)
     {
         var userId = User.GetCurrentUserId();
         var requisite = await service.GetRequisiteById(id, userId);
-        if (requisite is null)
-        {
-            return NotFound();
-        }
-        
+        if (requisite is null) return NotFound();
         return Ok(requisite);
     }
     
@@ -78,11 +74,7 @@ public class RequisiteController(IRequisiteService service)
         try
         {
             var requisite = await service.UpdateRequisite(id, dto);
-            if (requisite is null)
-            {
-                return BadRequest();
-            }
-            
+            if (requisite is null) return BadRequest();
             return Ok(requisite);
         }
         catch (ValidationException e)
@@ -95,11 +87,7 @@ public class RequisiteController(IRequisiteService service)
     public async Task<ActionResult<RequisiteDto>> Delete(Guid id)
     {
         var requisite = await service.DeleteRequisite(id);
-        if (requisite is null)
-        {
-            return NotFound();
-        }
-        
+        if (requisite is null) return NotFound();
         return Ok(requisite);
     }
 }

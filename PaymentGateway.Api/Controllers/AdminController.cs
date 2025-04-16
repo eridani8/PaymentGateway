@@ -12,7 +12,7 @@ namespace PaymentGateway.Api.Controllers;
 [ApiController]
 [Route("[controller]/[action]")]
 [Authorize(Roles = "Admin")]
-public class UsersController(IAdminService service, INotificationService notificationService) : ControllerBase
+public class UsersController(IAdminService service) : ControllerBase
 {
     [HttpPost]
     public async Task<ActionResult<UserDto>> CreateUser([FromBody] CreateUserDto? dto)
@@ -22,11 +22,7 @@ public class UsersController(IAdminService service, INotificationService notific
         try
         {
             var user = await service.CreateUser(dto);
-            if (user is null)
-            {
-                return BadRequest();
-            }
-            await notificationService.NotifyUserUpdated(user);
+            if (user is null) return BadRequest();
             return Ok(user);
         }
         catch (DuplicateUserException)
@@ -67,13 +63,7 @@ public class UsersController(IAdminService service, INotificationService notific
     {
         var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
         var user = await service.DeleteUser(id, currentUserId);
-
-        if (user is null)
-        {
-            return NotFound();
-        }
-
-        await notificationService.NotifyUserUpdated(user);
+        if (user is null) return NotFound();
         return Ok(true);
     }
 
@@ -85,12 +75,7 @@ public class UsersController(IAdminService service, INotificationService notific
         try
         {
             var user = await service.UpdateUser(dto);
-            if (user is null)
-            {
-                return NotFound();
-            }
-            
-            await notificationService.NotifyUserUpdated(user);
+            if (user is null) return NotFound();
             return Ok(user);
         }
         catch (ValidationException e)

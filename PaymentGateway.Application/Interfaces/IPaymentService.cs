@@ -1,5 +1,4 @@
 ﻿using PaymentGateway.Shared.DTOs.Payment;
-using PaymentGateway.Shared.Validations.Validators.Payment;
 
 namespace PaymentGateway.Application.Interfaces;
 

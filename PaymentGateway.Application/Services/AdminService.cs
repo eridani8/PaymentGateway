@@ -7,6 +7,7 @@ using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Core.Entities;
 using PaymentGateway.Core.Exceptions;
 using PaymentGateway.Shared.DTOs.User;
+using PaymentGateway.Shared.Interfaces;
 
 namespace PaymentGateway.Application.Services;
 
@@ -15,7 +16,8 @@ public class AdminService(
     UserManager<UserEntity> userManager,
     IValidator<CreateUserDto> createValidator,
     IValidator<UpdateUserDto> updateValidator,
-    ILogger<AdminService> logger) : IAdminService
+    ILogger<AdminService> logger,
+    INotificationService notificationService) : IAdminService
 {
     public async Task<UserDto?> CreateUser(CreateUserDto dto)
     {
@@ -49,6 +51,8 @@ public class AdminService(
         var roles = await userManager.GetRolesAsync(user);
         var userDto = mapper.Map<UserDto>(user);
         userDto.Roles.AddRange(roles);
+        
+        await notificationService.NotifyUserUpdated(userDto);
         
         return userDto;
     }
@@ -140,6 +144,8 @@ public class AdminService(
         var updatedRoles = await userManager.GetRolesAsync(user);
         var userDto = mapper.Map<UserDto>(user);
         userDto.Roles.AddRange(updatedRoles);
+        
+        await notificationService.NotifyUserUpdated(userDto);
         
         return userDto;
     }

@@ -44,10 +44,13 @@ public class PaymentService(
 
         await unit.PaymentRepository.Add(entity);
         await unit.Commit();
+
+        var paymentDto = mapper.Map<PaymentDto>(entity);
         
         logger.LogInformation("Создание платежа {paymentId} на сумму {amount}", entity.Id, entity.Amount);
+        await notificationService.NotifyPaymentUpdated(paymentDto);
 
-        return mapper.Map<PaymentDto>(entity);
+        return paymentDto;
     }
 
     public async Task<PaymentDto?> ManualConfirmPayment(PaymentManualConfirmDto dto, Guid currentUserId)
@@ -121,9 +124,12 @@ public class PaymentService(
 
         unit.PaymentRepository.Delete(entity);
         await unit.Commit();
+
+        var paymentDto = mapper.Map<PaymentDto>(entity);
         
         logger.LogInformation("Удаление платежа {paymentId}", entity.Id);
+        await notificationService.NotifyPaymentUpdated(paymentDto);
 
-        return mapper.Map<PaymentDto>(entity);
+        return paymentDto;
     }
 }

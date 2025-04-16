@@ -1,12 +1,9 @@
 ﻿using FluentValidation;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PaymentGateway.Application;
 using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Core.Exceptions;
 using PaymentGateway.Shared.DTOs.Payment;
-using PaymentGateway.Shared.Interfaces;
-using PaymentGateway.Shared.Validations.Validators.Payment;
 
 namespace PaymentGateway.Api.Controllers;
 
@@ -14,8 +11,7 @@ namespace PaymentGateway.Api.Controllers;
 [Route("[controller]/[action]")]
 [Produces("application/json")]
 public class PaymentController(
-    IPaymentService paymentService,
-    INotificationService notificationService)
+    IPaymentService paymentService)
     : ControllerBase
 {
     [HttpPost]
@@ -27,7 +23,6 @@ public class PaymentController(
         {
             var payment = await paymentService.CreatePayment(dto);
             if (payment is null) return BadRequest();
-            await notificationService.NotifyPaymentUpdated(payment);
             return Ok(payment);
         }
         catch (DuplicatePaymentException)
@@ -74,11 +69,7 @@ public class PaymentController(
     public async Task<ActionResult<PaymentDto>> GetById(Guid id)
     {
         var payment = await paymentService.GetPaymentById(id);
-        if (payment is null)
-        {
-            return NotFound();
-        }
-        
+        if (payment is null) return NotFound();
         return Ok(payment);
     }
     
@@ -86,12 +77,7 @@ public class PaymentController(
     public async Task<ActionResult<PaymentDto>> Delete(Guid id)
     {
         var payment = await paymentService.DeletePayment(id);
-        if (payment is null)
-        {
-            return NotFound();
-        }
-
-        await notificationService.NotifyPaymentUpdated(payment);
+        if (payment is null) return NotFound();
         return Ok(payment);
     }
 }
