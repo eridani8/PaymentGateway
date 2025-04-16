@@ -6,13 +6,13 @@ using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Core.Exceptions;
 using PaymentGateway.Shared.DTOs.Payment;
 using PaymentGateway.Shared.Interfaces;
+using PaymentGateway.Shared.Validations.Validators.Payment;
 
 namespace PaymentGateway.Api.Controllers;
 
 [ApiController]
 [Route("[controller]/[action]")]
 [Produces("application/json")]
-[Authorize]
 public class PaymentController(
     IPaymentService paymentService,
     INotificationService notificationService)
@@ -33,6 +33,28 @@ public class PaymentController(
         catch (DuplicatePaymentException)
         {
             return Conflict();
+        }
+        catch (ValidationException e)
+        {
+            return BadRequest(e.Errors.GetErrors());
+        }
+    }
+
+    [HttpPost]
+    public async Task<ActionResult<PaymentDto>> ManualConfirmPayment([FromBody] PaymentManualConfirmDto? dto)
+    {
+        if (dto is null) return BadRequest();
+
+        try
+        {
+            var userId = User.GetCurrentUserId();
+            var payment = await paymentService.ManualConfirmPayment(dto, userId);
+            if (payment is null) return BadRequest();
+            return Ok(payment);
+        }
+        catch (PaymentNotFound)
+        {
+            return NotFound();
         }
         catch (ValidationException e)
         {

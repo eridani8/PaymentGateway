@@ -19,4 +19,5 @@ public interface IPaymentEntity
     TransactionEntity? Transaction { get; set; }
     void MarkAsPending(RequisiteEntity requisite);
     void ConfirmTransaction(TransactionEntity transaction);
+    void ManualConfirm();
 }

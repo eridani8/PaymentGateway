@@ -5,5 +5,6 @@ public enum PaymentStatus
     Created = 0,
     Pending = 1,
     Confirmed = 2,
-    Expired = 3
+    ManualConfirm = 3,
+    Expired = 4,
 }

@@ -81,4 +81,10 @@ public sealed class PaymentEntity : IPaymentEntity, ICacheable
         ProcessedAt = DateTime.UtcNow;
         ExpiresAt = null;
     }
+
+    public void ManualConfirm()
+    {
+        Status = PaymentStatus.ManualConfirm;
+        ProcessedAt = DateTime.UtcNow;
+    }
 }

@@ -7,6 +7,7 @@ using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Core.Entities;
 using PaymentGateway.Core.Exceptions;
 using PaymentGateway.Core.Interfaces;
+using PaymentGateway.Shared.DTOs.Payment;
 using PaymentGateway.Shared.DTOs.Requisite;
 using PaymentGateway.Shared.DTOs.Transaction;
 using PaymentGateway.Shared.Enums;
@@ -68,6 +69,7 @@ public class TransactionService(
         await unit.Commit();
         
         await notificationService.NotifyRequisiteUpdated(mapper.Map<RequisiteDto>(requisite));
+        await notificationService.NotifyPaymentUpdated(mapper.Map<PaymentDto>(payment));
 
         return mapper.Map<TransactionDto>(transaction);
     }

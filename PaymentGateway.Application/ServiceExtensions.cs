@@ -29,6 +29,7 @@ public static class ServiceExtensions
         services.AddScoped<IRequisiteService, RequisiteService>();
         
         services.AddScoped<IValidator<PaymentCreateDto>, PaymentCreateDtoValidator>();
+        services.AddScoped<IValidator<PaymentManualConfirmDto>, PaymentManualConfirmDtoValidator>();
         services.AddScoped<IPaymentService, PaymentService>();
 
         services.AddScoped<IValidator<TransactionCreateDto>, TransactionCreateDtoValidator>();
