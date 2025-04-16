@@ -48,6 +48,7 @@ public class PaymentService(
         var paymentDto = mapper.Map<PaymentDto>(entity);
         
         logger.LogInformation("Создание платежа {paymentId} на сумму {amount}", entity.Id, entity.Amount);
+        
         await notificationService.NotifyPaymentUpdated(paymentDto);
 
         return paymentDto;
@@ -76,9 +77,19 @@ public class PaymentService(
             throw new ManualConfirmException();
         }
 
-        if (paymentEntity.Requisite.UserId != currentUserId)
+        var user = await userManager.FindByIdAsync(currentUserId.ToString());
+        if (user is null)
         {
-            throw new ManualConfirmException("Подтвердить платеж может только владелец");
+            throw new ManualConfirmException("Недостаточно прав");
+        }
+        
+        var userRoles = await userManager.GetRolesAsync(user);
+
+        if (paymentEntity.Requisite.UserId != currentUserId || 
+            !(userRoles.Contains("User") && userRoles.Contains("Admin") && userRoles.Contains("Support")) || 
+            !userRoles.Contains("Support"))
+        {
+            throw new ManualConfirmException("Подтвердить платеж может только владелец или служба поддержки");
         }
         
         logger.LogInformation("Ручное подтверждение платежа {paymentId}", paymentEntity.Id);
