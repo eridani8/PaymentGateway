@@ -39,7 +39,6 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IRequisiteService, RequisiteService>();
-builder.Services.AddScoped<INotificationService, NotificationService>();
 
 builder.Services.AddHttpClient("API", (serviceProvider, client) =>
     {

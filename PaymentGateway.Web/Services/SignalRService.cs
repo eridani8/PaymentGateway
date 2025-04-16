@@ -3,6 +3,7 @@ using Microsoft.Extensions.Options;
 using PaymentGateway.Shared.DTOs.Requisite;
 using PaymentGateway.Shared.DTOs.User;
 using System.Security.Claims;
+using PaymentGateway.Shared;
 using PaymentGateway.Shared.DTOs.Payment;
 using Polly;
 using Polly.Retry;
@@ -14,13 +15,6 @@ public class SignalRService(
     ILogger<SignalRService> logger,
     CustomAuthStateProvider authStateProvider)
 {
-    private const string RequisiteUpdated = "RequisiteUpdated";
-    private const string RequisiteDeleted = "RequisiteDeleted";
-    private const string UserUpdated = "UserUpdated";
-    private const string UserDeleted = "UserDeleted";
-    private const string PaymentUpdated = "PaymentUpdated";
-    private const string PaymentDeleted = "PaymentDeleted";
-
     private HubConnection? _hubConnection;
     private readonly string _hubUrl = $"{settings.Value.BaseAddress}/notificationHub";
     private bool _isDisposing;
@@ -72,7 +66,6 @@ public class SignalRService(
                 }
                 return Task.CompletedTask;
             });
-            _hubConnection!.On(eventName, handler);
         }
         catch (Exception ex)
         {
@@ -251,22 +244,22 @@ public class SignalRService(
 
     public void SubscribeToRequisiteUpdates(Action<RequisiteDto> handler)
     {
-        Subscribe(RequisiteUpdated, handler);
+        Subscribe(SignalREvents.RequisiteUpdated, handler);
     }
     
     public void UnsubscribeFromRequisiteUpdates()
     {
-        Unsubscribe(RequisiteUpdated);
+        Unsubscribe(SignalREvents.RequisiteUpdated);
     }
 
     public void SubscribeToRequisiteDeletions(Action<Guid> handler)
     {
-        Subscribe(RequisiteDeleted, handler);
+        Subscribe(SignalREvents.RequisiteDeleted, handler);
     }
     
     public void UnsubscribeFromRequisiteDeletions()
     {
-        Unsubscribe(RequisiteDeleted);
+        Unsubscribe(SignalREvents.RequisiteDeleted);
     }
 
     #endregion
@@ -275,22 +268,22 @@ public class SignalRService(
 
     public void SubscribeToUserUpdates(Action<UserDto> handler)
     {
-        Subscribe(UserUpdated, handler);
+        Subscribe(SignalREvents.UserUpdated, handler);
     }
     
     public void UnsubscribeFromUserUpdates()
     {
-        Unsubscribe(UserUpdated);
+        Unsubscribe(SignalREvents.UserUpdated);
     }
 
     public void SubscribeToUserDeletions(Action<Guid> handler)
     {
-        Subscribe(UserDeleted, handler);
+        Subscribe(SignalREvents.UserDeleted, handler);
     }
 
     public void UnsubscribeFromUserDeletions()
     {
-        Unsubscribe(UserDeleted);
+        Unsubscribe(SignalREvents.UserDeleted);
     }
 
     #endregion
@@ -299,22 +292,22 @@ public class SignalRService(
 
     public void SubscribeToPaymentUpdates(Action<PaymentDto> handler)
     {
-        Subscribe(PaymentUpdated, handler);
+        Subscribe(SignalREvents.PaymentUpdated, handler);
     }
 
     public void UnsubscribeFromPaymentUpdates()
     {
-        Unsubscribe(PaymentUpdated);
+        Unsubscribe(SignalREvents.PaymentUpdated);
     }
 
     public void SubscribeToPaymentDeletions(Action<Guid> handler)
     {
-        Subscribe(PaymentDeleted, handler);
+        Subscribe(SignalREvents.PaymentDeleted, handler);
     }
 
     public void UnsubscribeFromPaymentDeletions()
     {
-        Unsubscribe(PaymentDeleted);
+        Unsubscribe(SignalREvents.PaymentDeleted);
     }
 
     #endregion

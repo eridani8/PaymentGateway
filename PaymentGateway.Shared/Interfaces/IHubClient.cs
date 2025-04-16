@@ -6,9 +6,10 @@ namespace PaymentGateway.Shared.Interfaces;
 
 public interface IHubClient
 {
-    Task UserUpdated(UserDto user);
-    Task PaymentUpdated(PaymentDto payment);
     Task RequisiteUpdated(RequisiteDto requisite);
     Task RequisiteDeleted(Guid requisiteId);
-    Task PaymentStatusChanged(PaymentDto payment);
+    Task UserUpdated(UserDto user);
+    Task UserDeleted(Guid userId);
+    Task PaymentUpdated(PaymentDto payment);
+    Task PaymentDeleted(Guid paymentId);
 } 

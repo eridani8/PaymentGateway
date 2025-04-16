@@ -96,9 +96,12 @@ public class GatewayHandler(
             
             requisite.AssignToPayment(payment);
             payment.MarkAsPending(requisite);
+            
+            var paymentDto = mapper.Map<PaymentDto>(payment);
+            var requisiteDto = mapper.Map<RequisiteDto>(requisite);
 
-            await notificationService.NotifyPaymentUpdated(mapper.Map<PaymentDto>(payment));
-            await notificationService.NotifyRequisiteUpdated(mapper.Map<RequisiteDto>(requisite));
+            await notificationService.NotifyPaymentUpdated(paymentDto);
+            await notificationService.NotifyRequisiteUpdated(requisiteDto);
 
             logger.LogInformation("Платеж {payment} назначен реквизиту {requisite}", payment.Id, requisite.Id);
         }

@@ -7,8 +7,10 @@ namespace PaymentGateway.Shared.Interfaces;
 public interface INotificationService
 {
     Task NotifyUserUpdated(UserDto user);
-    Task NotifyPaymentUpdated(PaymentDto payment);
+    Task NotifyUserDeleted(Guid id);
     Task NotifyRequisiteUpdated(RequisiteDto requisite);
     Task NotifyRequisiteDeleted(Guid requisiteId, Guid userId);
-    Task NotifyPaymentStatusChanged(PaymentDto payment);
+    Task NotifyPaymentUpdated(PaymentDto payment);
+    Task NotifyPaymentDeleted(Guid id, Guid userId);
+    
 } 
