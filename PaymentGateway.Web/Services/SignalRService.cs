@@ -58,6 +58,20 @@ public class SignalRService(
         try
         {
             EnsureConnectionInitialized();
+            
+            _hubConnection!.Remove(eventName);
+            
+            _hubConnection!.On<T>(eventName, (data) => {
+                try 
+                {
+                    handler(data);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Ошибка при обработке события SignalR {EventName}", eventName);
+                }
+                return Task.CompletedTask;
+            });
             _hubConnection!.On(eventName, handler);
         }
         catch (Exception ex)
@@ -160,7 +174,17 @@ public class SignalRService(
             _hubConnection = new HubConnectionBuilder()
                 .WithUrl(_hubUrl, options => { 
                     options.AccessTokenProvider = () => Task.FromResult(token)!;
+                    options.CloseTimeout = TimeSpan.FromMinutes(30);
                 })
+                .WithAutomaticReconnect([
+                    TimeSpan.FromSeconds(0), 
+                    TimeSpan.FromSeconds(2), 
+                    TimeSpan.FromSeconds(10), 
+                    TimeSpan.FromSeconds(30),
+                    TimeSpan.FromMinutes(1),
+                    TimeSpan.FromMinutes(2), 
+                    TimeSpan.FromMinutes(5)
+                ])
                 .WithAutomaticReconnect()
                 .Build();
 
@@ -175,6 +199,14 @@ public class SignalRService(
                     {
                         await authStateProvider.MarkUserAsLoggedOut();
                         return;
+                    }
+                    
+                    if (error.Message.Contains("runtime.lastError") || 
+                        error.Message.Contains("message channel closed"))
+                    {
+                        logger.LogWarning("Обнаружена ошибка channel closed/runtime.lastError, пересоздание соединения");
+                        
+                        await Task.Delay(1000);
                     }
                 }
 
