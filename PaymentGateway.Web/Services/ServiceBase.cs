@@ -22,7 +22,7 @@ public class ServiceBase(IHttpClientFactory factory, ILogger<ServiceBase> logger
     {
         var response = await SendRequest(HttpMethod.Post, url, model);
         return response.Code is HttpStatusCode.OK or HttpStatusCode.Created 
-            ? JsonSerializer.Deserialize<T>(response.Content ?? string.Empty, JsonOptions)
+            ? JsonSerializer.Deserialize<T>(response.Content?.Trim('"') ?? string.Empty, JsonOptions)
             : default;
     }
 
@@ -40,7 +40,7 @@ public class ServiceBase(IHttpClientFactory factory, ILogger<ServiceBase> logger
     {
         var response = await SendRequest(HttpMethod.Put, url, model);
         return response.Code is HttpStatusCode.OK or HttpStatusCode.Created
-            ? JsonSerializer.Deserialize<T>(response.Content ?? string.Empty, JsonOptions)
+            ? JsonSerializer.Deserialize<T>(response.Content?.Trim('"') ?? string.Empty, JsonOptions)
             : default;
     }
 
@@ -48,7 +48,7 @@ public class ServiceBase(IHttpClientFactory factory, ILogger<ServiceBase> logger
     {
         var response = await SendRequest(HttpMethod.Delete, url);
         return response.Code is HttpStatusCode.OK 
-            ? JsonSerializer.Deserialize<T>(response.Content ?? string.Empty, JsonOptions)
+            ? JsonSerializer.Deserialize<T>(response.Content?.Trim('"') ?? string.Empty, JsonOptions)
             : default;
     }
 
@@ -98,7 +98,7 @@ public class ServiceBase(IHttpClientFactory factory, ILogger<ServiceBase> logger
         return new Response
         {
             Code = httpResponse?.StatusCode ?? HttpStatusCode.InternalServerError,
-            Content = content
+            Content = content?.Trim('"')
         };
     }
 }

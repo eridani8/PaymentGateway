@@ -56,7 +56,7 @@ public class RequisiteService(
             
             if (response.Code == HttpStatusCode.BadRequest && !string.IsNullOrEmpty(response.Content))
             {
-                var errorMessage = response.Content.Trim('"');
+                var errorMessage = response.Content;
                 throw new Exception(errorMessage);
             }
             

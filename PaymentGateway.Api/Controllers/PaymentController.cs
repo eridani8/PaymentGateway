@@ -1,4 +1,5 @@
 ﻿using FluentValidation;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PaymentGateway.Application;
 using PaymentGateway.Application.Interfaces;
@@ -51,6 +52,10 @@ public class PaymentController(
         {
             return NotFound();
         }
+        catch (ManualConfirmException e)
+        {
+            return BadRequest(e.Message);
+        }
         catch (ValidationException e)
         {
             return BadRequest(e.Errors.GetErrors());
@@ -73,6 +78,7 @@ public class PaymentController(
         return Ok(payment);
     }
     
+    [Authorize(Roles = "Admin")]
     [HttpDelete("{id:guid}")]
     public async Task<ActionResult<PaymentDto>> Delete(Guid id)
     {

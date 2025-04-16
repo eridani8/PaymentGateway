@@ -1,8 +1,10 @@
 ﻿@page "/requisites"
+@using System.Net
 @using PaymentGateway.Shared.DTOs.Requisite
 @using PaymentGateway.Shared.Enums
 @attribute [Authorize(Roles = "User,Admin,Support")]
 @inject IRequisiteService RequisiteService
+@inject IPaymentService PaymentService
 @inject ILogger<Requisites> Logger
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
@@ -127,7 +129,7 @@
                                         <MudText Typo="Typo.body1">@rowContext.Item.Payment.Amount.ToString("N0")</MudText>
                                     </MudStack>
                                     <MudStack Row="true" Class="pt-2">
-                                        <MudButton Variant="Variant.Outlined" Color="Color.Warning">Подтвердить платеж</MudButton>
+                                        <MudButton OnClick="@(() => PaymentManualConfirm(rowContext.Item.Payment.Id))" Variant="Variant.Outlined" Color="Color.Warning">Подтвердить платеж</MudButton>
                                     </MudStack>
                                 }
                             </MudCardContent>
@@ -360,4 +362,17 @@
         return $" - {totalMinutes} мин";
     }
 
+    private async Task PaymentManualConfirm(Guid id)
+    {
+        var result = await PaymentService.ManualConfirmPayment(id);
+        if (result.Code == HttpStatusCode.OK)
+        {
+            Snackbar.Add("Платеж подтвержден");
+        }
+        else
+        {
+            var error = !string.IsNullOrEmpty(result.Content) ? result.Content : "Ошибка подтверждения";
+            Snackbar.Add(error, Severity.Error);
+        }
+    }
 }

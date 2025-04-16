@@ -73,10 +73,13 @@ public class PaymentService(
 
         if (paymentEntity.Requisite is not { } requisite)
         {
-            return null;
+            throw new ManualConfirmException();
         }
-        
-        if (paymentEntity.Requisite.UserId != currentUserId) return null;
+
+        if (paymentEntity.Requisite.UserId != currentUserId)
+        {
+            throw new ManualConfirmException("Подтвердить платеж может только владелец");
+        }
         
         logger.LogInformation("Ручное подтверждение платежа {paymentId}", paymentEntity.Id);
         

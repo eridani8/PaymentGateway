@@ -37,6 +37,7 @@ builder.Services.AddAuthorizationCore();
 
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
+builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IRequisiteService, RequisiteService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 
