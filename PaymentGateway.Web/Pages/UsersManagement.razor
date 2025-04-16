@@ -20,7 +20,7 @@
                         Variant="Variant.Filled"
                         Color="Color.Primary"
                         StartIcon="@Icons.Material.Filled.Add"
-                        OnClick="OpenCreateDialog">
+                        OnClick="@(OpenCreateDialog)">
                         Создать пользователя
                     </MudButton>
                 </MudToolBar>
@@ -34,7 +34,7 @@
                              Bordered="true"
                              Hover="true">
                     <Columns>
-                        <PropertyColumn Property="x => x.Id" Title="ID"/>
+                        <HierarchyColumn />
                         <PropertyColumn Property="x => x.Username" Title="Логин"/>
                         <TemplateColumn Title="Лимит реквизитов">
                             <CellTemplate Context="cellContext">
@@ -82,6 +82,13 @@
                             </CellTemplate>
                         </TemplateColumn>
                     </Columns>
+                    <ChildRowContent Context="rowContext">
+                        <MudCard>
+                            <MudCardContent>
+                                <MudText>Id: @rowContext.Item.Id</MudText>
+                            </MudCardContent>
+                        </MudCard>
+                    </ChildRowContent>
                 </MudDataGrid>
             </MudPaper>
         </MudContainer>
@@ -96,7 +103,7 @@
 @code {
     private bool _isLoading = true;
     private List<UserDto> _users = [];
-    private bool _isInitialized = false;
+    private bool _isInitialized;
 
     protected override async Task OnInitializedAsync()
     {

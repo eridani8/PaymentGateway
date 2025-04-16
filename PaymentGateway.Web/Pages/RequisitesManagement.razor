@@ -23,7 +23,7 @@
                         Variant="Variant.Filled"
                         Color="Color.Primary"
                         StartIcon="@Icons.Material.Filled.Add"
-                        OnClick="OpenCreateDialog">
+                        OnClick="@(OpenCreateDialog)">
                         Создать реквизит
                     </MudButton>
                 </MudToolBar>
@@ -133,7 +133,7 @@
     private bool _isAdminUser;
     private Timer _refreshTimer = null!;
     private const int RefreshInterval = 10000;
-    private bool _isInitialized = false;
+    private bool _isInitialized;
 
     protected override async Task OnInitializedAsync()
     {
@@ -157,17 +157,19 @@
             }
         }
         
-        _refreshTimer = new Timer(async void (_) =>
+        _refreshTimer = new Timer(TimerTick, null, RefreshInterval, RefreshInterval);
+    }
+
+    private async void TimerTick(object? state)
+    {
+        try
         {
-            try
-            {
-                await InvokeAsync(StateHasChanged);
-            }
-            catch
-            {
-                // ignore
-            }
-        }, null, RefreshInterval, RefreshInterval);
+            await InvokeAsync(StateHasChanged);
+        }
+        catch
+        {
+            // ignore
+        }
     }
 
     private void HandleRequisiteUpdate(RequisiteDto updatedRequisite)
@@ -189,7 +191,7 @@
         }
         catch (Exception e)
         {
-            Logger.LogError(e, "Ошибка при обновлении реквизита {RequisiteId}", updatedRequisite?.Id);
+            Logger.LogError(e, "Ошибка при обновлении реквизита {RequisiteId}", updatedRequisite.Id);
         }
     }
 
