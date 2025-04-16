@@ -30,7 +30,9 @@ public class GatewayHandler(
         {
             try
             {
-                if (requisite.ProcessStatus(now, nowTimeOnly, out var status))
+                requisite.ProcessStatus(now, nowTimeOnly, out var status);
+
+                if (requisite.Status != status)
                 {
                     logger.LogInformation("Статус реквизита {requisiteId} изменен с {oldStatus} на {newStatus}", requisite.Id, requisite.Status.ToString(), status.ToString());
                     requisite.Status = status;
