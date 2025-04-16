@@ -131,22 +131,26 @@
         }
     }
 
-    private void HandleUserUpdate(UserDto updatedUser)
+    private async void HandleUserUpdate(UserDto updatedUser)
     {
         try
         {
+            Logger.LogInformation("Получено обновление пользователя: {UserId}", updatedUser.Id);
+                
             var existingUser = _users.FirstOrDefault(u => u.Id == updatedUser.Id);
             if (existingUser != null)
             {
                 var index = _users.IndexOf(existingUser);
                 _users[index] = updatedUser;
+                Logger.LogInformation("Обновлен существующий пользователь: {UserId}", updatedUser.Id);
             }
             else
             {
                 _users.Add(updatedUser);
+                Logger.LogInformation("Добавлен новый пользователь: {UserId}", updatedUser.Id);
             }
 
-            StateHasChanged();
+            await InvokeAsync(StateHasChanged);
         }
         catch (Exception e)
         {
@@ -154,14 +158,19 @@
         }
     }
 
-    private void HandleUserDeleted(Guid userId)
+    private async void HandleUserDeleted(Guid userId)
     {
         try
         {
+            Logger.LogInformation("Получено уведомление об удалении пользователя: {UserId}", userId);
+            
             var user = _users.FirstOrDefault(u => u.Id == userId);
             if (user == null) return;
+            
             _users.Remove(user);
-            StateHasChanged();
+            Logger.LogInformation("Пользователь удален из списка: {UserId}", userId);
+            
+            await InvokeAsync(StateHasChanged);
         }
         catch (Exception e)
         {

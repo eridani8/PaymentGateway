@@ -7,6 +7,9 @@ using PaymentGateway.Shared;
 using PaymentGateway.Shared.DTOs.Payment;
 using Polly;
 using Polly.Retry;
+using Microsoft.AspNetCore.SignalR.Protocol;
+using Microsoft.AspNetCore.Http.Connections;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace PaymentGateway.Web.Services;
 
@@ -167,7 +170,10 @@ public class SignalRService(
             _hubConnection = new HubConnectionBuilder()
                 .WithUrl(_hubUrl, options => { 
                     options.AccessTokenProvider = () => Task.FromResult(token)!;
-                    options.CloseTimeout = TimeSpan.FromMinutes(30);
+                    options.CloseTimeout = TimeSpan.FromMinutes(60);
+                    options.SkipNegotiation = false;
+                    options.Transports = Microsoft.AspNetCore.Http.Connections.HttpTransportType.WebSockets | 
+                                         Microsoft.AspNetCore.Http.Connections.HttpTransportType.ServerSentEvents;
                 })
                 .WithAutomaticReconnect([
                     TimeSpan.FromSeconds(0), 
@@ -176,9 +182,13 @@ public class SignalRService(
                     TimeSpan.FromSeconds(30),
                     TimeSpan.FromMinutes(1),
                     TimeSpan.FromMinutes(2), 
-                    TimeSpan.FromMinutes(5)
+                    TimeSpan.FromMinutes(5),
+                    TimeSpan.FromMinutes(10),
+                    TimeSpan.FromMinutes(15),
+                    TimeSpan.FromMinutes(30)
                 ])
-                .WithAutomaticReconnect()
+                .WithKeepAliveInterval(TimeSpan.FromMinutes(1))
+                .WithStatefulReconnect()
                 .Build();
 
             _hubConnection.Closed += async (error) =>

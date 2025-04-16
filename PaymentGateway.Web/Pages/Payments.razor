@@ -114,27 +114,39 @@
         _refreshTimer = new Timer(TimerTick, null, RefreshInterval, RefreshInterval);
     }
 
-    private void TimerTick(object? state)
+    private async void TimerTick(object? state)
     {
-        StateHasChanged();
+        try 
+        {
+            await InvokeAsync(StateHasChanged);
+        }
+        catch
+        {
+            // ignore
+        }
     }
 
-    private void HandlePaymentUpdate(PaymentDto updatedPayment)
+    private async void HandlePaymentUpdate(PaymentDto updatedPayment)
     {
         try
         {
-            var existingRequisite = _payments.FirstOrDefault(r => r.Id == updatedPayment.Id);
-            if (existingRequisite != null)
+            Logger.LogInformation("Получено обновление платежа: {PaymentId}, Статус: {Status}", 
+                updatedPayment.Id, updatedPayment.Status);
+                
+            var existingPayment = _payments.FirstOrDefault(p => p.Id == updatedPayment.Id);
+            if (existingPayment != null)
             {
-                var index = _payments.IndexOf(existingRequisite);
+                var index = _payments.IndexOf(existingPayment);
                 _payments[index] = updatedPayment;
+                Logger.LogInformation("Обновлен существующий платеж: {PaymentId}", updatedPayment.Id);
             }
             else
             {
                 _payments.Add(updatedPayment);
+                Logger.LogInformation("Добавлен новый платеж: {PaymentId}", updatedPayment.Id);
             }
 
-            StateHasChanged();
+            await InvokeAsync(StateHasChanged);
         }
         catch (Exception e)
         {
@@ -142,14 +154,19 @@
         }
     }
 
-    private void HandlePaymentDeleted(Guid paymentId)
+    private async void HandlePaymentDeleted(Guid paymentId)
     {
         try
         {
-            var requisite = _payments.FirstOrDefault(r => r.Id == paymentId);
-            if (requisite == null) return;
-            _payments.Remove(requisite);
-            StateHasChanged();
+            Logger.LogInformation("Получено уведомление об удалении платежа: {PaymentId}", paymentId);
+            
+            var payment = _payments.FirstOrDefault(p => p.Id == paymentId);
+            if (payment == null) return;
+            
+            _payments.Remove(payment);
+            Logger.LogInformation("Платеж удален из списка: {PaymentId}", paymentId);
+            
+            await InvokeAsync(StateHasChanged);
         }
         catch (Exception e)
         {

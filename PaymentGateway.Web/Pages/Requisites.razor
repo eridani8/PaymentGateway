@@ -178,27 +178,27 @@
         _refreshTimer = new Timer(TimerTick, null, RefreshInterval, RefreshInterval);
     }
 
-    private void TimerTick(object? state)
-    {
-        StateHasChanged();
-    }
-
-    private void HandleRequisiteUpdate(RequisiteDto updatedRequisite)
+    private async void HandleRequisiteUpdate(RequisiteDto updatedRequisite)
     {
         try
         {
+            Logger.LogInformation("Получено обновление реквизита: {RequisiteId}, Статус: {Status}", 
+                updatedRequisite.Id, updatedRequisite.Status);
+                
             var existingRequisite = _requisites.FirstOrDefault(r => r.Id == updatedRequisite.Id);
             if (existingRequisite != null)
             {
                 var index = _requisites.IndexOf(existingRequisite);
                 _requisites[index] = updatedRequisite;
+                Logger.LogInformation("Обновлен существующий реквизит: {RequisiteId}", updatedRequisite.Id);
             }
             else
             {
                 _requisites.Add(updatedRequisite);
+                Logger.LogInformation("Добавлен новый реквизит: {RequisiteId}", updatedRequisite.Id);
             }
 
-            StateHasChanged();
+            await InvokeAsync(StateHasChanged);
         }
         catch (Exception e)
         {
@@ -206,18 +206,35 @@
         }
     }
 
-    private void HandleRequisiteDeleted(Guid requisiteId)
+    private async void HandleRequisiteDeleted(Guid requisiteId)
     {
         try
         {
+            Logger.LogInformation("Получено уведомление об удалении реквизита: {RequisiteId}", requisiteId);
+            
             var requisite = _requisites.FirstOrDefault(r => r.Id == requisiteId);
             if (requisite == null) return;
+            
             _requisites.Remove(requisite);
-            StateHasChanged();
+            Logger.LogInformation("Реквизит удален из списка: {RequisiteId}", requisiteId);
+            
+            await InvokeAsync(StateHasChanged);
         }
         catch (Exception e)
         {
             Logger.LogError(e, "Ошибка при удалении реквизита {RequisiteId}", requisiteId);
+        }
+    }
+
+    private async void TimerTick(object? state)
+    {
+        try 
+        {
+            await InvokeAsync(StateHasChanged);
+        }
+        catch
+        {
+            // ignore
         }
     }
 
