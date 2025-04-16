@@ -232,6 +232,6 @@
         var remaining = payment.ExpiresAt.Value - DateTime.Now;
 
         var totalMinutes = Math.Ceiling(remaining.TotalMinutes);
-        return $" - {totalMinutes} мин";
+        return $" {totalMinutes} мин";
     }
 }
