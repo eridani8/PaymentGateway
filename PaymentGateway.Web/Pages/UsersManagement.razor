@@ -96,13 +96,26 @@
 @code {
     private bool _isLoading = true;
     private List<UserDto> _users = [];
+    private bool _isInitialized = false;
 
     protected override async Task OnInitializedAsync()
     {
         await LoadUsers();
-        await SignalRService.InitializeAsync();
-        SignalRService.SubscribeToUserUpdates(HandleUserUpdate);
-        SignalRService.SubscribeToUserDeletions(HandleUserDeleted);
+        
+        if (!_isInitialized)
+        {
+            try 
+            {
+                await SignalRService.InitializeAsync();
+                SignalRService.SubscribeToUserUpdates(HandleUserUpdate);
+                SignalRService.SubscribeToUserDeletions(HandleUserDeleted);
+                _isInitialized = true;
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e, "Ошибка при инициализации SignalR");
+            }
+        }
     }
 
     private void HandleUserUpdate(UserDto updatedUser)
@@ -145,9 +158,20 @@
 
     public async ValueTask DisposeAsync()
     {
-        SignalRService.UnsubscribeFromUserUpdates();
-        SignalRService.UnsubscribeFromUserDeletions();
-        await SignalRService.DisposeAsync();
+        try
+        {
+            if (_isInitialized)
+            {
+                SignalRService.UnsubscribeFromUserUpdates();
+                SignalRService.UnsubscribeFromUserDeletions();
+                await SignalRService.DisposeAsync();
+                _isInitialized = false;
+            }
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e, "Ошибка при освобождении ресурсов на странице пользователей");
+        }
     }
 
     private async Task LoadUsers()

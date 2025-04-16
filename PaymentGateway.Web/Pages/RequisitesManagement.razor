@@ -133,6 +133,7 @@
     private bool _isAdminUser;
     private Timer _refreshTimer = null!;
     private const int RefreshInterval = 10000;
+    private bool _isInitialized = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -140,9 +141,22 @@
         _isAdminUser = authState.User.IsInRole("Admin");
 
         await LoadRequisites();
-        await SignalRService.InitializeAsync();
-        SignalRService.SubscribeToRequisiteUpdates(HandleRequisiteUpdate);
-        SignalRService.SubscribeToRequisiteDeletions(HandleRequisiteDeleted);
+        
+        if (!_isInitialized)
+        {
+            try
+            {
+                await SignalRService.InitializeAsync();
+                SignalRService.SubscribeToRequisiteUpdates(HandleRequisiteUpdate);
+                SignalRService.SubscribeToRequisiteDeletions(HandleRequisiteDeleted);
+                _isInitialized = true;
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e, "Ошибка при инициализации SignalR");
+            }
+        }
+        
         _refreshTimer = new Timer(async void (_) =>
         {
             try
@@ -201,10 +215,22 @@
 
     public async ValueTask DisposeAsync()
     {
-        SignalRService.UnsubscribeFromRequisiteUpdates();
-        SignalRService.UnsubscribeFromRequisiteDeletions();
-        await SignalRService.DisposeAsync();
-        await _refreshTimer.DisposeAsync();
+        try
+        {
+            if (_isInitialized)
+            {
+                SignalRService.UnsubscribeFromRequisiteUpdates();
+                SignalRService.UnsubscribeFromRequisiteDeletions();
+                await SignalRService.DisposeAsync();
+                _isInitialized = false;
+            }
+            
+            await _refreshTimer.DisposeAsync();
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e, "Ошибка при освобождении ресурсов на странице реквизитов");
+        }
     }
 
     private async Task LoadRequisites()
