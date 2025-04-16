@@ -83,7 +83,10 @@ public class GatewayHandler(
                 return;
             }
             
-            var requisite = freeRequisites.FirstOrDefault(r => r.MaxAmount >= payment.Amount);
+            var requisite = freeRequisites.FirstOrDefault(r => 
+                r.MaxAmount >= payment.Amount && 
+                (r.MaxAmount - r.ReceivedFunds) >= payment.Amount
+            );
             if (requisite is null)
             {
                 logger.LogWarning("Нет подходящего реквизита для платежа {paymentId} с суммой {amount}", payment.Id, payment.Amount);

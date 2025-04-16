@@ -86,10 +86,12 @@
                     <ChildRowContent Context="rowContext">
                         <MudCard>
                             <MudCardContent>
-                                <MudStack Row="true">
-                                    <MudIcon Icon="@Icons.Material.Filled.AssignmentInd" Class="mr-2" />
-                                    <MudText Typo="Typo.body1">@rowContext.Item.Id</MudText>
-                                </MudStack>
+                                <MudTooltip Placement="Placement.Left" Text="Id пользователя">
+                                    <MudStack Row="true">
+                                        <MudIcon Icon="@Icons.Material.Filled.AssignmentInd" Class="mr-2" />
+                                        <MudText Typo="Typo.body1">@rowContext.Item.Id</MudText>
+                                    </MudStack>
+                                </MudTooltip>
                             </MudCardContent>
                         </MudCard>
                     </ChildRowContent>

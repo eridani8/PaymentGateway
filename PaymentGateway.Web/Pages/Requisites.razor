@@ -45,11 +45,8 @@
                             </CellTemplate>
                         </TemplateColumn>
                         <PropertyColumn Property="x => x.PaymentData" Title="Платежные данные"/>
-                        <TemplateColumn Title="Использовано/Лимит">
-                            <CellTemplate Context="cellContext">
-                                @($"{cellContext.Item.ReceivedFunds:N0}/{cellContext.Item.MaxAmount:N0}")
-                            </CellTemplate>
-                        </TemplateColumn>
+                        <PropertyColumn Property="x => x.ReceivedFunds" Format="N0" Title="Использовано"/>
+                        <PropertyColumn Property="x => x.MaxAmount" Format="N0" Title="Лимит"/>
                         <TemplateColumn Title="Статус">
                             <CellTemplate Context="cellContext">
                                 <MudChip Color="@GetStatusColor(cellContext.Item.Status)" Size="Size.Medium">
@@ -66,11 +63,7 @@
                                 </MudChip>
                             </CellTemplate>
                         </TemplateColumn>
-                        <TemplateColumn Title="Задержка">
-                            <CellTemplate Context="cellContext">
-                                @($"{(int)cellContext.Item.Cooldown.TotalMinutes} мин")
-                            </CellTemplate>
-                        </TemplateColumn>
+                        <PropertyColumn Property="x => (int)x.Cooldown.TotalMinutes" Title="Задержка (мин)"/>
                         <TemplateColumn Title="Активное время">
                             <CellTemplate Context="cellContext">
                                 @if (cellContext.Item.WorkFrom == TimeOnly.MinValue && cellContext.Item.WorkTo == TimeOnly.MinValue)
@@ -105,34 +98,40 @@
                     </Columns>
                     <ChildRowContent Context="rowContext">
                         <MudCard>
-                            <MudCardContent>
-                                <MudStack Row="true">
-                                    <MudIcon Icon="@Icons.Material.Filled.Assignment" Class="mr-2" />
-                                    <MudText Typo="Typo.body1">@rowContext.Item.Id</MudText>
-                                </MudStack>
+                            <MudTooltip Placement="Placement.Left" Text="Id реквизита">
+                                    <MudStack Row="true">
+                                        <MudIcon Icon="@Icons.Material.Filled.Assignment" Class="mr-2"/>
+                                        <MudText Typo="Typo.body1">@rowContext.Item.Id</MudText>
+                                    </MudStack>
+                                </MudTooltip>
                                 <AuthorizeView Roles="Admin">
                                     <Authorized Context="_">
-                                        <MudStack Row="true">
-                                            <MudIcon Icon="@Icons.Material.Filled.AssignmentInd" Class="mr-2" />
-                                            <MudText Typo="Typo.body1">@rowContext.Item.UserId</MudText>
-                                        </MudStack>
+                                        <MudTooltip Placement="Placement.Left" Text="Id пользователя">
+                                            <MudStack Row="true">
+                                                <MudIcon Icon="@Icons.Material.Filled.AssignmentInd" Class="mr-2"/>
+                                                <MudText Typo="Typo.body1">@rowContext.Item.UserId</MudText>
+                                            </MudStack>
+                                        </MudTooltip>
                                     </Authorized>
                                 </AuthorizeView>
                                 @if (rowContext.Item.Payment != null)
                                 {
-                                    <MudStack Row="true">
-                                        <MudIcon Icon="@Icons.Material.Filled.Payment" Class="mr-2" />
-                                        <MudText Typo="Typo.body1">@rowContext.Item.Payment.Id</MudText>
-                                    </MudStack>
-                                    <MudStack Row="true">
-                                        <MudIcon Icon="@Icons.Material.Filled.AttachMoney" Class="mr-2" />
-                                        <MudText Typo="Typo.body1">@rowContext.Item.Payment.Amount.ToString("N0")</MudText>
-                                    </MudStack>
+                                    <MudTooltip Placement="Placement.Left" Text="Id платежа">
+                                        <MudStack Row="true">
+                                            <MudIcon Icon="@Icons.Material.Filled.Payment" Class="mr-2"/>
+                                            <MudText Typo="Typo.body1">@rowContext.Item.Payment.Id</MudText>
+                                        </MudStack>
+                                    </MudTooltip>
+                                    <MudTooltip Placement="Placement.Left" Text="Сумма платежа">
+                                        <MudStack Row="true">
+                                            <MudIcon Icon="@Icons.Material.Filled.AttachMoney" Class="mr-2"/>
+                                            <MudText Typo="Typo.body1">@rowContext.Item.Payment.Amount.ToString("N0")</MudText>
+                                        </MudStack>
+                                    </MudTooltip>
                                     <MudStack Row="true" Class="pt-2">
                                         <MudButton OnClick="@(() => PaymentManualConfirm(rowContext.Item.Payment.Id))" Variant="Variant.Outlined" Color="Color.Warning">Подтвердить платеж</MudButton>
                                     </MudStack>
                                 }
-                            </MudCardContent>
                         </MudCard>
                     </ChildRowContent>
                 </MudDataGrid>

@@ -2,10 +2,12 @@
 using PaymentGateway.Core.Entities;
 using PaymentGateway.Core.Interfaces;
 using PaymentGateway.Infrastructure.Data;
+using PaymentGateway.Shared.Enums;
 
 namespace PaymentGateway.Infrastructure.Repositories;
 
-public class PaymentRepository(AppDbContext context, ICache cache) : RepositoryBase<PaymentEntity>(context, cache), IPaymentRepository
+public class PaymentRepository(AppDbContext context, ICache cache)
+    : RepositoryBase<PaymentEntity>(context, cache), IPaymentRepository
 {
     public async Task<List<PaymentEntity>> GetUnprocessedPayments()
     {
@@ -22,10 +24,13 @@ public class PaymentRepository(AppDbContext context, ICache cache) : RepositoryB
         return await
             QueryableGetAll()
                 .Include(p => p.Requisite)
-                .Where(p => DateTime.UtcNow >= p.ExpiresAt)
+                .Where(p =>
+                    DateTime.UtcNow >= p.ExpiresAt &&
+                    p.Status != PaymentStatus.Confirmed &&
+                    p.Status != PaymentStatus.ManualConfirm)
                 .ToListAsync();
     }
-    
+
     public void DeletePayments(IEnumerable<PaymentEntity> entities)
     {
         foreach (var entity in entities)

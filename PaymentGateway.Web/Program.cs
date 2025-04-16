@@ -68,8 +68,11 @@ CultureInfo.DefaultThreadCurrentCulture = new CultureInfo("ru-RU");
 CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo("ru-RU");
 
 builder.Services.AddTransient<MudLocalizer, ResXMudLocalizer>();
-builder.Services.AddTransient<SignalRService>();
+builder.Services.AddSingleton<SignalRService>();
 
 var app = builder.Build();
+
+var signalRService = app.Services.GetRequiredService<SignalRService>();
+await signalRService.InitializeAsync();
 
 await app.RunAsync();

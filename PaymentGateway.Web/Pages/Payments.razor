@@ -1,6 +1,7 @@
 ﻿@page "/payments"
 @attribute [Authorize(Roles = "User,Admin,Support")]
 @using PaymentGateway.Shared.DTOs.Payment
+@using PaymentGateway.Shared.Enums
 @inject IPaymentService PaymentService
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
@@ -28,11 +29,45 @@
                              Hover="true">
                     <Columns>
                         <HierarchyColumn/>
-                        <PropertyColumn Property="x => x.Id"/>
+                        <PropertyColumn Property="x => x.Amount" Title="Сумма"/>
+                        <TemplateColumn Title="Статус">
+                            <CellTemplate Context="cellContext">
+                                <MudChip Color="@GetStatusColor(cellContext.Item.Status)" Size="Size.Medium">
+                                    @GetStatusText(cellContext.Item.Status)
+                                    @if (cellContext.Item.Status == PaymentStatus.Pending)
+                                    {
+                                        @GetRemainingPendingTime(cellContext.Item)
+                                    }
+                                </MudChip>
+                            </CellTemplate>
+                        </TemplateColumn>
+                        <PropertyColumn Property="x => x.CreatedAt" Title="Создан"/>
+                        <PropertyColumn Property="x => x.ProcessedAt ?? DateTime.MinValue" Title="Обработан"/>
+                        <PropertyColumn Property="x => x.ExpiresAt ?? DateTime.MinValue" Title="Истечение"/>
                     </Columns>
                     <ChildRowContent Context="rowContext">
                         <MudCard>
-
+                            <MudTooltip Placement="Placement.Left" Text="Id платежа">
+                                <MudStack Row="true">
+                                    <MudIcon Icon="@Icons.Material.Filled.Assignment" Class="mr-2"/>
+                                    <MudText Typo="Typo.body1">@rowContext.Item.Id</MudText>
+                                </MudStack>
+                            </MudTooltip>
+                            <MudTooltip Placement="Placement.Left" Text="Id внешнего платежа">
+                                <MudStack Row="true">
+                                    <MudIcon Icon="@Icons.Material.Filled.Source" Class="mr-2"/>
+                                    <MudText Typo="Typo.body1">@rowContext.Item.ExternalPaymentId</MudText>
+                                </MudStack>
+                            </MudTooltip>
+                            @if (rowContext.Item.Requisite != null)
+                            {
+                                <MudTooltip Placement="Placement.Left" Text="Id реквизита">
+                                    <MudStack Row="true">
+                                        <MudIcon Icon="@Icons.Material.Filled.Payment" Class="mr-2"/>
+                                        <MudText Typo="Typo.body1">@rowContext.Item.Requisite.Id</MudText>
+                                    </MudStack>
+                                </MudTooltip>
+                            }
                         </MudCard>
                     </ChildRowContent>
                 </MudDataGrid>
@@ -174,4 +209,36 @@
         }
     }
 
+    private static Color GetStatusColor(PaymentStatus status) => status switch
+    {
+        PaymentStatus.Created => Color.Warning,
+        PaymentStatus.Pending => Color.Primary,
+        PaymentStatus.Confirmed => Color.Success,
+        PaymentStatus.ManualConfirm => Color.Success,
+        PaymentStatus.Expired => Color.Error,
+        _ => Color.Default
+    };
+    
+    private static string GetStatusText(PaymentStatus status) => status switch
+    {
+        PaymentStatus.Created => "Создан",
+        PaymentStatus.Pending => "Ожидание",
+        PaymentStatus.Confirmed => "Принят",
+        PaymentStatus.ManualConfirm => "Принят (вручную)",
+        PaymentStatus.Expired => "Истек",
+        _ => "Неизвестно"
+    };
+    
+    private static string GetRemainingPendingTime(PaymentDto payment)
+    {
+        if (payment.ExpiresAt == null)
+        {
+            return "";
+        }
+
+        var remaining = payment.ExpiresAt.Value - DateTime.Now;
+
+        var totalMinutes = Math.Ceiling(remaining.TotalMinutes);
+        return $" - {totalMinutes} мин";
+    }
 }
