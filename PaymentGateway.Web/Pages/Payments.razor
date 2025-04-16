@@ -114,19 +114,12 @@
         _refreshTimer = new Timer(TimerTick, null, RefreshInterval, RefreshInterval);
     }
 
-    private async void TimerTick(object? state)
+    private void TimerTick(object? state)
     {
-        try
-        {
-            await InvokeAsync(StateHasChanged);
-        }
-        catch
-        {
-            // ignore
-        }
+        StateHasChanged();
     }
 
-    private async void HandlePaymentUpdate(PaymentDto updatedPayment)
+    private void HandlePaymentUpdate(PaymentDto updatedPayment)
     {
         try
         {
@@ -141,7 +134,7 @@
                 _payments.Add(updatedPayment);
             }
 
-            await InvokeAsync(StateHasChanged);
+            StateHasChanged();
         }
         catch (Exception e)
         {
@@ -149,14 +142,14 @@
         }
     }
 
-    private async void HandlePaymentDeleted(Guid paymentId)
+    private void HandlePaymentDeleted(Guid paymentId)
     {
         try
         {
             var requisite = _payments.FirstOrDefault(r => r.Id == paymentId);
             if (requisite == null) return;
             _payments.Remove(requisite);
-            await InvokeAsync(StateHasChanged);
+            StateHasChanged();
         }
         catch (Exception e)
         {

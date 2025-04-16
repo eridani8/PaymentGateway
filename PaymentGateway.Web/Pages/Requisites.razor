@@ -178,19 +178,12 @@
         _refreshTimer = new Timer(TimerTick, null, RefreshInterval, RefreshInterval);
     }
 
-    private async void TimerTick(object? state)
+    private void TimerTick(object? state)
     {
-        try
-        {
-            await InvokeAsync(StateHasChanged);
-        }
-        catch
-        {
-            // ignore
-        }
+        StateHasChanged();
     }
 
-    private async void HandleRequisiteUpdate(RequisiteDto updatedRequisite)
+    private void HandleRequisiteUpdate(RequisiteDto updatedRequisite)
     {
         try
         {
@@ -205,7 +198,7 @@
                 _requisites.Add(updatedRequisite);
             }
 
-            await InvokeAsync(StateHasChanged);
+            StateHasChanged();
         }
         catch (Exception e)
         {
@@ -213,14 +206,14 @@
         }
     }
 
-    private async void HandleRequisiteDeleted(Guid requisiteId)
+    private void HandleRequisiteDeleted(Guid requisiteId)
     {
         try
         {
             var requisite = _requisites.FirstOrDefault(r => r.Id == requisiteId);
             if (requisite == null) return;
             _requisites.Remove(requisite);
-            await InvokeAsync(StateHasChanged);
+            StateHasChanged();
         }
         catch (Exception e)
         {
