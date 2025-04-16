@@ -183,7 +183,7 @@ try
 
     app.UseCors("AllowAll"); // TODO
 
-    app.UseHttpsRedirection();
+    // app.UseHttpsRedirection(); // TODO
     app.UseAuthentication();
     app.UseAuthorization();
     app.MapControllers();

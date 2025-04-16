@@ -58,24 +58,7 @@ public class SignalRService(
         try
         {
             EnsureConnectionInitialized();
-            
-            // Сначала отписываемся, чтобы избежать дублирования обработчиков
-            _hubConnection!.Remove(eventName);
-            
-            // Регистрируем обработчик с обработкой ошибок
-            _hubConnection!.On<T>(eventName, (data) => {
-                try 
-                {
-                    handler(data);
-                }
-                catch (Exception ex)
-                {
-                    logger.LogError(ex, "Ошибка при обработке события SignalR {EventName}", eventName);
-                }
-                // Возвращаем false, чтобы указать, что обработка завершена синхронно
-                // Это помогает избежать ошибки "runtime.lastError" в браузере
-                return Task.CompletedTask;
-            });
+            _hubConnection!.On(eventName, handler);
         }
         catch (Exception ex)
         {
@@ -177,27 +160,8 @@ public class SignalRService(
             _hubConnection = new HubConnectionBuilder()
                 .WithUrl(_hubUrl, options => { 
                     options.AccessTokenProvider = () => Task.FromResult(token)!;
-                    // Увеличиваем таймауты для предотвращения преждевременного закрытия соединения
-                    options.CloseTimeout = TimeSpan.FromSeconds(30);
-                    options.HttpMessageHandlerFactory = (handler) => {
-                        if (handler is HttpClientHandler clientHandler)
-                        {
-                            // Настройки, которые могут помочь с проблемами сети
-                            clientHandler.ServerCertificateCustomValidationCallback = 
-                                HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
-                        }
-                        return handler;
-                    };
                 })
-                .WithAutomaticReconnect(new[] { 
-                    TimeSpan.FromSeconds(0), 
-                    TimeSpan.FromSeconds(2), 
-                    TimeSpan.FromSeconds(10), 
-                    TimeSpan.FromSeconds(30),
-                    TimeSpan.FromMinutes(1),
-                    TimeSpan.FromMinutes(2), 
-                    TimeSpan.FromMinutes(5) 
-                })
+                .WithAutomaticReconnect()
                 .Build();
 
             _hubConnection.Closed += async (error) =>
@@ -211,16 +175,6 @@ public class SignalRService(
                     {
                         await authStateProvider.MarkUserAsLoggedOut();
                         return;
-                    }
-                    
-                    // Проверяем на наличие runtime.lastError и message channel closed
-                    if (error.Message.Contains("runtime.lastError") || 
-                        error.Message.Contains("message channel closed"))
-                    {
-                        logger.LogWarning("Обнаружена ошибка channel closed/runtime.lastError, пересоздание соединения");
-                        
-                        // Дополнительная пауза перед пересозданием соединения
-                        await Task.Delay(1000);
                     }
                 }
 
