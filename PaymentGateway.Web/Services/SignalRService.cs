@@ -2,23 +2,31 @@ using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Options;
 using PaymentGateway.Shared.DTOs.Requisite;
 using PaymentGateway.Shared.DTOs.User;
-using PaymentGateway.Shared.Constants;
 using System.Security.Claims;
+using PaymentGateway.Shared.DTOs.Payment;
 using Polly;
 using Polly.Retry;
 
 namespace PaymentGateway.Web.Services;
 
 public class SignalRService(
-    IOptions<ApiSettings> settings, 
+    IOptions<ApiSettings> settings,
     ILogger<SignalRService> logger,
     CustomAuthStateProvider authStateProvider)
 {
+    private const string RequisiteUpdated = "RequisiteUpdated";
+    private const string RequisiteDeleted = "RequisiteDeleted";
+    private const string UserUpdated = "UserUpdated";
+    private const string UserDeleted = "UserDeleted";
+    private const string PaymentUpdated = "PaymentUpdated";
+    private const string PaymentDeleted = "PaymentDeleted";
+
     private HubConnection? _hubConnection;
     private readonly string _hubUrl = $"{settings.Value.BaseAddress}/notificationHub";
     private bool _isDisposing;
     private bool _isDisposed;
     private readonly SemaphoreSlim _connectionLock = new(1, 1);
+
     private readonly AsyncRetryPolicy _reconnectionPolicy = Policy
         .Handle<Exception>()
         .WaitAndRetryAsync(
@@ -26,8 +34,8 @@ public class SignalRService(
             retryAttempt => TimeSpan.FromSeconds(Math.Pow(1.5, retryAttempt)),
             (exception, timeSpan, retryCount, _) =>
             {
-                logger.LogWarning(exception, 
-                    "Попытка {RetryCount} подключения к SignalR не удалась. Следующая попытка через {RetryTimeSpan} секунд", 
+                logger.LogWarning(exception,
+                    "Попытка {RetryCount} подключения к SignalR не удалась. Следующая попытка через {RetryTimeSpan} секунд",
                     retryCount, timeSpan.TotalSeconds);
             }
         );
@@ -38,7 +46,7 @@ public class SignalRService(
         {
             throw new ObjectDisposedException(nameof(SignalRService), "SignalR сервис находится в процессе утилизации");
         }
-        
+
         if (_hubConnection == null)
         {
             throw new InvalidOperationException("SignalR соединение не инициализировано");
@@ -66,7 +74,7 @@ public class SignalRService(
             {
                 return;
             }
-            
+
             _hubConnection.Remove(eventName);
         }
         catch (Exception ex)
@@ -80,18 +88,18 @@ public class SignalRService(
         await _reconnectionPolicy.ExecuteAsync(async () =>
         {
             if (_isDisposing || _isDisposed) return;
-            
+
             if (_hubConnection == null)
             {
                 throw new InvalidOperationException("Соединение с SignalR не инициализировано");
             }
-            
+
             if (_hubConnection.State == HubConnectionState.Connected)
             {
                 logger.LogInformation("SignalR уже подключен");
                 return;
             }
-            
+
             await _hubConnection.StartAsync();
             logger.LogInformation("SignalR соединение установлено успешно");
         });
@@ -104,7 +112,7 @@ public class SignalRService(
             logger.LogWarning("Попытка инициализации SignalR во время утилизации");
             return;
         }
-        
+
         try
         {
             await _connectionLock.WaitAsync();
@@ -114,7 +122,7 @@ public class SignalRService(
             logger.LogWarning("Не удалось получить блокировку - семафор утилизирован");
             return;
         }
-        
+
         try
         {
             if (_hubConnection?.State == HubConnectionState.Connected)
@@ -122,9 +130,9 @@ public class SignalRService(
                 logger.LogInformation("SignalR соединение уже установлено");
                 return;
             }
-            
+
             var token = await authStateProvider.GetTokenFromLocalStorageAsync();
-            
+
             if (string.IsNullOrEmpty(token))
             {
                 logger.LogWarning("Токен не найден в localStorage");
@@ -140,8 +148,8 @@ public class SignalRService(
 
             var userId = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             var roles = authState.User.FindAll(ClaimTypes.Role).Select(c => c.Value).ToList();
-            
-            logger.LogInformation("Инициализация SignalR для пользователя: {UserId}, роли: {Roles}", 
+
+            logger.LogInformation("Инициализация SignalR для пользователя: {UserId}, роли: {Roles}",
                 userId, string.Join(", ", roles));
 
             if (_hubConnection != null)
@@ -150,17 +158,14 @@ public class SignalRService(
             }
 
             _hubConnection = new HubConnectionBuilder()
-                .WithUrl(_hubUrl, options =>
-                {
-                    options.AccessTokenProvider = () => Task.FromResult(token)!;
-                })
+                .WithUrl(_hubUrl, options => { options.AccessTokenProvider = () => Task.FromResult(token)!; })
                 .WithAutomaticReconnect()
                 .Build();
 
             _hubConnection.Closed += async (error) =>
             {
                 if (_isDisposing || _isDisposed) return;
-                
+
                 if (error != null)
                 {
                     logger.LogWarning("Соединение с SignalR закрыто с ошибкой: {Error}", error.Message);
@@ -170,7 +175,7 @@ public class SignalRService(
                         return;
                     }
                 }
-                
+
                 logger.LogInformation("Попытка переподключения к SignalR через Polly...");
                 try
                 {
@@ -208,45 +213,77 @@ public class SignalRService(
         }
     }
 
+    #region Requisite
+
     public void SubscribeToRequisiteUpdates(Action<RequisiteDto> handler)
     {
-        Subscribe(SignalREvents.RequisiteUpdated, handler);
+        Subscribe(RequisiteUpdated, handler);
+    }
+    
+    public void UnsubscribeFromRequisiteUpdates()
+    {
+        Unsubscribe(RequisiteUpdated);
     }
 
     public void SubscribeToRequisiteDeletions(Action<Guid> handler)
     {
-        Subscribe(SignalREvents.RequisiteDeleted, handler);
+        Subscribe(RequisiteDeleted, handler);
     }
+    
+    public void UnsubscribeFromRequisiteDeletions()
+    {
+        Unsubscribe(RequisiteDeleted);
+    }
+
+    #endregion
+
+    #region User
 
     public void SubscribeToUserUpdates(Action<UserDto> handler)
     {
-        Subscribe(SignalREvents.UserUpdated, handler);
+        Subscribe(UserUpdated, handler);
+    }
+    
+    public void UnsubscribeFromUserUpdates()
+    {
+        Unsubscribe(UserUpdated);
     }
 
     public void SubscribeToUserDeletions(Action<Guid> handler)
     {
-        Subscribe(SignalREvents.UserDeleted, handler);
-    }
-
-    public void UnsubscribeFromUserUpdates()
-    {
-        Unsubscribe(SignalREvents.UserUpdated);
+        Subscribe(UserDeleted, handler);
     }
 
     public void UnsubscribeFromUserDeletions()
     {
-        Unsubscribe(SignalREvents.UserDeleted);
+        Unsubscribe(UserDeleted);
     }
 
-    public void UnsubscribeFromRequisiteUpdates()
+    #endregion
+
+    #region Payment
+
+    public void SubscribeToPaymentUpdates(Action<PaymentDto> handler)
     {
-        Unsubscribe(SignalREvents.RequisiteUpdated);
+        Subscribe(PaymentUpdated, handler);
     }
 
-    public void UnsubscribeFromRequisiteDeletions()
+    public void UnsubscribeFromPaymentUpdates()
     {
-        Unsubscribe(SignalREvents.RequisiteDeleted);
+        Unsubscribe(PaymentUpdated);
     }
+
+    public void SubscribeToPaymentDeletions(Action<Guid> handler)
+    {
+        Subscribe(PaymentDeleted, handler);
+    }
+
+    public void UnsubscribeFromPaymentDeletions()
+    {
+        Unsubscribe(PaymentDeleted);
+    }
+
+    #endregion
 
     public async Task DisposeAsync()
     {
@@ -256,7 +293,7 @@ public class SignalRService(
         }
 
         _isDisposing = true;
-        
+
         try
         {
             if (_hubConnection != null)
@@ -279,8 +316,8 @@ public class SignalRService(
             {
                 logger.LogError(ex, "Ошибка при утилизации семафора");
             }
-            
+
             _isDisposed = true;
         }
     }
-} 
+}

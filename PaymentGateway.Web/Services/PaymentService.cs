@@ -1,11 +1,16 @@
-﻿using PaymentGateway.Shared.DTOs.Payment;
+﻿using System.Net;
+using System.Text.Json;
+using Microsoft.AspNetCore.Components.Authorization;
+using PaymentGateway.Shared.DTOs.Payment;
+using PaymentGateway.Shared.DTOs.Requisite;
 using PaymentGateway.Web.Interfaces;
 
 namespace PaymentGateway.Web.Services;
 
 public class PaymentService(
     IHttpClientFactory factory,
-    ILogger<RequisiteService> logger) : ServiceBase(factory, logger), IPaymentService
+    ILogger<RequisiteService> logger,
+    AuthenticationStateProvider authStateProvider) : ServiceBase(factory, logger), IPaymentService
 {
     private const string ApiEndpoint = "Payment";
     
@@ -15,5 +20,35 @@ public class PaymentService(
         {
             PaymentId = id
         });
+    }
+
+    public async Task<List<PaymentDto>> GetPayments()
+    {
+        var authState = await authStateProvider.GetAuthenticationStateAsync();
+        var isAdmin = authState.User.IsInRole("Admin");
+        
+        if (!isAdmin)
+        {
+            return await GetUserPayments();
+        }
+        
+        var response = await GetRequest($"{ApiEndpoint}/GetAll");
+        if (response.Code == HttpStatusCode.OK && !string.IsNullOrEmpty(response.Content))
+        {
+            return JsonSerializer.Deserialize<List<PaymentDto>>(response.Content, JsonOptions) ?? [];
+        }
+        logger.LogWarning("Failed to get payments. Status code: {StatusCode}", response.Code);
+        return [];
+    }
+
+    public async Task<List<PaymentDto>> GetUserPayments()
+    {
+        var response = await GetRequest($"{ApiEndpoint}/GetUserPayments");
+        if (response.Code == HttpStatusCode.OK && !string.IsNullOrEmpty(response.Content))
+        {
+            return JsonSerializer.Deserialize<List<PaymentDto>>(response.Content, JsonOptions) ?? [];
+        }
+        logger.LogWarning("Failed to get user payments. Status code: {StatusCode}", response.Code);
+        return [];
     }
 }

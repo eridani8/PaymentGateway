@@ -12,7 +12,7 @@ namespace PaymentGateway.Api.Controllers;
 [Route("[controller]/[action]")]
 [Produces("application/json")]
 public class PaymentController(
-    IPaymentService paymentService)
+    IPaymentService service)
     : ControllerBase
 {
     [HttpPost]
@@ -22,7 +22,7 @@ public class PaymentController(
 
         try
         {
-            var payment = await paymentService.CreatePayment(dto);
+            var payment = await service.CreatePayment(dto);
             if (payment is null) return BadRequest();
             return Ok(payment);
         }
@@ -44,7 +44,7 @@ public class PaymentController(
         try
         {
             var userId = User.GetCurrentUserId();
-            var payment = await paymentService.ManualConfirmPayment(dto, userId);
+            var payment = await service.ManualConfirmPayment(dto, userId);
             if (payment is null) return BadRequest();
             return Ok(payment);
         }
@@ -63,17 +63,25 @@ public class PaymentController(
     }
     
     [HttpGet]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<IEnumerable<PaymentDto>>> GetAll()
     {
-        var requisites = await paymentService.GetAllPayments();
-        
-        return Ok(requisites);
+        var payments = await service.GetAllPayments();
+        return Ok(payments);
+    }
+
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<PaymentDto>>> GetUserPayments()
+    {
+        var userId = User.GetCurrentUserId();
+        var payments = await service.GetUserPayments(userId);
+        return Ok(payments);
     }
     
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<PaymentDto>> GetById(Guid id)
     {
-        var payment = await paymentService.GetPaymentById(id);
+        var payment = await service.GetPaymentById(id);
         if (payment is null) return NotFound();
         return Ok(payment);
     }
@@ -82,7 +90,7 @@ public class PaymentController(
     [HttpDelete("{id:guid}")]
     public async Task<ActionResult<PaymentDto>> Delete(Guid id)
     {
-        var payment = await paymentService.DeletePayment(id);
+        var payment = await service.DeletePayment(id);
         if (payment is null) return NotFound();
         return Ok(payment);
     }

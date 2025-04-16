@@ -108,7 +108,21 @@ public class PaymentService(
 
     public async Task<IEnumerable<PaymentDto>> GetAllPayments()
     {
-        var entities = await unit.PaymentRepository.QueryableGetAll().AsNoTracking().ToListAsync();
+        var entities = await unit.PaymentRepository.QueryableGetAll()
+            .Include(p => p.Requisite)
+            .AsNoTracking()
+            .ToListAsync();
+        return mapper.Map<IEnumerable<PaymentDto>>(entities);
+    }
+
+    public async Task<IEnumerable<PaymentDto>> GetUserPayments(Guid userId)
+    {
+        var entities = await unit.PaymentRepository.QueryableGetAll()
+            .Include(p => p.Requisite)
+            .Where(p => p.Requisite != null && p.Requisite.UserId == userId)
+            .AsNoTracking()
+            .ToListAsync();
+        
         return mapper.Map<IEnumerable<PaymentDto>>(entities);
     }
 

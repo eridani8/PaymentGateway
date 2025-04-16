@@ -1,8 +1,11 @@
 ﻿<MudNavMenu Class="mt-4">
+    <AuthorizeView Roles="Admin">
+        <MudNavLink Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.People" Href="users">Пользователи</MudNavLink>
+    </AuthorizeView>
     <AuthorizeView Roles="User,Admin,Support">
         <MudNavLink Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.RequestPage" Href="requisites">Реквизиты</MudNavLink>
     </AuthorizeView>
-    <AuthorizeView Roles="Admin">
-        <MudNavLink Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.People" Href="users">Пользователи</MudNavLink>
+    <AuthorizeView Roles="User,Admin,Support">
+        <MudNavLink Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.CreditCard" Href="payments">Платежи</MudNavLink>
     </AuthorizeView>
 </MudNavMenu>
