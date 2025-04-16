@@ -179,7 +179,7 @@ public class RequisiteEntity : IRequisiteEntity, ICacheable
         status = Status;
         if (Status == RequisiteStatus.Pending && PaymentId is not null) return false;
         
-        status = IsActive ? RequisiteStatus.Inactive : DetermineStatus(now, nowTimeOnly);
+        status = !IsActive ? RequisiteStatus.Inactive : DetermineStatus(now, nowTimeOnly);
 
         return status != Status;
     }
