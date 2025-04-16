@@ -34,7 +34,7 @@
                              Bordered="true"
                              Hover="true">
                     <Columns>
-                        <HierarchyColumn />
+                        <HierarchyColumn/>
                         <PropertyColumn Property="x => x.Username" Title="Логин"/>
                         <TemplateColumn Title="Лимит реквизитов">
                             <CellTemplate Context="cellContext">
@@ -70,14 +70,15 @@
                                         Icon="@Icons.Material.Filled.Edit"
                                         Color="Color.Primary"
                                         Size="Size.Small"
-                                        OnClick="@(() => OpenEditDialog(cellContext.Item))"
-                                        Title="Редактировать"/>
+                                        OnClick="@(() => OpenEditDialog(cellContext.Item))">
+                                        Редактировать
+                                    </MudIconButton>
                                     <MudIconButton
                                         Icon="@Icons.Material.Filled.Delete"
                                         Color="Color.Error"
                                         Size="Size.Small"
-                                        OnClick="@(() => OpenDeleteDialog(cellContext.Item))"
-                                        aria-label="delete"/>
+                                        OnClick="@(() => OpenDeleteDialog(cellContext.Item))">Удалить
+                                    </MudIconButton>
                                 }
                             </CellTemplate>
                         </TemplateColumn>
@@ -108,10 +109,10 @@
     protected override async Task OnInitializedAsync()
     {
         await LoadUsers();
-        
+
         if (!_isInitialized)
         {
-            try 
+            try
             {
                 await SignalRService.InitializeAsync();
                 SignalRService.SubscribeToUserUpdates(HandleUserUpdate);
@@ -200,7 +201,7 @@
     }
 
     private async Task OpenCreateDialog()
-    { 
+    {
         await DialogService.ShowAsync<CreateUserDialog>(null);
     }
 

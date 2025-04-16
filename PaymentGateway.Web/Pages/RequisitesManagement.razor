@@ -35,7 +35,7 @@
                              Bordered="true"
                              Hover="true">
                     <Columns>
-                        <HierarchyColumn />
+                        <HierarchyColumn/>
                         <PropertyColumn Property="x => x.FullName" Title="Владелец"/>
                         <TemplateColumn Title="Тип">
                             <CellTemplate Context="cellContext">
@@ -81,21 +81,23 @@
                                 }
                             </CellTemplate>
                         </TemplateColumn>
-                        <PropertyColumn Property="x => x.Priority" Title="Приоритет" />
+                        <PropertyColumn Property="x => x.Priority" Title="Приоритет"/>
                         <TemplateColumn Title="Действия">
                             <CellTemplate Context="cellContext">
                                 <MudIconButton Icon="@Icons.Material.Filled.Edit"
                                                Color="Color.Primary"
                                                Size="Size.Small"
                                                OnClick="@(() => OpenEditDialog(cellContext.Item))"
-                                               Title="Редактировать"
-                                               Disabled="@(cellContext.Item.Status == RequisiteStatus.Pending)"/>
+                                               Disabled="@(cellContext.Item.Status == RequisiteStatus.Pending)">
+                                    Редактировать
+                                </MudIconButton>
                                 <MudIconButton Icon="@Icons.Material.Filled.Delete"
                                                Color="Color.Error"
                                                Size="Size.Small"
                                                OnClick="@(() => OpenDeleteDialog(cellContext.Item))"
-                                               Title="Удалить"
-                                               Disabled="@(cellContext.Item.Status == RequisiteStatus.Pending)"/>
+                                               Disabled="@(cellContext.Item.Status == RequisiteStatus.Pending)">
+                                    Удалить
+                                </MudIconButton>
                             </CellTemplate>
                         </TemplateColumn>
                     </Columns>
@@ -141,7 +143,7 @@
         _isAdminUser = authState.User.IsInRole("Admin");
 
         await LoadRequisites();
-        
+
         if (!_isInitialized)
         {
             try
@@ -156,7 +158,7 @@
                 Logger.LogError(e, "Ошибка при инициализации SignalR");
             }
         }
-        
+
         _refreshTimer = new Timer(TimerTick, null, RefreshInterval, RefreshInterval);
     }
 
@@ -209,7 +211,7 @@
             Logger.LogError(e, "Ошибка при удалении реквизита {RequisiteId}", requisiteId);
         }
     }
-    
+
     public void Dispose()
     {
         _refreshTimer.Dispose();
@@ -226,7 +228,7 @@
                 await SignalRService.DisposeAsync();
                 _isInitialized = false;
             }
-            
+
             await _refreshTimer.DisposeAsync();
         }
         catch (Exception e)
@@ -329,7 +331,7 @@
         var totalMinutes = Math.Ceiling(remaining.TotalMinutes);
         return $" - {totalMinutes} мин";
     }
-    
+
     private static string GetRemainingPendingTime(RequisiteDto requisite)
     {
         if (requisite.Payment?.ExpiresAt == null)
@@ -342,4 +344,5 @@
         var totalMinutes = Math.Ceiling(remaining.TotalMinutes);
         return $" - {totalMinutes} мин";
     }
+
 }

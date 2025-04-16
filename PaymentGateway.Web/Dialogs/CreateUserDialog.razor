@@ -52,10 +52,10 @@
             </MudGrid>
 
             <MudText Typo="Typo.subtitle1" Class="mt-2 mb-1">Роль</MudText>
-            <MudToggleGroup T="string" SelectionMode="SelectionMode.ToggleSelection" @bind-Value="SelectedRole">
+            <MudToggleGroup T="string" SelectionMode="SelectionMode.ToggleSelection" Color="Color.Primary" @bind-Value="SelectedRole">
                 @foreach (var role in _availableRoles)
                 {
-                    <MudToggleItem Value="@role" Color="Color.Primary">@GetRoleDisplayName(role)</MudToggleItem>
+                    <MudToggleItem Value="@role">@GetRoleDisplayName(role)</MudToggleItem>
                 }
             </MudToggleGroup>
 

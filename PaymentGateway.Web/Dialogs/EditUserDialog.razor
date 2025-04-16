@@ -47,15 +47,14 @@
                               Color="Color.Primary">
                     @foreach (var role in _availableRoles)
                     {
-                        <MudToggleItem Value="@role" Color="Color.Primary">@GetRoleDisplayName(role)</MudToggleItem>
+                        <MudToggleItem Value="@role">@GetRoleDisplayName(role)</MudToggleItem>
                     }
                 </MudToggleGroup>
                 
                 <MudSwitch T="bool" 
                           Label="Активен" 
                           @bind-Value="_updateUserDto.IsActive" 
-                          Color="Color.Success"
-                          Margin="Margin.Normal"/>
+                          Color="Color.Success"/>
             </MudStack>
 
             @if (!string.IsNullOrEmpty(_errorMessage))

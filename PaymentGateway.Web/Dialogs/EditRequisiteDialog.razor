@@ -27,11 +27,10 @@
                         <MudText Typo="Typo.subtitle2" Class="mb-1">Тип платежа</MudText>
                         <MudToggleGroup T="PaymentType" SelectionMode="SelectionMode.ToggleSelection"
                                         @bind-Value="_updateRequisiteDto.PaymentType"
-                                        For="@(() => _updateRequisiteDto.PaymentType)"
                                         Color="Color.Primary"
                                         Class="ml-2">
-                            <MudToggleItem Value="PaymentType.PhoneNumber" Color="Color.Primary">Телефон</MudToggleItem>
-                            <MudToggleItem Value="PaymentType.BankCard" Color="Color.Primary">Карта</MudToggleItem>
+                            <MudToggleItem Value="PaymentType.PhoneNumber">Телефон</MudToggleItem>
+                            <MudToggleItem Value="PaymentType.BankCard">Карта</MudToggleItem>
                         </MudToggleGroup>
                     </MudStack>
                 </MudItem>
