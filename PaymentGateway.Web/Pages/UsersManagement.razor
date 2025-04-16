@@ -86,7 +86,10 @@
                     <ChildRowContent Context="rowContext">
                         <MudCard>
                             <MudCardContent>
-                                <MudText>Id: @rowContext.Item.Id</MudText>
+                                <MudStack Row="true">
+                                    <MudIcon Icon="@Icons.Material.Filled.AssignmentInd" Class="mr-2" />
+                                    <MudText Typo="Typo.body1">@rowContext.Item.Id</MudText>
+                                </MudStack>
                             </MudCardContent>
                         </MudCard>
                     </ChildRowContent>
@@ -126,7 +129,7 @@
         }
     }
 
-    private void HandleUserUpdate(UserDto updatedUser)
+    private async void HandleUserUpdate(UserDto updatedUser)
     {
         try
         {
@@ -141,7 +144,7 @@
                 _users.Add(updatedUser);
             }
 
-            StateHasChanged();
+            await InvokeAsync(StateHasChanged);
         }
         catch (Exception e)
         {
@@ -149,14 +152,14 @@
         }
     }
 
-    private void HandleUserDeleted(Guid userId)
+    private async void HandleUserDeleted(Guid userId)
     {
         try
         {
             var user = _users.FirstOrDefault(u => u.Id == userId);
             if (user == null) return;
             _users.Remove(user);
-            StateHasChanged();
+            await InvokeAsync(StateHasChanged);
         }
         catch (Exception e)
         {
