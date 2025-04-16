@@ -26,10 +26,10 @@
                                  Color="Color.Primary">@context.User.Identity?.Name</MudChip>
                     </ActivatorContent>
                     <ChildContent>
-                        <MudMenuItem OnClick="NavigateToSettings" Icon="@Icons.Material.Filled.Settings"
+                        <MudMenuItem OnClick="@(NavigateToSettings)" Icon="@Icons.Material.Filled.Settings"
                                      Label="Настройки"/>
                         <MudDivider/>
-                        <MudMenuItem OnClick="Logout" Icon="@Icons.Material.Filled.ExitToApp" Label="Выход"/>
+                        <MudMenuItem OnClick="@(Logout)" Icon="@Icons.Material.Filled.ExitToApp" Label="Выход"/>
                     </ChildContent>
                 </MudMenu>
             </Authorized>
