@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Components.Authorization;
-using PaymentGateway.Shared.DTOs.User;
+﻿using PaymentGateway.Shared.DTOs.User;
 using PaymentGateway.Web.Interfaces;
 
 namespace PaymentGateway.Web.Services;

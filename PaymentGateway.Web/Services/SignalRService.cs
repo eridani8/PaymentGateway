@@ -16,15 +16,15 @@ public class SignalRService(
 {
     private HubConnection? _hubConnection;
     private readonly string _hubUrl = $"{settings.Value.BaseAddress}/notificationHub";
-    private bool _isDisposing = false;
-    private bool _isDisposed = false;
+    private bool _isDisposing;
+    private bool _isDisposed;
     private readonly SemaphoreSlim _connectionLock = new(1, 1);
     private readonly AsyncRetryPolicy _reconnectionPolicy = Policy
         .Handle<Exception>()
         .WaitAndRetryAsync(
             10,
             retryAttempt => TimeSpan.FromSeconds(Math.Pow(1.5, retryAttempt)),
-            (exception, timeSpan, retryCount, context) =>
+            (exception, timeSpan, retryCount, _) =>
             {
                 logger.LogWarning(exception, 
                     "Попытка {RetryCount} подключения к SignalR не удалась. Следующая попытка через {RetryTimeSpan} секунд", 

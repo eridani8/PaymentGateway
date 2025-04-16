@@ -10,8 +10,7 @@ public static class ModelBuilderExtensions
     {
         foreach (var entityType in modelBuilder.Model.GetEntityTypes())
         {
-            var clrType = entityType?.ClrType;
-            if (clrType == null) continue;
+            var clrType = entityType.ClrType;
 
             foreach (var property in clrType.GetProperties())
             {

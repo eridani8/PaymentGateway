@@ -100,23 +100,6 @@ public static class ValidatorRules
             .LessThanOrEqualTo(DateTime.UtcNow).WithMessage("Дата не может быть в будущем");
     }
 
-    public static IRuleBuilderOptions<T, T> ValidTimeRange<T>(this IRuleBuilder<T, T> rule,
-        Func<T, TimeOnly> fromSelector, Func<T, TimeOnly> toSelector)
-    {
-        return rule.Must(x =>
-        {
-            var from = fromSelector(x);
-            var to = toSelector(x);
-
-            if (from == TimeOnly.MinValue || to == TimeOnly.MinValue)
-            {
-                return true;
-            }
-
-            return true;
-        }).WithMessage("Время работы указано корректно");
-    }
-
     public static IRuleBuilderOptions<T, string> ValidUsername<T>(this IRuleBuilder<T, string> rule)
     {
         return rule

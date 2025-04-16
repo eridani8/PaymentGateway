@@ -7,9 +7,10 @@ namespace PaymentGateway.Core.Entities;
 
 public class RequisiteEntity : IRequisiteEntity, ICacheable
 {
-    public RequisiteEntity()
-    {
-    }
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
+    // ReSharper disable once EmptyConstructor
+    public RequisiteEntity() { }
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
 
     /// <summary>
     /// Идентификатор реквизита

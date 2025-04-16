@@ -7,6 +7,7 @@ namespace PaymentGateway.Core.Entities;
 
 public sealed class TransactionEntity : ITransactionEntity, ICacheable
 {
+    // ReSharper disable once EmptyConstructor
     public TransactionEntity() { }
     
     /// <summary>

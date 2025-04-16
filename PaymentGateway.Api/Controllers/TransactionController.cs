@@ -4,7 +4,6 @@ using PaymentGateway.Application;
 using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Core.Exceptions;
 using PaymentGateway.Shared.DTOs.Transaction;
-using PaymentGateway.Shared.Interfaces;
 
 namespace PaymentGateway.Api.Controllers;
 

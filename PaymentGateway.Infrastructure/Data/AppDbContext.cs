@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using PaymentGateway.Core;
 using PaymentGateway.Core.Entities;
 using PaymentGateway.Core.Interfaces;

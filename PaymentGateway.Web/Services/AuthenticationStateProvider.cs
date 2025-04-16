@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Components.Authorization;
 
 namespace PaymentGateway.Web.Services;
 
-public class CustomAuthStateProvider(IHttpClientFactory httpClientFactory, ILocalStorageService localStorage) : AuthenticationStateProvider
+public class CustomAuthStateProvider(ILocalStorageService localStorage) : AuthenticationStateProvider
 {
     public override async Task<AuthenticationState> GetAuthenticationStateAsync()
     {
@@ -107,7 +107,7 @@ public class CustomAuthStateProvider(IHttpClientFactory httpClientFactory, ILoca
                     }
                     default:
                     {
-                        var roleValue = value?.ToString()?.Trim();
+                        var roleValue = value.ToString()?.Trim();
                         if (!string.IsNullOrEmpty(roleValue))
                         {
                             claims.Add(new Claim(ClaimTypes.Role, roleValue));
@@ -121,11 +121,11 @@ public class CustomAuthStateProvider(IHttpClientFactory httpClientFactory, ILoca
                      key.Equals("nameidentifier", StringComparison.OrdinalIgnoreCase) ||
                      key.Equals(ClaimTypes.NameIdentifier, StringComparison.OrdinalIgnoreCase))
             {
-                claims.Add(new Claim(ClaimTypes.NameIdentifier, value?.ToString() ?? string.Empty));
+                claims.Add(new Claim(ClaimTypes.NameIdentifier, value.ToString() ?? string.Empty));
             }
             else
             {
-                claims.Add(new Claim(key, value?.ToString() ?? string.Empty));
+                claims.Add(new Claim(key, value.ToString() ?? string.Empty));
             }
         }
         

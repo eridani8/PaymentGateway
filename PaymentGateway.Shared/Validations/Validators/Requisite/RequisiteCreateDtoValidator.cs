@@ -19,9 +19,5 @@ public class RequisiteCreateDtoValidator : BaseValidator<RequisiteCreateDto>
         RuleFor(x => x.MaxAmount).ValidMoneyAmount();
         RuleFor(x => x.Cooldown).ValidCooldown();
         RuleFor(x => x.Priority).ValidPriority();
-        When(x => x.WorkFrom != TimeOnly.MinValue || x.WorkTo != TimeOnly.MinValue, () =>
-        {
-            RuleFor(x => x).ValidTimeRange(x => x.WorkFrom, x => x.WorkTo);
-        });
     }
 }

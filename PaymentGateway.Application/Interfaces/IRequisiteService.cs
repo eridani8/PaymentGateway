@@ -1,5 +1,4 @@
-﻿using PaymentGateway.Core.Entities;
-using PaymentGateway.Shared.DTOs.Requisite;
+﻿using PaymentGateway.Shared.DTOs.Requisite;
 
 namespace PaymentGateway.Application.Interfaces;
 

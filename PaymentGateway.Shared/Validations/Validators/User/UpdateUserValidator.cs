@@ -1,4 +1,3 @@
-using FluentValidation;
 using PaymentGateway.Shared.DTOs.User;
 
 namespace PaymentGateway.Shared.Validations.Validators.User;

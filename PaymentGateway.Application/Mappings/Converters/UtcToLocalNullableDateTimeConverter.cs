@@ -8,7 +8,7 @@ public class UtcToLocalNullableDateTimeConverter : IValueConverter<DateTime?, Da
     {
         if (sourceMember?.Kind == DateTimeKind.Utc)
         {
-            return sourceMember?.ToLocalTime();
+            return sourceMember.Value.ToLocalTime();
         }
         return sourceMember;
     }
