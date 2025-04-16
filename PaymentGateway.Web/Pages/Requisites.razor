@@ -1,9 +1,9 @@
-﻿@page "/RequisitesManagement"
+﻿@page "/Requisites"
 @using PaymentGateway.Shared.DTOs.Requisite
 @using PaymentGateway.Shared.Enums
 @attribute [Authorize(Roles = "User,Admin,Support")]
 @inject IRequisiteService RequisiteService
-@inject ILogger<RequisitesManagement> Logger
+@inject ILogger<Requisites> Logger
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 @inject NavigationManager NavigationManager

@@ -1,9 +1,9 @@
-﻿@page "/UsersManagement"
+﻿@page "/Users"
 @using PaymentGateway.Shared.DTOs.User
 @attribute [Authorize(Roles = "Admin")]
 @inject IAdminService AdminService
 @inject IDialogService DialogService
-@inject ILogger<UsersManagement> Logger
+@inject ILogger<Users> Logger
 @inject ISnackbar Snackbar
 @inject NavigationManager NavigationManager
 @inject SignalRService SignalRService
