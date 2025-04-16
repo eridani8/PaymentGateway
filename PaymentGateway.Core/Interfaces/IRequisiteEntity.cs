@@ -30,4 +30,5 @@ public interface IRequisiteEntity
     bool IsCooldownOver(DateTime currentTime);
     bool LimitReached();
     RequisiteStatus DetermineStatus(DateTime now, TimeOnly nowTimeOnly);
+    bool ProcessStatus(DateTime now, TimeOnly nowTimeOnly, out RequisiteStatus status);
 }

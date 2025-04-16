@@ -173,4 +173,14 @@ public class RequisiteEntity : IRequisiteEntity, ICacheable
             ? RequisiteStatus.Active
             : RequisiteStatus.Cooldown;
     }
+
+    public bool ProcessStatus(DateTime now, TimeOnly nowTimeOnly, out RequisiteStatus status)
+    {
+        status = Status;
+        if (Status == RequisiteStatus.Pending && PaymentId is not null) return false;
+        
+        status = IsActive ? RequisiteStatus.Inactive : DetermineStatus(now, nowTimeOnly);
+
+        return status != Status;
+    }
 }

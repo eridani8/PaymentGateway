@@ -117,7 +117,14 @@ public class RequisiteService(
             r => r.User,
             r => r.Payment);
         if (requisite is null) return null;
-        if (requisite.Status == RequisiteStatus.Pending) return null;
+        
+        var now = DateTime.UtcNow;
+        var nowTimeOnly = TimeOnly.FromDateTime(now);
+        if (requisite.ProcessStatus(now, nowTimeOnly, out var status))
+        {
+            logger.LogInformation("Статус реквизита {requisiteId} изменен с {oldStatus} на {newStatus}", requisite.Id, requisite.Status.ToString(), status.ToString());
+            requisite.Status = status;
+        }
 
         mapper.Map(dto, requisite);
         unit.RequisiteRepository.Update(requisite);

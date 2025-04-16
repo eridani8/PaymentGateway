@@ -30,11 +30,7 @@ public class GatewayHandler(
         {
             try
             {
-                if (requisite is { Status: RequisiteStatus.Pending, PaymentId: not null }) continue;
-
-                var status = !requisite.IsActive ? RequisiteStatus.Inactive : requisite.DetermineStatus(now, nowTimeOnly);
-
-                if (status != requisite.Status)
+                if (requisite.ProcessStatus(now, nowTimeOnly, out var status))
                 {
                     logger.LogInformation("Статус реквизита {requisiteId} изменен с {oldStatus} на {newStatus}", requisite.Id, requisite.Status.ToString(), status.ToString());
                     requisite.Status = status;
