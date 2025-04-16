@@ -4,6 +4,9 @@ namespace PaymentGateway.Shared.Validations;
 
 public static partial class ValidationRegexps
 {
+    [GeneratedRegex(@"^[a-zA-Z0-9_]+$")]
+    public static partial Regex LoginRegex();
+    
     [GeneratedRegex(@"^[А-Яа-яЁёA-Za-z\s]+$")]
     public static partial Regex FullNameRegex();
     

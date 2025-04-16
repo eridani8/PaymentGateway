@@ -105,7 +105,8 @@ public static class ValidatorRules
         return rule
             .NotEmpty().WithMessage("Обязательное поле")
             .MinimumLength(4).WithMessage("Минимальная длина логина 4 символа")
-            .MaximumLength(50).WithMessage("Максимальная длина логина 50 символов");
+            .MaximumLength(50).WithMessage("Максимальная длина логина 50 символов")
+            .Matches(ValidationRegexps.LoginRegex()).WithMessage("Логин должен начинаться с буквы и содержать только латинские буквы, цифры и подчёркивания");
     }
 
     public static IRuleBuilderOptions<T, string> ValidPassword<T>(this IRuleBuilder<T, string> rule)
