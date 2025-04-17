@@ -220,11 +220,6 @@ public class SignalRService(
                     options.SkipNegotiation = false;
                     options.Transports = Microsoft.AspNetCore.Http.Connections.HttpTransportType.WebSockets | 
                                          Microsoft.AspNetCore.Http.Connections.HttpTransportType.ServerSentEvents;
-                    options.WebSocketConfiguration = conf => 
-                    {
-                        conf.RemoteCertificateValidationCallback = (sender, certificate, chain, policyErrors) => true;
-                        conf.KeepAliveInterval = TimeSpan.FromSeconds(30);
-                    };
                 })
                 .WithAutomaticReconnect([
                     TimeSpan.FromSeconds(0), 
