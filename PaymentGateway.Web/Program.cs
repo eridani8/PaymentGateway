@@ -33,7 +33,7 @@ builder.Services.Configure<JsonSerializerOptions>(options =>
     options.MaxDepth = 128;
 });
 
-builder.Services.AddSingleton(_ => new JsonSerializerOptions
+builder.Services.AddSingleton(new JsonSerializerOptions
 {
     ReferenceHandler = ReferenceHandler.Preserve,
     PropertyNameCaseInsensitive = true,
