@@ -42,11 +42,19 @@
                             </CellTemplate>
                         </TemplateColumn>
                         <PropertyColumn Property="x => x.CreatedAt" Title="Создан"/>
-                        <PropertyColumn Property="x => x.ProcessedAt ?? DateTime.MinValue" Title="Обработан"/>
-                        <PropertyColumn Property="x => x.ExpiresAt ?? DateTime.MinValue" Title="Истечение"/>
+                        <TemplateColumn Title="Обработан">
+                            <CellTemplate Context="cellContext">
+                                @(cellContext.Item.ProcessedAt is null ? "-" : cellContext.Item.ProcessedAt.ToString())
+                            </CellTemplate>
+                        </TemplateColumn>
+                        <TemplateColumn Title="Истечение">
+                            <CellTemplate Context="cellContext">
+                                @(cellContext.Item.ExpiresAt is null ? "-" : cellContext.Item.ExpiresAt.ToString())
+                            </CellTemplate>
+                        </TemplateColumn>
                     </Columns>
                     <ChildRowContent Context="rowContext">
-                        <MudCard>
+                        <MudStack>
                             <MudTooltip Placement="Placement.Left" Text="Id платежа">
                                 <MudStack Row="true">
                                     <MudIcon Icon="@Icons.Material.Filled.Assignment" Class="mr-2"/>
@@ -68,7 +76,7 @@
                                     </MudStack>
                                 </MudTooltip>
                             }
-                        </MudCard>
+                        </MudStack>
                     </ChildRowContent>
                 </MudDataGrid>
             </MudPaper>
@@ -116,7 +124,7 @@
 
     private async void TimerTick(object? state)
     {
-        try 
+        try
         {
             await InvokeAsync(StateHasChanged);
         }
@@ -130,9 +138,9 @@
     {
         try
         {
-            Logger.LogInformation("Получено обновление платежа: {PaymentId}, Статус: {Status}", 
+            Logger.LogInformation("Получено обновление платежа: {PaymentId}, Статус: {Status}",
                 updatedPayment.Id, updatedPayment.Status);
-                
+
             var existingPayment = _payments.FirstOrDefault(p => p.Id == updatedPayment.Id);
             if (existingPayment != null)
             {
@@ -159,13 +167,13 @@
         try
         {
             Logger.LogInformation("Получено уведомление об удалении платежа: {PaymentId}", paymentId);
-            
+
             var payment = _payments.FirstOrDefault(p => p.Id == paymentId);
             if (payment == null) return;
-            
+
             _payments.Remove(payment);
             Logger.LogInformation("Платеж удален из списка: {PaymentId}", paymentId);
-            
+
             await InvokeAsync(StateHasChanged);
         }
         catch (Exception e)
@@ -228,7 +236,7 @@
         PaymentStatus.Expired => Color.Error,
         _ => Color.Default
     };
-    
+
     private static string GetStatusText(PaymentStatus status) => status switch
     {
         PaymentStatus.Created => "Создан",
@@ -238,7 +246,7 @@
         PaymentStatus.Expired => "Истек",
         _ => "Неизвестно"
     };
-    
+
     private static string GetRemainingPendingTime(PaymentDto payment)
     {
         if (payment.ExpiresAt == null)
@@ -251,4 +259,5 @@
         var totalMinutes = Math.Ceiling(remaining.TotalMinutes);
         return $" {totalMinutes} мин";
     }
+
 }

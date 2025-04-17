@@ -97,7 +97,7 @@
                         </TemplateColumn>
                     </Columns>
                     <ChildRowContent Context="rowContext">
-                        <MudCard>
+                        <MudStack>
                             <MudTooltip Placement="Placement.Left" Text="Id реквизита">
                                     <MudStack Row="true">
                                         <MudIcon Icon="@Icons.Material.Filled.Assignment" Class="mr-2"/>
@@ -132,7 +132,7 @@
                                         <MudButton OnClick="@(() => PaymentManualConfirm(rowContext.Item.Payment.Id))" Variant="Variant.Outlined" Color="Color.Warning">Подтвердить платеж</MudButton>
                                     </MudStack>
                                 }
-                        </MudCard>
+                        </MudStack>
                     </ChildRowContent>
                 </MudDataGrid>
             </MudPaper>
