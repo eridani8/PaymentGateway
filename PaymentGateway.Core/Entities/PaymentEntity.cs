@@ -70,6 +70,10 @@ public sealed class PaymentEntity : IPaymentEntity, ICacheable
     
     public UserEntity? ManualConfirmUser { get; set; }
     
+    public Guid? CanceledByUserId { get; set; }
+    
+    public UserEntity? CanceledByUser { get; set; }
+    
     public void MarkAsPending(RequisiteEntity requisite)
     {
         RequisiteId = requisite.Id;

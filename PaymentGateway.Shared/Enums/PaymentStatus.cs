@@ -7,4 +7,5 @@ public enum PaymentStatus
     Confirmed = 2,
     ManualConfirm = 3,
     Expired = 4,
+    Canceled = 5
 }

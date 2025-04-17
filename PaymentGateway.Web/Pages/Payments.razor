@@ -23,25 +23,27 @@
                     <AuthorizeView Roles="Admin, Support">
                         <Authorized Context="adminContext">
                             <MudStack Row="true" Spacing="1">
-                                <MudTextField @bind-Value="_searchUserId" Label="ID пользователя" 
-                                             Adornment="Adornment.End" 
-                                             AdornmentIcon="@Icons.Material.Filled.Search" 
-                                             Variant="Variant.Outlined" 
-                                             Margin="Margin.Normal" 
-                                             Placeholder="Фильтр по пользователю"
-                                             Error="@(!string.IsNullOrEmpty(_searchError))"
-                                             ErrorText="@_searchError"
-                                             Style="width: 600px"/>
-                                <MudButton Color="Color.Primary" 
-                                          Variant="Variant.Outlined" 
-                                          OnClick="@(SearchPaymentsByUserId)"
-                                          Style="height: 56px; align-self: flex-start; margin-top: 16px;">Найти</MudButton>
+                                <MudTextField @bind-Value="_searchUserId" Label="ID пользователя"
+                                              Adornment="Adornment.End"
+                                              AdornmentIcon="@Icons.Material.Filled.Search"
+                                              Variant="Variant.Outlined"
+                                              Margin="Margin.Normal"
+                                              Placeholder="Фильтр по пользователю"
+                                              Error="@(!string.IsNullOrEmpty(_searchError))"
+                                              ErrorText="@_searchError"
+                                              Style="width: 600px"/>
+                                <MudButton Color="Color.Primary"
+                                           Variant="Variant.Outlined"
+                                           OnClick="@(SearchPaymentsByUserId)"
+                                           Style="height: 56px; align-self: flex-start; margin-top: 16px;">Найти
+                                </MudButton>
                                 @if (_isFiltered)
                                 {
-                                    <MudButton Color="Color.Secondary" 
-                                              Variant="Variant.Outlined" 
-                                              OnClick="@(ClearSearch)"
-                                              Style="height: 56px; align-self: flex-start; margin-top: 16px;">Сбросить</MudButton>
+                                    <MudButton Color="Color.Secondary"
+                                               Variant="Variant.Outlined"
+                                               OnClick="@(ClearSearch)"
+                                               Style="height: 56px; align-self: flex-start; margin-top: 16px;">Сбросить
+                                    </MudButton>
                                 }
                             </MudStack>
                         </Authorized>
@@ -105,10 +107,19 @@
                             }
                             @if (rowContext.Item.ManualConfirmUserId != null)
                             {
-                                <MudTooltip Placement="Placement.Left" Text="Id принявшего платеж">
+                                <MudTooltip Placement="Placement.Left" Text="Id принявшего">
                                     <MudStack Row="true">
                                         <MudIcon Icon="@Icons.Material.Filled.AssignmentInd" Class="mr-2"/>
                                         <MudText Typo="Typo.body1">@rowContext.Item.ManualConfirmUserId</MudText>
+                                    </MudStack>
+                                </MudTooltip>
+                            }
+                            @if (rowContext.Item.CanceledByUserId != null)
+                            {
+                                <MudTooltip Placement="Placement.Left" Text="Id отменившего">
+                                    <MudStack Row="true">
+                                        <MudIcon Icon="@Icons.Material.Filled.AssignmentInd" Class="mr-2"/>
+                                        <MudText Typo="Typo.body1">@rowContext.Item.CanceledByUserId</MudText>
                                     </MudStack>
                                 </MudTooltip>
                             }
@@ -123,13 +134,15 @@
                             }
                             <AuthorizeView Roles="Admin,Support">
                                 <Authorized Context="adminPaymentContext">
-                                    <MudStack Row="true" Justify="Justify.FlexEnd">
-                                        @if (rowContext.Item.Status != PaymentStatus.Expired)
+                                    <MudStack Row="true" Class="pt-2">
+                                        @if (rowContext.Item.Status is PaymentStatus.Created or PaymentStatus.Pending)
                                         {
-                                            <MudButton Color="Color.Error" 
-                                                      Variant="Variant.Filled" 
-                                                      OnClick="@(() => CancelPayment(rowContext.Item))"
-                                                      Size="Size.Small">
+                                            <MudButton OnClick="@(() => PaymentManualConfirm(rowContext.Item))"
+                                                       Variant="Variant.Outlined" Color="Color.Warning">Подтвердить платеж
+                                            </MudButton>
+                                            <MudButton Color="Color.Error"
+                                                       Variant="Variant.Filled"
+                                                       OnClick="@(() => CancelPayment(rowContext.Item))">
                                                 Отменить платеж
                                             </MudButton>
                                         }
@@ -289,30 +302,30 @@
             _isLoading = false;
         }
     }
-    
+
     private async Task SearchPaymentsByUserId()
     {
         _searchError = string.Empty;
-        
+
         if (string.IsNullOrWhiteSpace(_searchUserId))
         {
             await LoadPayments();
             _isFiltered = false;
             return;
         }
-        
+
         if (!Guid.TryParse(_searchUserId, out var userId))
         {
             _searchError = "Некорректный формат ID пользователя";
             return;
         }
-        
+
         try
         {
             _isLoading = true;
             _payments = await PaymentService.GetPaymentsByUserId(userId);
             _isFiltered = true;
-            
+
             if (_payments.Count == 0)
             {
                 Snackbar.Add("Платежи по указанному ID пользователя не найдены", Severity.Info);
@@ -328,7 +341,7 @@
             _isLoading = false;
         }
     }
-    
+
     private async Task ClearSearch()
     {
         _searchUserId = string.Empty;
@@ -357,7 +370,7 @@
             {
                 _isLoading = true;
                 var apiResult = await PaymentService.CancelPayment(payment.Id);
-                
+
                 if (apiResult.Code == HttpStatusCode.OK)
                 {
                     Snackbar.Add("Платеж успешно отменен", Severity.Success);
@@ -373,6 +386,48 @@
             {
                 Logger.LogError(e, "Ошибка при отмене платежа {PaymentId}", payment.Id);
                 Snackbar.Add("Ошибка при отмене платежа", Severity.Error);
+            }
+            finally
+            {
+                _isLoading = false;
+            }
+        }
+    }
+    
+    private async Task PaymentManualConfirm(PaymentDto dto)
+    {
+        var parameters = new DialogParameters
+        {
+            ["Title"] = "Подтверждение платежа",
+            ["ContentText"] = $"Вы уверены, что хотите подтвердить платеж на сумму {dto.Amount}?",
+            ["ButtonText"] = "Подтвердить платеж",
+            ["CancelText"] = "Назад"
+        };
+
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
+        var dialog = await DialogService.ShowAsync<ConfirmationDialog>(null, parameters, options);
+        var result = await dialog.Result;
+
+        if (result is { Canceled: false })
+        {
+            try
+            {
+                _isLoading = true;
+                var apiResult = await PaymentService.ManualConfirmPayment(dto.Id);
+                if (apiResult.Code == HttpStatusCode.OK)
+                {
+                    Snackbar.Add("Платеж подтвержден", Severity.Success);
+                }
+                else
+                {
+                    var error = !string.IsNullOrEmpty(apiResult.Content) ? apiResult.Content : "Ошибка подтверждения";
+                    Snackbar.Add(error, Severity.Error);
+                }
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e, "Ошибка при подтверждении платежа {PaymentId}", dto.Id);
+                Snackbar.Add("Ошибка при подтверждении платежа", Severity.Error);
             }
             finally
             {

@@ -125,6 +125,8 @@ public class RequisiteEntity : IRequisiteEntity, ICacheable
     public void ReleaseWithoutPayment()
     {
         Status = RequisiteStatus.Active;
+        Payment = null;
+        PaymentId = null;
     }
 
     public void ReleaseAfterPayment(decimal amount, out RequisiteStatus status)

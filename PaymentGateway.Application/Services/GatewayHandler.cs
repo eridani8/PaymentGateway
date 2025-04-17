@@ -114,10 +114,11 @@ public class GatewayHandler(
         {
             foreach (var expiredPayment in expiredPayments)
             {
-                if (expiredPayment.Requisite != null)
+                if (expiredPayment.Requisite is { } requisite)
                 {
-                    expiredPayment.Requisite.ReleaseWithoutPayment();
-                    await notificationService.NotifyRequisiteUpdated(mapper.Map<RequisiteDto>(expiredPayment.Requisite));
+                    requisite.ReleaseWithoutPayment();
+                    await notificationService.NotifyRequisiteUpdated(mapper.Map<RequisiteDto>(requisite));
+                    unit.RequisiteRepository.Update(requisite);
                 }
                 await notificationService.NotifyPaymentUpdated(mapper.Map<PaymentDto>(expiredPayment));
                 logger.LogInformation("Платеж {paymentId} на сумму {amount} отменен из-за истечения срока ожидания", expiredPayment.Id, expiredPayment.Amount);

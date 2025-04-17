@@ -16,4 +16,5 @@ public class PaymentDto
     public DateTime? ExpiresAt { get; init; }
     public Guid? TransactionId { get; init; }
     public Guid? ManualConfirmUserId { get; init; }
+    public Guid? CanceledByUserId { get; init; }
 }

@@ -90,18 +90,13 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICryptographyS
             entity.HasIndex(e => e.ExpiresAt);
             entity.HasIndex(e => e.ProcessedAt);
             entity.HasIndex(e => e.ManualConfirmUserId);
+            entity.HasIndex(e => e.CanceledByUserId);
 
             entity
                 .HasOne(e => e.Transaction)
                 .WithOne(e => e.Payment)
                 .HasForeignKey<TransactionEntity>(e => e.PaymentId)
                 .OnDelete(DeleteBehavior.SetNull);
-            
-            // entity
-            //     .HasOne(e => e.Requisite)
-            //     .WithOne(e => e.Payment)
-            //     .HasForeignKey<PaymentEntity>(e => e.RequisiteId)
-            //     .OnDelete(DeleteBehavior.SetNull);
         });
         
         modelBuilder.Entity<TransactionEntity>(entity =>

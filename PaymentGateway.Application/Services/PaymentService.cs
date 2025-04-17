@@ -8,6 +8,7 @@ using PaymentGateway.Core.Entities;
 using PaymentGateway.Core.Exceptions;
 using PaymentGateway.Core.Interfaces;
 using PaymentGateway.Shared.DTOs.Payment;
+using PaymentGateway.Shared.DTOs.Requisite;
 using PaymentGateway.Shared.Enums;
 using PaymentGateway.Shared.Interfaces;
 
@@ -123,11 +124,6 @@ public class PaymentService(
             throw new PaymentNotFound();
         }
 
-        if (payment.Status == PaymentStatus.Expired)
-        {
-            throw new ManualConfirmException("Платеж уже отменен (истек)");
-        }
-
         var user = await userManager.FindByIdAsync(currentUserId.ToString());
         if (user is null)
         {
@@ -140,16 +136,20 @@ public class PaymentService(
             throw new ManualConfirmException("Недостаточно прав для отмены платежа");
         }
 
-        payment.Status = PaymentStatus.Expired;
-        payment.ProcessedAt = DateTime.Now;
+        payment.Status = PaymentStatus.Canceled;
+        payment.ExpiresAt = null;
 
-        if (payment.Requisite is not null)
+        if (payment.Requisite is { } requisite)
         {
-            payment.Requisite.Status = RequisiteStatus.Active;
-            payment.Requisite.PaymentId = null;
-            payment.Requisite.Payment = null;
+            requisite.Status = RequisiteStatus.Active;
+            requisite.PaymentId = null;
+            requisite.Payment = null;
+            unit.RequisiteRepository.Update(requisite);
+            await notificationService.NotifyRequisiteUpdated(mapper.Map<RequisiteDto>(requisite));
         }
-
+        
+        unit.PaymentRepository.Update(payment);
+        
         await unit.Commit();
 
         var paymentDto = mapper.Map<PaymentDto>(payment);
@@ -186,7 +186,8 @@ public class PaymentService(
         var entity = await unit.PaymentRepository.GetById(id,
             p => p.Requisite,
             p => p.Transaction,
-            p => p.ManualConfirmUser);
+            p => p.ManualConfirmUser,
+            p => p.CanceledByUser);
         return entity is not null ? mapper.Map<PaymentDto>(entity) : null;
     }
 
@@ -195,7 +196,8 @@ public class PaymentService(
         var entity = await unit.PaymentRepository.GetById(id, 
             p => p.Requisite, 
             p => p.Transaction,
-            p => p.ManualConfirmUser);
+            p => p.ManualConfirmUser,
+            p => p.CanceledByUser);
         if (entity is null) return null;
 
         if (entity.Requisite != null && entity.Requisite.PaymentId == id)
