@@ -83,7 +83,7 @@
                                      Margin="Margin.Normal"/>
                 </MudItem>
 
-                <MudItem xs="12" sm="4">
+                <MudItem xs="12" sm="2">
                     <MudNumericField T="int"
                                      Label="Приоритет"
                                      @bind-Value="_updateRequisiteDto.Priority"
@@ -94,9 +94,9 @@
                                      Margin="Margin.Normal"/>
                 </MudItem>
 
-                <MudItem xs="12" sm="4">
+                <MudItem xs="12" sm="2">
                     <MudTextField T="TimeSpan"
-                                  Label="Задержка (часы:минуты:секунды)"
+                                  Label="Задержка"
                                   @bind-Value="_updateRequisiteDto.Cooldown"
                                   For="@(() => _updateRequisiteDto.Cooldown)"
                                   Immediate="true"

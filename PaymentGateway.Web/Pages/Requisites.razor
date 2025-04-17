@@ -47,12 +47,12 @@
                         <PropertyColumn Property="x => x.PaymentData" Title="Платежные данные"/>
                         <TemplateColumn Title="Лимит (день)">
                             <CellTemplate Context="cellContext">
-                                @($"{cellContext.Item.DayReceivedFunds}/{cellContext.Item.DayLimit}")
+                                @($"{cellContext.Item.DayReceivedFunds:N0}/{cellContext.Item.DayLimit:N0}")
                             </CellTemplate>
                         </TemplateColumn>
                         <TemplateColumn Title="Лимит (месяц)">
                             <CellTemplate Context="cellContext">
-                                @($"{cellContext.Item.MonthReceivedFunds}/{cellContext.Item.MonthLimit}")
+                                @($"{cellContext.Item.MonthReceivedFunds:N0}/{cellContext.Item.MonthLimit:N0}")
                             </CellTemplate>
                         </TemplateColumn>
                         <TemplateColumn Title="Статус">
