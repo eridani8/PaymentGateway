@@ -82,6 +82,13 @@ public sealed class PaymentEntity : IPaymentEntity, ICacheable
         Status = PaymentStatus.Confirmed;
         TransactionId = transaction.Id;
         Transaction = transaction;
+        
+        if (RequisiteId.HasValue)
+        {
+            transaction.RequisiteId = RequisiteId;
+            transaction.Requisite = Requisite;
+        }
+        
         ProcessedAt = DateTime.UtcNow;
         ExpiresAt = null;
     }

@@ -71,7 +71,6 @@ public class TransactionService(
     {
         var transactions = await unit.TransactionRepository
             .QueryableGetAll()
-            .Include(t => t.Requisite)
             .Where(t => t.Requisite != null && t.Requisite.UserId == userId)
             .OrderByDescending(t => t.ReceivedAt)
             .ToListAsync();
