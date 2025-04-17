@@ -10,6 +10,7 @@ public class RequisiteCreateDto
     public string BankNumber { get; set; } = string.Empty;
     public bool IsActive { get; set; }
     public decimal MaxAmount { get; set; }
+    public decimal MonthLimit { get; set; }
     public TimeSpan Cooldown { get; set; }
     public int Priority { get; set; }
     public TimeOnly WorkFrom { get; set; }

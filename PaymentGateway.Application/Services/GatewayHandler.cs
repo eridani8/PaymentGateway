@@ -40,16 +40,30 @@ public class GatewayHandler(
                 }
                 
                 var todayDate = now.ToLocalTime().Date;
-                var lastResetDate = requisite.LastFundsResetAt.ToLocalTime().Date;
+                var lastResetDate = requisite.LastDayFundsResetAt.ToLocalTime().Date;
                 var resetCacheKey = $"funds_reset:{requisite.Id}:{todayDate:yyyy-MM-dd}";
                 
                 if (lastResetDate < todayDate && !cache.Exists(resetCacheKey))
                 {
                     logger.LogInformation("Сброс полученных средств с реквизита {requisiteId}", requisite.Id);
-                    requisite.ReceivedFunds = 0;
-                    requisite.LastFundsResetAt = now;
+                    requisite.DayReceivedFunds = 0;
+                    requisite.LastDayFundsResetAt = now;
                     unit.RequisiteRepository.Update(requisite);
                     cache.Set(resetCacheKey, TimeSpan.FromHours(25));
+                    await notificationService.NotifyRequisiteUpdated(mapper.Map<RequisiteDto>(requisite));
+                }
+                
+                var currentMonth = new DateTime(now.Year, now.Month, 1);
+                var lastMonthlyResetDate = new DateTime(requisite.LastMonthlyFundsResetAt.Year, requisite.LastMonthlyFundsResetAt.Month, 1);
+                var monthlyResetCacheKey = $"monthly_funds_reset:{requisite.Id}:{currentMonth:yyyy-MM}";
+                
+                if (lastMonthlyResetDate < currentMonth && !cache.Exists(monthlyResetCacheKey))
+                {
+                    logger.LogInformation("Сброс полученных средств за месяц с реквизита {requisiteId}", requisite.Id);
+                    requisite.MonthReceivedFunds = 0;
+                    requisite.LastMonthlyFundsResetAt = now;
+                    unit.RequisiteRepository.Update(requisite);
+                    cache.Set(monthlyResetCacheKey, TimeSpan.FromDays(32));
                     await notificationService.NotifyRequisiteUpdated(mapper.Map<RequisiteDto>(requisite));
                 }
             }
@@ -84,8 +98,10 @@ public class GatewayHandler(
             }
             
             var requisite = freeRequisites.FirstOrDefault(r => 
-                r.MaxAmount >= payment.Amount && 
-                (r.MaxAmount - r.ReceivedFunds) >= payment.Amount
+                r.DayLimit >= payment.Amount && 
+                (r.DayLimit - r.DayReceivedFunds) >= payment.Amount &&
+                (r.MonthLimit == 0 || r.MonthLimit >= payment.Amount) &&
+                (r.MonthLimit == 0 || (r.MonthLimit - r.MonthReceivedFunds) >= payment.Amount)
             );
             if (requisite is null)
             {

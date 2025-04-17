@@ -45,8 +45,16 @@
                             </CellTemplate>
                         </TemplateColumn>
                         <PropertyColumn Property="x => x.PaymentData" Title="Платежные данные"/>
-                        <PropertyColumn Property="x => x.ReceivedFunds" Format="N0" Title="Использовано"/>
-                        <PropertyColumn Property="x => x.MaxAmount" Format="N0" Title="Лимит"/>
+                        <TemplateColumn Title="Лимит (день)">
+                            <CellTemplate Context="cellContext">
+                                @($"{cellContext.Item.DayReceivedFunds}/{cellContext.Item.DayLimit}")
+                            </CellTemplate>
+                        </TemplateColumn>
+                        <TemplateColumn Title="Лимит (месяц)">
+                            <CellTemplate Context="cellContext">
+                                @($"{cellContext.Item.MonthReceivedFunds}/{cellContext.Item.MonthLimit}")
+                            </CellTemplate>
+                        </TemplateColumn>
                         <TemplateColumn Title="Статус">
                             <CellTemplate Context="cellContext">
                                 <MudChip Color="@GetStatusColor(cellContext.Item.Status)" Size="Size.Medium">

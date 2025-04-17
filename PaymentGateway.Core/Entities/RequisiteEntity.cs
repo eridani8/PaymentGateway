@@ -77,23 +77,42 @@ public class RequisiteEntity : IRequisiteEntity, ICacheable
     public bool IsActive { get; set; }
 
     /// <summary>
-    /// Полученные средства
+    /// Полученные за день средства
     /// </summary>
     [Range(0, 9999999999999999.99)]
     [Column(TypeName = "decimal(18,2)")]
-    public decimal ReceivedFunds { get; set; }
+    public decimal DayReceivedFunds { get; set; }
 
     /// <summary>
-    /// Максимальная сумма платежа
+    /// Дневной лимит
     /// </summary>
     [Range(0, 9999999999999999.99)]
     [Column(TypeName = "decimal(18,2)")]
-    public decimal MaxAmount { get; set; }
+    public decimal DayLimit { get; set; }
 
     /// <summary>
     /// Дата последнего сброса полученных средств
     /// </summary>
-    public DateTime LastFundsResetAt { get; set; }
+    public DateTime LastDayFundsResetAt { get; set; }
+
+    /// <summary>
+    /// Полученные за месяц средства
+    /// </summary>
+    [Range(0, 9999999999999999.99)]
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal MonthReceivedFunds { get; set; }
+
+    /// <summary>
+    /// Месячный лимит
+    /// </summary>
+    [Range(0, 9999999999999999.99)]
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal MonthLimit { get; set; }
+
+    /// <summary>
+    /// Дата последнего сброса полученных за месяц средств
+    /// </summary>
+    public DateTime LastMonthlyFundsResetAt { get; set; }
 
     /// <summary>
     /// Задержка перед следующей операцией
@@ -131,7 +150,8 @@ public class RequisiteEntity : IRequisiteEntity, ICacheable
 
     public void ReleaseAfterPayment(decimal amount, out RequisiteStatus status)
     {
-        ReceivedFunds += amount;
+        DayReceivedFunds += amount;
+        MonthReceivedFunds += amount;
         PaymentId = null;
         Payment = null;
         LastOperationTime = DateTime.UtcNow;
@@ -161,7 +181,7 @@ public class RequisiteEntity : IRequisiteEntity, ICacheable
 
     public bool LimitReached()
     {
-        return ReceivedFunds >= MaxAmount;
+        return DayReceivedFunds >= DayLimit || MonthReceivedFunds >= MonthLimit;
     }
 
     public RequisiteStatus DetermineStatus(DateTime now, TimeOnly nowTimeOnly)

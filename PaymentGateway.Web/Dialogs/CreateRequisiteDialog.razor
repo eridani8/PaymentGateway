@@ -70,6 +70,20 @@
                 </MudItem>
 
                 <MudItem xs="12" sm="4">
+                    <MudNumericField T="decimal"
+                                     Label="Месячный лимит"
+                                     @bind-Value="_createRequisiteDto.MonthLimit"
+                                     For="@(() => _createRequisiteDto.MonthLimit)"
+                                     Format="N0"
+                                     Adornment="Adornment.Start"
+                                     AdornmentIcon="@Icons.Material.Filled.AttachMoney"
+                                     Min="0"
+                                     Step="10000"
+                                     Immediate="true"
+                                     Margin="Margin.Normal"/>
+                </MudItem>
+
+                <MudItem xs="12" sm="4">
                     <MudNumericField T="int"
                                      Label="Приоритет"
                                      @bind-Value="_createRequisiteDto.Priority"
@@ -165,6 +179,7 @@
         _createRequisiteDto.IsActive = true;
         _createRequisiteDto.Priority = 1;
         _createRequisiteDto.MaxAmount = 5000;
+        _createRequisiteDto.MonthLimit = 100000;
         _createRequisiteDto.Cooldown = TimeSpan.Parse("03:00:00");
         _useWorkingHours = false;
         _workFromTime = new TimeSpan(9, 0, 0);

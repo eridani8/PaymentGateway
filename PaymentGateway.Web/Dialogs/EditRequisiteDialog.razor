@@ -70,6 +70,20 @@
                 </MudItem>
 
                 <MudItem xs="12" sm="4">
+                    <MudNumericField T="decimal"
+                                     Label="Месячный лимит"
+                                     @bind-Value="_updateRequisiteDto.MonthLimit"
+                                     For="@(() => _updateRequisiteDto.MonthLimit)"
+                                     Format="N0"
+                                     Adornment="Adornment.Start"
+                                     AdornmentIcon="@Icons.Material.Filled.AttachMoney"
+                                     Min="0"
+                                     Step="10000"
+                                     Immediate="true"
+                                     Margin="Margin.Normal"/>
+                </MudItem>
+
+                <MudItem xs="12" sm="4">
                     <MudNumericField T="int"
                                      Label="Приоритет"
                                      @bind-Value="_updateRequisiteDto.Priority"
@@ -170,7 +184,8 @@
             PaymentData = Requisite.PaymentData,
             BankNumber = Requisite.BankNumber,
             IsActive = Requisite.IsActive,
-            MaxAmount = Requisite.MaxAmount,
+            MaxAmount = Requisite.DayLimit,
+            MonthLimit = Requisite.MonthLimit,
             Cooldown = Requisite.Cooldown,
             Priority = Requisite.Priority,
             WorkFrom = Requisite.WorkFrom,

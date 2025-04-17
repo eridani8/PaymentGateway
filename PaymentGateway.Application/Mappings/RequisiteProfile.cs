@@ -23,8 +23,10 @@ public class RequisiteProfile : Profile
             .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status))
             .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive))
             .ForMember(dest => dest.LastOperationTime, opt => opt.ConvertUsing(new UtcToLocalNullableDateTimeConverter(), src => src.LastOperationTime))
-            .ForMember(dest => dest.ReceivedFunds, opt => opt.MapFrom(src => src.ReceivedFunds))
-            .ForMember(dest => dest.MaxAmount, opt => opt.MapFrom(src => src.MaxAmount))
+            .ForMember(dest => dest.DayReceivedFunds, opt => opt.MapFrom(src => src.DayReceivedFunds))
+            .ForMember(dest => dest.DayLimit, opt => opt.MapFrom(src => src.DayLimit))
+            .ForMember(dest => dest.MonthReceivedFunds, opt => opt.MapFrom(src => src.MonthReceivedFunds))
+            .ForMember(dest => dest.MonthLimit, opt => opt.MapFrom(src => src.MonthLimit))
             .ForMember(dest => dest.Cooldown, opt => opt.MapFrom(src => src.Cooldown))
             .ForMember(dest => dest.Priority, opt => opt.MapFrom(src => src.Priority))
             .ForMember(dest => dest.WorkFrom, opt => opt.MapFrom(src => src.WorkFrom))
@@ -33,7 +35,8 @@ public class RequisiteProfile : Profile
             .ForMember(dest => dest.CreatedAt, opt => opt.ConvertUsing(new UtcToLocalDateTimeConverter(), src => src.CreatedAt))
             .ForMember(dest => dest.WorkFrom, opt => opt.ConvertUsing(new UtcToLocalTimeOnlyConverter(), src => src.WorkFrom))
             .ForMember(dest => dest.WorkTo, opt => opt.ConvertUsing(new UtcToLocalTimeOnlyConverter(), src => src.WorkTo))
-            .ForMember(dest => dest.LastFundsResetAt, opt => opt.ConvertUsing(new UtcToLocalNullableDateTimeConverter(), src => src.LastFundsResetAt));
+            .ForMember(dest => dest.LastFundsResetAt, opt => opt.ConvertUsing(new UtcToLocalNullableDateTimeConverter(), src => src.LastDayFundsResetAt))
+            .ForMember(dest => dest.LastMonthlyFundsResetAt, opt => opt.ConvertUsing(new UtcToLocalNullableDateTimeConverter(), src => src.LastMonthlyFundsResetAt));
 
 
         CreateMap<RequisiteCreateDto, RequisiteEntity>()
@@ -51,10 +54,14 @@ public class RequisiteProfile : Profile
             .ForMember(dest => dest.PaymentData, opt => opt.MapFrom(src => src.PaymentData))
             .ForMember(dest => dest.BankNumber, opt => opt.MapFrom(src => src.BankNumber))
             .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive))
-            .ForMember(dest => dest.MaxAmount, opt => opt.MapFrom(src => src.MaxAmount))
+            .ForMember(dest => dest.DayLimit, opt => opt.MapFrom(src => src.MaxAmount))
+            .ForMember(dest => dest.DayReceivedFunds, opt => opt.MapFrom(src => 0m))
             .ForMember(dest => dest.Cooldown, opt => opt.MapFrom(src => src.Cooldown))
             .ForMember(dest => dest.Priority, opt => opt.MapFrom(src => src.Priority))
-            .ForMember(dest => dest.LastFundsResetAt, opt => opt.MapFrom(src => DateTime.UtcNow.Date))
+            .ForMember(dest => dest.LastDayFundsResetAt, opt => opt.MapFrom(src => DateTime.UtcNow.Date))
+            .ForMember(dest => dest.MonthLimit, opt => opt.MapFrom(src => src.MonthLimit))
+            .ForMember(dest => dest.LastMonthlyFundsResetAt, opt => opt.MapFrom(src => DateTime.UtcNow.Date))
+            .ForMember(dest => dest.MonthReceivedFunds, opt => opt.MapFrom(src => 0m))
             
             .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
             .ForMember(dest => dest.WorkFrom, opt => opt.ConvertUsing(new LocalToUtcTimeOnlyConverter(), src => src.WorkFrom))
@@ -62,8 +69,7 @@ public class RequisiteProfile : Profile
             .ForMember(dest => dest.Status, opt => opt.MapFrom(src => RequisiteStatus.Active))
             .ForMember(dest => dest.LastOperationTime, opt => opt.MapFrom(src => (DateTime?)null))
             .ForMember(dest => dest.PaymentId, opt => opt.MapFrom(src => (Guid?)null))
-            .ForMember(dest => dest.Payment, opt => opt.MapFrom(src => (PaymentEntity?)null))
-            .ForMember(dest => dest.ReceivedFunds, opt => opt.MapFrom(src => 0m));
+            .ForMember(dest => dest.Payment, opt => opt.MapFrom(src => (PaymentEntity?)null));
 
 
         CreateMap<RequisiteUpdateDto, RequisiteEntity>()
@@ -72,7 +78,8 @@ public class RequisiteProfile : Profile
             .ForMember(dest => dest.PaymentData, opt => opt.MapFrom(src => src.PaymentData))
             .ForMember(dest => dest.BankNumber, opt => opt.MapFrom(src => src.BankNumber))
             .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive))
-            .ForMember(dest => dest.MaxAmount, opt => opt.MapFrom(src => src.MaxAmount))
+            .ForMember(dest => dest.DayLimit, opt => opt.MapFrom(src => src.MaxAmount))
+            .ForMember(dest => dest.MonthLimit, opt => opt.MapFrom(src => src.MonthLimit))
             .ForMember(dest => dest.Cooldown, opt => opt.MapFrom(src => src.Cooldown))
             .ForMember(dest => dest.Priority, opt => opt.MapFrom(src => src.Priority))
             .ForMember(dest => dest.WorkFrom, opt => opt.ConvertUsing(new LocalToUtcTimeOnlyConverter(), src => src.WorkFrom))
@@ -84,7 +91,9 @@ public class RequisiteProfile : Profile
             .ForMember(dest => dest.LastOperationTime, opt => opt.Ignore())
             .ForMember(dest => dest.PaymentId, opt => opt.Ignore())
             .ForMember(dest => dest.Payment, opt => opt.Ignore())
-            .ForMember(dest => dest.ReceivedFunds, opt => opt.Ignore())
-            .ForMember(dest => dest.LastFundsResetAt, opt => opt.Ignore());
+            .ForMember(dest => dest.DayReceivedFunds, opt => opt.Ignore())
+            .ForMember(dest => dest.LastDayFundsResetAt, opt => opt.Ignore())
+            .ForMember(dest => dest.MonthReceivedFunds, opt => opt.Ignore())
+            .ForMember(dest => dest.LastMonthlyFundsResetAt, opt => opt.Ignore());
     }
 }
