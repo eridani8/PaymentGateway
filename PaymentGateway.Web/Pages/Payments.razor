@@ -2,6 +2,7 @@
 @attribute [Authorize(Roles = "User,Admin,Support")]
 @using PaymentGateway.Shared.DTOs.Payment
 @using PaymentGateway.Shared.Enums
+@using System.Net
 @inject IPaymentService PaymentService
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
@@ -120,6 +121,21 @@
                                     </MudStack>
                                 </MudTooltip>
                             }
+                            <AuthorizeView Roles="Admin,Support">
+                                <Authorized Context="adminPaymentContext">
+                                    <MudStack Row="true" Justify="Justify.FlexEnd">
+                                        @if (rowContext.Item.Status != PaymentStatus.Expired)
+                                        {
+                                            <MudButton Color="Color.Error" 
+                                                      Variant="Variant.Filled" 
+                                                      OnClick="@(() => CancelPayment(rowContext.Item))"
+                                                      Size="Size.Small">
+                                                Отменить платеж
+                                            </MudButton>
+                                        }
+                                    </MudStack>
+                                </Authorized>
+                            </AuthorizeView>
                         </MudStack>
                     </ChildRowContent>
                 </MudDataGrid>
@@ -319,6 +335,50 @@
         _searchError = string.Empty;
         _isFiltered = false;
         await LoadPayments();
+    }
+
+    private async Task CancelPayment(PaymentDto payment)
+    {
+        var parameters = new DialogParameters
+        {
+            ["Title"] = "Подтверждение отмены",
+            ["ContentText"] = $"Вы уверены, что хотите отменить платеж на сумму {payment.Amount}?",
+            ["ButtonText"] = "Отменить платеж",
+            ["CancelText"] = "Назад"
+        };
+
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
+        var dialog = await DialogService.ShowAsync<ConfirmationDialog>(null, parameters, options);
+        var result = await dialog.Result;
+
+        if (result is { Canceled: false })
+        {
+            try
+            {
+                _isLoading = true;
+                var apiResult = await PaymentService.CancelPayment(payment.Id);
+                
+                if (apiResult.Code == HttpStatusCode.OK)
+                {
+                    Snackbar.Add("Платеж успешно отменен", Severity.Success);
+                    await LoadPayments();
+                }
+                else
+                {
+                    var error = !string.IsNullOrEmpty(apiResult.Content) ? apiResult.Content : "Ошибка при отмене платежа";
+                    Snackbar.Add(error, Severity.Error);
+                }
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e, "Ошибка при отмене платежа {PaymentId}", payment.Id);
+                Snackbar.Add("Ошибка при отмене платежа", Severity.Error);
+            }
+            finally
+            {
+                _isLoading = false;
+            }
+        }
     }
 
     private static Color GetStatusColor(PaymentStatus status) => status switch

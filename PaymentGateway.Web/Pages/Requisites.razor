@@ -314,15 +314,36 @@
     {
         var parameters = new DialogParameters
         {
-            ["Requisite"] = requisite
+            ["Title"] = "Подтверждение удаления",
+            ["ContentText"] = "Вы действительно хотите удалить реквизит?",
+            ["ButtonText"] = "Да",
+            ["CancelText"] = "Нет"
         };
 
-        var dialog = await DialogService.ShowAsync<DeleteRequisiteDialog>(null, parameters);
+        var dialog = await DialogService.ShowAsync<ConfirmationDialog>(null, parameters);
         var result = await dialog.Result;
 
         if (result is { Canceled: false })
         {
-            await LoadRequisites();
+            try
+            {
+                var deleteResult = await RequisiteService.DeleteRequisite(requisite.Id);
+                
+                if (deleteResult is not null)
+                {
+                    Snackbar.Add($"Реквизит {requisite.FullName} успешно удален", Severity.Success);
+                    await LoadRequisites();
+                }
+                else
+                {
+                    Snackbar.Add("Ошибка при удалении реквизита", Severity.Error);
+                }
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e, "Ошибка при удалении реквизита {RequisiteId}", requisite.Id);
+                Snackbar.Add(e.Message, Severity.Error);
+            }
         }
     }
 

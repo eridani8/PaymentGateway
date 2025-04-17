@@ -25,9 +25,10 @@ public class AdminService(
         return await PostRequest<UserDto>($"{ApiEndpoint}/CreateUser", dto);
     }
     
-    public async Task<UserDto?> DeleteUser(Guid id)
+    public async Task<bool> DeleteUser(Guid id)
     {
-        return await DeleteRequest<UserDto?>($"{ApiEndpoint}/DeleteUser/{id}");
+        var response = await DeleteRequest($"{ApiEndpoint}/DeleteUser/{id}");
+        return response.Code == System.Net.HttpStatusCode.OK;
     }
 
     public async Task<UserDto?> UpdateUser(UpdateUserDto dto)

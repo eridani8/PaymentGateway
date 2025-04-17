@@ -22,6 +22,24 @@ public class PaymentService(
         });
     }
 
+    public async Task<Response> CancelPayment(Guid id)
+    {
+        var authState = await authStateProvider.GetAuthenticationStateAsync();
+        var isAdmin = authState.User.IsInRole("Admin");
+        var isSupport = authState.User.IsInRole("Support");
+        
+        if (!isAdmin && !isSupport)
+        {
+            logger.LogWarning("Unauthorized user attempted to cancel payment: {PaymentId}", id);
+            return new Response { Code = HttpStatusCode.Forbidden, Content = "Недостаточно прав для отмены платежа" };
+        }
+        
+        return await PostRequest($"{ApiEndpoint}/CancelPayment", new PaymentCancelDto()
+        {
+            PaymentId = id
+        });
+    }
+
     public async Task<List<PaymentDto>> GetPayments()
     {
         var authState = await authStateProvider.GetAuthenticationStateAsync();

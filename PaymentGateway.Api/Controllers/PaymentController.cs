@@ -63,6 +63,34 @@ public class PaymentController(
         }
     }
     
+    [HttpPost]
+    [Authorize(Roles = "Admin,Support")]
+    public async Task<ActionResult<PaymentDto>> CancelPayment([FromBody] PaymentCancelDto? dto)
+    {
+        if (dto is null) return BadRequest();
+
+        try
+        {
+            var userId = User.GetCurrentUserId();
+            if (userId == Guid.Empty) return Unauthorized();
+            var payment = await service.CancelPayment(dto, userId);
+            if (payment is null) return BadRequest();
+            return Ok(payment);
+        }
+        catch (PaymentNotFound)
+        {
+            return NotFound();
+        }
+        catch (ManualConfirmException e)
+        {
+            return BadRequest(e.Message);
+        }
+        catch (ValidationException e)
+        {
+            return BadRequest(e.Errors.GetErrors());
+        }
+    }
+    
     [HttpGet]
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<IEnumerable<PaymentDto>>> GetAll()

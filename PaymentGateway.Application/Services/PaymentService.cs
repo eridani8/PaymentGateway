@@ -18,6 +18,7 @@ public class PaymentService(
     IMapper mapper,
     IValidator<PaymentCreateDto> createValidator,
     IValidator<PaymentManualConfirmDto> manualConfirmValidator,
+    IValidator<PaymentCancelDto> cancelValidator,
     ILogger<PaymentService> logger,
     UserManager<UserEntity> userManager,
     INotificationService notificationService,
@@ -103,6 +104,60 @@ public class PaymentService(
         logger.LogInformation("Ручное подтверждение платежа {paymentId}", payment.Id);
 
         return mapper.Map<PaymentDto>(payment);
+    }
+
+    public async Task<PaymentDto?> CancelPayment(PaymentCancelDto dto, Guid currentUserId)
+    {
+        var validation = await cancelValidator.ValidateAsync(dto);
+        if (!validation.IsValid)
+        {
+            throw new ValidationException(validation.Errors);
+        }
+        
+        var payment = await unit.PaymentRepository.GetById(dto.PaymentId,
+            p => p.Requisite,
+            p => p.Transaction);
+
+        if (payment is null)
+        {
+            throw new PaymentNotFound();
+        }
+
+        if (payment.Status == PaymentStatus.Expired)
+        {
+            throw new ManualConfirmException("Платеж уже отменен (истек)");
+        }
+
+        var user = await userManager.FindByIdAsync(currentUserId.ToString());
+        if (user is null)
+        {
+            throw new ManualConfirmException("Недостаточно прав");
+        }
+
+        var userRoles = await userManager.GetRolesAsync(user);
+        if (!userRoles.Contains("Admin") && !userRoles.Contains("Support"))
+        {
+            throw new ManualConfirmException("Недостаточно прав для отмены платежа");
+        }
+
+        payment.Status = PaymentStatus.Expired;
+        payment.ProcessedAt = DateTime.Now;
+
+        if (payment.Requisite is not null)
+        {
+            payment.Requisite.Status = RequisiteStatus.Active;
+            payment.Requisite.PaymentId = null;
+            payment.Requisite.Payment = null;
+        }
+
+        await unit.Commit();
+
+        var paymentDto = mapper.Map<PaymentDto>(payment);
+        
+        logger.LogInformation("Отмена платежа {paymentId} пользователем {userId}", payment.Id, currentUserId);
+        await notificationService.NotifyPaymentUpdated(paymentDto);
+
+        return paymentDto;
     }
 
     public async Task<IEnumerable<PaymentDto>> GetAllPayments()

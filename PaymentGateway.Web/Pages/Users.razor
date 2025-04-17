@@ -219,8 +219,39 @@
 
     private async Task OpenDeleteDialog(UserDto user)
     {
-        var parameters = new DialogParameters { ["User"] = user };
-        await DialogService.ShowAsync<DeleteUserDialog>(null, parameters);
+        var parameters = new DialogParameters
+        {
+            ["Title"] = "Подтверждение удаления",
+            ["ContentText"] = $"Вы действительно хотите удалить пользователя <b>{user.Username}</b>?",
+            ["ButtonText"] = "Да",
+            ["CancelText"] = "Нет"
+        };
+
+        var dialog = await DialogService.ShowAsync<ConfirmationDialog>(null, parameters);
+        var result = await dialog.Result;
+
+        if (result is { Canceled: false })
+        {
+            try
+            {
+                var success = await AdminService.DeleteUser(user.Id);
+                
+                if (success)
+                {
+                    Snackbar.Add($"Пользователь {user.Username} успешно удален", Severity.Success);
+                    await LoadUsers();
+                }
+                else
+                {
+                    Snackbar.Add("Ошибка при удалении пользователя", Severity.Error);
+                }
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e, "Ошибка при удалении пользователя {UserId}", user.Id);
+                Snackbar.Add(e.Message, Severity.Error);
+            }
+        }
     }
 
     private async Task OpenEditDialog(UserDto user)

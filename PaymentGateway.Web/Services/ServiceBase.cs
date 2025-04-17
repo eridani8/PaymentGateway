@@ -44,6 +44,11 @@ public class ServiceBase(IHttpClientFactory factory, ILogger<ServiceBase> logger
             : default;
     }
 
+    public async Task<Response> DeleteRequest(string url)
+    {
+        return await SendRequest(HttpMethod.Delete, url);
+    }
+
     public async Task<T?> DeleteRequest<T>(string url)
     {
         var response = await SendRequest(HttpMethod.Delete, url);
