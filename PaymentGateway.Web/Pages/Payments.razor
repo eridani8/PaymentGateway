@@ -138,7 +138,8 @@
                                         @if (rowContext.Item.Status is PaymentStatus.Created or PaymentStatus.Pending)
                                         {
                                             <MudButton OnClick="@(() => PaymentManualConfirm(rowContext.Item))"
-                                                       Variant="Variant.Outlined" Color="Color.Warning">Подтвердить платеж
+                                                       Variant="Variant.Outlined" Color="Color.Warning">Подтвердить
+                                                платеж
                                             </MudButton>
                                             <MudButton Color="Color.Error"
                                                        Variant="Variant.Filled"
@@ -393,7 +394,7 @@
             }
         }
     }
-    
+
     private async Task PaymentManualConfirm(PaymentDto dto)
     {
         var parameters = new DialogParameters
@@ -443,6 +444,7 @@
         PaymentStatus.Confirmed => Color.Success,
         PaymentStatus.ManualConfirm => Color.Success,
         PaymentStatus.Expired => Color.Error,
+        PaymentStatus.Canceled => Color.Error,
         _ => Color.Default
     };
 
@@ -453,6 +455,7 @@
         PaymentStatus.Confirmed => "Принят",
         PaymentStatus.ManualConfirm => "Принят (вручную)",
         PaymentStatus.Expired => "Истек",
+        PaymentStatus.Canceled => "Отменен",
         _ => "Неизвестно"
     };
 

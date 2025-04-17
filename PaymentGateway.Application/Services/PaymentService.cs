@@ -99,7 +99,7 @@ public class PaymentService(
         }
 
         payment.ManualConfirm(user.Id);
-
+        
         await paymentConfirmationService.ProcessPaymentConfirmation(payment, requisite, payment.Amount);
 
         logger.LogInformation("Ручное подтверждение платежа {paymentId}", payment.Id);
@@ -138,6 +138,7 @@ public class PaymentService(
 
         payment.Status = PaymentStatus.Canceled;
         payment.ExpiresAt = null;
+        payment.CanceledByUserId = currentUserId;
 
         if (payment.Requisite is { } requisite)
         {
