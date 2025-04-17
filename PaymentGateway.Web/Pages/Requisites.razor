@@ -376,7 +376,7 @@
         var result = await PaymentService.ManualConfirmPayment(id);
         if (result.Code == HttpStatusCode.OK)
         {
-            Snackbar.Add("Платеж подтвержден");
+            Snackbar.Add("Платеж подтвержден", Severity.Success);
         }
         else
         {
