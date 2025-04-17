@@ -78,10 +78,19 @@
                             }
                             @if (rowContext.Item.ManualConfirmUserId != null)
                             {
-                                <MudTooltip Placement="Placement.Left" Text="Id принявшего вручную">
+                                <MudTooltip Placement="Placement.Left" Text="Id принявшего платеж">
                                     <MudStack Row="true">
                                         <MudIcon Icon="@Icons.Material.Filled.VerifiedUser" Class="mr-2"/>
                                         <MudText Typo="Typo.body1">@rowContext.Item.ManualConfirmUserId</MudText>
+                                    </MudStack>
+                                </MudTooltip>
+                            }
+                            @if (rowContext.Item.TransactionId != null)
+                            {
+                                <MudTooltip Placement="Placement.Left" Text="Id транзакции">
+                                    <MudStack Row="true">
+                                        <MudIcon Icon="@Icons.Material.Filled.CommentBank" Class="mr-2"/>
+                                        <MudText Typo="Typo.body1">@rowContext.Item.TransactionId</MudText>
                                     </MudStack>
                                 </MudTooltip>
                             }
