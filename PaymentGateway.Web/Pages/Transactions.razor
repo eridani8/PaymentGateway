@@ -32,7 +32,7 @@
                         <PropertyColumn Property="x => x.ExtractedAmount" Title="Сумма"/>
                         <TemplateColumn Title="Источник">
                             <CellTemplate Context="cellContext">
-                                <MudChip Color="@GetSourceColor(cellContext.Item.Source)" Size="Size.Medium">
+                                <MudChip Color="Color.Primary" Size="Size.Medium">
                                     @GetSourceText(cellContext.Item.Source)
                                 </MudChip>
                             </CellTemplate>
@@ -51,7 +51,7 @@
                             {
                                 <MudTooltip Placement="Placement.Left" Text="Id реквизита">
                                     <MudStack Row="true">
-                                        <MudIcon Icon="@Icons.Material.Filled.Payment" Class="mr-2"/>
+                                        <MudIcon Icon="@Icons.Material.Filled.RequestPage" Class="mr-2"/>
                                         <MudText Typo="Typo.body1">@rowContext.Item.RequisiteId</MudText>
                                     </MudStack>
                                 </MudTooltip>
@@ -60,7 +60,7 @@
                             {
                                 <MudTooltip Placement="Placement.Left" Text="Id платежа">
                                     <MudStack Row="true">
-                                        <MudIcon Icon="@Icons.Material.Filled.CommentBank" Class="mr-2"/>
+                                        <MudIcon Icon="@Icons.Material.Filled.CreditCard" Class="mr-2"/>
                                         <MudText Typo="Typo.body1">@rowContext.Item.PaymentId</MudText>
                                     </MudStack>
                                 </MudTooltip>
@@ -203,19 +203,10 @@
         }
     }
 
-    private static Color GetSourceColor(TransactionSource source) => source switch
-    {
-        TransactionSource.Sms => Color.Primary,
-        TransactionSource.Push => Color.Success,
-        TransactionSource.Manual => Color.Warning,
-        _ => Color.Default
-    };
-
     private static string GetSourceText(TransactionSource source) => source switch
     {
         TransactionSource.Sms => "СМС",
         TransactionSource.Push => "Push",
-        TransactionSource.Manual => "Вручную",
         _ => "Неизвестно"
     };
 }
