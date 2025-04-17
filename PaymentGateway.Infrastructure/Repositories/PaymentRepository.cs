@@ -14,18 +14,20 @@ public class PaymentRepository(AppDbContext context, ICache cache)
         return await
             QueryableGetAll()
                 .Include(p => p.Requisite)
-                .Where(p => p.Requisite == null)
+                .Where(p => p.Requisite == null && p.Status == PaymentStatus.Created)
                 .OrderBy(p => p.CreatedAt)
                 .ToListAsync();
     }
 
     public async Task<List<PaymentEntity>> GetExpiredPayments()
     {
+        var now = DateTime.UtcNow;
         return await
             QueryableGetAll()
                 .Include(p => p.Requisite)
                 .Where(p =>
-                    DateTime.UtcNow >= p.ExpiresAt &&
+                    p.ExpiresAt.HasValue && 
+                    now >= p.ExpiresAt &&
                     p.Status != PaymentStatus.Confirmed &&
                     p.Status != PaymentStatus.ManualConfirm)
                 .ToListAsync();

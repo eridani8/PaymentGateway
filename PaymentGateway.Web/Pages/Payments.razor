@@ -76,6 +76,15 @@
                                     </MudStack>
                                 </MudTooltip>
                             }
+                            @if (rowContext.Item.ManualConfirmUserId != null)
+                            {
+                                <MudTooltip Placement="Placement.Left" Text="Id принявшего вручную">
+                                    <MudStack Row="true">
+                                        <MudIcon Icon="@Icons.Material.Filled.VerifiedUser" Class="mr-2"/>
+                                        <MudText Typo="Typo.body1">@rowContext.Item.ManualConfirmUserId</MudText>
+                                    </MudStack>
+                                </MudTooltip>
+                            }
                         </MudStack>
                     </ChildRowContent>
                 </MudDataGrid>

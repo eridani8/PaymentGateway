@@ -67,6 +67,10 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICryptographyS
             entity.HasIndex(e => e.Priority);
             entity.HasIndex(e => e.PaymentData);
             entity.HasIndex(e => e.UserId);
+            entity.HasIndex(e => e.IsActive);
+            entity.HasIndex(e => e.PaymentType);
+            entity.HasIndex(e => e.CreatedAt);
+            entity.HasIndex(e => e.LastOperationTime);
             
             entity.HasOne(e => e.Payment)
                 .WithOne()
@@ -85,18 +89,33 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICryptographyS
             entity.HasIndex(e => e.ExternalPaymentId).IsUnique();
             entity.HasIndex(e => e.Status);
             entity.HasIndex(e => e.CreatedAt);
+            entity.HasIndex(e => e.UserId);
+            entity.HasIndex(e => e.RequisiteId);
+            entity.HasIndex(e => e.TransactionId);
+            entity.HasIndex(e => e.ExpiresAt);
+            entity.HasIndex(e => e.ProcessedAt);
+            entity.HasIndex(e => e.ManualConfirmUserId);
 
             entity
                 .HasOne(e => e.Transaction)
                 .WithOne(e => e.Payment)
                 .HasForeignKey<TransactionEntity>(e => e.PaymentId)
                 .OnDelete(DeleteBehavior.SetNull);
+            
+            // entity
+            //     .HasOne(e => e.Requisite)
+            //     .WithOne(e => e.Payment)
+            //     .HasForeignKey<PaymentEntity>(e => e.RequisiteId)
+            //     .OnDelete(DeleteBehavior.SetNull);
         });
         
         modelBuilder.Entity<TransactionEntity>(entity =>
         {
             entity.HasIndex(e => e.Id).IsUnique();
             entity.HasIndex(e => e.PaymentId);
+            entity.HasIndex(e => e.RequisiteId);
+            entity.HasIndex(e => e.Source);
+            entity.HasIndex(e => e.ReceivedAt);
             
             entity
                 .HasOne(e => e.Payment)

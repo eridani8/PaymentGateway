@@ -23,6 +23,12 @@ public class TransactionProfile : Profile
             .ForMember(dest => dest.Source, opt => opt.MapFrom(src => src.Source))
             .ForMember(dest => dest.ExtractedAmount, opt => opt.MapFrom(src => src.ExtractedAmount))
             
-            .ForMember(dest => dest.ReceivedAt, opt => opt.MapFrom(src => DateTime.UtcNow));
+            .ForMember(dest => dest.RawMessage, opt => opt.MapFrom(src => src.RawMessage))
+            .ForMember(dest => dest.ReceivedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
+            
+            .ForMember(dest => dest.RequisiteId, opt => opt.Ignore())
+            .ForMember(dest => dest.Requisite, opt => opt.Ignore())
+            .ForMember(dest => dest.PaymentId, opt => opt.Ignore())
+            .ForMember(dest => dest.Payment, opt => opt.Ignore());
     }
 }

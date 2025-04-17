@@ -78,7 +78,6 @@ public class RequisiteService(
             .Include(r => r.Payment)
             .AsNoTracking()
             .ToListAsync();
-            
         return mapper.Map<IEnumerable<RequisiteDto>>(entities);
     }
 
@@ -89,7 +88,6 @@ public class RequisiteService(
             .Where(r => r.UserId == userId)
             .AsNoTracking()
             .ToListAsync();
-            
         return mapper.Map<IEnumerable<RequisiteDto>>(entities);
     }
 
@@ -98,10 +96,7 @@ public class RequisiteService(
         var requisite = await unit.RequisiteRepository.QueryableGetAll()
             .Include(r => r.User)
             .FirstOrDefaultAsync(r => r.Id == id && r.UserId == userId);
-            
-        if (requisite is null) return null;
-        
-        return mapper.Map<RequisiteDto>(requisite);
+        return requisite is null ? null : mapper.Map<RequisiteDto>(requisite);
     }
 
     public async Task<RequisiteDto?> UpdateRequisite(Guid id, RequisiteUpdateDto dto)
@@ -126,6 +121,7 @@ public class RequisiteService(
         }
 
         mapper.Map(dto, requisite);
+        
         unit.RequisiteRepository.Update(requisite);
         await unit.Commit();
         
@@ -139,18 +135,23 @@ public class RequisiteService(
 
     public async Task<RequisiteDto?> DeleteRequisite(Guid id)
     {
-        var requisite = await unit.RequisiteRepository.GetById(id);
+        var requisite = await unit.RequisiteRepository.GetById(id, r => r.User);
         if (requisite is null) return null;
 
         requisite.User.RequisitesCount--;
+        await userManager.UpdateAsync(requisite.User);
+
+        var userId = requisite.UserId;
+        var requisiteDto = mapper.Map<RequisiteDto>(requisite);
 
         unit.RequisiteRepository.Delete(requisite);
         await unit.Commit();
-        
-        await notificationService.NotifyRequisiteDeleted(requisite.Id, requisite.UserId);
-        await notificationService.NotifyUserUpdated(mapper.Map<UserDto>(requisite.User));
-        logger.LogInformation("Удаление реквизита {requisiteId}", requisite.Id);
 
-        return mapper.Map<RequisiteDto>(requisite);
+        await notificationService.NotifyRequisiteDeleted(id, userId);
+        await notificationService.NotifyUserUpdated(mapper.Map<UserDto>(requisite.User));
+
+        logger.LogInformation("Удаление реквизита {requisiteId}", id);
+
+        return requisiteDto;
     }
 }

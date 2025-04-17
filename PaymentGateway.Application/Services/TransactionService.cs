@@ -36,7 +36,7 @@ public class TransactionService(
 
         if (requisite?.Payment is not { } payment)
         {
-            throw new RequisiteNotFound();
+            throw new RequisiteNotFound("Реквизит не найден или не связан с платежом");
         }
 
         if (payment.Amount != dto.ExtractedAmount)
@@ -52,6 +52,7 @@ public class TransactionService(
 
         await unit.TransactionRepository.Add(transaction);
         await paymentConfirmationService.ProcessPaymentConfirmation(payment, requisite, dto.ExtractedAmount);
+        await unit.Commit();
 
         return mapper.Map<TransactionDto>(transaction);
     }

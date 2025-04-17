@@ -66,6 +66,10 @@ public sealed class PaymentEntity : IPaymentEntity, ICacheable
     
     public TransactionEntity? Transaction { get; set; }
     
+    public Guid? ManualConfirmUserId { get; set; }
+    
+    public UserEntity? ManualConfirmUser { get; set; }
+    
     public void MarkAsPending(RequisiteEntity requisite)
     {
         RequisiteId = requisite.Id;
@@ -82,9 +86,10 @@ public sealed class PaymentEntity : IPaymentEntity, ICacheable
         ExpiresAt = null;
     }
 
-    public void ManualConfirm()
+    public void ManualConfirm(Guid confirmUserId)
     {
         Status = PaymentStatus.ManualConfirm;
+        ManualConfirmUserId = confirmUserId;
         ProcessedAt = DateTime.UtcNow;
         ExpiresAt = null;
     }

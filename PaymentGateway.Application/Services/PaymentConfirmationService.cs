@@ -32,7 +32,11 @@ public class PaymentConfirmationService(
             requisite.User.Id, amount, requisite.User.ReceivedDailyFunds);
         await userManager.UpdateAsync(requisite.User);
         
+        requisite.PaymentId = null;
+        requisite.Payment = null;
+        
         unit.RequisiteRepository.Update(requisite);
+        unit.PaymentRepository.Update(payment);
         await unit.Commit();
         
         await notificationService.NotifyRequisiteUpdated(mapper.Map<RequisiteDto>(requisite));

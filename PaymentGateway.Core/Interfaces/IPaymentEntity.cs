@@ -5,7 +5,6 @@ namespace PaymentGateway.Core.Interfaces;
 
 public interface IPaymentEntity
 {
-    Guid Id { get; init; }
     Guid ExternalPaymentId { get; init; }
     Guid? UserId { get; init; }
     decimal Amount { get; init; }
@@ -17,7 +16,9 @@ public interface IPaymentEntity
     DateTime? ExpiresAt { get; set; }
     Guid? TransactionId { get; set; }
     TransactionEntity? Transaction { get; set; }
+    Guid? ManualConfirmUserId { get; set; }
+    UserEntity? ManualConfirmUser { get; set; }
     void MarkAsPending(RequisiteEntity requisite);
     void ConfirmTransaction(TransactionEntity transaction);
-    void ManualConfirm();
+    void ManualConfirm(Guid confirmUserId);
 }

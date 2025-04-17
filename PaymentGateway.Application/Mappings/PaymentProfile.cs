@@ -18,6 +18,7 @@ public class PaymentProfile : Profile
             .ForMember(dest => dest.Requisite, opt => opt.MapFrom(src => src.Requisite))
             .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status))
             .ForMember(dest => dest.TransactionId, opt => opt.MapFrom(src => src.TransactionId))
+            .ForMember(dest => dest.ManualConfirmUserId, opt => opt.MapFrom(src => src.ManualConfirmUserId))
             
             .ForMember(dest => dest.CreatedAt, opt => opt.ConvertUsing(new UtcToLocalDateTimeConverter(), src => src.CreatedAt))
             .ForMember(dest => dest.ProcessedAt, opt => opt.ConvertUsing(new UtcToLocalNullableDateTimeConverter(), src => src.ProcessedAt))
