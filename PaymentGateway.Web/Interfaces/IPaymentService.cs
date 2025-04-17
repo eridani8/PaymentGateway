@@ -8,4 +8,5 @@ public interface IPaymentService
     Task<Response> ManualConfirmPayment(Guid id);
     Task<List<PaymentDto>> GetPayments();
     Task<List<PaymentDto>> GetUserPayments();
+    Task<List<PaymentDto>> GetPaymentsByUserId(Guid userId);
 }

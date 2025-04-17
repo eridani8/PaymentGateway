@@ -19,6 +19,32 @@
                 <MudToolBar>
                     <MudText Typo="Typo.h6">Список платежей</MudText>
                     <MudSpacer/>
+                    <AuthorizeView Roles="Admin, Support">
+                        <Authorized Context="adminContext">
+                            <MudStack Row="true" Spacing="1">
+                                <MudTextField @bind-Value="_searchUserId" Label="ID пользователя" 
+                                             Adornment="Adornment.End" 
+                                             AdornmentIcon="@Icons.Material.Filled.Search" 
+                                             Variant="Variant.Outlined" 
+                                             Margin="Margin.Normal" 
+                                             Placeholder="Фильтр по пользователю"
+                                             Error="@(!string.IsNullOrEmpty(_searchError))"
+                                             ErrorText="@_searchError"
+                                             Style="width: 600px"/>
+                                <MudButton Color="Color.Primary" 
+                                          Variant="Variant.Outlined" 
+                                          OnClick="@(SearchPaymentsByUserId)"
+                                          Style="height: 56px; align-self: flex-start; margin-top: 16px;">Найти</MudButton>
+                                @if (_isFiltered)
+                                {
+                                    <MudButton Color="Color.Secondary" 
+                                              Variant="Variant.Outlined" 
+                                              OnClick="@(ClearSearch)"
+                                              Style="height: 56px; align-self: flex-start; margin-top: 16px;">Сбросить</MudButton>
+                                }
+                            </MudStack>
+                        </Authorized>
+                    </AuthorizeView>
                 </MudToolBar>
                 <MudDataGrid T="PaymentDto"
                              Items="_payments"
@@ -114,6 +140,9 @@
     private Timer _refreshTimer = null!;
     private const int RefreshInterval = 3000;
     private bool _isInitialized;
+    private string _searchUserId = string.Empty;
+    private string _searchError = string.Empty;
+    private bool _isFiltered;
 
     protected override async Task OnInitializedAsync()
     {
@@ -243,6 +272,53 @@
         {
             _isLoading = false;
         }
+    }
+    
+    private async Task SearchPaymentsByUserId()
+    {
+        _searchError = string.Empty;
+        
+        if (string.IsNullOrWhiteSpace(_searchUserId))
+        {
+            await LoadPayments();
+            _isFiltered = false;
+            return;
+        }
+        
+        if (!Guid.TryParse(_searchUserId, out var userId))
+        {
+            _searchError = "Некорректный формат ID пользователя";
+            return;
+        }
+        
+        try
+        {
+            _isLoading = true;
+            _payments = await PaymentService.GetPaymentsByUserId(userId);
+            _isFiltered = true;
+            
+            if (_payments.Count == 0)
+            {
+                Snackbar.Add("Платежи по указанному ID пользователя не найдены", Severity.Info);
+            }
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e, "Ошибка при поиске платежей по ID пользователя {UserId}", userId);
+            Snackbar.Add("Ошибка при поиске платежей", Severity.Error);
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+    
+    private async Task ClearSearch()
+    {
+        _searchUserId = string.Empty;
+        _searchError = string.Empty;
+        _isFiltered = false;
+        await LoadPayments();
     }
 
     private static Color GetStatusColor(PaymentStatus status) => status switch

@@ -51,4 +51,21 @@ public class PaymentService(
         logger.LogWarning("Failed to get user payments. Status code: {StatusCode}", response.Code);
         return [];
     }
+    
+    public async Task<List<PaymentDto>> GetPaymentsByUserId(Guid userId)
+    {
+        var authState = await authStateProvider.GetAuthenticationStateAsync();
+        var isAdmin = authState.User.IsInRole("Admin");
+        
+        if (!isAdmin)
+        {
+            logger.LogWarning("Non-admin user attempted to access payment data for user ID: {UserId}", userId);
+            return [];
+        }
+        
+        var allPayments = await GetPayments();
+        return allPayments
+        .Where(p => p.Requisite != null && p.Requisite.UserId == userId)
+        .ToList();
+    }
 }
