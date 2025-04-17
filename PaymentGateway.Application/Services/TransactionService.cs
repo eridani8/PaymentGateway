@@ -7,10 +7,7 @@ using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Core.Entities;
 using PaymentGateway.Core.Exceptions;
 using PaymentGateway.Core.Interfaces;
-using PaymentGateway.Shared.DTOs.Payment;
-using PaymentGateway.Shared.DTOs.Requisite;
 using PaymentGateway.Shared.DTOs.Transaction;
-using PaymentGateway.Shared.Enums;
 using PaymentGateway.Shared.Interfaces;
 
 namespace PaymentGateway.Application.Services;
@@ -20,8 +17,7 @@ public class TransactionService(
     IMapper mapper,
     IValidator<TransactionCreateDto> validator,
     ILogger<TransactionService> logger,
-    INotificationService notificationService,
-    UserManager<UserEntity> userManager)
+    IPaymentConfirmationService paymentConfirmationService)
     : ITransactionService
 {
     public async Task<TransactionDto> CreateTransaction(TransactionCreateDto dto)
@@ -53,23 +49,9 @@ public class TransactionService(
         logger.LogInformation("Поступление платежа на сумму {amount}", transaction.ExtractedAmount);
         
         payment.ConfirmTransaction(transaction);
-        requisite.ReleaseAfterPayment(dto.ExtractedAmount, out var status);
-        logger.LogInformation("Освобождение реквизита {requisiteId}", requisite.Id);
-        if (status == RequisiteStatus.Cooldown)
-        {
-            logger.LogInformation("Статус реквизита {status} {requisiteId} на {sec} сек.", status, requisite.Id, (int)requisite.Cooldown.TotalSeconds);   
-        }
 
-        requisite.User.ReceivedDailyFunds += dto.ExtractedAmount;
-        logger.LogInformation("Увеличение суточных поступлений пользователя {userId} на {amount}, текущая сумма: {total}", requisite.User.Id, dto.ExtractedAmount, requisite.User.ReceivedDailyFunds);
-        await userManager.UpdateAsync(requisite.User);
-
-        unit.RequisiteRepository.Update(requisite);
         await unit.TransactionRepository.Add(transaction);
-        await unit.Commit();
-        
-        await notificationService.NotifyRequisiteUpdated(mapper.Map<RequisiteDto>(requisite));
-        await notificationService.NotifyPaymentUpdated(mapper.Map<PaymentDto>(payment));
+        await paymentConfirmationService.ProcessPaymentConfirmation(payment, requisite, dto.ExtractedAmount);
 
         return mapper.Map<TransactionDto>(transaction);
     }

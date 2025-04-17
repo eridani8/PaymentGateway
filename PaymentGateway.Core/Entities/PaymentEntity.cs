@@ -86,5 +86,6 @@ public sealed class PaymentEntity : IPaymentEntity, ICacheable
     {
         Status = PaymentStatus.ManualConfirm;
         ProcessedAt = DateTime.UtcNow;
+        ExpiresAt = null;
     }
 }
