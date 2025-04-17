@@ -14,9 +14,10 @@ using PaymentGateway.Web.Services;
 using Microsoft.Extensions.Localization;
 using System.Globalization;
 using PaymentGateway.Shared.DTOs.Requisite;
-using PaymentGateway.Shared.Interfaces;
 using PaymentGateway.Shared.Validations.Validators.Requisite;
 using PaymentGateway.Shared.Validations.Validators.User;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
@@ -24,6 +25,20 @@ builder.Services.Configure<ApiSettings>(builder.Configuration.GetSection(nameof(
 
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
+
+builder.Services.Configure<JsonSerializerOptions>(options =>
+{
+    options.ReferenceHandler = ReferenceHandler.Preserve;
+    options.PropertyNameCaseInsensitive = true;
+    options.MaxDepth = 128;
+});
+
+builder.Services.AddSingleton(_ => new JsonSerializerOptions
+{
+    ReferenceHandler = ReferenceHandler.Preserve,
+    PropertyNameCaseInsensitive = true,
+    MaxDepth = 128
+});
 
 builder.Services.AddScoped<IValidator<LoginDto>, LoginModelValidator>();
 builder.Services.AddScoped<IValidator<ChangePasswordDto>, ChangePasswordValidator>();

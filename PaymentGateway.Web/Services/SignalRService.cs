@@ -237,6 +237,11 @@ public class SignalRService(
                 .WithKeepAliveInterval(TimeSpan.FromSeconds(30))
                 .WithServerTimeout(TimeSpan.FromMinutes(60))
                 .WithStatefulReconnect()
+                .AddJsonProtocol(options => {
+                    options.PayloadSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
+                    options.PayloadSerializerOptions.PropertyNameCaseInsensitive = true;
+                    options.PayloadSerializerOptions.MaxDepth = 128;
+                })
                 .Build();
 
             _hubConnection.On("KeepAlive", () => Task.CompletedTask);
@@ -283,13 +288,10 @@ public class SignalRService(
                 logger.LogInformation("Попытка переподключения к SignalR...");
                 try
                 {
-                    // Ждем небольшой случайный интервал перед переподключением
                     await Task.Delay(new Random().Next(100, 1000));
                     
-                    // Проверяем состояние перед попыткой переподключения
                     if (_hubConnection != null && _hubConnection.State != HubConnectionState.Connected)
                     {
-                        // Полностью пересоздаем соединение, если прошло больше 30 минут с момента закрытия
                         if (DateTime.UtcNow - _lastConnectionTime > TimeSpan.FromMinutes(30))
                         {
                             logger.LogInformation("Прошло более 30 минут с момента закрытия, полностью пересоздаем соединение");

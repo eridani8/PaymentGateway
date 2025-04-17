@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using System.Text;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -125,6 +126,12 @@ try
         options.MaximumReceiveMessageSize = 1024 * 1024;
         options.EnableDetailedErrors = true;
         options.StreamBufferCapacity = 20;
+    })
+    .AddJsonProtocol(options =>
+    {
+        options.PayloadSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
+        options.PayloadSerializerOptions.PropertyNameCaseInsensitive = true;
+        options.PayloadSerializerOptions.MaxDepth = 128;
     })
     .AddMessagePackProtocol();
     builder.Services.AddScoped<INotificationService, NotificationService>();

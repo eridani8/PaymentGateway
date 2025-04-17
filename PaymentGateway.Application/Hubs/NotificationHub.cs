@@ -124,7 +124,7 @@ public class NotificationHub(ILogger<NotificationHub> logger) : Hub<IHubClient>
     public static List<string> GetUsersByRoles(string[] roles)
     {
         return UserRoles
-            .Where(kvp => kvp.Value.Any(role => roles.Contains(role)))
+            .Where(kvp => kvp.Value.Any(roles.Contains))
             .Select(kvp => kvp.Key)
             .ToList();
     }
