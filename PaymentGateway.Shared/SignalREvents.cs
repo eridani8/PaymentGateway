@@ -8,4 +8,5 @@ public static class SignalREvents
     public const string UserDeleted = "UserDeleted";
     public const string PaymentUpdated = "PaymentUpdated";
     public const string PaymentDeleted = "PaymentDeleted";
+    public const string TransactionUpdated = "TransactionUpdated";
 }

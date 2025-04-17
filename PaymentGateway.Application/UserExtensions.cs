@@ -9,7 +9,7 @@ public static class UserExtensions
         var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier);
         if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))
         {
-            throw new UnauthorizedAccessException("User ID not found in claims");
+            return Guid.Empty;
         }
         return userId;
     }

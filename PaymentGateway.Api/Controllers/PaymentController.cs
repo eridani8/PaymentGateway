@@ -44,6 +44,7 @@ public class PaymentController(
         try
         {
             var userId = User.GetCurrentUserId();
+            if (userId == Guid.Empty) return Unauthorized();
             var payment = await service.ManualConfirmPayment(dto, userId);
             if (payment is null) return BadRequest();
             return Ok(payment);
@@ -74,6 +75,7 @@ public class PaymentController(
     public async Task<ActionResult<IEnumerable<PaymentDto>>> GetUserPayments()
     {
         var userId = User.GetCurrentUserId();
+        if (userId == Guid.Empty) return Unauthorized();
         var payments = await service.GetUserPayments(userId);
         return Ok(payments);
     }

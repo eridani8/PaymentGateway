@@ -1,0 +1,221 @@
+﻿@page "/transactions"
+@attribute [Authorize(Roles = "User,Admin,Support")]
+@using PaymentGateway.Shared.DTOs.Transaction
+@using PaymentGateway.Shared.Enums
+@inject ITransactionService TransactionService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
+@inject ILogger<Transactions> Logger
+@inject AuthenticationStateProvider AuthStateProvider
+@inject SignalRService SignalRService
+@implements IAsyncDisposable
+@implements IDisposable
+
+<AuthorizeView Roles="User,Admin,Support">
+    <Authorized>
+        <MudContainer MaxWidth="MaxWidth.ExtraExtraLarge" Class="mt-4">
+            <MudPaper Class="pa-4" Elevation="12" Style="height: 100%; display: flex; flex-direction: column;">
+                <MudToolBar>
+                    <MudText Typo="Typo.h6">Список транзакций</MudText>
+                    <MudSpacer/>
+                </MudToolBar>
+                <MudDataGrid T="TransactionDto"
+                             Items="_transactions"
+                             Loading="@_isLoading"
+                             LoadingProgressColor="Color.Primary"
+                             SortMode="SortMode.Multiple"
+                             Bordered="true"
+                             Hover="true">
+                    <Columns>
+                        <HierarchyColumn/>
+                        <PropertyColumn Property="x => x.ExtractedAmount" Title="Сумма"/>
+                        <TemplateColumn Title="Источник">
+                            <CellTemplate Context="cellContext">
+                                <MudChip Color="@GetSourceColor(cellContext.Item.Source)" Size="Size.Medium">
+                                    @GetSourceText(cellContext.Item.Source)
+                                </MudChip>
+                            </CellTemplate>
+                        </TemplateColumn>
+                        <PropertyColumn Property="x => x.ReceivedAt" Title="Получена"/>
+                    </Columns>
+                    <ChildRowContent Context="rowContext">
+                        <MudStack>
+                            <MudTooltip Placement="Placement.Left" Text="Id транзакции">
+                                <MudStack Row="true">
+                                    <MudIcon Icon="@Icons.Material.Filled.Assignment" Class="mr-2"/>
+                                    <MudText Typo="Typo.body1">@rowContext.Item.Id</MudText>
+                                </MudStack>
+                            </MudTooltip>
+                            @if (rowContext.Item.RequisiteId != null)
+                            {
+                                <MudTooltip Placement="Placement.Left" Text="Id реквизита">
+                                    <MudStack Row="true">
+                                        <MudIcon Icon="@Icons.Material.Filled.Payment" Class="mr-2"/>
+                                        <MudText Typo="Typo.body1">@rowContext.Item.RequisiteId</MudText>
+                                    </MudStack>
+                                </MudTooltip>
+                            }
+                            @if (rowContext.Item.PaymentId != null)
+                            {
+                                <MudTooltip Placement="Placement.Left" Text="Id платежа">
+                                    <MudStack Row="true">
+                                        <MudIcon Icon="@Icons.Material.Filled.CommentBank" Class="mr-2"/>
+                                        <MudText Typo="Typo.body1">@rowContext.Item.PaymentId</MudText>
+                                    </MudStack>
+                                </MudTooltip>
+                            }
+                            @if (!string.IsNullOrEmpty(rowContext.Item.RawMessage))
+                            {
+                                <MudTooltip Placement="Placement.Left" Text="Оригинальное сообщение">
+                                    <MudStack Row="true">
+                                        <MudIcon Icon="@Icons.Material.Filled.Message" Class="mr-2"/>
+                                        <MudText Typo="Typo.body1">@rowContext.Item.RawMessage</MudText>
+                                    </MudStack>
+                                </MudTooltip>
+                            }
+                        </MudStack>
+                    </ChildRowContent>
+                </MudDataGrid>
+            </MudPaper>
+        </MudContainer>
+    </authorized>
+    <NotAuthorized>
+        @{
+            NavigationManager.NavigateTo("/");
+        }
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    private bool _isLoading = true;
+    private List<TransactionDto> _transactions = [];
+    private bool _isAdminUser;
+    private Timer _refreshTimer = null!;
+    private const int RefreshInterval = 3000;
+    private bool _isInitialized;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        _isAdminUser = authState.User.IsInRole("Admin");
+
+        await LoadTransactions();
+
+        if (!_isInitialized)
+        {
+            try
+            {
+                await SignalRService.InitializeAsync();
+                SignalRService.SubscribeToTransactionUpdates(HandleTransactionUpdate);
+                _isInitialized = true;
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e, "Ошибка при инициализации SignalR");
+            }
+        }
+
+        _refreshTimer = new Timer(TimerTick, null, RefreshInterval, RefreshInterval);
+    }
+
+    private async void TimerTick(object? state)
+    {
+        try
+        {
+            await InvokeAsync(StateHasChanged);
+        }
+        catch
+        {
+            // ignore
+        }
+    }
+
+    private async void HandleTransactionUpdate(TransactionDto updatedTransaction)
+    {
+        try
+        {
+            Logger.LogInformation("Получено обновление транзакции: {TransactionId}, Сумма: {Amount}",
+                updatedTransaction.Id, updatedTransaction.ExtractedAmount);
+
+            var existingTransaction = _transactions.FirstOrDefault(t => t.Id == updatedTransaction.Id);
+            if (existingTransaction != null)
+            {
+                var index = _transactions.IndexOf(existingTransaction);
+                _transactions[index] = updatedTransaction;
+                Logger.LogInformation("Обновлена существующая транзакция: {TransactionId}", updatedTransaction.Id);
+            }
+            else
+            {
+                _transactions.Add(updatedTransaction);
+                Logger.LogInformation("Добавлена новая транзакция: {TransactionId}", updatedTransaction.Id);
+            }
+
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e, "Ошибка при обновлении транзакции {TransactionId}", updatedTransaction.Id);
+        }
+    }
+
+    public void Dispose()
+    {
+        _refreshTimer?.Dispose();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        try
+        {
+            if (_isInitialized)
+            {
+                SignalRService.UnsubscribeFromTransactionUpdates();
+                await SignalRService.DisposeAsync();
+                _isInitialized = false;
+            }
+
+            await _refreshTimer.DisposeAsync();
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e, "Ошибка при освобождении ресурсов на странице транзакций");
+        }
+    }
+
+    private async Task LoadTransactions()
+    {
+        try
+        {
+            _isLoading = true;
+            _transactions = _isAdminUser
+                ? await TransactionService.GetTransactions()
+                : await TransactionService.GetUserTransactions();
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e, e.Message);
+            Snackbar.Add("Ошибка при загрузке транзакций", Severity.Error);
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private static Color GetSourceColor(TransactionSource source) => source switch
+    {
+        TransactionSource.Sms => Color.Primary,
+        TransactionSource.Push => Color.Success,
+        TransactionSource.Manual => Color.Warning,
+        _ => Color.Default
+    };
+
+    private static string GetSourceText(TransactionSource source) => source switch
+    {
+        TransactionSource.Sms => "СМС",
+        TransactionSource.Push => "Push",
+        TransactionSource.Manual => "Вручную",
+        _ => "Неизвестно"
+    };
+}

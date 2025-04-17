@@ -56,4 +56,26 @@ public class TransactionService(
 
         return mapper.Map<TransactionDto>(transaction);
     }
+    
+    public async Task<List<TransactionDto>> GetAllTransactions()
+    {
+        var transactions = await unit.TransactionRepository
+            .QueryableGetAll()
+            .OrderByDescending(t => t.ReceivedAt)
+            .ToListAsync();
+            
+        return mapper.Map<List<TransactionDto>>(transactions);
+    }
+    
+    public async Task<List<TransactionDto>> GetUserTransactions(Guid userId)
+    {
+        var transactions = await unit.TransactionRepository
+            .QueryableGetAll()
+            .Include(t => t.Requisite)
+            .Where(t => t.Requisite != null && t.Requisite.UserId == userId)
+            .OrderByDescending(t => t.ReceivedAt)
+            .ToListAsync();
+            
+        return mapper.Map<List<TransactionDto>>(transactions);
+    }
 }

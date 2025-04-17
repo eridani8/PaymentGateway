@@ -23,6 +23,7 @@ public class RequisiteController(IRequisiteService service)
         try
         {
             var userId = User.GetCurrentUserId();
+            if (userId == Guid.Empty) return Unauthorized();
             var requisite = await service.CreateRequisite(dto, userId);
             if (requisite is null) return BadRequest();
             return Ok(requisite);
@@ -53,6 +54,7 @@ public class RequisiteController(IRequisiteService service)
     public async Task<ActionResult<IEnumerable<RequisiteDto>>> GetUserRequisites()
     {
         var userId = User.GetCurrentUserId();
+        if (userId == Guid.Empty) return Unauthorized();
         var requisites = await service.GetUserRequisites(userId);
         return Ok(requisites);
     }
@@ -61,6 +63,7 @@ public class RequisiteController(IRequisiteService service)
     public async Task<ActionResult<RequisiteDto>> GetById(Guid id)
     {
         var userId = User.GetCurrentUserId();
+        if (userId == Guid.Empty) return Unauthorized();
         var requisite = await service.GetRequisiteById(id, userId);
         if (requisite is null) return NotFound();
         return Ok(requisite);

@@ -5,6 +5,7 @@ using PaymentGateway.Shared.DTOs.User;
 using System.Security.Claims;
 using PaymentGateway.Shared;
 using PaymentGateway.Shared.DTOs.Payment;
+using PaymentGateway.Shared.DTOs.Transaction;
 using Polly;
 using Polly.Retry;
 
@@ -403,6 +404,20 @@ public class SignalRService(
     public void UnsubscribeFromPaymentDeletions()
     {
         Unsubscribe(SignalREvents.PaymentDeleted);
+    }
+
+    #endregion
+
+    #region Transaction
+
+    public void SubscribeToTransactionUpdates(Action<TransactionDto> handler)
+    {
+        Subscribe(SignalREvents.TransactionUpdated, handler);
+    }
+
+    public void UnsubscribeFromTransactionUpdates()
+    {
+        Unsubscribe(SignalREvents.TransactionUpdated);
     }
 
     #endregion

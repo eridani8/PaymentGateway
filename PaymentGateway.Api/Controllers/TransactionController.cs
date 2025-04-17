@@ -1,4 +1,5 @@
 ﻿using FluentValidation;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PaymentGateway.Application;
 using PaymentGateway.Application.Interfaces;
@@ -33,6 +34,38 @@ public class TransactionController(ITransactionService service) : ControllerBase
         catch (ValidationException e)
         {
             return BadRequest(e.Errors.GetErrors());
+        }
+    }
+    
+    [HttpGet]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<List<TransactionDto>>> GetAll()
+    {
+        try
+        {
+            var transactions = await service.GetAllTransactions();
+            return Ok(transactions);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, ex.Message);
+        }
+    }
+    
+    [HttpGet]
+    [Authorize]
+    public async Task<ActionResult<List<TransactionDto>>> GetUserTransactions()
+    {
+        try
+        {
+            var userId = User.GetCurrentUserId();
+            if (userId == Guid.Empty) return Unauthorized();
+            var transactions = await service.GetUserTransactions(userId);
+            return Ok(transactions);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, ex.Message);
         }
     }
 }
