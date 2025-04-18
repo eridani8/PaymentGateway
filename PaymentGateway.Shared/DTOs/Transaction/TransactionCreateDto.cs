@@ -4,9 +4,9 @@ namespace PaymentGateway.Shared.DTOs.Transaction;
 
 public class TransactionCreateDto
 {
-    public required string PaymentData { get; init; }
-    public required TransactionSource Source { get; init; }
-    public required decimal ExtractedAmount { get; init; }
-    public required DateTime ReceivedAt { get; init; }
-    public required string? RawMessage { get; init; }
+    public string PaymentData { get; set; } = string.Empty;
+    public TransactionSource Source { get; set; }
+    public decimal ExtractedAmount { get; set; }
+    public DateTime ReceivedAt { get; set; }
+    public string? RawMessage { get; set; }
 }

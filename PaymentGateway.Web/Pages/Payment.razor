@@ -1,4 +1,5 @@
 @page "/payment/{Id:guid}"
+@using System.Globalization
 @using PaymentGateway.Shared.DTOs.Payment
 @using PaymentGateway.Shared.Enums
 @attribute [AllowAnonymous]
@@ -6,14 +7,15 @@
 @inject ISnackbar Snackbar
 @inject NavigationManager Navigation
 @inject ILogger<Payment> Logger
+@inject ITransactionService TransactionService
 @implements IDisposable
 
-<PageTitle>Платеж</PageTitle>
+<PageTitle>Платеж @Id</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.Medium" Class="pa-4">
     @if (_isLoading)
     {
-        <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" Class="d-block mx-auto my-8" />
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" Class="d-block mx-auto my-8"/>
     }
     else if (_payment == null)
     {
@@ -26,82 +28,80 @@
     {
         <MudCard Elevation="3" Class="pa-4">
             <MudText Typo="Typo.h5" Align="Align.Center" Class="mb-4">Информация о платеже</MudText>
-            
+
             <MudGrid>
                 <MudItem xs="6">
-                    <MudText><strong>ID платежа:</strong></MudText>
+                    <MudText><strong>ID:</strong></MudText>
                 </MudItem>
                 <MudItem xs="6">
-                    <MudText>@_payment.ExternalPaymentId</MudText>
+                    <MudText>@_payment.Id</MudText>
                 </MudItem>
-                
+
                 <MudItem xs="6">
                     <MudText><strong>Сумма:</strong></MudText>
                 </MudItem>
                 <MudItem xs="6">
                     <MudText>@_payment.Amount</MudText>
                 </MudItem>
-                
-                <MudItem xs="6">
-                    <MudText><strong>Статус:</strong></MudText>
-                </MudItem>
-                <MudItem xs="6">
-                    <MudText>@_payment.Status.ToString()</MudText>
-                </MudItem>
-                
+
                 <MudItem xs="6">
                     <MudText><strong>Создан:</strong></MudText>
                 </MudItem>
                 <MudItem xs="6">
-                    <MudText>@_payment.CreatedAt.ToString("g")</MudText>
+                    <MudText>@_payment.CreatedAt.ToString(CultureInfo.InvariantCulture)</MudText>
+                </MudItem>
+
+                <MudItem xs="6">
+                    <MudText><strong>Оплатить до:</strong></MudText>
+                </MudItem>
+                <MudItem xs="6">
+                    <MudText>@_payment.ExpiresAt?.ToString(CultureInfo.InvariantCulture)</MudText>
                 </MudItem>
             </MudGrid>
-            
+
             @if (_payment.Requisite != null)
             {
-                <MudDivider Class="my-4" />
+                <MudDivider Class="my-4"/>
                 <MudText Typo="Typo.h6" Align="Align.Center" Class="mb-4">Данные для оплаты</MudText>
-                
+
                 <MudPaper Elevation="0" Class="pa-4 mb-4" Style="border-radius: 8px;">
+                    <MudText Align="Align.Center" Typo="Typo.h5" Style="word-break: break-all;">
+                        @GetPaymentType(_payment.Requisite.PaymentType)
+                    </MudText>
                     <MudText Align="Align.Center" Typo="Typo.h5" Style="word-break: break-all;">
                         @_payment.Requisite.PaymentData
                     </MudText>
                 </MudPaper>
-                
+
                 <MudGrid>
-                    <MudItem xs="6">
-                        <MudText><strong>Тип платежа:</strong></MudText>
-                    </MudItem>
-                    <MudItem xs="6">
-                        <MudText>@_payment.Requisite.PaymentType.ToString()</MudText>
-                    </MudItem>
-                    
-                    @if (!string.IsNullOrEmpty(_payment.Requisite.BankNumber))
-                    {
-                        <MudItem xs="6">
-                            <MudText><strong>Номер банка:</strong></MudText>
-                        </MudItem>
-                        <MudItem xs="6">
-                            <MudText>@_payment.Requisite.BankNumber</MudText>
-                        </MudItem>
-                    }
-                    
+
                     <MudItem xs="6">
                         <MudText><strong>Получатель:</strong></MudText>
                     </MudItem>
                     <MudItem xs="6">
                         <MudText>@_payment.Requisite.FullName</MudText>
                     </MudItem>
+
+                    @if (!string.IsNullOrEmpty(_payment.Requisite.BankNumber))
+                    {
+                        <MudItem xs="6">
+                            <MudText><strong>Банковский счет:</strong></MudText>
+                        </MudItem>
+                        <MudItem xs="6">
+                            <MudText>@_payment.Requisite.BankNumber</MudText>
+                        </MudItem>
+                    }
+
                 </MudGrid>
-                
+
                 @if (_payment.Status != PaymentStatus.Confirmed)
                 {
-                    <MudButton Variant="Variant.Filled" Color="Color.Success" 
-                              OnClick="@(SimulatePayment)" Class="mt-4 d-block mx-auto"
-                              Disabled="@(_isSimulating)">
+                    <MudButton Variant="Variant.Filled" Color="Color.Success"
+                               OnClick="@(SimulatePayment)" Class="mt-4"
+                               Disabled="@(_isSimulating)">
                         @if (_isSimulating)
                         {
-                            <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                            <MudProgressCircular Class="ms-n1" Indeterminate="true"/>
                             <MudText Class="ms-2">Обработка...</MudText>
                         }
                         else
@@ -109,6 +109,13 @@
                             <MudText>Имитировать платеж</MudText>
                         }
                     </MudButton>
+                    <MudToggleGroup Class="mt-4" SelectionMode="SelectionMode.ToggleSelection" Color="Color.Primary"
+                                    @bind-Value="_transactionSource">
+                        @foreach (var source in _selectedTransactionType)
+                        {
+                            <MudToggleItem Value="source">@source.ToString()</MudToggleItem>
+                        }
+                    </MudToggleGroup>
                 }
                 else
                 {
@@ -117,13 +124,13 @@
             }
             else
             {
-                <MudDivider Class="my-4" />
-                <MudText Typo="Typo.h6" Align="Align.Center" Class="mb-3">Ожидание назначения реквизитов</MudText>
-                
-                <MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="my-4" />
-                
+                <MudDivider Class="my-4"/>
+                <MudText Typo="Typo.h6" Align="Align.Center" Class="mb-3">Ожидание свободного реквизита</MudText>
+
+                <MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="my-4"/>
+
                 <MudText Align="Align.Center" Class="mb-4">
-                    Пожалуйста, подождите. Реквизиты для оплаты будут назначены автоматически.
+                    Пожалуйста, подождите. Реквизит для оплаты будет назначены автоматически
                 </MudText>
             }
         </MudCard>
@@ -135,7 +142,7 @@
     <MudDialog Open="showSuccessDialog" DisableSidePadding="true" ClassContent="px-0">
         <TitleContent>
             <MudText Typo="Typo.h6">
-                <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Class="mr-2" /> 
+                <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Class="mr-2"/>
                 Платеж успешно выполнен
             </MudText>
         </TitleContent>
@@ -146,36 +153,38 @@
             </MudContainer>
         </DialogContent>
         <DialogActions>
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="CloseSuccessDialog">Закрыть</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(CloseSuccessDialog)">Закрыть
+            </MudButton>
         </DialogActions>
     </MudDialog>
 }
 
 @code {
-    [Parameter]
-    public Guid Id { get; set; }
-    
+    [Parameter] public Guid Id { get; set; }
+
     private PaymentDto? _payment;
     private bool _isLoading = true;
     private bool _isSimulating;
     private bool _showSuccessDialog;
     private Timer? _refreshTimer;
     private const int RefreshInterval = 3000;
-    
+    private readonly TransactionSource[] _selectedTransactionType = [TransactionSource.Sms, TransactionSource.Push];
+    private TransactionSource _transactionSource;
+
     protected override async Task OnInitializedAsync()
     {
         await LoadPayment();
-        
+
         _refreshTimer = new Timer(TimerTick, null, RefreshInterval, RefreshInterval);
     }
-    
+
     private async Task LoadPayment()
     {
         _isLoading = true;
         try
         {
             _payment = await PaymentService.GetPaymentById(Id);
-            
+
             if (_payment == null)
             {
                 Snackbar.Add("Платеж не найден или вы не имеете доступа к нему", Severity.Error);
@@ -196,32 +205,30 @@
             _isLoading = false;
         }
     }
-    
+
     private async void TimerTick(object? state)
     {
         try
         {
             if (_payment == null)
                 return;
-                
+
             var updatedPayment = await PaymentService.GetPaymentById(Id);
-            if (updatedPayment != null && 
-                (_payment.Status != updatedPayment.Status || 
-                 _payment.Requisite?.Id != updatedPayment.Requisite?.Id))
+            if (updatedPayment == null ||
+                (_payment.Status == updatedPayment.Status &&
+                 _payment.Requisite?.Id == updatedPayment.Requisite?.Id)) return;
+
+            _payment = updatedPayment;
+
+            if (_payment.Status == PaymentStatus.Confirmed && !_showSuccessDialog)
             {
-                _payment = updatedPayment;
-                
-                if (_payment.Status == PaymentStatus.Confirmed && !_showSuccessDialog)
-                {
-                    _showSuccessDialog = true;
-                    await InvokeAsync(() => Snackbar.Add("Платеж успешно выполнен", Severity.Success));
-                }
-                
-                await InvokeAsync(StateHasChanged);
-                
-                Logger.LogInformation("Обновлена информация о платеже {PaymentId}, статус: {Status}", 
-                    _payment.Id, _payment.Status);
+                _showSuccessDialog = true;
+                await InvokeAsync(() => Snackbar.Add("Платеж успешно выполнен", Severity.Success));
             }
+
+            await InvokeAsync(StateHasChanged);
+
+            Logger.LogInformation("Обновлена информация о платеже {PaymentId}, статус: {Status}", _payment.Id, _payment.Status);
         }
         catch (Exception ex)
         {
@@ -231,27 +238,31 @@
 
     private async Task SimulatePayment()
     {
-        if (_payment == null)
-            return;
-            
+        if (_payment?.Requisite == null) return;
+
         _isSimulating = true;
         try
         {
-            var response = await PaymentService.ManualConfirmPayment(_payment.Id);
-            if (response.Code == System.Net.HttpStatusCode.OK)
+            var transaction = await TransactionService.SimulatePayment(
+                _payment.Requisite.PaymentData,
+                _payment.Amount,
+                _transactionSource
+            );
+
+            if (transaction != null)
             {
                 _payment = await PaymentService.GetPaymentById(Id);
-                
+
                 if (_payment?.Status == PaymentStatus.Confirmed)
                 {
                     _showSuccessDialog = true;
                 }
-                
-                Snackbar.Add("Платеж успешно выполнен", Severity.Success);
+
+                Snackbar.Add($"Платеж успешно выполнен через {GetTransactionSourceText(transaction.Source)}", Severity.Success);
             }
             else
             {
-                Snackbar.Add($"Ошибка при имитации платежа: {response.Content}", Severity.Error);
+                Snackbar.Add("Ошибка при обработке платежа", Severity.Error);
             }
         }
         catch (Exception ex)
@@ -263,15 +274,36 @@
             _isSimulating = false;
         }
     }
-    
+
     private void CloseSuccessDialog()
     {
         _showSuccessDialog = false;
     }
-    
+
     public void Dispose()
     {
         _refreshTimer?.Dispose();
         _refreshTimer = null;
     }
+
+    private static string GetPaymentType(PaymentType paymentType)
+    {
+        return paymentType switch
+        {
+            PaymentType.BankCard => "Банковская карта",
+            PaymentType.PhoneNumber => "Номер телефона",
+            _ => "NULL"
+        };
+    }
+
+    private string GetTransactionSourceText(TransactionSource source)
+    {
+        return source switch
+        {
+            TransactionSource.Sms => "SMS",
+            TransactionSource.Push => "Push",
+            _ => "Unknown"
+        };
+    }
+
 } 
