@@ -14,6 +14,18 @@ public class AuthMessageHandler(
 
         if (!string.IsNullOrEmpty(token))
         {
+            if (CustomAuthStateProvider.IsTokenExpired(token))
+            {
+                await customAuthStateProvider.MarkUserAsLoggedOut();
+                
+                _ = Task.Run(() => 
+                {
+                    navigationManager.NavigateTo("/login");
+                }, cancellationToken);
+                
+                return new HttpResponseMessage(HttpStatusCode.Unauthorized);
+            }
+            
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
         }
 

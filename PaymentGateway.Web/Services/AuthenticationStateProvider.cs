@@ -29,15 +29,14 @@ public class CustomAuthStateProvider(ILocalStorageService localStorage) : Authen
         return new AuthenticationState(principal);
     }
 
-    private static bool IsTokenExpired(string token)
+    public static bool IsTokenExpired(string token)
     {
         try
         {
             var claims = ParseClaimsFromJwt(token);
             var expiry = claims.FirstOrDefault(c => c.Type.Equals("exp"))?.Value;
             
-            if (string.IsNullOrEmpty(expiry) || !long.TryParse(expiry, out var expiryTimeStamp))
-                return true;
+            if (string.IsNullOrEmpty(expiry) || !long.TryParse(expiry, out var expiryTimeStamp)) return true;
                 
             var expiryDateTimeOffset = DateTimeOffset.FromUnixTimeSeconds(expiryTimeStamp);
             
@@ -86,7 +85,6 @@ public class CustomAuthStateProvider(ILocalStorageService localStorage) : Authen
                     }
                     case string rolesString:
                     {
-                        // Handle various delimiter formats
                         foreach (var separator in new[] { ';', ',', ' ' })
                         {
                             if (rolesString.Contains(separator))
