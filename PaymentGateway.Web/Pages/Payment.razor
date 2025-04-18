@@ -95,7 +95,11 @@
 
                 </MudGrid>
 
-                @if (_payment.Status != PaymentStatus.Confirmed)
+                @if (_payment.Status is PaymentStatus.Confirmed or PaymentStatus.ManualConfirm)
+                {
+                    <MudAlert Severity="Severity.Success" Class="mt-4">Платеж успешно выполнен</MudAlert>
+                }
+                else
                 {
                     <MudStack Class="mt-8" Spacing="2">
                         <MudTextField @bind-Value="@_transactionDto.PaymentData" Placeholder="Куда переводим"/>
@@ -121,10 +125,6 @@
                             }
                         </MudButton>
                     </MudStack>
-                }
-                else
-                {
-                    <MudAlert Severity="Severity.Success" Class="mt-4">Платеж успешно выполнен</MudAlert>
                 }
             }
             else
