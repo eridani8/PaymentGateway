@@ -14,6 +14,33 @@ public class PaymentService(
 {
     private const string ApiEndpoint = "Payment";
     
+    public async Task<PaymentDto?> CreatePayment(PaymentCreateDto dto)
+    {
+        try
+        {
+            var response = await PostRequest($"{ApiEndpoint}/Create", dto);
+            
+            if (response.Code == HttpStatusCode.OK && !string.IsNullOrEmpty(response.Content))
+            {
+                return JsonSerializer.Deserialize<PaymentDto>(response.Content, JsonOptions);
+            }
+            
+            if (response.Code == HttpStatusCode.BadRequest && !string.IsNullOrEmpty(response.Content))
+            {
+                var errorMessage = response.Content;
+                throw new Exception(errorMessage);
+            }
+            
+            logger.LogWarning("Failed to create payment. Status code: {StatusCode}", response.Code);
+            return null;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error creating payment");
+            throw;
+        }
+    }
+    
     public async Task<Response> ManualConfirmPayment(Guid id)
     {
         return await PostRequest($"{ApiEndpoint}/ManualConfirmPayment", new PaymentManualConfirmDto()
@@ -85,5 +112,30 @@ public class PaymentService(
         return allPayments
         .Where(p => p.Requisite != null && p.Requisite.UserId == userId)
         .ToList();
+    }
+    
+    public async Task<PaymentDto?> GetPaymentById(Guid id)
+    {
+        var response = await GetRequest($"{ApiEndpoint}/GetById/{id}");
+        
+        if (response.Code == HttpStatusCode.OK && !string.IsNullOrEmpty(response.Content))
+        {
+            return JsonSerializer.Deserialize<PaymentDto>(response.Content, JsonOptions);
+        }
+        
+        if (response.Code == HttpStatusCode.NotFound)
+        {
+            logger.LogInformation("Payment with ID {Id} not found", id);
+            return null;
+        }
+        
+        if (response.Code == HttpStatusCode.Forbidden)
+        {
+            logger.LogInformation("Access denied to payment with ID {Id}", id);
+            return null;
+        }
+        
+        logger.LogWarning("Failed to get payment by ID {Id}. Status code: {StatusCode}", id, response.Code);
+        return null;
     }
 }

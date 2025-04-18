@@ -162,6 +162,11 @@ public class NotificationService(
             tasks.Add(broadcastTask);
             logger.LogInformation("Запущено широковещательное уведомление об обновлении платежа {PaymentId}", payment.Id);
             
+            var specificGroupName = $"PaymentUpdate_{payment.Id}";
+            var specificTask = hubContext.Clients.Group(specificGroupName).PaymentUpdated(payment);
+            tasks.Add(specificTask);
+            logger.LogInformation("Запущено уведомление для группы подписчиков платежа {PaymentId}", payment.Id);
+            
             await Task.WhenAll(tasks);
             
             logger.LogInformation("Все уведомления об обновлении платежа {PaymentId} отправлены успешно", payment.Id);
@@ -172,16 +177,18 @@ public class NotificationService(
         }
     }
 
-    public async Task NotifyPaymentDeleted(Guid id, Guid userId)
+    public async Task NotifyPaymentDeleted(Guid id, Guid? userId)
     {
         try
         {
             var tasks = new List<Task>();
-            
-            var ownerTask = hubContext.Clients.User(userId.ToString()).PaymentDeleted(id);
-            tasks.Add(ownerTask);
-            logger.LogInformation("Запущено уведомление об удалении платежа для владельца {UserId}, платеж {PaymentId}", 
-                userId, id);
+
+            if (userId.HasValue)
+            {
+                var ownerTask = hubContext.Clients.User(userId.Value.ToString()).PaymentDeleted(id);
+                tasks.Add(ownerTask);
+                logger.LogInformation("Запущено уведомление об удалении платежа для владельца {UserId}, платеж {PaymentId}", userId, id);
+            }
             
             var staffIds = NotificationHub.GetUsersByRoles(["Admin", "Support"]);
             if (staffIds.Count > 0)
@@ -199,6 +206,21 @@ public class NotificationService(
         catch (Exception ex)
         {
             logger.LogError(ex, "Ошибка отправки уведомления об удалении платежа {PaymentId}", id);
+        }
+    }
+
+    public async Task NotifySpecificPaymentUpdated(PaymentDto payment)
+    {
+        try
+        {
+            var groupName = $"PaymentUpdate_{payment.Id}";
+            await hubContext.Clients.Group(groupName).PaymentUpdated(payment);
+            logger.LogInformation("Отправлено уведомление об обновлении платежа {PaymentId} для группы {GroupName}", 
+                payment.Id, groupName);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Ошибка отправки уведомления об обновлении платежа {PaymentId} для группы", payment.Id);
         }
     }
 } 

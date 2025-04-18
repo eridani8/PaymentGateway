@@ -1,5 +1,69 @@
 ﻿@page "/"
+@using PaymentGateway.Shared.DTOs.Payment
+@using PaymentGateway.Shared.Validations.Validators.Payment
+@using Severity = MudBlazor.Severity
+@attribute [AllowAnonymous]
+@inject IPaymentService PaymentService
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+
+<MudContainer MaxWidth="MaxWidth.ExtraSmall" Class="pa-4">
+    <MudCard Elevation="3" Class="pa-4">
+        <MudText Typo="Typo.h5" Align="Align.Center" Class="mb-4">Создание платежа</MudText>
+
+        <MudForm Model="@_paymentModel" @ref="@_form" Validation="@(_validator.ValidateValue)">
+            <MudNumericField T="decimal" @bind-Value="_paymentModel.Amount" Label="Сумма" Required="true"
+                             For="@(() => _paymentModel.Amount)" Immediate="true" Min="0" Step="1000"/>
+        </MudForm>
+
+        <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                   OnClick="@(CreatePayment)" Class="mt-4"
+                   Disabled="@_isLoading">
+            @if (_isLoading)
+            {
+                <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
+                <MudText Class="ms-2">Загрузка...</MudText>
+            }
+            else
+            {
+                <MudText>Создать платеж</MudText>
+            }
+        </MudButton>
+    </MudCard>
+</MudContainer>
 
 @code {
-    
+    private readonly PaymentCreateDtoValidator _validator = new();
+    private readonly PaymentCreateDto _paymentModel = new();
+    private MudForm _form = null!;
+    private bool _isLoading;
+
+    protected override void OnInitialized()
+    {
+        _paymentModel.ExternalPaymentId = Guid.NewGuid();
+    }
+
+    private async Task CreatePayment()
+    {
+        await _form.Validate();
+        if (!_form.IsValid)
+        {
+            return;
+        }
+
+        _isLoading = true;
+        try
+        {
+            var newPayment = await PaymentService.CreatePayment(_paymentModel);
+            if (newPayment != null)
+            {
+                Navigation.NavigateTo($"/payment/{newPayment.Id}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Ошибка при создании платежа: {ex.Message}", Severity.Error);
+            _isLoading = false;
+        }
+    }
 }

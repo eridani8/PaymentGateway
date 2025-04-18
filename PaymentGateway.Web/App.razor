@@ -4,7 +4,18 @@
         <Found Context="routeData">
             <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
                 <NotAuthorized>
-                    <RedirectToLogin/>
+                    @{
+                        var currentPath = routeData.PageType.Name;
+                        
+                        if (currentPath != "Home")
+                        {
+                            <RedirectToLogin/>
+                        }
+                        else
+                        {
+                            @routeData.PageType.GetMethod("BuildRenderTree")?.Invoke(Activator.CreateInstance(routeData.PageType), [__builder])
+                        }
+                    }
                 </NotAuthorized>
                 <Authorizing>
                     <p>Проверка авторизации...</p>

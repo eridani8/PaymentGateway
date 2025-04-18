@@ -6,5 +6,4 @@ public interface IPaymentRepository : IRepositoryBase<PaymentEntity>
 {
     Task<List<PaymentEntity>> GetUnprocessedPayments();
     Task<List<PaymentEntity>> GetExpiredPayments();
-    void DeletePayments(IEnumerable<PaymentEntity> entities);
 }

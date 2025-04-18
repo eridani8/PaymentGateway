@@ -153,4 +153,44 @@ public class NotificationHub(ILogger<NotificationHub> logger) : Hub<IHubClient>
         
         return stats;
     }
+    
+    public async Task RegisterForPaymentUpdates(Guid paymentId)
+    {
+        try
+        {
+            var userId = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var connectionId = Context.ConnectionId;
+            var groupName = $"PaymentUpdate_{paymentId}";
+            
+            await Groups.AddToGroupAsync(connectionId, groupName);
+            
+            logger.LogInformation("Клиент {ConnectionId} (пользователь {UserId}) зарегистрирован на обновления платежа {PaymentId}", 
+                connectionId, userId, paymentId);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Ошибка при регистрации клиента на обновления платежа {PaymentId}", paymentId);
+            throw;
+        }
+    }
+
+    public async Task UnregisterFromPaymentUpdates(Guid paymentId)
+    {
+        try
+        {
+            var userId = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var connectionId = Context.ConnectionId;
+            var groupName = $"PaymentUpdate_{paymentId}";
+            
+            await Groups.RemoveFromGroupAsync(connectionId, groupName);
+            
+            logger.LogInformation("Клиент {ConnectionId} (пользователь {UserId}) отписан от обновлений платежа {PaymentId}", 
+                connectionId, userId, paymentId);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Ошибка при отписке клиента от обновлений платежа {PaymentId}", paymentId);
+            throw;
+        }
+    }
 } 

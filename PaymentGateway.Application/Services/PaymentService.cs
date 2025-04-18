@@ -50,6 +50,7 @@ public class PaymentService(
         var paymentDto = mapper.Map<PaymentDto>(entity);
 
         await notificationService.NotifyPaymentUpdated(paymentDto);
+        await notificationService.NotifySpecificPaymentUpdated(paymentDto);
 
         return paymentDto;
     }
@@ -149,7 +150,10 @@ public class PaymentService(
         
         await unit.Commit();
         
-        await notificationService.NotifyPaymentUpdated(mapper.Map<PaymentDto>(payment));
+        var paymentDto = mapper.Map<PaymentDto>(payment);
+
+        await notificationService.NotifyPaymentUpdated(paymentDto);
+        await notificationService.NotifySpecificPaymentUpdated(paymentDto);
 
         return payment;
     }
@@ -169,7 +173,7 @@ public class PaymentService(
         var entities = await unit.PaymentRepository.QueryableGetAll()
             .Include(p => p.Requisite)
             .Include(p => p.Transaction)
-            .Where(p => p.UserId == userId || (p.Requisite != null && p.Requisite.UserId == userId))
+            .Where(p => p.Requisite != null && p.Requisite.UserId == userId)
             .AsNoTracking()
             .ToListAsync();
         return mapper.Map<IEnumerable<PaymentDto>>(entities);

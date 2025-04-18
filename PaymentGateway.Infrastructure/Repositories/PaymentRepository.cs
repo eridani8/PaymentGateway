@@ -3,6 +3,7 @@ using PaymentGateway.Core.Entities;
 using PaymentGateway.Core.Interfaces;
 using PaymentGateway.Infrastructure.Data;
 using PaymentGateway.Shared.Enums;
+using PaymentGateway.Shared.Interfaces;
 
 namespace PaymentGateway.Infrastructure.Repositories;
 
@@ -31,13 +32,5 @@ public class PaymentRepository(AppDbContext context, ICache cache)
                     p.Status != PaymentStatus.Confirmed &&
                     p.Status != PaymentStatus.ManualConfirm)
                 .ToListAsync();
-    }
-
-    public void DeletePayments(IEnumerable<PaymentEntity> entities)
-    {
-        foreach (var entity in entities)
-        {
-            Delete(entity);
-        }
     }
 }

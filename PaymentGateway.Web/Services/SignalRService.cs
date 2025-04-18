@@ -96,8 +96,7 @@ public class SignalRService(
 
     private async Task SendPingAsync(object? state)
     {
-        if (_isDisposing || _isDisposed || _hubConnection == null || 
-            _hubConnection.State != HubConnectionState.Connected)
+        if (_isDisposing || _isDisposed || _hubConnection is not { State: HubConnectionState.Connected })
         {
             return;
         }
@@ -148,9 +147,22 @@ public class SignalRService(
                 await _hubConnection.StartAsync();
                 _lastConnectionTime = DateTime.UtcNow;
                 logger.LogInformation("SignalR соединение установлено успешно");
-                
-                _pingTimer?.Dispose();
-                _pingTimer = new Timer(async _ => await SendPingAsync(null), null, PingInterval, PingInterval);
+
+                if (_pingTimer != null)
+                {
+                    await _pingTimer.DisposeAsync();
+                }
+                _pingTimer = new Timer(async void (_) =>
+                {
+                    try
+                    {
+                        await SendPingAsync(null);
+                    }
+                    catch (Exception e)
+                    {
+                        logger.LogError(e, e.Message);
+                    }
+                }, null, PingInterval, PingInterval);
             }
             catch (Exception ex)
             {
@@ -210,7 +222,10 @@ public class SignalRService(
             if (_hubConnection != null)
             {
                 await _hubConnection.DisposeAsync();
-                _pingTimer?.Dispose();
+                if (_pingTimer != null)
+                {
+                    await _pingTimer.DisposeAsync();
+                }
                 _pingTimer = null;
             }
 
@@ -261,7 +276,11 @@ public class SignalRService(
 
             _hubConnection.Closed += async (error) =>
             {
-                _pingTimer?.Dispose();
+                if (_pingTimer != null)
+                {
+                    await _pingTimer.DisposeAsync();
+                }
+                
                 _pingTimer = null;
 
                 if (_isDisposing || _isDisposed) return;
@@ -404,6 +423,72 @@ public class SignalRService(
     public void UnsubscribeFromPaymentDeletions()
     {
         Unsubscribe(SignalREvents.PaymentDeleted);
+    }
+
+    public async Task SubscribeToSpecificPayment(Guid paymentId, Action<PaymentDto> handler)
+    {
+        try
+        {
+            await EnsureConnected();
+            
+            var eventName = $"PaymentUpdate_{paymentId}";
+            
+            await _hubConnection!.InvokeAsync("RegisterForPaymentUpdates", paymentId);
+            
+            _hubConnection!.Remove(eventName);
+            
+            _hubConnection!.On<PaymentDto>(eventName, (data) => {
+                try 
+                {
+                    if (data.Id == paymentId)
+                    {
+                        handler(data);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Ошибка при обработке обновления платежа {PaymentId}", paymentId);
+                }
+                return Task.CompletedTask;
+            });
+            
+            logger.LogInformation("Подписка на обновления платежа {PaymentId} успешно создана", paymentId);
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Не удалось подписаться на обновления платежа {PaymentId}", paymentId);
+        }
+    }
+    
+    public async Task UnsubscribeFromSpecificPayment(Guid paymentId)
+    {
+        try
+        {
+            if (_isDisposing || _isDisposed || _hubConnection == null)
+            {
+                return;
+            }
+
+            var eventName = $"PaymentUpdate_{paymentId}";
+            _hubConnection.Remove(eventName);
+            
+            await _hubConnection.InvokeAsync("UnregisterFromPaymentUpdates", paymentId);
+            
+            logger.LogInformation("Отписка от обновлений платежа {PaymentId} выполнена", paymentId);
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Не удалось отписаться от обновлений платежа {PaymentId}", paymentId);
+        }
+    }
+    
+    private async Task EnsureConnected()
+    {
+        if (_hubConnection is not { State: HubConnectionState.Connected })
+        {
+            await InitializeAsync();
+            await StartConnectionWithRetryAsync();
+        }
     }
 
     #endregion
