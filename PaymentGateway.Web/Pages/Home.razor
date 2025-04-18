@@ -7,8 +7,8 @@
 @inject ISnackbar Snackbar
 @inject NavigationManager Navigation
 
-<MudContainer MaxWidth="MaxWidth.ExtraSmall" Class="pa-4">
-    <MudCard Elevation="3" Class="pa-4">
+<MudContainer MaxWidth="MaxWidth.ExtraSmall" Class="mt-16">
+    <MudCard Elevation="12" Class="pa-4">
         <MudText Typo="Typo.h5" Align="Align.Center" Class="mb-4">Создание платежа</MudText>
 
         <MudForm Model="@_paymentModel" @ref="@_form" Validation="@(_validator.ValidateValue)">
