@@ -58,7 +58,7 @@
                              Hover="true">
                     <Columns>
                         <HierarchyColumn/>
-                        <TemplateColumn>
+                        <TemplateColumn Title="Владелец реквизита">
                             <CellTemplate Context="cellContext">
                                 @if (!string.IsNullOrEmpty(cellContext.Item?.Requisite?.User?.Username))
                                 {

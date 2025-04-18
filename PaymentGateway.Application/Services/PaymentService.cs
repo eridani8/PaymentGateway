@@ -20,7 +20,6 @@ public class PaymentService(
     IValidator<PaymentCreateDto> createValidator,
     IValidator<PaymentManualConfirmDto> manualConfirmValidator,
     IValidator<PaymentCancelDto> cancelValidator,
-    
     UserManager<UserEntity> userManager,
     INotificationService notificationService,
     IPaymentConfirmationService paymentConfirmationService) : IPaymentService
@@ -97,7 +96,7 @@ public class PaymentService(
         }
 
         payment.ManualConfirm(user.Id);
-        
+
         await paymentConfirmationService.ProcessPaymentConfirmation(payment, requisite, payment.Amount);
 
         return payment;
@@ -110,7 +109,7 @@ public class PaymentService(
         {
             throw new ValidationException(validation.Errors);
         }
-        
+
         var payment = await unit.PaymentRepository.GetById(dto.PaymentId,
             p => p.Requisite,
             p => p.Transaction);
@@ -144,11 +143,11 @@ public class PaymentService(
             unit.RequisiteRepository.Update(requisite);
             await notificationService.NotifyRequisiteUpdated(mapper.Map<RequisiteDto>(requisite));
         }
-        
+
         unit.PaymentRepository.Update(payment);
-        
+
         await unit.Commit();
-        
+
         var paymentDto = mapper.Map<PaymentDto>(payment);
 
         await notificationService.NotifyPaymentUpdated(paymentDto);
@@ -160,6 +159,7 @@ public class PaymentService(
     {
         var entities = await unit.PaymentRepository.QueryableGetAll()
             .Include(p => p.Requisite)
+            .ThenInclude(p => p.User)
             .Include(p => p.Transaction)
             .AsNoTracking()
             .ToListAsync();
@@ -170,6 +170,7 @@ public class PaymentService(
     {
         var entities = await unit.PaymentRepository.QueryableGetAll()
             .Include(p => p.Requisite)
+            .ThenInclude(p => p.User)
             .Include(p => p.Transaction)
             .Where(p => p.Requisite != null && p.Requisite.UserId == userId)
             .AsNoTracking()
@@ -189,8 +190,8 @@ public class PaymentService(
 
     public async Task<PaymentEntity?> DeletePayment(Guid id)
     {
-        var entity = await unit.PaymentRepository.GetById(id, 
-            p => p.Requisite, 
+        var entity = await unit.PaymentRepository.GetById(id,
+            p => p.Requisite,
             p => p.Transaction,
             p => p.ManualConfirmUser,
             p => p.CanceledByUser);
@@ -205,7 +206,7 @@ public class PaymentService(
 
         unit.PaymentRepository.Delete(entity);
         await unit.Commit();
-        
+
         await notificationService.NotifyPaymentUpdated(mapper.Map<PaymentDto>(entity));
 
         return entity;
