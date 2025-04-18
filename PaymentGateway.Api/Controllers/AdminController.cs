@@ -1,4 +1,5 @@
-﻿using FluentValidation;
+﻿using System.Security.Claims;
+using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PaymentGateway.Application;
@@ -12,7 +13,7 @@ namespace PaymentGateway.Api.Controllers;
 [ApiController]
 [Route("[controller]/[action]")]
 [Authorize(Roles = "Admin")]
-public class UsersController(IAdminService service) : ControllerBase
+public class AdminController(IAdminService service, ILogger<AdminController> logger) : ControllerBase
 {
     [HttpPost]
     public async Task<ActionResult<UserDto>> CreateUser([FromBody] CreateUserDto? dto)
@@ -23,6 +24,7 @@ public class UsersController(IAdminService service) : ControllerBase
         {
             var user = await service.CreateUser(dto);
             if (user is null) return BadRequest();
+            logger.LogInformation("Создание пользователя {username} [{UserId}]", dto.Username, User.GetCurrentUserId());
             return Ok(user);
         }
         catch (DuplicateUserException)
@@ -59,12 +61,20 @@ public class UsersController(IAdminService service) : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
-    public async Task<ActionResult> DeleteUser(Guid id)
+    public async Task<ActionResult<bool>> DeleteUser(Guid id)
     {
-        var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-        var user = await service.DeleteUser(id, currentUserId);
-        if (user is null) return NotFound();
-        return Ok(true);
+        try
+        {
+            var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var result = await service.DeleteUser(id, currentUserId);
+            if (result is null) return BadRequest();
+            logger.LogInformation("Удаление пользователя {username} [{UserId}]", result.UserName, User.GetCurrentUserId());
+            return Ok(true);
+        }
+        catch (DeleteUserException e)
+        {
+            return BadRequest(e.Message);
+        }
     }
 
     [HttpPut]
@@ -76,6 +86,7 @@ public class UsersController(IAdminService service) : ControllerBase
         {
             var user = await service.UpdateUser(dto);
             if (user is null) return NotFound();
+            logger.LogInformation("Обновление пользователя {username} [{UserId}]", user.Username, User.GetCurrentUserId());
             return Ok(user);
         }
         catch (ValidationException e)

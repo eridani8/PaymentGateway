@@ -20,7 +20,7 @@ public class PaymentService(
     IValidator<PaymentCreateDto> createValidator,
     IValidator<PaymentManualConfirmDto> manualConfirmValidator,
     IValidator<PaymentCancelDto> cancelValidator,
-    ILogger<PaymentService> logger,
+    
     UserManager<UserEntity> userManager,
     INotificationService notificationService,
     IPaymentConfirmationService paymentConfirmationService) : IPaymentService
@@ -49,14 +49,12 @@ public class PaymentService(
 
         var paymentDto = mapper.Map<PaymentDto>(entity);
 
-        logger.LogInformation("Создание платежа {paymentId} на сумму {amount}", entity.Id, entity.Amount);
-
         await notificationService.NotifyPaymentUpdated(paymentDto);
 
         return paymentDto;
     }
 
-    public async Task<PaymentDto?> ManualConfirmPayment(PaymentManualConfirmDto dto, Guid currentUserId)
+    public async Task<PaymentEntity> ManualConfirmPayment(PaymentManualConfirmDto dto, Guid currentUserId)
     {
         var validation = await manualConfirmValidator.ValidateAsync(dto);
         if (!validation.IsValid)
@@ -102,12 +100,10 @@ public class PaymentService(
         
         await paymentConfirmationService.ProcessPaymentConfirmation(payment, requisite, payment.Amount);
 
-        logger.LogInformation("Ручное подтверждение платежа {paymentId}", payment.Id);
-
-        return mapper.Map<PaymentDto>(payment);
+        return payment;
     }
 
-    public async Task<PaymentDto?> CancelPayment(PaymentCancelDto dto, Guid currentUserId)
+    public async Task<PaymentEntity> CancelPayment(PaymentCancelDto dto, Guid currentUserId)
     {
         var validation = await cancelValidator.ValidateAsync(dto);
         if (!validation.IsValid)
@@ -152,13 +148,10 @@ public class PaymentService(
         unit.PaymentRepository.Update(payment);
         
         await unit.Commit();
-
-        var paymentDto = mapper.Map<PaymentDto>(payment);
         
-        logger.LogInformation("Отмена платежа {paymentId} пользователем {userId}", payment.Id, currentUserId);
-        await notificationService.NotifyPaymentUpdated(paymentDto);
+        await notificationService.NotifyPaymentUpdated(mapper.Map<PaymentDto>(payment));
 
-        return paymentDto;
+        return payment;
     }
 
     public async Task<IEnumerable<PaymentDto>> GetAllPayments()
@@ -192,7 +185,7 @@ public class PaymentService(
         return entity is not null ? mapper.Map<PaymentDto>(entity) : null;
     }
 
-    public async Task<PaymentDto?> DeletePayment(Guid id)
+    public async Task<PaymentEntity?> DeletePayment(Guid id)
     {
         var entity = await unit.PaymentRepository.GetById(id, 
             p => p.Requisite, 
@@ -210,12 +203,9 @@ public class PaymentService(
 
         unit.PaymentRepository.Delete(entity);
         await unit.Commit();
+        
+        await notificationService.NotifyPaymentUpdated(mapper.Map<PaymentDto>(entity));
 
-        var paymentDto = mapper.Map<PaymentDto>(entity);
-
-        logger.LogInformation("Удаление платежа {paymentId}", entity.Id);
-        await notificationService.NotifyPaymentUpdated(paymentDto);
-
-        return paymentDto;
+        return entity;
     }
 }

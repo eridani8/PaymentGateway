@@ -1,5 +1,6 @@
 ﻿@page "/users"
 @using PaymentGateway.Shared.DTOs.User
+@using PaymentGateway.Shared.Interfaces
 @attribute [Authorize(Roles = "Admin")]
 @inject IAdminService AdminService
 @inject IDialogService DialogService
@@ -199,7 +200,7 @@
         try
         {
             _isLoading = true;
-            _users = await AdminService.GetUsers();
+            _users = await AdminService.GetAllUsers();
         }
         catch (Exception e)
         {
@@ -234,9 +235,9 @@
         {
             try
             {
-                var success = await AdminService.DeleteUser(user.Id);
+                var deleteResult = await AdminService.DeleteUser(user.Id);
                 
-                if (success)
+                if (deleteResult)
                 {
                     Snackbar.Add($"Пользователь {user.Username} успешно удален", Severity.Success);
                     await LoadUsers();

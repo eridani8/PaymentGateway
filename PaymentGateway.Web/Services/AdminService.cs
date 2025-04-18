@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using PaymentGateway.Shared.DTOs.User;
+using PaymentGateway.Shared.Interfaces;
 using PaymentGateway.Web.Interfaces;
 
 namespace PaymentGateway.Web.Services;
@@ -10,7 +11,7 @@ public class AdminService(
 {
     private const string ApiEndpoint = "Users";
 
-    public async Task<List<UserDto>> GetUsers()
+    public async Task<List<UserDto>> GetAllUsers()
     {
         var response = await GetRequest($"{ApiEndpoint}/GetAllUsers");
         if (response.Code == System.Net.HttpStatusCode.OK)
@@ -24,7 +25,12 @@ public class AdminService(
     {
         return await PostRequest<UserDto>($"{ApiEndpoint}/CreateUser", dto);
     }
-    
+
+    public Task<UserDto?> GetUserById(Guid id)
+    {
+        throw new NotImplementedException();
+    }
+
     public async Task<bool> DeleteUser(Guid id)
     {
         var response = await DeleteRequest($"{ApiEndpoint}/DeleteUser/{id}");

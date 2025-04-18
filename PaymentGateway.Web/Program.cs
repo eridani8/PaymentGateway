@@ -18,6 +18,7 @@ using PaymentGateway.Shared.Validations.Validators.Requisite;
 using PaymentGateway.Shared.Validations.Validators.User;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using PaymentGateway.Shared.Interfaces;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 

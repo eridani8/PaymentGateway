@@ -12,7 +12,8 @@ namespace PaymentGateway.Api.Controllers;
 [Route("[controller]/[action]")]
 [Produces("application/json")]
 public class PaymentController(
-    IPaymentService service)
+    IPaymentService service,
+    ILogger<PaymentController> logger)
     : ControllerBase
 {
     [HttpPost]
@@ -24,6 +25,7 @@ public class PaymentController(
         {
             var payment = await service.CreatePayment(dto);
             if (payment is null) return BadRequest();
+            logger.LogInformation("Создание платежа {paymentId} на сумму {amount}", payment.Id, payment.Amount);
             return Ok(payment);
         }
         catch (DuplicatePaymentException)
@@ -37,7 +39,7 @@ public class PaymentController(
     }
 
     [HttpPost]
-    public async Task<ActionResult<PaymentDto>> ManualConfirmPayment([FromBody] PaymentManualConfirmDto? dto)
+    public async Task<ActionResult<bool>> ManualConfirmPayment([FromBody] PaymentManualConfirmDto? dto)
     {
         if (dto is null) return BadRequest();
 
@@ -46,8 +48,8 @@ public class PaymentController(
             var userId = User.GetCurrentUserId();
             if (userId == Guid.Empty) return Unauthorized();
             var payment = await service.ManualConfirmPayment(dto, userId);
-            if (payment is null) return BadRequest();
-            return Ok(payment);
+            logger.LogInformation("Ручное подтверждение платежа {paymentId} [{UserId}]", payment.Id, User.GetCurrentUserId());
+            return Ok(true);
         }
         catch (PaymentNotFound)
         {
@@ -65,7 +67,7 @@ public class PaymentController(
     
     [HttpPost]
     [Authorize(Roles = "Admin,Support")]
-    public async Task<ActionResult<PaymentDto>> CancelPayment([FromBody] PaymentCancelDto? dto)
+    public async Task<ActionResult<bool>> CancelPayment([FromBody] PaymentCancelDto? dto)
     {
         if (dto is null) return BadRequest();
 
@@ -74,8 +76,8 @@ public class PaymentController(
             var userId = User.GetCurrentUserId();
             if (userId == Guid.Empty) return Unauthorized();
             var payment = await service.CancelPayment(dto, userId);
-            if (payment is null) return BadRequest();
-            return Ok(payment);
+            logger.LogInformation("Отмена платежа {paymentId} [{UserId}]", payment.Id, User.GetCurrentUserId());
+            return Ok(true);
         }
         catch (PaymentNotFound)
         {
@@ -92,7 +94,7 @@ public class PaymentController(
     }
     
     [HttpGet]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Support")]
     public async Task<ActionResult<IEnumerable<PaymentDto>>> GetAll()
     {
         var payments = await service.GetAllPayments();
@@ -116,12 +118,13 @@ public class PaymentController(
         return Ok(payment);
     }
     
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Support")]
     [HttpDelete("{id:guid}")]
     public async Task<ActionResult<PaymentDto>> Delete(Guid id)
     {
         var payment = await service.DeletePayment(id);
         if (payment is null) return NotFound();
+        logger.LogInformation("Удаление платежа {paymentId} [{UserId}]", payment.Id, User.GetCurrentUserId());
         return Ok(payment);
     }
 }

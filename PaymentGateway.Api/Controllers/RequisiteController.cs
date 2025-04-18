@@ -12,7 +12,7 @@ namespace PaymentGateway.Api.Controllers;
 [Route("[controller]/[action]")]
 [Produces("application/json")]
 [Authorize]
-public class RequisiteController(IRequisiteService service)
+public class RequisiteController(IRequisiteService service, ILogger<RequisiteController> logger)
     : ControllerBase
 {
     [HttpPost]
@@ -26,6 +26,7 @@ public class RequisiteController(IRequisiteService service)
             if (userId == Guid.Empty) return Unauthorized();
             var requisite = await service.CreateRequisite(dto, userId);
             if (requisite is null) return BadRequest();
+            logger.LogInformation("Создание реквизита {requisiteId} [{UserId}]", requisite.Id, User.GetCurrentUserId());
             return Ok(requisite);
         }
         catch (DuplicateRequisiteException e)
@@ -78,6 +79,7 @@ public class RequisiteController(IRequisiteService service)
         {
             var requisite = await service.UpdateRequisite(id, dto);
             if (requisite is null) return BadRequest();
+            logger.LogInformation("Обновление реквизита {requisiteId} [{UserId}]", requisite.Id, User.GetCurrentUserId());
             return Ok(requisite);
         }
         catch (ValidationException e)
@@ -91,6 +93,7 @@ public class RequisiteController(IRequisiteService service)
     {
         var requisite = await service.DeleteRequisite(id);
         if (requisite is null) return NotFound();
+        logger.LogInformation("Удаление реквизита {requisiteId} [{UserId}]", id, User.GetCurrentUserId());
         return Ok(requisite);
     }
 }

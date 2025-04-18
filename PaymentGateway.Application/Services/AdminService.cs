@@ -16,7 +16,6 @@ public class AdminService(
     UserManager<UserEntity> userManager,
     IValidator<CreateUserDto> createValidator,
     IValidator<UpdateUserDto> updateValidator,
-    ILogger<AdminService> logger,
     INotificationService notificationService) : IAdminService
 {
     public async Task<UserDto?> CreateUser(CreateUserDto dto)
@@ -45,8 +44,6 @@ public class AdminService(
         {
             await userManager.AddToRoleAsync(user, role);
         }
-        
-        logger.LogInformation("Создание пользователя {username}", dto.Username);
     
         var roles = await userManager.GetRolesAsync(user);
         var userDto = mapper.Map<UserDto>(user);
@@ -57,7 +54,7 @@ public class AdminService(
         return userDto;
     }
 
-    public async Task<IEnumerable<UserDto>> GetAllUsers()
+    public async Task<List<UserDto>> GetAllUsers()
     {
         var users = await userManager.Users.AsNoTracking().ToListAsync();
         var userDtos = new List<UserDto>();
@@ -86,26 +83,24 @@ public class AdminService(
         return userDto;
     }
 
-    public async Task<UserDto?> DeleteUser(Guid id, string? currentUserId)
+    public async Task<UserEntity?> DeleteUser(Guid id, string? currentUserId)
     {
         var user = await userManager.FindByIdAsync(id.ToString());
         if (user is null) return null;
 
         if (user.UserName == "root")
         {
-            return null;
+            throw new DeleteUserException("Нельзя удалить root пользователя");
         }
 
         if (id.ToString() == currentUserId)
         {
-            return null;
+            throw new DeleteUserException("Нельзя удалить себя");
         }
 
         await userManager.DeleteAsync(user);
         
-        logger.LogInformation("Удаление пользователя {username}", user.UserName);
-        
-        return mapper.Map<UserDto>(user);
+        return user;
     }
 
     public async Task<UserDto?> UpdateUser(UpdateUserDto dto)
@@ -138,8 +133,6 @@ public class AdminService(
         var currentRoles = await userManager.GetRolesAsync(user);
         await userManager.RemoveFromRolesAsync(user, currentRoles);
         await userManager.AddToRolesAsync(user, dto.Roles);
-        
-        logger.LogInformation("Обновление пользователя {username}", user.UserName);
         
         var updatedRoles = await userManager.GetRolesAsync(user);
         var userDto = mapper.Map<UserDto>(user);

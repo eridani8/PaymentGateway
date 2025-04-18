@@ -8,6 +8,7 @@ using PaymentGateway.Shared.DTOs.Payment;
 using PaymentGateway.Shared.DTOs.Requisite;
 using PaymentGateway.Shared.DTOs.Transaction;
 using PaymentGateway.Shared.DTOs.User;
+using PaymentGateway.Shared.Interfaces;
 using PaymentGateway.Shared.Validations.Validators.Payment;
 using PaymentGateway.Shared.Validations.Validators.Requisite;
 using PaymentGateway.Shared.Validations.Validators.Transaction;

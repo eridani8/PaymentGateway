@@ -67,8 +67,6 @@ public class RequisiteService(
         await notificationService.NotifyRequisiteUpdated(requisiteDto);
         await notificationService.NotifyUserUpdated(mapper.Map<UserDto>(user));
 
-        logger.LogInformation("Создание реквизита {requisiteId}", requisite.Id);
-
         return requisiteDto;
     }
 
@@ -128,7 +126,6 @@ public class RequisiteService(
         var requisiteDto = mapper.Map<RequisiteDto>(requisite);
         
         await notificationService.NotifyRequisiteUpdated(requisiteDto);
-        logger.LogInformation("Обновление реквизита {requisiteId}", requisite.Id);
 
         return requisiteDto;
     }
@@ -149,8 +146,6 @@ public class RequisiteService(
 
         await notificationService.NotifyRequisiteDeleted(id, userId);
         await notificationService.NotifyUserUpdated(mapper.Map<UserDto>(requisite.User));
-
-        logger.LogInformation("Удаление реквизита {requisiteId}", id);
 
         return requisiteDto;
     }
