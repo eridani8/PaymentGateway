@@ -5,13 +5,9 @@ using PaymentGateway.Web.Interfaces;
 
 namespace PaymentGateway.Web.Services;
 
-public class ServiceBase(IHttpClientFactory factory, ILogger<ServiceBase> logger) : IServiceBase
+public class ServiceBase(IHttpClientFactory factory, ILogger<ServiceBase> logger, JsonSerializerOptions jsonOptions) : IServiceBase
 {
-    protected readonly JsonSerializerOptions JsonOptions = new()
-    {
-        PropertyNameCaseInsensitive = true,
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-    };
+    protected JsonSerializerOptions JsonOptions => jsonOptions;
 
     public async Task<Response> PostRequest(string url, object model)
     {

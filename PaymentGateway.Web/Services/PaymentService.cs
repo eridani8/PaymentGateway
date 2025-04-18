@@ -2,7 +2,6 @@
 using System.Text.Json;
 using Microsoft.AspNetCore.Components.Authorization;
 using PaymentGateway.Shared.DTOs.Payment;
-using PaymentGateway.Shared.DTOs.Requisite;
 using PaymentGateway.Web.Interfaces;
 
 namespace PaymentGateway.Web.Services;
@@ -10,7 +9,8 @@ namespace PaymentGateway.Web.Services;
 public class PaymentService(
     IHttpClientFactory factory,
     ILogger<RequisiteService> logger,
-    AuthenticationStateProvider authStateProvider) : ServiceBase(factory, logger), IPaymentService
+    AuthenticationStateProvider authStateProvider,
+    JsonSerializerOptions jsonOptions) : ServiceBase(factory, logger, jsonOptions), IPaymentService
 {
     private const string ApiEndpoint = "Payment";
     
@@ -120,7 +120,15 @@ public class PaymentService(
         
         if (response.Code == HttpStatusCode.OK && !string.IsNullOrEmpty(response.Content))
         {
-            return JsonSerializer.Deserialize<PaymentDto>(response.Content, JsonOptions);
+            try
+            {
+                return JsonSerializer.Deserialize<PaymentDto>(response.Content, JsonOptions);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Ошибка при десериализации платежа с ID {Id}: {Message}", id, ex.Message);
+                return null;
+            }
         }
         
         if (response.Code == HttpStatusCode.NotFound)

@@ -82,6 +82,12 @@ try
     builder.Services.AddControllers(options =>
     {
         options.Filters.Add<UserStatusFilter>();
+    })
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
+        options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+        options.JsonSerializerOptions.MaxDepth = 128;
     });
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen(o =>

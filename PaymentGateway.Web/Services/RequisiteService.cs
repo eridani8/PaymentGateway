@@ -9,7 +9,8 @@ namespace PaymentGateway.Web.Services;
 public class RequisiteService(
     IHttpClientFactory factory,
     ILogger<RequisiteService> logger,
-    AuthenticationStateProvider authStateProvider) : ServiceBase(factory, logger), IRequisiteService
+    AuthenticationStateProvider authStateProvider,
+    JsonSerializerOptions jsonOptions) : ServiceBase(factory, logger, jsonOptions), IRequisiteService
 {
     private const string ApiEndpoint = "Requisite";
     

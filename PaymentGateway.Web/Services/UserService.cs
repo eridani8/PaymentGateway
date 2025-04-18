@@ -1,11 +1,13 @@
 ﻿using PaymentGateway.Shared.DTOs.User;
 using PaymentGateway.Web.Interfaces;
+using System.Text.Json;
 
 namespace PaymentGateway.Web.Services;
 
 public class UserService(
     IHttpClientFactory factory,
-    ILogger<UserService> logger) : ServiceBase(factory, logger), IUserService
+    ILogger<UserService> logger,
+    JsonSerializerOptions jsonOptions) : ServiceBase(factory, logger, jsonOptions), IUserService
 {
     private const string ApiEndpoint = "user";
     

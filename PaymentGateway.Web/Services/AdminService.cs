@@ -1,13 +1,13 @@
 ﻿using System.Text.Json;
 using PaymentGateway.Shared.DTOs.User;
-using PaymentGateway.Shared.Interfaces;
 using PaymentGateway.Web.Interfaces;
 
 namespace PaymentGateway.Web.Services;
 
 public class AdminService(
     IHttpClientFactory factory,
-    ILogger<AdminService> logger) : ServiceBase(factory, logger), IAdminService
+    ILogger<AdminService> logger,
+    JsonSerializerOptions jsonOptions) : ServiceBase(factory, logger, jsonOptions), IAdminService
 {
     private const string ApiEndpoint = "Users";
 

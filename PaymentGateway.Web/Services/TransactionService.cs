@@ -9,7 +9,8 @@ namespace PaymentGateway.Web.Services;
 public class TransactionService(
     IHttpClientFactory factory,
     ILogger<TransactionService> logger,
-    AuthenticationStateProvider authStateProvider) : ServiceBase(factory, logger), ITransactionService
+    AuthenticationStateProvider authStateProvider,
+    JsonSerializerOptions jsonOptions) : ServiceBase(factory, logger, jsonOptions), ITransactionService
 {
     private const string ApiEndpoint = "Transaction";
     
