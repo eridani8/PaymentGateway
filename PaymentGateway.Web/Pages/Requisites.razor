@@ -82,6 +82,7 @@
                                 @($"{cellContext.Item.MonthReceivedFunds:N0}/{cellContext.Item.MonthLimit:N0}")
                             </CellTemplate>
                         </TemplateColumn>
+                        <PropertyColumn Property="x => x.DayOperationsCount" Title="Операций (день)"/>
                         <TemplateColumn Title="Статус">
                             <CellTemplate Context="cellContext">
                                 <MudChip Color="@GetStatusColor(cellContext.Item.Status)" Size="Size.Medium">
