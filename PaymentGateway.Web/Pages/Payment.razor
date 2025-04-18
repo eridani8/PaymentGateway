@@ -1,10 +1,8 @@
 @page "/payment/{Id:guid}"
 @using PaymentGateway.Shared.DTOs.Payment
-@using PaymentGateway.Shared.DTOs.Requisite
 @using PaymentGateway.Shared.Enums
 @attribute [AllowAnonymous]
 @inject IPaymentService PaymentService
-@inject SignalRService SignalRService
 @inject ISnackbar Snackbar
 @inject NavigationManager Navigation
 @inject ILogger<Payment> Logger
@@ -99,7 +97,7 @@
                 @if (_payment.Status != PaymentStatus.Confirmed)
                 {
                     <MudButton Variant="Variant.Filled" Color="Color.Success" 
-                              OnClick="SimulatePayment" Class="mt-4 d-block mx-auto"
+                              OnClick="@(SimulatePayment)" Class="mt-4 d-block mx-auto"
                               Disabled="@(_isSimulating)">
                         @if (_isSimulating)
                         {
@@ -161,24 +159,14 @@
     private bool _isLoading = true;
     private bool _isSimulating;
     private bool _showSuccessDialog;
-    private bool _signalRInitialized;
-    private bool _requisiteSignalRInitialized;
+    private Timer? _refreshTimer;
+    private const int RefreshInterval = 3000;
     
     protected override async Task OnInitializedAsync()
     {
         await LoadPayment();
         
-        if (_payment != null)
-        {
-            try
-            {
-                await InitializeSignalR();
-            }
-            catch (Exception ex)
-            {
-                Snackbar.Add($"Ошибка при инициализации обновлений: {ex.Message}", Severity.Warning);
-            }
-        }
+        _refreshTimer = new Timer(TimerTick, null, RefreshInterval, RefreshInterval);
     }
     
     private async Task LoadPayment()
@@ -192,10 +180,10 @@
             {
                 Snackbar.Add("Платеж не найден или вы не имеете доступа к нему", Severity.Error);
             }
-            else if (_payment.Requisite != null && !_requisiteSignalRInitialized)
+            else if (_payment.Status == PaymentStatus.Confirmed && !_showSuccessDialog)
             {
-                // If payment has a requisite, subscribe to requisite updates as well
-                await SubscribeToRequisiteUpdates(_payment.Requisite.Id);
+                _showSuccessDialog = true;
+                Snackbar.Add("Платеж успешно выполнен", Severity.Success);
             }
         }
         catch (Exception ex)
@@ -209,100 +197,38 @@
         }
     }
     
-    private async Task InitializeSignalR()
-    {
-        if (_signalRInitialized)
-            return;
-            
-        try
-        {
-            await SignalRService.InitializeAsync();
-            await SignalRService.SubscribeToSpecificPayment(Id, HandlePaymentUpdate);
-            _signalRInitialized = true;
-            
-            Logger.LogInformation("Подписка на обновления платежа {PaymentId} успешно инициализирована", Id);
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Ошибка при инициализации подписки на обновления платежа {PaymentId}", Id);
-            throw;
-        }
-    }
-
-    private async Task SubscribeToRequisiteUpdates(Guid requisiteId)
-    {
-        if (_requisiteSignalRInitialized)
-            return;
-            
-        try
-        {
-            await SignalRService.InitializeAsync();
-            // Вместо использования SubscribeToSpecificRequisite, используем обычный метод загрузки платежа
-            // при обновлении реквизита, так как метод SubscribeToSpecificRequisite не реализован
-            SignalRService.SubscribeToRequisiteUpdates(HandleRequisiteUpdate);
-            _requisiteSignalRInitialized = true;
-            
-            Logger.LogInformation("Подписка на обновления реквизита {RequisiteId} успешно инициализирована", requisiteId);
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Ошибка при инициализации подписки на обновления реквизита {RequisiteId}", requisiteId);
-            throw;
-        }
-    }
-    
-    private async void HandlePaymentUpdate(PaymentDto updatedPayment)
+    private async void TimerTick(object? state)
     {
         try
         {
-            Logger.LogInformation("Получено обновление платежа {PaymentId}, статус: {Status}", 
-                updatedPayment.Id, updatedPayment.Status);
-            
-            if (_payment != null && updatedPayment.Id == _payment.Id)
+            if (_payment == null)
+                return;
+                
+            var updatedPayment = await PaymentService.GetPaymentById(Id);
+            if (updatedPayment != null && 
+                (_payment.Status != updatedPayment.Status || 
+                 _payment.Requisite?.Id != updatedPayment.Requisite?.Id))
             {
                 _payment = updatedPayment;
                 
-                if (_payment.Requisite != null && !_requisiteSignalRInitialized)
-                {
-                    // Если платежу был назначен реквизит, подписываемся на его обновления
-                    await SubscribeToRequisiteUpdates(_payment.Requisite.Id);
-                }
-                
-                await InvokeAsync(StateHasChanged);
-                
-                // Показываем диалог успеха, если платеж был подтвержден
                 if (_payment.Status == PaymentStatus.Confirmed && !_showSuccessDialog)
                 {
                     _showSuccessDialog = true;
-                    Snackbar.Add("Платеж успешно выполнен", Severity.Success);
+                    await InvokeAsync(() => Snackbar.Add("Платеж успешно выполнен", Severity.Success));
                 }
-            }
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Ошибка при обработке обновления платежа {PaymentId}", updatedPayment.Id);
-        }
-    }
-    
-    private async void HandleRequisiteUpdate(RequisiteDto updatedRequisite)
-    {
-        try
-        {
-            Logger.LogInformation("Получено обновление реквизита {RequisiteId}", updatedRequisite.Id);
-            
-            if (_payment?.Requisite != null && updatedRequisite.Id == _payment.Requisite.Id)
-            {
-                // Обновляем платеж, чтобы получить актуальный реквизит
-                _payment = await PaymentService.GetPaymentById(Id);
+                
                 await InvokeAsync(StateHasChanged);
+                
+                Logger.LogInformation("Обновлена информация о платеже {PaymentId}, статус: {Status}", 
+                    _payment.Id, _payment.Status);
             }
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Ошибка при обработке обновления реквизита {RequisiteId}", updatedRequisite.Id);
+            Logger.LogError(ex, "Ошибка при обновлении данных платежа {PaymentId}", Id);
         }
     }
-    
+
     private async Task SimulatePayment()
     {
         if (_payment == null)
@@ -343,16 +269,9 @@
         _showSuccessDialog = false;
     }
     
-    public async void Dispose()
+    public void Dispose()
     {
-        if (_signalRInitialized)
-        {
-            await SignalRService.UnsubscribeFromSpecificPayment(Id);
-        }
-        
-        if (_requisiteSignalRInitialized)
-        {
-            SignalRService.UnsubscribeFromRequisiteUpdates();
-        }
+        _refreshTimer?.Dispose();
+        _refreshTimer = null;
     }
 } 

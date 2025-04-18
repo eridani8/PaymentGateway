@@ -117,7 +117,6 @@ public class GatewayHandler(
             var requisiteDto = mapper.Map<RequisiteDto>(requisite);
 
             await notificationService.NotifyPaymentUpdated(paymentDto);
-            await notificationService.NotifySpecificPaymentUpdated(paymentDto);
             await notificationService.NotifyRequisiteUpdated(requisiteDto);
 
             logger.LogInformation("Платеж {payment} назначен реквизиту {requisite}", payment.Id, requisite.Id);

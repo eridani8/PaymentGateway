@@ -42,7 +42,6 @@ public class PaymentConfirmationService(
 
         var paymentDto = mapper.Map<PaymentDto>(payment);
         await notificationService.NotifyPaymentUpdated(paymentDto);
-        await notificationService.NotifySpecificPaymentUpdated(paymentDto);
         
         var requisiteDto = mapper.Map<RequisiteDto>(requisite);
         

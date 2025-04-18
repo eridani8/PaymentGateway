@@ -208,19 +208,4 @@ public class NotificationService(
             logger.LogError(ex, "Ошибка отправки уведомления об удалении платежа {PaymentId}", id);
         }
     }
-
-    public async Task NotifySpecificPaymentUpdated(PaymentDto payment)
-    {
-        try
-        {
-            var groupName = $"PaymentUpdate_{payment.Id}";
-            await hubContext.Clients.Group(groupName).PaymentUpdated(payment);
-            logger.LogInformation("Отправлено уведомление об обновлении платежа {PaymentId} для группы {GroupName}", 
-                payment.Id, groupName);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Ошибка отправки уведомления об обновлении платежа {PaymentId} для группы", payment.Id);
-        }
-    }
 } 

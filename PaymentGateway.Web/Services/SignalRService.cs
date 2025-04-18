@@ -355,6 +355,154 @@ public class SignalRService(
         }
     }
 
+    public async Task InitializeAnonymousAsync()
+    {
+        if (_isDisposing || _isDisposed)
+        {
+            logger.LogWarning("Попытка инициализации SignalR во время утилизации");
+            return;
+        }
+
+        try
+        {
+            await _connectionLock.WaitAsync();
+        }
+        catch (ObjectDisposedException)
+        {
+            logger.LogWarning("Не удалось получить блокировку - семафор утилизирован");
+            return;
+        }
+
+        try
+        {
+            if (_hubConnection?.State == HubConnectionState.Connected)
+            {
+                logger.LogInformation("SignalR соединение уже установлено");
+                return;
+            }
+
+            logger.LogInformation("Инициализация анонимного SignalR соединения");
+
+            if (_hubConnection != null)
+            {
+                await _hubConnection.DisposeAsync();
+                if (_pingTimer != null)
+                {
+                    await _pingTimer.DisposeAsync();
+                }
+                _pingTimer = null;
+            }
+
+            _hubConnection = new HubConnectionBuilder()
+                .WithUrl(_hubUrl, options => {
+                    options.CloseTimeout = TimeSpan.FromMinutes(60);
+                    options.SkipNegotiation = false;
+                    options.Transports = Microsoft.AspNetCore.Http.Connections.HttpTransportType.WebSockets | 
+                                        Microsoft.AspNetCore.Http.Connections.HttpTransportType.ServerSentEvents;
+                })
+                .WithAutomaticReconnect([
+                    TimeSpan.FromSeconds(0), 
+                    TimeSpan.FromSeconds(2), 
+                    TimeSpan.FromSeconds(5), 
+                    TimeSpan.FromSeconds(10),
+                    TimeSpan.FromSeconds(20), 
+                    TimeSpan.FromSeconds(30),
+                    TimeSpan.FromMinutes(1)
+                ])
+                .WithKeepAliveInterval(TimeSpan.FromSeconds(30))
+                .WithServerTimeout(TimeSpan.FromMinutes(5))
+                .AddJsonProtocol(options => {
+                    options.PayloadSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
+                    options.PayloadSerializerOptions.PropertyNameCaseInsensitive = true;
+                    options.PayloadSerializerOptions.MaxDepth = 128;
+                })
+                .Build();
+
+            _hubConnection.On("KeepAlive", () => Task.CompletedTask);
+
+            _hubConnection.Reconnecting += error =>
+            {
+                logger.LogWarning("Попытка переподключения анонимного SignalR: {Error}", error?.Message);
+                return Task.CompletedTask;
+            };
+
+            _hubConnection.Reconnected += connectionId =>
+            {
+                logger.LogInformation("Анонимное SignalR соединение успешно переподключено: {ConnectionId}", connectionId);
+                return Task.CompletedTask;
+            };
+
+            _hubConnection.Closed += async (error) =>
+            {
+                if (_pingTimer != null)
+                {
+                    await _pingTimer.DisposeAsync();
+                }
+                
+                _pingTimer = null;
+
+                if (_isDisposing || _isDisposed) return;
+
+                if (error != null)
+                {
+                    logger.LogWarning("Анонимное соединение с SignalR закрыто с ошибкой: {Error}", error.Message);
+                    
+                    if (error.Message.Contains("runtime.lastError") || 
+                        error.Message.Contains("message channel closed") ||
+                        error.Message.Contains("Error: A listener indicated an asynchronous response"))
+                    {
+                        logger.LogWarning("Обнаружена ошибка 'runtime.lastError', инициируем переподключение через 2 секунды");
+                        await Task.Delay(2000);
+                        _hubConnection?.Remove("KeepAlive");
+                    }
+                }
+
+                logger.LogInformation("Попытка переподключения к анонимному SignalR...");
+                try
+                {
+                    await Task.Delay(new Random().Next(100, 1000));
+                    
+                    if (_hubConnection != null && _hubConnection.State != HubConnectionState.Connected)
+                    {
+                        if (DateTime.UtcNow - _lastConnectionTime > TimeSpan.FromMinutes(5))
+                        {
+                            logger.LogInformation("Прошло более 5 минут с момента закрытия, полностью пересоздаем соединение");
+                            await InitializeAnonymousAsync();
+                        }
+                        else
+                        {
+                            await StartConnectionWithRetryAsync();
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Не удалось подключиться к анонимному SignalR после всех попыток");
+                }
+            };
+
+            await StartConnectionWithRetryAsync();
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Ошибка при инициализации анонимного SignalR соединения: {Message}", ex.Message);
+        }
+        finally
+        {
+            try
+            {
+                if (!_isDisposed)
+                {
+                    _connectionLock.Release();
+                }
+            }
+            catch (ObjectDisposedException)
+            {
+                // ignore
+            }
+        }
+    }
+
     #region Requisite
 
     public void SubscribeToRequisiteUpdates(Action<RequisiteDto> handler)
@@ -425,11 +573,11 @@ public class SignalRService(
         Unsubscribe(SignalREvents.PaymentDeleted);
     }
 
-    public async Task SubscribeToSpecificPayment(Guid paymentId, Action<PaymentDto> handler)
+    public async Task SubscribeToSpecificPayment(Guid paymentId, Action<PaymentDto> handler, bool allowAnonymous = true)
     {
         try
         {
-            await EnsureConnected();
+            await EnsureConnected(allowAnonymous);
             
             var eventName = $"PaymentUpdate_{paymentId}";
             
@@ -460,7 +608,7 @@ public class SignalRService(
         }
     }
     
-    public async Task UnsubscribeFromSpecificPayment(Guid paymentId)
+    public async Task UnsubscribeFromSpecificPayment(Guid paymentId, bool allowAnonymous = true)
     {
         try
         {
@@ -472,6 +620,11 @@ public class SignalRService(
             var eventName = $"PaymentUpdate_{paymentId}";
             _hubConnection.Remove(eventName);
             
+            if (_hubConnection.State != HubConnectionState.Connected)
+            {
+                await EnsureConnected(allowAnonymous);
+            }
+            
             await _hubConnection.InvokeAsync("UnregisterFromPaymentUpdates", paymentId);
             
             logger.LogInformation("Отписка от обновлений платежа {PaymentId} выполнена", paymentId);
@@ -482,11 +635,18 @@ public class SignalRService(
         }
     }
     
-    private async Task EnsureConnected()
+    private async Task EnsureConnected(bool allowAnonymous = false)
     {
         if (_hubConnection is not { State: HubConnectionState.Connected })
         {
-            await InitializeAsync();
+            if (allowAnonymous)
+            {
+                await InitializeAnonymousAsync();
+            }
+            else
+            {
+                await InitializeAsync();
+            }
             await StartConnectionWithRetryAsync();
         }
     }

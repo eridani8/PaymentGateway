@@ -50,7 +50,6 @@ public class PaymentService(
         var paymentDto = mapper.Map<PaymentDto>(entity);
 
         await notificationService.NotifyPaymentUpdated(paymentDto);
-        await notificationService.NotifySpecificPaymentUpdated(paymentDto);
 
         return paymentDto;
     }
@@ -153,7 +152,6 @@ public class PaymentService(
         var paymentDto = mapper.Map<PaymentDto>(payment);
 
         await notificationService.NotifyPaymentUpdated(paymentDto);
-        await notificationService.NotifySpecificPaymentUpdated(paymentDto);
 
         return payment;
     }
