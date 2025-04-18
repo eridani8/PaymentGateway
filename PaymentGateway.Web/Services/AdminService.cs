@@ -9,7 +9,7 @@ public class AdminService(
     ILogger<AdminService> logger,
     JsonSerializerOptions jsonOptions) : ServiceBase(factory, logger, jsonOptions), IAdminService
 {
-    private const string ApiEndpoint = "Users";
+    private const string ApiEndpoint = "Admin";
 
     public async Task<List<UserDto>> GetAllUsers()
     {
