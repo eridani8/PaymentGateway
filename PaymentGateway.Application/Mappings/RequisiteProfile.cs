@@ -29,8 +29,8 @@ public class RequisiteProfile : Profile
             .ForMember(dest => dest.MonthLimit, opt => opt.MapFrom(src => src.MonthLimit))
             .ForMember(dest => dest.Cooldown, opt => opt.MapFrom(src => src.Cooldown))
             .ForMember(dest => dest.Priority, opt => opt.MapFrom(src => src.Priority))
-            .ForMember(dest => dest.WorkFrom, opt => opt.MapFrom(src => src.WorkFrom))
-            .ForMember(dest => dest.WorkTo, opt => opt.MapFrom(src => src.WorkTo))
+            .ForMember(dest => dest.User, opt => opt.MapFrom(src => src.User))
+            .ForMember(dest => dest.DayOperationsCount, opt => opt.MapFrom(src => src.DayOperationsCount))
             
             .ForMember(dest => dest.CreatedAt, opt => opt.ConvertUsing(new UtcToLocalDateTimeConverter(), src => src.CreatedAt))
             .ForMember(dest => dest.WorkFrom, opt => opt.ConvertUsing(new UtcToLocalTimeOnlyConverter(), src => src.WorkFrom))

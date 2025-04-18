@@ -77,6 +77,11 @@ public class RequisiteEntity : IRequisiteEntity, ICacheable
     public bool IsActive { get; set; }
 
     /// <summary>
+    /// Количество операций за день
+    /// </summary>
+    public int DayOperationsCount { get; set; }
+    
+    /// <summary>
     /// Полученные за день средства
     /// </summary>
     [Range(0, 9999999999999999.99)]
@@ -152,6 +157,7 @@ public class RequisiteEntity : IRequisiteEntity, ICacheable
     {
         DayReceivedFunds += amount;
         MonthReceivedFunds += amount;
+        DayOperationsCount++;
         PaymentId = null;
         Payment = null;
         LastOperationTime = DateTime.UtcNow;

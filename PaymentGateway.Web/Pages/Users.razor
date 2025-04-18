@@ -312,7 +312,7 @@
         }
     }
 
-    private static Color GetRoleColor(string role) => role switch
+    public static Color GetRoleColor(string role) => role switch
     {
         "Admin" => Color.Warning,
         "User" => Color.Secondary,
@@ -340,7 +340,15 @@
         try
         {
             _isLoading = true;
-            _users = [await AdminService.GetUserById(userId)];
+            if (await AdminService.GetUserById(userId) is { } user)
+            {
+                _users = [user];
+            }
+            else
+            {
+                _users = [];
+            }
+            
             _isFiltered = true;
 
             if (_users.Count == 0)

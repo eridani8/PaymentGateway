@@ -47,6 +47,7 @@ public class GatewayHandler(
                 {
                     logger.LogInformation("Сброс полученных средств с реквизита {requisiteId}", requisite.Id);
                     requisite.DayReceivedFunds = 0;
+                    requisite.DayOperationsCount = 0;
                     requisite.LastDayFundsResetAt = now;
                     unit.RequisiteRepository.Update(requisite);
                     cache.Set(resetCacheKey, TimeSpan.FromHours(25));

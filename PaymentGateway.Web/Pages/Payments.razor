@@ -58,6 +58,16 @@
                              Hover="true">
                     <Columns>
                         <HierarchyColumn/>
+                        <TemplateColumn>
+                            <CellTemplate Context="cellContext">
+                                @if (!string.IsNullOrEmpty(cellContext.Item?.Requisite?.User?.Username))
+                                {
+                                    <MudChip
+                                        Color="@Users.GetRoleColor(cellContext.Item?.Requisite?.User?.Roles.FirstOrDefault() ?? "")"
+                                        Text="@cellContext.Item!.Requisite!.User!.Username"/>
+                                }
+                            </CellTemplate>
+                        </TemplateColumn>
                         <PropertyColumn Property="x => x.Amount" Title="Сумма"/>
                         <TemplateColumn Title="Статус">
                             <CellTemplate Context="cellContext">
