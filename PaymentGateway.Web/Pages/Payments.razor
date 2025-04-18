@@ -62,9 +62,9 @@
                             <CellTemplate Context="cellContext">
                                 @if (!string.IsNullOrEmpty(cellContext.Item?.Requisite?.User?.Username))
                                 {
-                                    <MudChip
-                                        Color="@Users.GetRoleColor(cellContext.Item?.Requisite?.User?.Roles.FirstOrDefault() ?? "")"
-                                        Text="@cellContext.Item!.Requisite!.User!.Username"/>
+                                    <MudChip Icon="@Icons.Material.Filled.Person"
+                                             Color="Color.Primary"
+                                             Text="@cellContext.Item!.Requisite!.User!.Username"/>
                                 }
                             </CellTemplate>
                         </TemplateColumn>
