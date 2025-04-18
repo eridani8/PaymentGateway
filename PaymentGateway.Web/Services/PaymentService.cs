@@ -100,7 +100,7 @@ public class PaymentService(
     public async Task<List<PaymentDto>> GetPaymentsByUserId(Guid userId)
     {
         var authState = await authStateProvider.GetAuthenticationStateAsync();
-        var isAdmin = authState.User.IsInRole("Admin");
+        var isAdmin = authState.User.IsInRole("Admin") || authState.User.IsInRole("Support");
         
         if (!isAdmin)
         {
@@ -110,8 +110,8 @@ public class PaymentService(
         
         var allPayments = await GetPayments();
         return allPayments
-        .Where(p => p.Requisite != null && p.Requisite.UserId == userId)
-        .ToList();
+            .Where(p => p.Requisite != null && p.Requisite.UserId == userId)
+            .ToList();
     }
     
     public async Task<PaymentDto?> GetPaymentById(Guid id)

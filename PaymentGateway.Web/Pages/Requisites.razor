@@ -1,10 +1,8 @@
 ﻿@page "/requisites"
-@using System.Net
 @using PaymentGateway.Shared.DTOs.Requisite
 @using PaymentGateway.Shared.Enums
 @attribute [Authorize(Roles = "User,Admin,Support")]
 @inject IRequisiteService RequisiteService
-@inject IPaymentService PaymentService
 @inject ILogger<Requisites> Logger
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
@@ -22,12 +20,41 @@
                     <MudText Typo="Typo.h6">Список реквизитов</MudText>
                     <MudSpacer/>
                     <MudButton
-                        Variant="Variant.Filled"
+                        Variant="Variant.Outlined"
                         Color="Color.Primary"
                         StartIcon="@Icons.Material.Filled.Add"
                         OnClick="@(OpenCreateDialog)">
                         Создать реквизит
                     </MudButton>
+                    <MudSpacer/>
+                    <AuthorizeView Roles="Admin, Support">
+                        <Authorized Context="adminContext">
+                            <MudStack Row="true" Spacing="1">
+                                <MudTextField @bind-Value="_searchUserId" Label="ID пользователя"
+                                              Adornment="Adornment.End"
+                                              AdornmentIcon="@Icons.Material.Filled.Search"
+                                              Variant="Variant.Outlined"
+                                              Margin="Margin.Normal"
+                                              Placeholder="Фильтр по пользователю"
+                                              Error="@(!string.IsNullOrEmpty(_searchError))"
+                                              ErrorText="@_searchError"
+                                              Style="width: 600px"/>
+                                <MudButton Color="Color.Primary"
+                                           Variant="Variant.Outlined"
+                                           OnClick="@(SearchRequisitesByUserId)"
+                                           Style="height: 56px; align-self: flex-start; margin-top: 16px;">Найти
+                                </MudButton>
+                                @if (_isFiltered)
+                                {
+                                    <MudButton Color="Color.Secondary"
+                                               Variant="Variant.Outlined"
+                                               OnClick="@(ClearSearch)"
+                                               Style="height: 56px; align-self: flex-start; margin-top: 16px;">Сбросить
+                                    </MudButton>
+                                }
+                            </MudStack>
+                        </Authorized>
+                    </AuthorizeView>
                 </MudToolBar>
                 <MudDataGrid T="RequisiteDto"
                              Items="_requisites"
@@ -158,6 +185,9 @@
     private Timer _refreshTimer = null!;
     private const int RefreshInterval = 3000;
     private bool _isInitialized;
+    private string _searchUserId = string.Empty;
+    private string _searchError = string.Empty;
+    private bool _isFiltered;
 
     protected override async Task OnInitializedAsync()
     {
@@ -397,4 +427,52 @@
         var totalMinutes = Math.Ceiling(remaining.TotalMinutes);
         return $" {totalMinutes} мин";
     }
+
+    private async Task SearchRequisitesByUserId()
+    {
+        _searchError = string.Empty;
+
+        if (string.IsNullOrWhiteSpace(_searchUserId))
+        {
+            await LoadRequisites();
+            _isFiltered = false;
+            return;
+        }
+
+        if (!Guid.TryParse(_searchUserId, out var userId))
+        {
+            _searchError = "Некорректный формат ID пользователя";
+            return;
+        }
+
+        try
+        {
+            _isLoading = true;
+            _requisites = await RequisiteService.GetRequisitesByUserId(userId);
+            _isFiltered = true;
+
+            if (_requisites.Count == 0)
+            {
+                Snackbar.Add("Реквизиты по указанному ID пользователя не найдены", Severity.Info);
+            }
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e, "Ошибка при поиске реквизитов по ID пользователя {UserId}", userId);
+            Snackbar.Add("Ошибка при поиске реквизитов", Severity.Error);
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+    
+    private async Task ClearSearch()
+    {
+        _searchUserId = string.Empty;
+        _searchError = string.Empty;
+        _isFiltered = false;
+        await LoadRequisites();
+    }
+
 }

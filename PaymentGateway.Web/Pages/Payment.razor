@@ -1,6 +1,7 @@
 @page "/payment/{Id:guid}"
 @using System.Globalization
 @using PaymentGateway.Shared.DTOs.Payment
+@using PaymentGateway.Shared.DTOs.Transaction
 @using PaymentGateway.Shared.Enums
 @attribute [AllowAnonymous]
 @inject IPaymentService PaymentService
@@ -96,26 +97,30 @@
 
                 @if (_payment.Status != PaymentStatus.Confirmed)
                 {
-                    <MudButton Variant="Variant.Filled" Color="Color.Success"
-                               OnClick="@(SimulatePayment)" Class="mt-4"
-                               Disabled="@(_isSimulating)">
-                        @if (_isSimulating)
-                        {
-                            <MudProgressCircular Class="ms-n1" Indeterminate="true"/>
-                            <MudText Class="ms-2">Обработка...</MudText>
-                        }
-                        else
-                        {
-                            <MudText>Имитировать платеж</MudText>
-                        }
-                    </MudButton>
-                    <MudToggleGroup Class="mt-4" SelectionMode="SelectionMode.ToggleSelection" Color="Color.Primary"
-                                    @bind-Value="_transactionSource">
-                        @foreach (var source in _selectedTransactionType)
-                        {
-                            <MudToggleItem Value="source">@source.ToString()</MudToggleItem>
-                        }
-                    </MudToggleGroup>
+                    <MudStack Class="mt-8" Spacing="2">
+                        <MudTextField @bind-Value="@_transactionDto.PaymentData" Placeholder="Куда переводим"/>
+                        <MudTextField @bind-Value="@_transactionDto.ExtractedAmount" Placeholder="Сколько переводим"/>
+                        <MudToggleGroup SelectionMode="SelectionMode.ToggleSelection" Color="Color.Primary"
+                                        @bind-Value="@_transactionDto.Source">
+                            @foreach (var source in _selectedTransactionType)
+                            {
+                                <MudToggleItem Value="source">@source.ToString()</MudToggleItem>
+                            }
+                        </MudToggleGroup>
+                        <MudButton Variant="Variant.Filled" Color="Color.Success"
+                                   OnClick="@(SimulatePayment)" Class="mt-4"
+                                   Disabled="@(_isSimulating)">
+                            @if (_isSimulating)
+                            {
+                                <MudProgressCircular Class="ms-n1" Indeterminate="true"/>
+                                <MudText Class="ms-2">Обработка...</MudText>
+                            }
+                            else
+                            {
+                                <MudText>Имитировать платеж</MudText>
+                            }
+                        </MudButton>
+                    </MudStack>
                 }
                 else
                 {
@@ -169,7 +174,7 @@
     private Timer? _refreshTimer;
     private const int RefreshInterval = 3000;
     private readonly TransactionSource[] _selectedTransactionType = [TransactionSource.Sms, TransactionSource.Push];
-    private TransactionSource _transactionSource;
+    private readonly TransactionCreateDto _transactionDto = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -193,6 +198,11 @@
             {
                 _showSuccessDialog = true;
                 Snackbar.Add("Платеж успешно выполнен", Severity.Success);
+            }
+            else if (_payment.Requisite != null)
+            {
+                _transactionDto.PaymentData = _payment.Requisite.PaymentData;
+                _transactionDto.ExtractedAmount = _payment.Amount;
             }
         }
         catch (Exception ex)
@@ -225,6 +235,11 @@
                 _showSuccessDialog = true;
                 await InvokeAsync(() => Snackbar.Add("Платеж успешно выполнен", Severity.Success));
             }
+            else if (_payment.Requisite != null)
+            {
+                _transactionDto.PaymentData = _payment.Requisite.PaymentData;
+                _transactionDto.ExtractedAmount = _payment.Amount;
+            }
 
             await InvokeAsync(StateHasChanged);
 
@@ -244,9 +259,9 @@
         try
         {
             var transaction = await TransactionService.SimulatePayment(
-                _payment.Requisite.PaymentData,
-                _payment.Amount,
-                _transactionSource
+                _transactionDto.PaymentData,
+                _transactionDto.ExtractedAmount,
+                _transactionDto.Source
             );
 
             if (transaction != null)

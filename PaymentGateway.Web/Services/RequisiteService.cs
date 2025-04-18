@@ -90,4 +90,21 @@ public class RequisiteService(
         }
         return response;
     }
+
+    public async Task<List<RequisiteDto>> GetRequisitesByUserId(Guid userId)
+    {
+        var authState = await authStateProvider.GetAuthenticationStateAsync();
+        var isAdmin = authState.User.IsInRole("Admin") || authState.User.IsInRole("Support");
+        
+        if (!isAdmin)
+        {
+            logger.LogWarning("Non-admin user attempted to access requisite data for user ID: {UserId}", userId);
+            return [];
+        }
+        
+        var allPayments = await GetRequisites();
+        return allPayments
+            .Where(r => r.UserId == userId)
+            .ToList();
+    }
 } 

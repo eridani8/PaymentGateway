@@ -8,4 +8,5 @@ public interface IAdminService
     Task<UserDto?> CreateUser(CreateUserDto dto);
     Task<bool> DeleteUser(Guid id);
     Task<UserDto?> UpdateUser(UpdateUserDto dto);
+    Task<UserDto?> GetUserById(Guid userId);
 }

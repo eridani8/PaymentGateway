@@ -18,12 +18,41 @@
                     <MudText Typo="Typo.h6">Список пользователей</MudText>
                     <MudSpacer/>
                     <MudButton
-                        Variant="Variant.Filled"
+                        Variant="Variant.Outlined"
                         Color="Color.Primary"
                         StartIcon="@Icons.Material.Filled.Add"
                         OnClick="@(OpenCreateDialog)">
                         Создать пользователя
                     </MudButton>
+                    <MudSpacer/>
+                    <AuthorizeView Roles="Admin">
+                        <Authorized Context="adminContext">
+                            <MudStack Row="true" Spacing="1">
+                                <MudTextField @bind-Value="_searchUserId" Label="ID пользователя"
+                                              Adornment="Adornment.End"
+                                              AdornmentIcon="@Icons.Material.Filled.Search"
+                                              Variant="Variant.Outlined"
+                                              Margin="Margin.Normal"
+                                              Placeholder="Фильтр по пользователю"
+                                              Error="@(!string.IsNullOrEmpty(_searchError))"
+                                              ErrorText="@_searchError"
+                                              Style="width: 600px"/>
+                                <MudButton Color="Color.Primary"
+                                           Variant="Variant.Outlined"
+                                           OnClick="@(SearchUserById)"
+                                           Style="height: 56px; align-self: flex-start; margin-top: 16px;">Найти
+                                </MudButton>
+                                @if (_isFiltered)
+                                {
+                                    <MudButton Color="Color.Secondary"
+                                               Variant="Variant.Outlined"
+                                               OnClick="@(ClearSearch)"
+                                               Style="height: 56px; align-self: flex-start; margin-top: 16px;">Сбросить
+                                    </MudButton>
+                                }
+                            </MudStack>
+                        </Authorized>
+                    </AuthorizeView>
                 </MudToolBar>
                 <MudDataGrid T="UserDto"
                              Items="@_users"
@@ -109,6 +138,9 @@
     private bool _isLoading = true;
     private List<UserDto> _users = [];
     private bool _isInitialized;
+    private string _searchUserId = string.Empty;
+    private string _searchError = string.Empty;
+    private bool _isFiltered;
 
     protected override async Task OnInitializedAsync()
     {
@@ -287,5 +319,52 @@
         "Support" => Color.Info,
         _ => Color.Default
     };
+
+    private async Task SearchUserById()
+    {
+        _searchError = string.Empty;
+
+        if (string.IsNullOrWhiteSpace(_searchUserId))
+        {
+            await LoadUsers();
+            _isFiltered = false;
+            return;
+        }
+
+        if (!Guid.TryParse(_searchUserId, out var userId))
+        {
+            _searchError = "Некорректный формат ID пользователя";
+            return;
+        }
+
+        try
+        {
+            _isLoading = true;
+            _users = [await AdminService.GetUserById(userId)];
+            _isFiltered = true;
+
+            if (_users.Count == 0)
+            {
+                Snackbar.Add("Пользователи по указанному ID не найдены", Severity.Info);
+            }
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e, "Ошибка при поиске пользователя {UserId}", userId);
+            Snackbar.Add("Ошибка при поиске реквизитов", Severity.Error);
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+    
+    private async Task ClearSearch()
+    {
+        _searchUserId = string.Empty;
+        _searchError = string.Empty;
+        _isFiltered = false;
+        await LoadUsers();
+    }
 
 }
