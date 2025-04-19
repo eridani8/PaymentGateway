@@ -84,7 +84,7 @@ public class ServiceBase(IHttpClientFactory factory, ILogger<ServiceBase> logger
         }
         catch (OperationCanceledException)
         {
-            logger.LogInformation("Request to {Url} was cancelled", url);
+            logger.LogDebug("Request to {Url} was cancelled", url);
             return new Response
             {
                 Code = HttpStatusCode.RequestTimeout,

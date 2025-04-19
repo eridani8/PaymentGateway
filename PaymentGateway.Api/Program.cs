@@ -185,6 +185,30 @@ try
                         context.Token = accessToken;
                     }
                     return Task.CompletedTask;
+                },
+                OnTokenValidated = async context =>
+                {
+                    var userManager = context.HttpContext.RequestServices.GetRequiredService<UserManager<UserEntity>>();
+                    var userId = context.Principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                    
+                    if (string.IsNullOrEmpty(userId) || !Guid.TryParse(userId, out _))
+                    {
+                        context.Fail("Неверный идентификатор пользователя");
+                        return;
+                    }
+
+                    var user = await userManager.FindByIdAsync(userId);
+                    if (user == null)
+                    {
+                        context.Fail("Пользователь не найден");
+                        return;
+                    }
+
+                    if (!user.IsActive)
+                    {
+                        context.Fail("Пользователь деактивирован");
+                        return;
+                    }
                 }
             };
         });

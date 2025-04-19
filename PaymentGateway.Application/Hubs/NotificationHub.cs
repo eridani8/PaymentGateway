@@ -52,7 +52,7 @@ public class NotificationHub(ILogger<NotificationHub> logger) : Hub<IHubClient>
                 var roles = Context.User?.FindAll(ClaimTypes.Role).Select(c => c.Value).ToList() ?? [];
                 UserRoles[userId] = roles;
                 
-                logger.LogInformation("Клиент подключен: {ConnectionId}, Пользователь: {UserId}, Роли: {Roles}", 
+                logger.LogDebug("Клиент подключен: {ConnectionId}, Пользователь: {UserId}, Роли: {Roles}", 
                     Context.ConnectionId, userId, string.Join(", ", roles));
             }
             else
@@ -76,11 +76,11 @@ public class NotificationHub(ILogger<NotificationHub> logger) : Hub<IHubClient>
             if (ConnectedUsers.Remove(Context.ConnectionId, out var userId))
             {
                 UserRoles.Remove(userId);
-                logger.LogInformation("Клиент отключен: {ConnectionId}, Пользователь: {UserId}", Context.ConnectionId, userId);
+                logger.LogDebug("Клиент отключен: {ConnectionId}, Пользователь: {UserId}", Context.ConnectionId, userId);
             }
             else
             {
-                logger.LogInformation("Клиент отключен (неизвестный пользователь): {ConnectionId}", Context.ConnectionId);
+                logger.LogDebug("Клиент отключен (неизвестный пользователь): {ConnectionId}", Context.ConnectionId);
             }
 
             await base.OnDisconnectedAsync(exception);

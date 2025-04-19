@@ -59,12 +59,12 @@ public class InMemoryCache(IMemoryCache cache, ILogger<InMemoryCache> logger, Js
         {
             var cacheKeyStr = cacheKey.ToString()!;
             Keys.TryRemove(cacheKeyStr, out _);
-            logger.LogInformation("Cache removed: {key}", cacheKeyStr);
+            logger.LogDebug("Cache removed: {key}", cacheKeyStr);
         });
         
         cache.Set(key, obj, cacheOptions);
         Keys[key] = newMetadata;
-        logger.LogInformation("Cache {operation}: {key}", Keys.ContainsKey(key) ? "updated" : "added", key);
+        logger.LogDebug("Cache {operation}: {key}", Keys.ContainsKey(key) ? "updated" : "added", key);
     }
 
     public void Set<T>(string key, T obj, TimeSpan? expiry = null) where T : ICacheable
