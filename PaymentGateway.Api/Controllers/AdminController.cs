@@ -6,7 +6,6 @@ using PaymentGateway.Application;
 using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Core.Exceptions;
 using PaymentGateway.Shared.DTOs.User;
-using PaymentGateway.Shared.Interfaces;
 
 namespace PaymentGateway.Api.Controllers;
 
@@ -93,5 +92,16 @@ public class AdminController(IAdminService service, ILogger<AdminController> log
         {
             return BadRequest(e.Errors.GetErrors());
         }
+    }
+
+    [HttpGet]
+    public async Task<ActionResult<Dictionary<Guid, string>>> GetUsersRoles([FromQuery] string userIds)
+    {
+        var ids = userIds.Split(',')
+                .Select(Guid.Parse)
+                .ToList();
+            
+            var roles = await service.GetUsersRoles(ids);
+            return Ok(roles);
     }
 }

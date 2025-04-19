@@ -1,8 +1,10 @@
+@using System.Security.Claims
 @using PaymentGateway.Shared.DTOs.User
 @using PaymentGateway.Shared.Interfaces
 @using PaymentGateway.Shared.Validations.Validators.User
 @inject ISnackbar Snackbar
 @inject IAdminService AdminService
+@inject CustomAuthStateProvider AuthStateProvider
 
 @namespace PaymentGateway.Web.Dialogs
 
@@ -17,7 +19,7 @@
                             Label="Логин" 
                             Value="@User.Username" 
                             Disabled="true"
-                            Immediate="true"
+                            Variant="Variant.Outlined"
                             Margin="Margin.Normal"/>
                 
                 <MudGrid>
@@ -34,8 +36,12 @@
                         <MudNumericField T="decimal"
                                        Label="Максимальная суточная сумма"
                                        @bind-Value="_updateUserDto.MaxDailyMoneyReceptionLimit"
-                                       Min="0"
                                        For="@(() => _updateUserDto.MaxDailyMoneyReceptionLimit)"
+                                       Format="N0"
+                                       Adornment="Adornment.Start"
+                                       AdornmentIcon="@Icons.Material.Filled.AttachMoney"
+                                       Min="0"
+                                       Step="1000"
                                        Immediate="true"
                                        Margin="Margin.Normal" />
                     </MudItem>
@@ -44,8 +50,8 @@
                 <MudText Typo="Typo.subtitle1" Class="mt-2 mb-1">Роль</MudText>
                 <MudToggleGroup T="string" 
                               SelectionMode="SelectionMode.ToggleSelection" 
-                              @bind-Value="SelectedRole"
-                              Color="Color.Primary">
+                              Color="Color.Primary"
+                              @bind-Value="SelectedRole">
                     @foreach (var role in _availableRoles)
                     {
                         <MudToggleItem Value="@role">@GetRoleDisplayName(role)</MudToggleItem>
@@ -106,13 +112,22 @@
         }
     }
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var isAdmin = authState.User.IsInRole("Admin");
+        
+        if (!isAdmin)
+        {
+            _errorMessage = "У вас нет прав для редактирования пользователей";
+            return;
+        }
+
         _updateUserDto = new UpdateUserDto
         {
             Id = User.Id,
             IsActive = User.IsActive,
-            Roles = User.Roles.ToList(),
+            Roles = ["User"],
             MaxRequisitesCount = User.MaxRequisitesCount,
             MaxDailyMoneyReceptionLimit = User.MaxDailyMoneyReceptionLimit
         };

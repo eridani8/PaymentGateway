@@ -79,40 +79,23 @@ public class CustomAuthStateProvider(ILocalStorageService localStorage) : Authen
                 switch (value)
                 {
                     case JsonElement { ValueKind: JsonValueKind.Array } rolesElement:
-                    {
-                        claims.AddRange(rolesElement.EnumerateArray().Select(role => new Claim(ClaimTypes.Role, role.GetString() ?? string.Empty)));
+                        claims.AddRange(rolesElement.EnumerateArray()
+                            .Select(role => new Claim(ClaimTypes.Role, role.GetString() ?? string.Empty))
+                            .Where(claim => !string.IsNullOrEmpty(claim.Value)));
                         break;
-                    }
                     case string rolesString:
-                    {
-                        foreach (var separator in new[] { ';', ',', ' ' })
-                        {
-                            if (rolesString.Contains(separator))
-                            {
-                                claims.AddRange(rolesString.Split(separator)
-                                    .Where(r => !string.IsNullOrWhiteSpace(r))
-                                    .Select(role => new Claim(ClaimTypes.Role, role.Trim())));
-                                break;
-                            }
-                        }
-                        
-                        if (claims.All(c => c.Type != ClaimTypes.Role))
-                        {
-                            claims.Add(new Claim(ClaimTypes.Role, rolesString.Trim()));
-                        }
-                        
+                        var roles = rolesString.Split([';', ',', ' '], StringSplitOptions.RemoveEmptyEntries)
+                            .Select(r => r.Trim())
+                            .Where(r => !string.IsNullOrEmpty(r));
+                        claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
                         break;
-                    }
                     default:
-                    {
                         var roleValue = value.ToString()?.Trim();
                         if (!string.IsNullOrEmpty(roleValue))
                         {
                             claims.Add(new Claim(ClaimTypes.Role, roleValue));
                         }
-                        
                         break;
-                    }
                 }
             }
             else if (key.Equals("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier", StringComparison.OrdinalIgnoreCase) ||

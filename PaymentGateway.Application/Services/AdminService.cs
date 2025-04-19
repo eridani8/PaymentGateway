@@ -2,7 +2,6 @@
 using FluentValidation;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Core.Entities;
 using PaymentGateway.Core.Exceptions;
@@ -45,10 +44,7 @@ public class AdminService(
             await userManager.AddToRoleAsync(user, role);
         }
     
-        var roles = await userManager.GetRolesAsync(user);
         var userDto = mapper.Map<UserDto>(user);
-        userDto.Roles.AddRange(roles);
-        
         await notificationService.NotifyUserUpdated(userDto);
         
         return userDto;
@@ -56,31 +52,18 @@ public class AdminService(
 
     public async Task<List<UserDto>> GetAllUsers()
     {
-        var users = await userManager.Users.AsNoTracking().ToListAsync();
-        var userDtos = new List<UserDto>();
+        var users = await userManager.Users
+            .AsNoTracking()
+            .OrderByDescending(u => u.CreatedAt)
+            .ToListAsync();
         
-        foreach (var user in users)
-        {
-            var roles = await userManager.GetRolesAsync(user);
-            var userDto = mapper.Map<UserDto>(user);
-            userDto.Roles.AddRange(roles);
-            userDtos.Add(userDto);
-        }
-        
-        return userDtos;
+        return users.Select(user => mapper.Map<UserDto>(user)).ToList();
     }
 
     public async Task<UserDto?> GetUserById(Guid id)
     {
         var user = await userManager.FindByIdAsync(id.ToString());
-        if (user == null)
-            return null;
-            
-        var roles = await userManager.GetRolesAsync(user);
-        var userDto = mapper.Map<UserDto>(user);
-        userDto.Roles.AddRange(roles);
-        
-        return userDto;
+        return user == null ? null : mapper.Map<UserDto>(user);
     }
 
     public async Task<UserEntity?> DeleteUser(Guid id, string? currentUserId)
@@ -134,12 +117,27 @@ public class AdminService(
         await userManager.RemoveFromRolesAsync(user, currentRoles);
         await userManager.AddToRolesAsync(user, dto.Roles);
         
-        var updatedRoles = await userManager.GetRolesAsync(user);
         var userDto = mapper.Map<UserDto>(user);
-        userDto.Roles.AddRange(updatedRoles);
-        
         await notificationService.NotifyUserUpdated(userDto);
         
         return userDto;
+    }
+
+    public async Task<Dictionary<Guid, string>> GetUsersRoles(List<Guid> userIds)
+    {
+        var users = await userManager.Users
+            .AsNoTracking()
+            .Where(u => userIds.Contains(u.Id))
+            .ToListAsync();
+        
+        var roles = new Dictionary<Guid, string>();
+        
+        foreach (var user in users)
+        {
+            var userRoles = await userManager.GetRolesAsync(user);
+            roles[user.Id] = string.Join(",", userRoles);
+        }
+        
+        return roles;
     }
 }

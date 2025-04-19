@@ -58,4 +58,22 @@ public class AdminService(
         }
         return null;
     }
+
+    public async Task<Dictionary<Guid, string>> GetUsersRoles(List<Guid> userIds)
+    {
+        try
+        {
+            var response = await GetRequest($"{ApiEndpoint}/GetUsersRoles?userIds={string.Join(",", userIds)}");
+            if (response.Code == System.Net.HttpStatusCode.OK)
+            {
+                return JsonSerializer.Deserialize<Dictionary<Guid, string>>(response.Content ?? string.Empty, JsonOptions) ?? [];
+            }
+            return [];
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, "Ошибка при получении ролей пользователей");
+            throw;
+        }
+    }
 }

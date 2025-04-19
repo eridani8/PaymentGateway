@@ -9,4 +9,5 @@ public interface IAdminService
     Task<bool> DeleteUser(Guid id);
     Task<UserDto?> UpdateUser(UpdateUserDto dto);
     Task<UserDto?> GetUserById(Guid userId);
+    Task<Dictionary<Guid, string>> GetUsersRoles(List<Guid> users);
 }

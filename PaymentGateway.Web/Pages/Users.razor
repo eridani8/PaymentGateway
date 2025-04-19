@@ -1,4 +1,5 @@
 ﻿@page "/users"
+@using System.Security.Claims
 @using PaymentGateway.Shared.DTOs.User
 @using PaymentGateway.Shared.Interfaces
 @attribute [Authorize(Roles = "Admin")]
@@ -8,6 +9,7 @@
 @inject ISnackbar Snackbar
 @inject NavigationManager NavigationManager
 @inject SignalRService SignalRService
+@inject CustomAuthStateProvider AuthStateProvider
 @implements IAsyncDisposable
 
 <AuthorizeView Roles="Admin">
@@ -78,9 +80,19 @@
                         </TemplateColumn>
                         <TemplateColumn Title="Роль">
                             <CellTemplate Context="cellContext">
-                                @foreach (var role in cellContext.Item.Roles)
+                                @if (_userRoles.TryGetValue(cellContext.Item.Id, out var role) && !string.IsNullOrEmpty(role))
                                 {
-                                    <MudChip Color="@GetRoleColor(role)">@role</MudChip>
+                                    @if (role.Contains(','))
+                                    {
+                                        foreach (var splitRole in role.Split(','))
+                                        {
+                                            <MudChip Color="@GetRoleColor(splitRole)">@splitRole</MudChip>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <MudChip Color="@GetRoleColor(role)">@role</MudChip>
+                                    }
                                 }
                             </CellTemplate>
                         </TemplateColumn>
@@ -94,22 +106,14 @@
                         </TemplateColumn>
                         <TemplateColumn Title="Действия">
                             <CellTemplate Context="cellContext">
-                                @if (cellContext.Item.Username != "root")
-                                {
-                                    <MudIconButton
-                                        Icon="@Icons.Material.Filled.Edit"
-                                        Color="Color.Primary"
-                                        Size="Size.Small"
-                                        OnClick="@(() => OpenEditDialog(cellContext.Item))">
-                                        Редактировать
-                                    </MudIconButton>
-                                    <MudIconButton
-                                        Icon="@Icons.Material.Filled.Delete"
-                                        Color="Color.Error"
-                                        Size="Size.Small"
-                                        OnClick="@(() => OpenDeleteDialog(cellContext.Item))">Удалить
-                                    </MudIconButton>
-                                }
+                                <MudButtonGroup Variant="Variant.Text" Size="Size.Small">
+                                    <MudButton OnClick="@(() => OpenEditDialog(cellContext.Item))"
+                                             StartIcon="@Icons.Material.Filled.Edit"
+                                             Color="Color.Primary"/>
+                                    <MudButton OnClick="@(() => DeleteUser(cellContext.Item))"
+                                             StartIcon="@Icons.Material.Filled.Delete"
+                                             Color="Color.Error"/>
+                                </MudButtonGroup>
                             </CellTemplate>
                         </TemplateColumn>
                     </Columns>
@@ -137,6 +141,7 @@
 @code {
     private bool _isLoading = true;
     private List<UserDto> _users = [];
+    private Dictionary<Guid, string> _userRoles = [];
     private bool _isInitialized;
     private string _searchUserId = string.Empty;
     private string _searchError = string.Empty;
@@ -145,6 +150,7 @@
     protected override async Task OnInitializedAsync()
     {
         await LoadUsers();
+        await LoadUserRoles();
 
         if (!_isInitialized)
         {
@@ -159,6 +165,21 @@
             {
                 Logger.LogError(e, "Ошибка при инициализации SignalR");
             }
+        }
+    }
+
+    private async Task LoadUserRoles()
+    {
+        try
+        {
+            var userIds = _users.Select(u => u.Id).ToList();
+            
+            _userRoles = await AdminService.GetUsersRoles(userIds);
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e, "Ошибка при загрузке ролей пользователей");
+            Snackbar.Add("Ошибка при загрузке ролей пользователей", Severity.Error);
         }
     }
 
@@ -181,6 +202,7 @@
                 Logger.LogInformation("Добавлен новый пользователь: {UserId}", updatedUser.Id);
             }
 
+            await LoadUserRoles();
             await InvokeAsync(StateHasChanged);
         }
         catch (Exception e)
@@ -199,6 +221,7 @@
             if (user == null) return;
             
             _users.Remove(user);
+            _userRoles.Remove(userId);
             Logger.LogInformation("Пользователь удален из списка: {UserId}", userId);
             
             await InvokeAsync(StateHasChanged);
@@ -233,6 +256,7 @@
         {
             _isLoading = true;
             _users = await AdminService.GetAllUsers();
+            await LoadUserRoles();
         }
         catch (Exception e)
         {
@@ -247,20 +271,24 @@
 
     private async Task OpenCreateDialog()
     {
-        await DialogService.ShowAsync<CreateUserDialog>(null);
+        var dialog = await DialogService.ShowAsync<CreateUserDialog>();
+        var result = await dialog.Result;
+
+        if (result is { Canceled: false })
+        {
+            await LoadUsers();
+        }
     }
 
-    private async Task OpenDeleteDialog(UserDto user)
+    private async Task DeleteUser(UserDto user)
     {
         var parameters = new DialogParameters
         {
-            ["Title"] = "Подтверждение удаления",
-            ["ContentText"] = $"Вы действительно хотите удалить пользователя <b>{user.Username}</b>?",
-            ["ButtonText"] = "Да",
-            ["CancelText"] = "Нет"
+            ["ContentText"] = $"Вы действительно хотите удалить пользователя {user.Username}?",
+            ["ButtonText"] = "Удалить"
         };
 
-        var dialog = await DialogService.ShowAsync<ConfirmationDialog>(null, parameters);
+        var dialog = await DialogService.ShowAsync<ConfirmationDialog>("Подтверждение удаления", parameters);
         var result = await dialog.Result;
 
         if (result is { Canceled: false })
@@ -343,10 +371,12 @@
             if (await AdminService.GetUserById(userId) is { } user)
             {
                 _users = [user];
+                await LoadUserRoles();
             }
             else
             {
                 _users = [];
+                _userRoles = [];
             }
             
             _isFiltered = true;
@@ -374,5 +404,4 @@
         _isFiltered = false;
         await LoadUsers();
     }
-
 }

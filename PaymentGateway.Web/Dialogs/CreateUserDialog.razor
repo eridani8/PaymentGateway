@@ -1,43 +1,46 @@
-﻿@using PaymentGateway.Shared.DTOs.User
+﻿@using System.Security.Claims
+@using PaymentGateway.Shared.DTOs.User
 @using PaymentGateway.Shared.Validations.Validators.User
-@inject ISnackbar Snackbar
 @inject IAdminService AdminService
+@inject ISnackbar Snackbar
+@inject CustomAuthStateProvider AuthStateProvider
 
 <MudDialog>
     <TitleContent>
-        <MudText Typo="Typo.h6">Создание нового пользователя</MudText>
+        <MudText Typo="Typo.h6">Создание пользователя</MudText>
     </TitleContent>
     <DialogContent>
         <MudForm @ref="_form" Model="@_createUserDto" Validation="@(_validator.ValidateValue)" ValidationDelay="0">
-            <MudTextField T="string"
-                          Label="Логин"
-                          FullWidth="true"
-                          @bind-Value="_createUserDto.Username"
-                          For="@(() => _createUserDto.Username)"
-                          Immediate="true"
-                          Margin="Margin.Normal"/>
+            <MudStack>
+                <MudTextField
+                    @bind-Value="_createUserDto.Username"
+                    Label="Логин"
+                    Variant="Variant.Outlined"
+                    For="@(() => _createUserDto.Username)"
+                    Immediate="true"
+                    Margin="Margin.Normal"/>
 
-            <MudTextField T="string"
-                          Label="Пароль"
-                          FullWidth="true"
-                          @bind-Value="_createUserDto.Password"
-                          InputType="InputType.Password"
-                          For="@(() => _createUserDto.Password)"
-                          Immediate="true"
-                          Margin="Margin.Normal"/>
+                <MudTextField
+                    @bind-Value="_createUserDto.Password"
+                    Label="Пароль"
+                    Variant="Variant.Outlined"
+                    InputType="InputType.Password"
+                    For="@(() => _createUserDto.Password)"
+                    Immediate="true"
+                    Margin="Margin.Normal"/>
 
-            <MudGrid>
-                <MudItem xs="6">
-                    <MudNumericField T="int"
+                <MudGrid>
+                    <MudItem xs="6">
+                        <MudNumericField T="int"
                                      Label="Максимальное количество реквизитов"
                                      @bind-Value="_createUserDto.MaxRequisitesCount"
                                      Min="0"
                                      For="@(() => _createUserDto.MaxRequisitesCount)"
                                      Immediate="true"
                                      Margin="Margin.Normal"/>
-                </MudItem>
-                <MudItem xs="6">
-                    <MudNumericField T="decimal"
+                    </MudItem>
+                    <MudItem xs="6">
+                        <MudNumericField T="decimal"
                                      Label="Максимальная суточная сумма"
                                      @bind-Value="_createUserDto.MaxDailyMoneyReceptionLimit"
                                      For="@(() => _createUserDto.MaxDailyMoneyReceptionLimit)"
@@ -48,16 +51,22 @@
                                      Step="1000"
                                      Immediate="true"
                                      Margin="Margin.Normal"/>
-                </MudItem>
-            </MudGrid>
+                    </MudItem>
+                </MudGrid>
 
-            <MudText Typo="Typo.subtitle1" Class="mt-2 mb-1">Роль</MudText>
-            <MudToggleGroup T="string" SelectionMode="SelectionMode.ToggleSelection" Color="Color.Primary" @bind-Value="SelectedRole">
-                @foreach (var role in _availableRoles)
-                {
-                    <MudToggleItem Value="@role">@GetRoleDisplayName(role)</MudToggleItem>
-                }
-            </MudToggleGroup>
+                <MudText Typo="Typo.subtitle1" Class="mt-2 mb-1">Роль</MudText>
+                <MudToggleGroup T="string" SelectionMode="SelectionMode.ToggleSelection" Color="Color.Primary" @bind-Value="SelectedRole">
+                    @foreach (var role in _availableRoles)
+                    {
+                        <MudToggleItem Value="@role">@GetRoleDisplayName(role)</MudToggleItem>
+                    }
+                </MudToggleGroup>
+
+                <MudSwitch T="bool" 
+                          Label="Активен" 
+                          @bind-Value="_createUserDto.IsActive" 
+                          Color="Color.Success"/>
+            </MudStack>
 
             @if (!string.IsNullOrEmpty(_errorMessage))
             {
@@ -89,6 +98,7 @@
     private string? _errorMessage;
     private bool _processing;
     private readonly string[] _availableRoles = ["User", "Admin", "Support"];
+    private readonly CreateUserValidator _validator = new();
 
     private string SelectedRole
     {
@@ -96,10 +106,17 @@
         set => _createUserDto.Roles = [value];
     }
 
-    private readonly CreateUserValidator _validator = new();
-
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var isAdmin = authState.User.IsInRole("Admin");
+        
+        if (!isAdmin)
+        {
+            _errorMessage = "У вас нет прав для создания пользователей";
+            return;
+        }
+
         _createUserDto.Roles = ["User"];
         _createUserDto.IsActive = true;
         _createUserDto.MaxRequisitesCount = 10;
@@ -149,9 +166,5 @@
         }
     }
 
-    public void Cancel()
-    {
-        MudDialog.Cancel();
-    }
-
+    private void Cancel() => MudDialog.Cancel();
 }

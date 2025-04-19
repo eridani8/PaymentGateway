@@ -16,4 +16,6 @@ public class UserEntity : IdentityUser<Guid>
     public decimal ReceivedDailyFunds { get; set; }
     
     public DateTime LastFundsResetAt { get; set; }
+    
+    public DateTime CreatedAt { get; set; }
 }
