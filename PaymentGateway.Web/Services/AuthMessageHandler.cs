@@ -20,7 +20,7 @@ public class AuthMessageHandler(
                 
                 _ = Task.Run(() => 
                 {
-                    navigationManager.NavigateTo("/login", forceLoad: true);
+                    navigationManager.NavigateTo("/login",true);
                 }, cancellationToken);
                 
                 return new HttpResponseMessage(HttpStatusCode.Unauthorized);

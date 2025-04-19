@@ -9,7 +9,7 @@
 
         if (user.Identity is { IsAuthenticated: false })
         {
-            Navigation.NavigateTo("/login");
+            Navigation.NavigateTo("/login", true);
         }
     }
 }
