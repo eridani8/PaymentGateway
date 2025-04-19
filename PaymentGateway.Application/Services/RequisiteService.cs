@@ -75,6 +75,7 @@ public class RequisiteService(
         var entities = await unit.RequisiteRepository.QueryableGetAll()
             .Include(r => r.Payment)
             .AsNoTracking()
+            .OrderByDescending(r => r.CreatedAt)
             .ToListAsync();
         return mapper.Map<IEnumerable<RequisiteDto>>(entities);
     }
@@ -83,8 +84,9 @@ public class RequisiteService(
     {
         var entities = await unit.RequisiteRepository.QueryableGetAll()
             .Include(r => r.Payment)
-            .Where(r => r.UserId == userId)
             .AsNoTracking()
+            .Where(r => r.UserId == userId)
+            .OrderByDescending(r => r.CreatedAt)
             .ToListAsync();
         return mapper.Map<IEnumerable<RequisiteDto>>(entities);
     }

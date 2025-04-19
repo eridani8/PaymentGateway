@@ -162,6 +162,7 @@ public class PaymentService(
             .ThenInclude(p => p.User)
             .Include(p => p.Transaction)
             .AsNoTracking()
+            .OrderByDescending(p => p.CreatedAt)
             .ToListAsync();
         return mapper.Map<IEnumerable<PaymentDto>>(entities);
     }
@@ -174,6 +175,7 @@ public class PaymentService(
             .Include(p => p.Transaction)
             .Where(p => p.Requisite != null && p.Requisite.UserId == userId)
             .AsNoTracking()
+            .OrderByDescending(p => p.CreatedAt)
             .ToListAsync();
         return mapper.Map<IEnumerable<PaymentDto>>(entities);
     }

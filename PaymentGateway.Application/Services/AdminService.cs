@@ -57,7 +57,7 @@ public class AdminService(
             .OrderByDescending(u => u.CreatedAt)
             .ToListAsync();
         
-        return users.Select(user => mapper.Map<UserDto>(user)).ToList();
+        return users.Select(mapper.Map<UserDto>).ToList();
     }
 
     public async Task<UserDto?> GetUserById(Guid id)
