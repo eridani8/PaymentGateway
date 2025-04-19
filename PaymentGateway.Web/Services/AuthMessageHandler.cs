@@ -37,7 +37,7 @@ public class AuthMessageHandler(
             
             _ = Task.Run(() => 
             {
-                navigationManager.NavigateTo("/login");
+                navigationManager.NavigateTo("/login", true);
             }, cancellationToken);
         }
 
