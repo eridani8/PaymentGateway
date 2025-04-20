@@ -13,6 +13,9 @@ public class NotificationService(
     CustomAuthStateProvider authStateProvider,
     ILogger<NotificationService> logger) : IAsyncDisposable
 {
+    private static bool _globalInitialized;
+    private static readonly Lock Lock = new();
+    
     private readonly string _instanceId = Guid.NewGuid().ToString("N")[..8];
     private HubConnection? _hubConnection;
     private readonly string _hubUrl = $"{settings.Value.BaseAddress}/notificationHub";
@@ -184,6 +187,15 @@ public class NotificationService(
         {
             logger.LogInformation("[{InstanceId}] Начало инициализации NotificationService", _instanceId);
             
+            lock (Lock)
+            {
+                if (_globalInitialized && _hubConnection?.State == HubConnectionState.Connected)
+                {
+                    logger.LogDebug("[{InstanceId}] SignalR соединение уже инициализировано глобально", _instanceId);
+                    return;
+                }
+            }
+            
             if (_hubConnection != null && _hubConnection.State == HubConnectionState.Connected)
             {
                 logger.LogDebug("[{InstanceId}] SignalR соединение уже установлено", _instanceId);
@@ -328,6 +340,13 @@ public class NotificationService(
             };
 
             await StartConnectionWithRetryAsync();
+            
+            lock (Lock)
+            {
+                _globalInitialized = true;
+            }
+            
+            logger.LogInformation("[{InstanceId}] Глобальное состояние инициализации SignalR установлено", _instanceId);
         }
         catch (Exception ex)
         {
@@ -348,7 +367,6 @@ public class NotificationService(
             _isDisposed = true;
             logger.LogInformation("[{InstanceId}] Начало утилизации NotificationService", _instanceId);
             
-            // Отписываемся от всех событий и уведомляем о разрыве соединения
             try
             {
                 ConnectionChanged?.Invoke(this, false);
@@ -358,7 +376,6 @@ public class NotificationService(
                 logger.LogWarning(ex, "Ошибка при уведомлении о закрытии соединения");
             }
             
-            // Отписываемся от всех событий SignalR
             Unsubscribe(SignalREvents.UserUpdated);
             Unsubscribe(SignalREvents.UserDeleted);
             Unsubscribe(SignalREvents.RequisiteUpdated);
@@ -379,6 +396,12 @@ public class NotificationService(
             {
                 await _hubConnection.DisposeAsync();
                 _hubConnection = null!;
+                
+                lock (Lock)
+                {
+                    _globalInitialized = false;
+                }
+                logger.LogInformation("[{InstanceId}] Глобальное состояние инициализации SignalR сброшено", _instanceId);
             }
             
             logger.LogInformation("[{InstanceId}] Соединение SignalR успешно закрыто", _instanceId);

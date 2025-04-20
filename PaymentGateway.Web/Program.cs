@@ -86,7 +86,7 @@ CultureInfo.DefaultThreadCurrentCulture = new CultureInfo("ru-RU");
 CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo("ru-RU");
 
 builder.Services.AddTransient<MudLocalizer, ResXMudLocalizer>();
-builder.Services.AddTransient<NotificationService>();
+builder.Services.AddScoped<NotificationService>();
 
 var app = builder.Build();
 

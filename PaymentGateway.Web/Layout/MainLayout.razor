@@ -3,6 +3,9 @@
 @inject CustomAuthStateProvider AuthStateProvider
 @inject NavigationManager Navigation
 @inject ILocalStorageService LocalStorage
+@inject NotificationService NotificationService
+@inject ILogger<MainLayout> Logger
+@implements IAsyncDisposable
 
 <MudThemeProvider @ref="_themeProvider" Theme="_theme" IsDarkMode="_isDarkMode"/>
 <MudPopoverProvider/>
@@ -72,6 +75,8 @@
     private MudThemeProvider _themeProvider = null!;
     private MudTheme? _theme;
     private const string ThemeKey = "preferred-theme";
+    private bool _signalRConnected;
+    private EventHandler<bool>? _connectionChangedHandler;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -96,6 +101,53 @@
         if (await LocalStorage.ContainKeyAsync(ThemeKey))
         {
             _isDarkMode = await LocalStorage.GetItemAsync<bool>(ThemeKey);
+        }
+        
+        await InitializeSignalR();
+    }
+
+    private async Task InitializeSignalR()
+    {
+        try
+        {
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            
+            if (authState.User.Identity?.IsAuthenticated == true)
+            {
+                Logger.LogInformation("Инициализация SignalR в MainLayout");
+                
+                try 
+                {
+                    await NotificationService.InitializeAsync();
+                    
+                    _signalRConnected = NotificationService.IsConnected;
+                    
+                    _connectionChangedHandler = (sender, connected) =>
+                    {
+                        _signalRConnected = connected;
+                        InvokeAsync(StateHasChanged);
+                    };
+                    
+                    NotificationService.ConnectionChanged += _connectionChangedHandler;
+                    
+                    Logger.LogInformation("SignalR соединение инициализировано в MainLayout");
+                }
+                catch (Exception ex)
+                {
+                    _signalRConnected = false;
+                    Logger.LogError(ex, "Ошибка при подключении SignalR");
+                }
+            }
+            else 
+            {
+                _signalRConnected = false;
+                Logger.LogInformation("Пользователь не авторизован, SignalR не инициализирован");
+            }
+        }
+        catch (Exception ex)
+        {
+            _signalRConnected = false;
+            Logger.LogError(ex, "Ошибка при инициализации SignalR соединения в MainLayout");
         }
     }
 
@@ -176,5 +228,22 @@
         await AuthStateProvider.MarkUserAsLoggedOut();
         Navigation.NavigateTo("/login", true);
     }
-
+    
+    public async ValueTask DisposeAsync()
+    {
+        try
+        {
+            if (NotificationService != null && _connectionChangedHandler != null)
+            {
+                NotificationService.ConnectionChanged -= _connectionChangedHandler;
+                _connectionChangedHandler = null;
+            }
+            
+            Logger.LogInformation("Отписки от событий SignalR в MainLayout выполнены успешно");
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Ошибка при отписке от событий SignalR в MainLayout");
+        }
+    }
 }

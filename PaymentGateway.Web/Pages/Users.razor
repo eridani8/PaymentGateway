@@ -19,11 +19,6 @@
                 <MudToolBar>
                     <MudText Typo="Typo.h6">Список пользователей</MudText>
                     <MudSpacer/>
-                    <MudChip T="string" Icon="@Icons.Material.Filled.RssFeed" 
-                             Color="@(_signalRConnected ? Color.Success : Color.Error)"
-                             Size="Size.Small">
-                        @(_signalRConnected ? "SignalR подключен" : "SignalR отключен")
-                    </MudChip>
                     <MudButton
                         Variant="Variant.Outlined"
                         Color="Color.Primary"
@@ -150,8 +145,6 @@
     private string _searchUserId = string.Empty;
     private string _searchError = string.Empty;
     private bool _isFiltered;
-    private bool _signalRConnected = true;
-    private EventHandler<bool>? _connectionChangedHandler;
 
     protected override async Task OnInitializedAsync()
     {
@@ -160,21 +153,9 @@
             await LoadUsers();
             await LoadUserRoles();
             
-            await NotificationService.InitializeAsync();
-            
-            Logger.LogInformation("NotificationService инициализирован, подписываемся на обновления пользователей");
+            Logger.LogInformation("Подписка на события пользователей");
             NotificationService.SubscribeToUserUpdates(HandleUserUpdate);
             NotificationService.SubscribeToUserDeletions(HandleUserDeleted);
-            
-            _signalRConnected = NotificationService.IsConnected;
-            
-            _connectionChangedHandler = (sender, connected) =>
-            {
-                _signalRConnected = connected;
-                InvokeAsync(StateHasChanged);
-            };
-            
-            NotificationService.ConnectionChanged += _connectionChangedHandler;
             
             Logger.LogInformation("Подписки на обновления пользователей настроены");
         }
@@ -255,11 +236,6 @@
         {
             NotificationService.UnsubscribeFromUserUpdates();
             NotificationService.UnsubscribeFromUserDeletions();
-            
-            if (NotificationService != null)
-            {
-                NotificationService.ConnectionChanged -= _connectionChangedHandler;
-            }
             
             Logger.LogInformation("Отписки от событий выполнены успешно");
         }
