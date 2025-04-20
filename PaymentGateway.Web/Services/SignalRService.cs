@@ -6,6 +6,7 @@ using System.Security.Claims;
 using PaymentGateway.Shared;
 using PaymentGateway.Shared.DTOs.Payment;
 using PaymentGateway.Shared.DTOs.Transaction;
+using PaymentGateway.Shared.DTOs.Chat;
 using Polly;
 using Polly.Retry;
 
@@ -438,6 +439,68 @@ public class SignalRService(
     public void UnsubscribeFromTransactionUpdates()
     {
         Unsubscribe(SignalREvents.TransactionUpdated);
+    }
+
+    #endregion
+
+    #region Chat
+
+    public void SubscribeToChatMessages(Action<ChatMessageDto> handler)
+    {
+        Subscribe(SignalREvents.ChatMessageReceived, handler);
+    }
+
+    public void UnsubscribeFromChatMessages()
+    {
+        Unsubscribe(SignalREvents.ChatMessageReceived);
+    }
+
+    public void SubscribeToUserConnections(Action<string, List<string>> handler)
+    {
+        Subscribe<(string, List<string>)>(SignalREvents.UserConnected, data => handler(data.Item1, data.Item2));
+    }
+
+    public void UnsubscribeFromUserConnections()
+    {
+        Unsubscribe(SignalREvents.UserConnected);
+    }
+
+    public void SubscribeToUserDisconnections(Action<string> handler)
+    {
+        Subscribe(SignalREvents.UserDisconnected, handler);
+    }
+
+    public void UnsubscribeFromUserDisconnections()
+    {
+        Unsubscribe(SignalREvents.UserDisconnected);
+    }
+
+    public async Task SendChatMessage(ChatMessageDto message)
+    {
+        try
+        {
+            EnsureConnectionInitialized();
+            await _hubConnection!.InvokeAsync(SignalREvents.SendChatMessage, message);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Ошибка при отправке сообщения в чат");
+            throw;
+        }
+    }
+
+    public async Task<List<UserState>> GetCurrentUsers()
+    {
+        try
+        {
+            EnsureConnectionInitialized();
+            return await _hubConnection!.InvokeAsync<List<UserState>>(SignalREvents.GetCurrentUsers);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Ошибка при получении списка пользователей");
+            throw;
+        }
     }
 
     #endregion

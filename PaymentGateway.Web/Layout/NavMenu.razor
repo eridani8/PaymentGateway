@@ -11,4 +11,7 @@
     <AuthorizeView Roles="User,Admin,Support">
         <MudNavLink Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.AssignmentTurnedIn" Href="transactions">Транзакции</MudNavLink>
     </AuthorizeView>
+    <AuthorizeView Roles="Admin,Support">
+        <MudNavLink Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Chat" Href="chat">Чат</MudNavLink>
+    </AuthorizeView>
 </MudNavMenu>

@@ -1,21 +1,23 @@
+using System.Collections.Concurrent;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
+using PaymentGateway.Shared.DTOs.Chat;
+using PaymentGateway.Shared.DTOs.User;
 using PaymentGateway.Shared.Interfaces;
 
 namespace PaymentGateway.Application.Hubs;
 
 public class NotificationHub(ILogger<NotificationHub> logger) : Hub<IHubClient>
 {
-    private static readonly Dictionary<string, string> ConnectedUsers = new();
-    private static readonly Dictionary<string, List<string>> UserRoles = new();
-    private static Timer? _keepAliveTimer;
+    private static readonly ConcurrentDictionary<string, UserState> ConnectedUsers = new();
+    private static readonly Timer? KeepAliveTimer;
     private const int KeepAliveInterval = 25000;
 
     static NotificationHub()
     {
-        _keepAliveTimer = new Timer(SendKeepAlive, null, KeepAliveInterval, KeepAliveInterval);
+        KeepAliveTimer = new Timer(SendKeepAlive, null, KeepAliveInterval, KeepAliveInterval);
     }
 
     private static async void SendKeepAlive(object? state)
@@ -45,15 +47,22 @@ public class NotificationHub(ILogger<NotificationHub> logger) : Hub<IHubClient>
         try
         {
             var userId = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (userId != null)
+            var userName = Context.User?.FindFirst(ClaimTypes.Name)?.Value;
+            var roles = Context.User?.FindAll(ClaimTypes.Role).Select(c => c.Value).ToList() ?? [];
+            if (!string.IsNullOrEmpty(userId) && !string.IsNullOrEmpty(userName))
             {
-                ConnectedUsers[Context.ConnectionId] = userId;
+                var state = new UserState()
+                {
+                    Id = Guid.Parse(userId),
+                    Username = userName,
+                    Roles = roles
+                };
                 
-                var roles = Context.User?.FindAll(ClaimTypes.Role).Select(c => c.Value).ToList() ?? [];
-                UserRoles[userId] = roles;
+                ConnectedUsers[Context.ConnectionId] = state;
                 
-                logger.LogDebug("Клиент подключен: {ConnectionId}, Пользователь: {UserId}, Роли: {Roles}", 
-                    Context.ConnectionId, userId, string.Join(", ", roles));
+                logger.LogDebug("Клиент подключен: {ConnectionId}, Пользователь: {User}, Роли: {Roles}", Context.ConnectionId, userName, string.Join(", ", roles));
+
+                await Clients.All.UserConnected(state);
             }
             else
             {
@@ -73,10 +82,10 @@ public class NotificationHub(ILogger<NotificationHub> logger) : Hub<IHubClient>
     {
         try
         {
-            if (ConnectedUsers.Remove(Context.ConnectionId, out var userId))
+            if (ConnectedUsers.Remove(Context.ConnectionId, out var state))
             {
-                UserRoles.Remove(userId);
-                logger.LogDebug("Клиент отключен: {ConnectionId}, Пользователь: {UserId}", Context.ConnectionId, userId);
+                logger.LogDebug("Клиент отключен: {ConnectionId}, Пользователь: {User}", Context.ConnectionId, state.Username);
+                await Clients.All.UserDisconnected(state);
             }
             else
             {
@@ -91,66 +100,37 @@ public class NotificationHub(ILogger<NotificationHub> logger) : Hub<IHubClient>
             throw;
         }
     }
-
-    public Task Ping()
-    {
-        return Task.CompletedTask;
-    }
-    
-    [Authorize(Roles = "Admin")]
-    public Dictionary<string, int> GetStats()
-    {
-        var userId = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        logger.LogInformation("Статистика запрошена пользователем: {UserId}", userId);
-        return GetConnectionStats();
-    }
-    
-    [Authorize(Roles = "Admin")]
-    public Dictionary<string, List<string>> GetCurrentUsers()
-    {
-        var userId = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        logger.LogInformation("Список подключенных пользователей запрошен пользователем: {UserId}", userId);
-        return GetConnectedUsers();
-    }
-    
-    public static List<string> GetGroupIds(string[] roles)
-    {
-        return UserRoles
-            .Where(kvp => kvp.Value.Any(roles.Contains))
-            .Select(kvp => kvp.Key)
-            .ToList();
-    }
     
     public static List<string> GetUsersByRoles(string[] roles)
     {
-        return UserRoles
-            .Where(kvp => kvp.Value.Any(roles.Contains))
+        return ConnectedUsers
+            .Where(kvp => kvp.Value.Roles.Any(roles.Contains))
             .Select(kvp => kvp.Key)
             .ToList();
     }
-    
-    public static Dictionary<string, List<string>> GetConnectedUsers()
+
+    public Task<List<UserState>> GetCurrentUsers()
     {
-        return new Dictionary<string, List<string>>(UserRoles);
+        return Task.FromResult(ConnectedUsers.Values.ToList());
     }
-    
-    public static int GetConnectionCount()
+
+    [Authorize(Roles = "Admin,Support")]
+    public async Task SendChatMessage(ChatMessageDto message)
     {
-        return ConnectedUsers.Count;
-    }
+        var userId = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
     
-    public static Dictionary<string, int> GetConnectionStats()
-    {
-        var stats = new Dictionary<string, int>
+        if (!string.IsNullOrEmpty(userId))
         {
-            ["total"] = ConnectedUsers.Count
-        };
-        
-        foreach (var role in UserRoles.Values.SelectMany(r => r).Distinct())
-        {
-            stats[role] = UserRoles.Count(kvp => kvp.Value.Contains(role));
+            message.UserId = Guid.Parse(userId);
+            message.Timestamp = DateTime.UtcNow;
+    
+            await Clients.All.ChatMessageReceived(message);
         }
-        
-        return stats;
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        KeepAliveTimer?.Dispose();
+        base.Dispose(disposing);
     }
 } 
