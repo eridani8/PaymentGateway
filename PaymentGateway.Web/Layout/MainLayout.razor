@@ -75,8 +75,6 @@
     private MudThemeProvider _themeProvider = null!;
     private MudTheme? _theme;
     private const string ThemeKey = "preferred-theme";
-    private bool _signalRConnected;
-    private EventHandler<bool>? _connectionChangedHandler;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -120,33 +118,20 @@
                 {
                     await NotificationService.InitializeAsync();
                     
-                    _signalRConnected = NotificationService.IsConnected;
-                    
-                    _connectionChangedHandler = (sender, connected) =>
-                    {
-                        _signalRConnected = connected;
-                        InvokeAsync(StateHasChanged);
-                    };
-                    
-                    NotificationService.ConnectionChanged += _connectionChangedHandler;
-                    
                     Logger.LogInformation("SignalR соединение инициализировано в MainLayout");
                 }
                 catch (Exception ex)
                 {
-                    _signalRConnected = false;
                     Logger.LogError(ex, "Ошибка при подключении SignalR");
                 }
             }
             else 
             {
-                _signalRConnected = false;
                 Logger.LogInformation("Пользователь не авторизован, SignalR не инициализирован");
             }
         }
         catch (Exception ex)
         {
-            _signalRConnected = false;
             Logger.LogError(ex, "Ошибка при инициализации SignalR соединения в MainLayout");
         }
     }
@@ -229,23 +214,19 @@
         Navigation.NavigateTo("/login", true);
     }
     
-    public ValueTask DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
         try
         {
-            if (NotificationService != null && _connectionChangedHandler != null)
+            if (NotificationService != null)
             {
-                NotificationService.ConnectionChanged -= _connectionChangedHandler;
-                _connectionChangedHandler = null;
+                await NotificationService.DisposeAsync();
             }
-            
             Logger.LogInformation("Отписки от событий SignalR в MainLayout выполнены успешно");
         }
         catch (Exception ex)
         {
             Logger.LogError(ex, "Ошибка при отписке от событий SignalR в MainLayout");
         }
-
-        return ValueTask.CompletedTask;
     }
 }
