@@ -2,6 +2,9 @@
 using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.SignalR.Client;
 using PaymentGateway.Shared;
+using PaymentGateway.Shared.DTOs.Payment;
+using PaymentGateway.Shared.DTOs.Requisite;
+using PaymentGateway.Shared.DTOs.Transaction;
 using PaymentGateway.Shared.DTOs.User;
 using Polly;
 using Polly.Retry;
@@ -436,6 +439,68 @@ public class NotificationService(
     {
         logger.LogInformation("Отписка от удаления пользователей");
         Unsubscribe(SignalREvents.UserDeleted);
+    }
+
+    #endregion
+    
+    #region Transaction
+
+    public void SubscribeToTransactionUpdates(Action<TransactionDto> handler)
+    {
+        Subscribe(SignalREvents.TransactionUpdated, handler);
+    }
+
+    public void UnsubscribeFromTransactionUpdates()
+    {
+        Unsubscribe(SignalREvents.TransactionUpdated);
+    }
+
+    #endregion
+    
+    #region Payment
+
+    public void SubscribeToPaymentUpdates(Action<PaymentDto> handler)
+    {
+        Subscribe(SignalREvents.PaymentUpdated, handler);
+    }
+
+    public void UnsubscribeFromPaymentUpdates()
+    {
+        Unsubscribe(SignalREvents.PaymentUpdated);
+    }
+
+    public void SubscribeToPaymentDeletions(Action<Guid> handler)
+    {
+        Subscribe(SignalREvents.PaymentDeleted, handler);
+    }
+
+    public void UnsubscribeFromPaymentDeletions()
+    {
+        Unsubscribe(SignalREvents.PaymentDeleted);
+    }
+
+    #endregion
+    
+    #region Requisite
+
+    public void SubscribeToRequisiteUpdates(Action<RequisiteDto> handler)
+    {
+        Subscribe(SignalREvents.RequisiteUpdated, handler);
+    }
+    
+    public void UnsubscribeFromRequisiteUpdates()
+    {
+        Unsubscribe(SignalREvents.RequisiteUpdated);
+    }
+
+    public void SubscribeToRequisiteDeletions(Action<Guid> handler)
+    {
+        Subscribe(SignalREvents.RequisiteDeleted, handler);
+    }
+    
+    public void UnsubscribeFromRequisiteDeletions()
+    {
+        Unsubscribe(SignalREvents.RequisiteDeleted);
     }
 
     #endregion

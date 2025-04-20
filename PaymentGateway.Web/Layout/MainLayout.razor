@@ -229,7 +229,7 @@
         Navigation.NavigateTo("/login", true);
     }
     
-    public async ValueTask DisposeAsync()
+    public ValueTask DisposeAsync()
     {
         try
         {
@@ -245,5 +245,7 @@
         {
             Logger.LogError(ex, "Ошибка при отписке от событий SignalR в MainLayout");
         }
+
+        return ValueTask.CompletedTask;
     }
 }

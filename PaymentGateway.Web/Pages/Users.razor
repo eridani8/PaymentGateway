@@ -153,11 +153,8 @@
             await LoadUsers();
             await LoadUserRoles();
             
-            Logger.LogInformation("Подписка на события пользователей");
             NotificationService.SubscribeToUserUpdates(HandleUserUpdate);
             NotificationService.SubscribeToUserDeletions(HandleUserDeleted);
-            
-            Logger.LogInformation("Подписки на обновления пользователей настроены");
         }
         catch (Exception ex)
         {
@@ -230,7 +227,7 @@
         }
     }
 
-    public async ValueTask DisposeAsync()
+    public ValueTask DisposeAsync()
     {
         try
         {
@@ -239,10 +236,12 @@
             
             Logger.LogInformation("Отписки от событий выполнены успешно");
         }
-        catch (Exception ex)
+        catch (Exception e)
         {
-            Logger.LogError(ex, "Ошибка при отписке от событий");
+            Logger.LogError(e, "Ошибка при отписке от событий");
         }
+
+        return ValueTask.CompletedTask;
     }
 
     private async Task LoadUsers()

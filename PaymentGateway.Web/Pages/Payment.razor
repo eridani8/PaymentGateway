@@ -220,8 +220,7 @@
     {
         try
         {
-            if (_payment == null)
-                return;
+            if (_payment == null) return;
 
             var updatedPayment = await PaymentService.GetPaymentById(Id);
             if (updatedPayment == null ||

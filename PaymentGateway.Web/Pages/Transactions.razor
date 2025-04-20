@@ -7,8 +7,8 @@
 @inject NavigationManager NavigationManager
 @inject ILogger<Transactions> Logger
 @inject AuthenticationStateProvider AuthStateProvider
+@inject NotificationService NotificationService
 @implements IAsyncDisposable
-@implements IDisposable
 
 <AuthorizeView Roles="User,Admin,Support">
     <Authorized>
@@ -91,30 +91,20 @@
     private bool _isAdminUser;
     private Timer _refreshTimer = null!;
     private const int RefreshInterval = 3000;
-    private bool _isInitialized;
 
     protected override async Task OnInitializedAsync()
     {
-        // var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        // _isAdminUser = authState.User.IsInRole("Admin");
-        //
-        // await LoadTransactions();
-        //
-        // if (!_isInitialized)
-        // {
-        //     try
-        //     {
-        //         await SignalRService.InitializeAsync();
-        //         SignalRService.SubscribeToTransactionUpdates(HandleTransactionUpdate);
-        //         _isInitialized = true;
-        //     }
-        //     catch (Exception e)
-        //     {
-        //         Logger.LogError(e, "Ошибка при инициализации SignalR");
-        //     }
-        // }
-        //
-        // _refreshTimer = new Timer(TimerTick, null, RefreshInterval, RefreshInterval);
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        _isAdminUser = authState.User.IsInRole("Admin");
+        
+        await LoadTransactions();
+        
+        Logger.LogInformation("Подписка на события транзакций");
+        NotificationService.SubscribeToTransactionUpdates(HandleTransactionUpdate);
+            
+        Logger.LogInformation("Подписки на обновления транзакций настроены");
+        
+        _refreshTimer = new Timer(TimerTick, null, RefreshInterval, RefreshInterval);
     }
 
     private async void TimerTick(object? state)
@@ -157,28 +147,17 @@
         }
     }
 
-    public void Dispose()
-    {
-        _refreshTimer?.Dispose();
-    }
-
     public async ValueTask DisposeAsync()
     {
-        // try
-        // {
-        //     if (_isInitialized)
-        //     {
-        //         SignalRService.UnsubscribeFromTransactionUpdates();
-        //         await SignalRService.DisposeAsync();
-        //         _isInitialized = false;
-        //     }
-        //
-        //     await _refreshTimer.DisposeAsync();
-        // }
-        // catch (Exception e)
-        // {
-        //     Logger.LogError(e, "Ошибка при освобождении ресурсов на странице транзакций");
-        // }
+        try
+        {
+            NotificationService.UnsubscribeFromTransactionUpdates();
+            await _refreshTimer.DisposeAsync();
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e, "Ошибка при отписке от событий");
+        }
     }
 
     private async Task LoadTransactions()
