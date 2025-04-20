@@ -13,11 +13,14 @@ public class NotificationHub(ILogger<NotificationHub> logger) : Hub<IHubClient>
 {
     private static readonly ConcurrentDictionary<string, UserState> ConnectedUsers = new();
     private static readonly Timer? KeepAliveTimer;
+    private static readonly Timer? ConnectionCleanupTimer;
     private const int KeepAliveInterval = 25000;
+    private const int CleanupInterval = 60000; // 1 минута
 
     static NotificationHub()
     {
         KeepAliveTimer = new Timer(SendKeepAlive, null, KeepAliveInterval, KeepAliveInterval);
+        ConnectionCleanupTimer = new Timer(CleanupConnections, null, CleanupInterval, CleanupInterval);
     }
 
     private static async void SendKeepAlive(object? state)
@@ -27,6 +30,24 @@ public class NotificationHub(ILogger<NotificationHub> logger) : Hub<IHubClient>
             if (_hubContext != null)
             {
                 await _hubContext.Clients.All.KeepAlive();
+            }
+        }
+        catch
+        {
+            // ignore
+        }
+    }
+
+    private static void CleanupConnections(object? state)
+    {
+        try
+        {
+            var now = DateTime.UtcNow;
+            var connectionIds = ConnectedUsers.Keys.ToList();
+            
+            if (_hubContext != null && connectionIds.Count > 0)
+            {
+                _hubContext.Clients.All.KeepAlive();
             }
         }
         catch
@@ -103,10 +124,17 @@ public class NotificationHub(ILogger<NotificationHub> logger) : Hub<IHubClient>
     
     public static List<string> GetUsersByRoles(string[] roles)
     {
-        return ConnectedUsers
+        var connectionIds = ConnectedUsers
             .Where(kvp => kvp.Value.Roles.Any(roles.Contains))
             .Select(kvp => kvp.Key)
             .ToList();
+        
+        if (_hubContext != null && connectionIds.Count == 0 && ConnectedUsers.Count > 0)
+        {
+            _ = _hubContext.Clients.All.KeepAlive();
+        }
+        
+        return connectionIds;
     }
 
     public Task<List<UserState>> GetCurrentUsers()
@@ -128,9 +156,26 @@ public class NotificationHub(ILogger<NotificationHub> logger) : Hub<IHubClient>
         }
     }
 
+    public Task Ping()
+    {
+        return Task.CompletedTask;
+    }
+
     protected override void Dispose(bool disposing)
     {
-        KeepAliveTimer?.Dispose();
+        if (disposing)
+        {
+            if (KeepAliveTimer != null)
+            {
+                KeepAliveTimer.Dispose();
+            }
+            
+            if (ConnectionCleanupTimer != null)
+            {
+                ConnectionCleanupTimer.Dispose();
+            }
+        }
+        
         base.Dispose(disposing);
     }
 } 

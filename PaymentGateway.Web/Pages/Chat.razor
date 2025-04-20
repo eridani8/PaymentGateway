@@ -1,7 +1,6 @@
 ﻿@page "/chat"
 @attribute [Authorize(Roles = "Admin,Support")]
 @inject NavigationManager NavigationManager
-@inject SignalRService SignalRService
 @inject ISnackbar Snackbar
 @inject ILogger<Chat> Logger
 @using System.Collections.Concurrent
@@ -64,81 +63,81 @@
 
     protected override async Task OnInitializedAsync()
     {
-        await SignalRService.InitializeAsync();
-        await LoadOnlineUsers();
-        SubscribeToChatEvents();
+        // await SignalRService.InitializeAsync();
+        // await LoadOnlineUsers();
+        // SubscribeToChatEvents();
     }
 
     private async Task LoadOnlineUsers()
     {
-        try
-        {
-            var users = await SignalRService.GetCurrentUsers();
-            _onlineUsers.Clear();
-            foreach (var user in users)
-            {
-                _onlineUsers.TryAdd(user.Id, user);
-            }
-
-            StateHasChanged();
-        }
-        catch (Exception e)
-        {
-            Logger.LogError(e, "Ошибка при загрузке списка пользователей: {Message}", e.Message);
-            Snackbar.Add($"Ошибка при загрузке списка пользователей: {e.Message}", Severity.Error);
-        }
+        // try
+        // {
+        //     var users = await SignalRService.GetCurrentUsers();
+        //     _onlineUsers.Clear();
+        //     foreach (var user in users)
+        //     {
+        //         _onlineUsers.TryAdd(user.Id, user);
+        //     }
+        //
+        //     StateHasChanged();
+        // }
+        // catch (Exception e)
+        // {
+        //     Logger.LogError(e, "Ошибка при загрузке списка пользователей: {Message}", e.Message);
+        //     Snackbar.Add($"Ошибка при загрузке списка пользователей: {e.Message}", Severity.Error);
+        // }
     }
 
     private void SubscribeToChatEvents()
     {
-        SignalRService.SubscribeToChatMessages(message =>
-        {
-            _messages.Add(message);
-            StateHasChanged();
-        });
-
-        SignalRService.SubscribeToUserConnections((userId, roles) =>
-        {
-            var userState = new UserState
-            {
-                Id = Guid.Parse(userId),
-                Username = userId,
-                Roles = roles
-            };
-            _onlineUsers.TryAdd(userState.Id, userState);
-            StateHasChanged();
-        });
-
-        SignalRService.SubscribeToUserDisconnections(userId =>
-        {
-            if (!Guid.TryParse(userId, out var guid)) return;
-            _onlineUsers.TryRemove(guid, out _);
-            StateHasChanged();
-        });
+        // SignalRService.SubscribeToChatMessages(message =>
+        // {
+        //     _messages.Add(message);
+        //     StateHasChanged();
+        // });
+        //
+        // SignalRService.SubscribeToUserConnections((userId, roles) =>
+        // {
+        //     var userState = new UserState
+        //     {
+        //         Id = Guid.Parse(userId),
+        //         Username = userId,
+        //         Roles = roles
+        //     };
+        //     _onlineUsers.TryAdd(userState.Id, userState);
+        //     StateHasChanged();
+        // });
+        //
+        // SignalRService.SubscribeToUserDisconnections(userId =>
+        // {
+        //     if (!Guid.TryParse(userId, out var guid)) return;
+        //     _onlineUsers.TryRemove(guid, out _);
+        //     StateHasChanged();
+        // });
     }
 
     private async Task SendMessage()
     {
-        if (string.IsNullOrWhiteSpace(_currentMessageText)) return;
-
-        try
-        {
-            var message = new ChatMessageDto
-            {
-                Id = Guid.CreateVersion7(),
-                Message = _currentMessageText,
-                Timestamp = DateTime.UtcNow
-            };
-
-            await SignalRService.SendChatMessage(message);
-            _currentMessageText = string.Empty;
-            StateHasChanged();
-        }
-        catch (Exception e)
-        {
-            Logger.LogError(e, e.Message);
-            Snackbar.Add("Ошибка при отправке сообщения", Severity.Error);
-        }
+        // if (string.IsNullOrWhiteSpace(_currentMessageText)) return;
+        //
+        // try
+        // {
+        //     var message = new ChatMessageDto
+        //     {
+        //         Id = Guid.CreateVersion7(),
+        //         Message = _currentMessageText,
+        //         Timestamp = DateTime.UtcNow
+        //     };
+        //
+        //     await SignalRService.SendChatMessage(message);
+        //     _currentMessageText = string.Empty;
+        //     StateHasChanged();
+        // }
+        // catch (Exception e)
+        // {
+        //     Logger.LogError(e, e.Message);
+        //     Snackbar.Add("Ошибка при отправке сообщения", Severity.Error);
+        // }
     }
 
     private async Task OnKeyDown(KeyboardEventArgs e)

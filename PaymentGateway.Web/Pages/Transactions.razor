@@ -3,12 +3,10 @@
 @using PaymentGateway.Shared.DTOs.Transaction
 @using PaymentGateway.Shared.Enums
 @inject ITransactionService TransactionService
-@inject IDialogService DialogService
 @inject ISnackbar Snackbar
 @inject NavigationManager NavigationManager
 @inject ILogger<Transactions> Logger
 @inject AuthenticationStateProvider AuthStateProvider
-@inject SignalRService SignalRService
 @implements IAsyncDisposable
 @implements IDisposable
 
@@ -97,26 +95,26 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        _isAdminUser = authState.User.IsInRole("Admin");
-
-        await LoadTransactions();
-
-        if (!_isInitialized)
-        {
-            try
-            {
-                await SignalRService.InitializeAsync();
-                SignalRService.SubscribeToTransactionUpdates(HandleTransactionUpdate);
-                _isInitialized = true;
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e, "Ошибка при инициализации SignalR");
-            }
-        }
-
-        _refreshTimer = new Timer(TimerTick, null, RefreshInterval, RefreshInterval);
+        // var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        // _isAdminUser = authState.User.IsInRole("Admin");
+        //
+        // await LoadTransactions();
+        //
+        // if (!_isInitialized)
+        // {
+        //     try
+        //     {
+        //         await SignalRService.InitializeAsync();
+        //         SignalRService.SubscribeToTransactionUpdates(HandleTransactionUpdate);
+        //         _isInitialized = true;
+        //     }
+        //     catch (Exception e)
+        //     {
+        //         Logger.LogError(e, "Ошибка при инициализации SignalR");
+        //     }
+        // }
+        //
+        // _refreshTimer = new Timer(TimerTick, null, RefreshInterval, RefreshInterval);
     }
 
     private async void TimerTick(object? state)
@@ -166,21 +164,21 @@
 
     public async ValueTask DisposeAsync()
     {
-        try
-        {
-            if (_isInitialized)
-            {
-                SignalRService.UnsubscribeFromTransactionUpdates();
-                await SignalRService.DisposeAsync();
-                _isInitialized = false;
-            }
-
-            await _refreshTimer.DisposeAsync();
-        }
-        catch (Exception e)
-        {
-            Logger.LogError(e, "Ошибка при освобождении ресурсов на странице транзакций");
-        }
+        // try
+        // {
+        //     if (_isInitialized)
+        //     {
+        //         SignalRService.UnsubscribeFromTransactionUpdates();
+        //         await SignalRService.DisposeAsync();
+        //         _isInitialized = false;
+        //     }
+        //
+        //     await _refreshTimer.DisposeAsync();
+        // }
+        // catch (Exception e)
+        // {
+        //     Logger.LogError(e, "Ошибка при освобождении ресурсов на странице транзакций");
+        // }
     }
 
     private async Task LoadTransactions()

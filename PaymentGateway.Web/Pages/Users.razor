@@ -8,9 +8,9 @@
 @inject ILogger<Users> Logger
 @inject ISnackbar Snackbar
 @inject NavigationManager NavigationManager
-@inject SignalRService SignalRService
 @inject CustomAuthStateProvider AuthStateProvider
 @implements IAsyncDisposable
+@inject NotificationService NotificationService
 
 <AuthorizeView Roles="Admin">
     <Authorized>
@@ -19,6 +19,11 @@
                 <MudToolBar>
                     <MudText Typo="Typo.h6">Список пользователей</MudText>
                     <MudSpacer/>
+                    <MudChip T="string" Icon="@Icons.Material.Filled.RssFeed" 
+                             Color="@(_signalRConnected ? Color.Success : Color.Error)"
+                             Size="Size.Small">
+                        @(_signalRConnected ? "SignalR подключен" : "SignalR отключен")
+                    </MudChip>
                     <MudButton
                         Variant="Variant.Outlined"
                         Color="Color.Primary"
@@ -142,29 +147,41 @@
     private bool _isLoading = true;
     private List<UserDto> _users = [];
     private Dictionary<Guid, string> _userRoles = [];
-    private bool _isInitialized;
     private string _searchUserId = string.Empty;
     private string _searchError = string.Empty;
     private bool _isFiltered;
+    private bool _signalRConnected = true;
+    private EventHandler<bool>? _connectionChangedHandler;
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadUsers();
-        await LoadUserRoles();
-
-        if (!_isInitialized)
+        try
         {
-            try
+            await LoadUsers();
+            await LoadUserRoles();
+            
+            await NotificationService.InitializeAsync();
+            
+            Logger.LogInformation("NotificationService инициализирован, подписываемся на обновления пользователей");
+            NotificationService.SubscribeToUserUpdates(HandleUserUpdate);
+            NotificationService.SubscribeToUserDeletions(HandleUserDeleted);
+            
+            _signalRConnected = NotificationService.IsConnected;
+            
+            _connectionChangedHandler = (sender, connected) =>
             {
-                await SignalRService.InitializeAsync();
-                SignalRService.SubscribeToUserUpdates(HandleUserUpdate);
-                SignalRService.SubscribeToUserDeletions(HandleUserDeleted);
-                _isInitialized = true;
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e, "Ошибка при инициализации SignalR");
-            }
+                _signalRConnected = connected;
+                InvokeAsync(StateHasChanged);
+            };
+            
+            NotificationService.ConnectionChanged += _connectionChangedHandler;
+            
+            Logger.LogInformation("Подписки на обновления пользователей настроены");
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Ошибка при инициализации страницы пользователей");
+            Snackbar.Add("Ошибка при загрузке данных", Severity.Error);
         }
     }
 
@@ -236,17 +253,19 @@
     {
         try
         {
-            if (_isInitialized)
+            NotificationService.UnsubscribeFromUserUpdates();
+            NotificationService.UnsubscribeFromUserDeletions();
+            
+            if (NotificationService != null)
             {
-                SignalRService.UnsubscribeFromUserUpdates();
-                SignalRService.UnsubscribeFromUserDeletions();
-                await SignalRService.DisposeAsync();
-                _isInitialized = false;
+                NotificationService.ConnectionChanged -= _connectionChangedHandler;
             }
+            
+            Logger.LogInformation("Отписки от событий выполнены успешно");
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            Logger.LogError(e, "Ошибка при освобождении ресурсов на странице пользователей");
+            Logger.LogError(ex, "Ошибка при отписке от событий");
         }
     }
 

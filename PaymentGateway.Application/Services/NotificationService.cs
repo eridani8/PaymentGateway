@@ -17,20 +17,27 @@ public class NotificationService(
     {
         try
         {
+            logger.LogInformation("NotifyUserUpdated вызван для пользователя {UserId}", user.Id);
+            
             var tasks = new List<Task>();
             
             var adminIds = NotificationHub.GetUsersByRoles(["Admin"]);
+            
             if (adminIds.Count > 0)
             {
-                var adminTask = hubContext.Clients.Users(adminIds).UserUpdated(user);
+                var adminTask = hubContext.Clients.Clients(adminIds).UserUpdated(user);
                 tasks.Add(adminTask);
-                logger.LogInformation("Запущено уведомление об обновлении пользователя для {Count} администраторов, пользователь {UserId}", 
-                    adminIds.Count, user.Id);
+                logger.LogInformation("Запущено уведомление об обновлении пользователя для {Count} администраторов, ConnectionIds: {ConnectionIds}", 
+                    adminIds.Count, string.Join(", ", adminIds));
+            }
+            else
+            {
+                logger.LogWarning("Не найдены активные подключения администраторов для отправки уведомления");
             }
             
-            var userTask = hubContext.Clients.User(user.Id.ToString()).UserUpdated(user);
-            tasks.Add(userTask);
-            logger.LogInformation("Запущено уведомление об обновлении для самого пользователя {UserId}", user.Id);
+            var broadcastTask = hubContext.Clients.All.UserUpdated(user);
+            tasks.Add(broadcastTask);
+            logger.LogInformation("Запущено широковещательное уведомление об обновлении пользователя {UserId}", user.Id);
             
             await Task.WhenAll(tasks);
             
@@ -46,16 +53,27 @@ public class NotificationService(
     {
         try
         {
+            logger.LogInformation("NotifyUserDeleted вызван для пользователя {UserId}", id);
+            
             var tasks = new List<Task>();
             
             var adminIds = NotificationHub.GetUsersByRoles(["Admin"]);
+            
             if (adminIds.Count > 0)
             {
-                var adminTask = hubContext.Clients.Users(adminIds).UserDeleted(id);
+                var adminTask = hubContext.Clients.Clients(adminIds).UserDeleted(id);
                 tasks.Add(adminTask);
-                logger.LogInformation("Запущено уведомление об удалении пользователя для {Count} администраторов, пользователь {UserId}", 
-                    adminIds.Count, id);
+                logger.LogInformation("Запущено уведомление об удалении пользователя для {Count} администраторов, ConnectionIds: {ConnectionIds}", 
+                    adminIds.Count, string.Join(", ", adminIds));
             }
+            else
+            {
+                logger.LogWarning("Не найдены активные подключения администраторов для отправки уведомления об удалении");
+            }
+            
+            var broadcastTask = hubContext.Clients.All.UserDeleted(id);
+            tasks.Add(broadcastTask);
+            logger.LogInformation("Запущено широковещательное уведомление об удалении пользователя {UserId}", id);
             
             await Task.WhenAll(tasks);
             
