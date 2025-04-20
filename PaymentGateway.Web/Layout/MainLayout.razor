@@ -52,7 +52,32 @@
                        Elevation="12"
                        ClipMode="DrawerClipMode.Always"
                        Open="true">
-                <NavMenu/>
+                <MudNavMenu Class="mt-4">
+                    <AuthorizeView Context="adminContext" Roles="Admin">
+                        <MudNavLink Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.People" Href="users">
+                            Пользователи
+                        </MudNavLink>
+                    </AuthorizeView>
+                    <AuthorizeView Context="anyContext" Roles="User,Admin,Support">
+                        <MudNavLink Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.RequestPage"
+                                    Href="requisites">Реквизиты
+                        </MudNavLink>
+                    </AuthorizeView>
+                    <AuthorizeView Context="anyContext" Roles="User,Admin,Support">
+                        <MudNavLink Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.CreditCard"
+                                    Href="payments">Платежи
+                        </MudNavLink>
+                    </AuthorizeView>
+                    <AuthorizeView Context="anyContext" Roles="User,Admin,Support">
+                        <MudNavLink Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.AssignmentTurnedIn"
+                                    Href="transactions">Транзакции
+                        </MudNavLink>
+                    </AuthorizeView>
+                    <AuthorizeView Context="adminContext" Roles="Admin,Support">
+                        <MudNavLink Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Chat" Href="chat">Чат
+                        </MudNavLink>
+                    </AuthorizeView>
+                </MudNavMenu>
             </MudDrawer>
         </Authorized>
     </AuthorizeView>
@@ -84,7 +109,7 @@
             StateHasChanged();
         }
     }
-    
+
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
@@ -100,7 +125,7 @@
         {
             _isDarkMode = await LocalStorage.GetItemAsync<bool>(ThemeKey);
         }
-        
+
         await InitializeSignalR();
     }
 
@@ -109,15 +134,15 @@
         try
         {
             var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-            
+
             if (authState.User.Identity?.IsAuthenticated == true)
             {
                 Logger.LogInformation("Инициализация SignalR в MainLayout");
-                
-                try 
+
+                try
                 {
                     await NotificationService.InitializeAsync();
-                    
+
                     Logger.LogInformation("SignalR соединение инициализировано в MainLayout");
                 }
                 catch (Exception ex)
@@ -125,7 +150,7 @@
                     Logger.LogError(ex, "Ошибка при подключении SignalR");
                 }
             }
-            else 
+            else
             {
                 Logger.LogInformation("Пользователь не авторизован, SignalR не инициализирован");
             }
@@ -213,7 +238,7 @@
         await AuthStateProvider.MarkUserAsLoggedOut();
         Navigation.NavigateTo("/login", true);
     }
-    
+
     public async ValueTask DisposeAsync()
     {
         try
@@ -222,6 +247,7 @@
             {
                 await NotificationService.DisposeAsync();
             }
+
             Logger.LogInformation("Отписки от событий SignalR в MainLayout выполнены успешно");
         }
         catch (Exception ex)
@@ -229,4 +255,5 @@
             Logger.LogError(ex, "Ошибка при отписке от событий SignalR в MainLayout");
         }
     }
+
 }

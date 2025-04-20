@@ -39,9 +39,9 @@ public class NotificationService(
             
             logger.LogInformation("Все уведомления об обновлении пользователя {UserId} отправлены успешно", user.Id);
         }
-        catch (Exception ex)
+        catch (Exception e)
         {
-            logger.LogError(ex, "Ошибка отправки уведомления об обновлении пользователя {UserId}", user.Id);
+            logger.LogError(e, "Ошибка отправки уведомления об обновлении пользователя {UserId}", user.Id);
         }
     }
 
@@ -71,9 +71,9 @@ public class NotificationService(
             
             logger.LogInformation("Все уведомления об удалении пользователя {UserId} отправлены успешно", id);
         }
-        catch (Exception ex)
+        catch (Exception e)
         {
-            logger.LogError(ex, "Ошибка отправки уведомления об удалении пользователя {UserId}", id);
+            logger.LogError(e, "Ошибка отправки уведомления об удалении пользователя {UserId}", id);
         }
     }
     
@@ -103,9 +103,9 @@ public class NotificationService(
             
             logger.LogInformation("Все уведомления об обновлении реквизита {RequisiteId} отправлены успешно", requisite.Id);
         }
-        catch (Exception ex)
+        catch (Exception e)
         {
-            logger.LogError(ex, "Ошибка отправки уведомления об обновлении реквизита {RequisiteId}", requisite.Id);
+            logger.LogError(e, "Ошибка отправки уведомления об обновлении реквизита {RequisiteId}", requisite.Id);
         }
     }
 
@@ -135,9 +135,9 @@ public class NotificationService(
             
             logger.LogInformation("Все уведомления об удалении реквизита {RequisiteId} отправлены успешно", requisiteId);
         }
-        catch (Exception ex)
+        catch (Exception e)
         {
-            logger.LogError(ex, "Ошибка отправки уведомления об удалении реквизита {RequisiteId}", requisiteId);
+            logger.LogError(e, "Ошибка отправки уведомления об удалении реквизита {RequisiteId}", requisiteId);
         }
     }
 
@@ -167,9 +167,9 @@ public class NotificationService(
             
             logger.LogInformation("Все уведомления об обновлении платежа {PaymentId} отправлены успешно", payment.Id);
         }
-        catch (Exception ex)
+        catch (Exception e)
         {
-            logger.LogError(ex, "Ошибка отправки уведомления об обновлении платежа {PaymentId}", payment.Id);
+            logger.LogError(e, "Ошибка отправки уведомления об обновлении платежа {PaymentId}", payment.Id);
         }
     }
 
@@ -199,9 +199,9 @@ public class NotificationService(
             
             logger.LogInformation("Все уведомления об удалении платежа {PaymentId} отправлены успешно", id);
         }
-        catch (Exception ex)
+        catch (Exception e)
         {
-            logger.LogError(ex, "Ошибка отправки уведомления об удалении платежа {PaymentId}", id);
+            logger.LogError(e, "Ошибка отправки уведомления об удалении платежа {PaymentId}", id);
         }
     }
 } 

@@ -8,17 +8,15 @@ using PaymentGateway.Shared.DTOs.Transaction;
 using PaymentGateway.Shared.DTOs.User;
 using Polly;
 using Polly.Retry;
+using MudBlazor;
 
 namespace PaymentGateway.Web.Services;
 
 public class NotificationService(
     IOptions<ApiSettings> settings,
-    CustomAuthStateProvider authStateProvider,
+    IServiceProvider serviceProvider,
     ILogger<NotificationService> logger) : IAsyncDisposable
 {
-    private static bool _globalInitialized;
-    private static readonly Lock Lock = new();
-    
     private readonly string _instanceId = Guid.NewGuid().ToString("N")[..8];
     private HubConnection? _hubConnection;
     private readonly string _hubUrl = $"{settings.Value.BaseAddress}/notificationHub";
@@ -106,8 +104,11 @@ public class NotificationService(
         try
         {
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-            if (_hubConnection != null) await _hubConnection.InvokeAsync("Ping", cts.Token);
-            logger.LogDebug("Ping отправлен успешно");
+            if (_hubConnection != null && _hubConnection.State == HubConnectionState.Connected) 
+            {
+                await _hubConnection.InvokeAsync("Ping", cts.Token);
+                logger.LogDebug("Ping отправлен успешно");
+            }
         }
         catch (OperationCanceledException)
         {
@@ -186,18 +187,12 @@ public class NotificationService(
     {
         if (_isDisposed) return;
         
+        using var scope = serviceProvider.CreateScope();
+        var authStateProvider = scope.ServiceProvider.GetRequiredService<CustomAuthStateProvider>();
+        
         try
         {
             logger.LogInformation("[{InstanceId}] Начало инициализации NotificationService", _instanceId);
-            
-            lock (Lock)
-            {
-                if (_globalInitialized && _hubConnection?.State == HubConnectionState.Connected)
-                {
-                    logger.LogDebug("[{InstanceId}] SignalR соединение уже инициализировано глобально", _instanceId);
-                    return;
-                }
-            }
             
             if (_hubConnection != null && _hubConnection.State == HubConnectionState.Connected)
             {
@@ -253,25 +248,20 @@ public class NotificationService(
                         return currentToken;
                     };
                     
-                    options.CloseTimeout = TimeSpan.FromMinutes(60);
+                    options.CloseTimeout = TimeSpan.FromMinutes(1);
                     options.SkipNegotiation = false;
-                    options.Transports = Microsoft.AspNetCore.Http.Connections.HttpTransportType.WebSockets |
-                                         Microsoft.AspNetCore.Http.Connections.HttpTransportType.ServerSentEvents;
+                    options.Transports = Microsoft.AspNetCore.Http.Connections.HttpTransportType.WebSockets;
                 })
                 .WithAutomaticReconnect([
                     TimeSpan.FromSeconds(0),
                     TimeSpan.FromSeconds(2),
                     TimeSpan.FromSeconds(5),
                     TimeSpan.FromSeconds(10),
-                    TimeSpan.FromSeconds(20),
+                    TimeSpan.FromSeconds(15),
                     TimeSpan.FromSeconds(30),
-                    TimeSpan.FromMinutes(1),
-                    TimeSpan.FromMinutes(2),
-                    TimeSpan.FromMinutes(5),
-                    TimeSpan.FromMinutes(10),
-                    TimeSpan.FromMinutes(15)
+                    TimeSpan.FromMinutes(1)
                 ])
-                .WithKeepAliveInterval(TimeSpan.FromSeconds(30))
+                .WithKeepAliveInterval(TimeSpan.FromSeconds(15))
                 .WithServerTimeout(TimeSpan.FromMinutes(60))
                 .WithStatefulReconnect()
                 .AddJsonProtocol(options =>
@@ -344,11 +334,6 @@ public class NotificationService(
 
             await StartConnectionWithRetryAsync();
             
-            lock (Lock)
-            {
-                _globalInitialized = true;
-            }
-            
             logger.LogInformation("[{InstanceId}] Глобальное состояние инициализации SignalR установлено", _instanceId);
         }
         catch (Exception ex)
@@ -400,10 +385,6 @@ public class NotificationService(
                 await _hubConnection.DisposeAsync();
                 _hubConnection = null!;
                 
-                lock (Lock)
-                {
-                    _globalInitialized = false;
-                }
                 logger.LogInformation("[{InstanceId}] Глобальное состояние инициализации SignalR сброшено", _instanceId);
             }
             
@@ -504,4 +485,31 @@ public class NotificationService(
     }
 
     #endregion
+
+    #region Chat
+
+    public void SubscribeToUserConnected(Action<UserState> handler)
+    {
+        Subscribe(SignalREvents.UserConnected, handler);
+    }
+
+    public void SubscribeToUserDisconnected(Action<UserState> handler)
+    {
+        Subscribe(SignalREvents.UserDisconnected, handler);
+    }
+
+    #endregion
+    
+    public async Task<List<UserState>> GetUsers()
+    {
+        try
+        {
+            return await _hubConnection!.InvokeAsync<List<UserState>>(SignalREvents.GetUsers);
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, "Ошибка получения списка пользователей");
+            return [];
+        }
+    }
 }

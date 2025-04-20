@@ -11,16 +11,14 @@ namespace PaymentGateway.Application.Hubs;
 
 public class NotificationHub(ILogger<NotificationHub> logger) : Hub<IHubClient>
 {
+    private static IHubContext<NotificationHub, IHubClient>? _hubContext;
     private static readonly ConcurrentDictionary<string, UserState> ConnectedUsers = new();
     private static readonly Timer? KeepAliveTimer;
-    private static readonly Timer? ConnectionCleanupTimer;
-    private const int KeepAliveInterval = 25000;
-    private const int CleanupInterval = 60000; // 1 минута
+    private const int KeepAliveInterval = 15000;
 
     static NotificationHub()
     {
         KeepAliveTimer = new Timer(SendKeepAlive, null, KeepAliveInterval, KeepAliveInterval);
-        ConnectionCleanupTimer = new Timer(CleanupConnections, null, CleanupInterval, CleanupInterval);
     }
 
     private static async void SendKeepAlive(object? state)
@@ -37,26 +35,6 @@ public class NotificationHub(ILogger<NotificationHub> logger) : Hub<IHubClient>
             // ignore
         }
     }
-
-    private static void CleanupConnections(object? state)
-    {
-        try
-        {
-            var now = DateTime.UtcNow;
-            var connectionIds = ConnectedUsers.Keys.ToList();
-            
-            if (_hubContext != null && connectionIds.Count > 0)
-            {
-                _hubContext.Clients.All.KeepAlive();
-            }
-        }
-        catch
-        {
-            // ignore
-        }
-    }
-
-    private static IHubContext<NotificationHub, IHubClient>? _hubContext;
 
     public static void Initialize(IHubContext<NotificationHub, IHubClient> hubContext)
     {
@@ -137,7 +115,7 @@ public class NotificationHub(ILogger<NotificationHub> logger) : Hub<IHubClient>
         return connectionIds;
     }
 
-    public Task<List<UserState>> GetCurrentUsers()
+    public Task<List<UserState>> GetUsers()
     {
         return Task.FromResult(ConnectedUsers.Values.ToList());
     }
@@ -156,24 +134,11 @@ public class NotificationHub(ILogger<NotificationHub> logger) : Hub<IHubClient>
         }
     }
 
-    public Task Ping()
-    {
-        return Task.CompletedTask;
-    }
-
     protected override void Dispose(bool disposing)
     {
         if (disposing)
         {
-            if (KeepAliveTimer != null)
-            {
-                KeepAliveTimer.Dispose();
-            }
-            
-            if (ConnectionCleanupTimer != null)
-            {
-                ConnectionCleanupTimer.Dispose();
-            }
+            KeepAliveTimer?.Dispose();
         }
         
         base.Dispose(disposing);

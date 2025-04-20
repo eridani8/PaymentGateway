@@ -1,11 +1,12 @@
 ﻿@page "/chat"
+@using System.Collections.Concurrent
+@using PaymentGateway.Shared.DTOs.Chat
+@using PaymentGateway.Shared.DTOs.User
 @attribute [Authorize(Roles = "Admin,Support")]
 @inject NavigationManager NavigationManager
 @inject ISnackbar Snackbar
 @inject ILogger<Chat> Logger
-@using System.Collections.Concurrent
-@using PaymentGateway.Shared.DTOs.Chat
-@using PaymentGateway.Shared.DTOs.User
+@inject NotificationService NotificationService
 
 <AuthorizeView Roles="Admin,Support">
     <Authorized>
@@ -36,11 +37,11 @@
                 <MudItem xs="12" sm="3">
                     <MudPaper Class="pa-4" Elevation="12">
                         <MudList T="UserState">
-                            @foreach (var user in _onlineUsers)
+                            @foreach (var user in _users)
                             {
                                 <MudListItem T="UserState">
-                                    <MudText>@user.Value.Username</MudText>
-                                    <MudText Typo="Typo.caption">@string.Join(", ", user.Value.Roles)</MudText>
+                                    <MudText>@user.Username</MudText>
+                                    <MudText Typo="Typo.caption">@string.Join(", ", user.Roles)</MudText>
                                 </MudListItem>
                             }
                         </MudList>
@@ -59,33 +60,59 @@
 @code {
     private string _currentMessageText = string.Empty;
     private readonly List<ChatMessageDto> _messages = [];
-    private readonly ConcurrentDictionary<Guid, UserState> _onlineUsers = new();
+    private List<UserState> _users = [];
 
     protected override async Task OnInitializedAsync()
     {
+        await LoadUsers();
+        
+        NotificationService.SubscribeToUserConnected(HandleUserConnected);
+        NotificationService.SubscribeToUserDisconnected(HandleUserDisconnected);
+        
         // await SignalRService.InitializeAsync();
-        // await LoadOnlineUsers();
+        // 
         // SubscribeToChatEvents();
     }
 
-    private async Task LoadOnlineUsers()
+    private async Task LoadUsers()
     {
-        // try
-        // {
-        //     var users = await SignalRService.GetCurrentUsers();
-        //     _onlineUsers.Clear();
-        //     foreach (var user in users)
-        //     {
-        //         _onlineUsers.TryAdd(user.Id, user);
-        //     }
-        //
-        //     StateHasChanged();
-        // }
-        // catch (Exception e)
-        // {
-        //     Logger.LogError(e, "Ошибка при загрузке списка пользователей: {Message}", e.Message);
-        //     Snackbar.Add($"Ошибка при загрузке списка пользователей: {e.Message}", Severity.Error);
-        // }
+        try
+        {
+            _users = await NotificationService.GetUsers();
+        
+            StateHasChanged();
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e, "Ошибка при загрузке списка пользователей: {Message}", e.Message);
+            Snackbar.Add($"Ошибка при загрузке списка пользователей: {e.Message}", Severity.Error);
+        }
+    }
+
+    private async void HandleUserConnected(UserState state)
+    {
+        try
+        {
+            _users.Add(state);
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e, "Ошибка при добавлении пользователя");
+        }
+    }
+    
+    private async void HandleUserDisconnected(UserState state)
+    {
+        try
+        {
+            _users.Remove(state);
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e, "Ошибка при добавлении пользователя");
+        }
     }
 
     private void SubscribeToChatEvents()
