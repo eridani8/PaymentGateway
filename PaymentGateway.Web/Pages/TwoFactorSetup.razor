@@ -1,0 +1,208 @@
+﻿@page "/two-factor-setup"
+@using System.Net
+@using PaymentGateway.Shared.DTOs.User
+@using PaymentGateway.Shared.Validations.Validators.User
+@attribute [Authorize(Roles = "Admin")]
+@inject IUserService UserService
+@inject CustomAuthStateProvider AuthStateProvider
+@inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JsRuntime
+
+<MudContainer MaxWidth="MaxWidth.Small" Class="d-flex justify-center align-center" Style="min-height: 80vh;">
+    <MudPaper Elevation="12" Class="pa-4 text-center" Style="width: 500px;">
+        <MudText Typo="Typo.h4" Align="Align.Center" Class="mb-4">Настройка двухфакторной аутентификации</MudText>
+
+        @if (!_setupComplete)
+        {
+            <MudAlert Severity="Severity.Warning" Class="mb-4">
+                Для продолжения работы в системе необходимо настроить двухфакторную аутентификацию.
+            </MudAlert>
+        }
+
+        @if (_isLoading)
+        {
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large"/>
+        }
+        else if (_setupComplete)
+        {
+            <MudAlert Severity="Severity.Success" Class="mb-4">
+                Двухфакторная аутентификация успешно настроена!
+            </MudAlert>
+        }
+        else if (_error != null)
+        {
+            <MudAlert Severity="Severity.Error" Class="mb-4">
+                @_error
+            </MudAlert>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" OnClick="@(LoadSetupData)">
+                Попробовать снова
+            </MudButton>
+        }
+        else if (_twoFactorData != null)
+        {
+            <MudText Typo="Typo.body1" Class="mb-4">Отсканируйте QR-код с помощью приложения Google Authenticator
+            </MudText>
+
+            <div class="d-flex justify-center mb-4">
+                @if (!string.IsNullOrEmpty(_qrCodeImageUri))
+                {
+                    <MudImage Src="@_qrCodeImageUri" Alt="QR код для настройки 2FA" Width="250" Height="250"
+                              ObjectFit="ObjectFit.Cover" Elevation="25" Class="rounded-lg"/>
+                }
+                else
+                {
+                    <MudAlert Severity="Severity.Error">Ошибка генерации QR кода</MudAlert>
+                }
+            </div>
+
+            <MudText Typo="Typo.body1" Class="mb-4">
+                Или введите ключ вручную:
+                <MudTextField ReadOnly="true" Value="@_twoFactorData.SharedKey" Variant="Variant.Outlined"
+                              Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.ContentCopy"
+                              OnAdornmentClick="@(() => CopyToClipboard(_twoFactorData.SharedKey))" Class="mt-2"/>
+            </MudText>
+
+            <MudForm @ref="_form" Model="@_verifyModel" Validation="@(_validator.ValidateValue)" ValidationDelay="0">
+                <MudTextField @bind-Value="_verifyModel.Code"
+                              Label="Код подтверждения"
+                              Variant="Variant.Outlined"
+                              InputType="InputType.Number"
+                              Immediate="true"
+                              For="@(() => _verifyModel.Code)"
+                              FullWidth="true"
+                              Class="mb-4"/>
+
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Primary"
+                           FullWidth="true"
+                           OnClick="@(VerifyTwoFactorCode)"
+                           Disabled="@_isVerifying">
+                    @if (_isVerifying)
+                    {
+                        <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
+                        <MudText Class="ms-2">Проверка...</MudText>
+                    }
+                    else
+                    {
+                        <MudText>Подтвердить</MudText>
+                    }
+                </MudButton>
+            </MudForm>
+        }
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private TwoFactorDto? _twoFactorData;
+    private readonly TwoFactorVerifyDto _verifyModel = new();
+    private MudForm _form = null!;
+    private readonly TwoFactorVerifyDtoValidator _validator = new();
+    private bool _isLoading = true;
+    private bool _isVerifying;
+    private bool _setupComplete;
+    private string? _error;
+    private string? _qrCodeImageUri;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadSetupData();
+    }
+
+    private async Task LoadSetupData()
+    {
+        _isLoading = true;
+        _error = null;
+
+        try
+        {
+            var statusResponse = await UserService.GetTwoFactorStatusAsync();
+            if (statusResponse.Code != HttpStatusCode.OK || statusResponse.Data == null)
+            {
+                _error = "Не удалось проверить статус двухфакторной аутентификации";
+                return;
+            }
+
+            if (statusResponse.Data.IsEnabled)
+            {
+                _setupComplete = true;
+                return;
+            }
+
+            var response = await UserService.EnableTwoFactorAsync();
+            if (response.Code != HttpStatusCode.OK || response.Data == null)
+            {
+                _error = "Не удалось получить данные для настройки двухфакторной аутентификации";
+                return;
+            }
+
+            _twoFactorData = response.Data;
+
+            if (!string.IsNullOrEmpty(_twoFactorData.QrCodeUri))
+            {
+                _qrCodeImageUri = "data:image/png;base64," + _twoFactorData.QrCodeUri;
+            }
+            else
+            {
+                _error = "QR-код не был сгенерирован сервером";
+            }
+        }
+        catch (Exception ex)
+        {
+            _error = $"Произошла ошибка: {ex.Message}";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task VerifyTwoFactorCode()
+    {
+        await _form.Validate();
+        if (!_form.IsValid)
+        {
+            return;
+        }
+
+        _isVerifying = true;
+        _error = null;
+
+        try
+        {
+            var response = await UserService.VerifyTwoFactorAsync(_verifyModel);
+            if (response.Code == HttpStatusCode.OK)
+            {
+                _setupComplete = true;
+                Snackbar.Add("Двухфакторная аутентификация успешно настроена!", Severity.Success);
+
+                await AuthStateProvider.NotifyAuthenticationStateChanged();
+
+                await Task.Delay(1500);
+            }
+            else if (response.Code == HttpStatusCode.BadRequest)
+            {
+                _error = "Неверный код подтверждения. Попробуйте еще раз.";
+                _verifyModel.Code = string.Empty;
+            }
+            else
+            {
+                _error = response.Content ?? "Произошла ошибка при проверке кода. Попробуйте еще раз.";
+            }
+        }
+        catch (Exception ex)
+        {
+            _error = $"Произошла ошибка: {ex.Message}";
+        }
+        finally
+        {
+            _isVerifying = false;
+        }
+    }
+
+    private async Task CopyToClipboard(string text)
+    {
+        await JsRuntime.InvokeVoidAsync("navigator.clipboard.writeText", text);
+        Snackbar.Add("Ключ скопирован в буфер обмена", Severity.Success);
+    }
+}

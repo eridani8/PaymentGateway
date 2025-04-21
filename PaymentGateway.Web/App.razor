@@ -1,33 +1,22 @@
 ﻿<CascadingAuthenticationState>
-    <Router AppAssembly="@typeof(App).Assembly">
+    <TwoFactorRouter>
+        <Router AppAssembly="@typeof(App).Assembly">
+            <Found Context="routeData">
+                <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
+                    <NotAuthorized>
+                        <RedirectToLogin/>
+                    </NotAuthorized>
+                    <Authorizing>
+                        <p>Проверка авторизации...</p>
+                    </Authorizing>
+                </AuthorizeRouteView>
+                <FocusOnNavigate RouteData="@routeData" Selector="h1"/>
+            </Found>
 
-        <Found Context="routeData">
-            <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
-                <NotAuthorized>
-                    @{
-                        var currentPath = routeData.PageType.Name;
-                        
-                        if (currentPath != "Home")
-                        {
-                            <RedirectToLogin/>
-                        }
-                        else
-                        {
-                            @routeData.PageType.GetMethod("BuildRenderTree")?.Invoke(Activator.CreateInstance(routeData.PageType), [__builder])
-                        }
-                    }
-                </NotAuthorized>
-                <Authorizing>
-                    <p>Проверка авторизации...</p>
-                </Authorizing>
-            </AuthorizeRouteView>
-            <FocusOnNavigate RouteData="@routeData" Selector="h1"/>
-        </Found>
-
-        <NotFound>
-            <PageTitle>Not found</PageTitle>
-            <p>Извините, по этому адресу ничего не найдено.</p>
-        </NotFound>
-        
-    </Router>
+            <NotFound>
+                <PageTitle>Not found</PageTitle>
+                <p>Извините, по этому адресу ничего не найдено.</p>
+            </NotFound>
+        </Router>
+    </TwoFactorRouter>
 </CascadingAuthenticationState>

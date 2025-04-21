@@ -30,6 +30,20 @@
                 Immediate="true"
                 FullWidth="true"/>
 
+            @if (_needTwoFactor)
+            {
+                <MudForm @ref="_twoFactorForm" Model="@_twoFactorVerifyDto" Validation="@(_twoFactorValidator.ValidateValue)"ValidationDelay="0">
+                    <MudTextField
+                        @bind-Value="_twoFactorVerifyDto.Code"
+                        Label="Код аутентификации"
+                        Variant="Variant.Outlined"
+                        Margin="Margin.Normal"
+                        For="@(() => _twoFactorVerifyDto.Code)"
+                        Immediate="true"
+                        FullWidth="true"/>
+                </MudForm>
+            }
+
             @if (!string.IsNullOrEmpty(_errorMessage))
             {
                 <MudAlert Severity="Severity.Error" Class="mt-3 mb-3">@_errorMessage</MudAlert>
@@ -49,10 +63,14 @@
 
 @code {
     private readonly LoginDto _loginDto = new();
+    private readonly TwoFactorVerifyDto _twoFactorVerifyDto = new();
     private string? _errorMessage;
     private MudForm _form = null!;
+    private MudForm? _twoFactorForm;
+    private bool _needTwoFactor;
 
     private readonly LoginModelValidator _validator = new();
+    private readonly TwoFactorVerifyDtoValidator _twoFactorValidator = new();
 
     private async Task Submit()
     {
@@ -62,16 +80,28 @@
 
         if (_form.IsValid)
         {
+            if (_needTwoFactor)
+            {
+                await _twoFactorForm!.Validate();
+                
+                if (!_twoFactorForm.IsValid) return;
+                
+                _loginDto.TwoFactorCode = _twoFactorVerifyDto.Code;
+            }
+            
             var response = await UserService.Login(_loginDto);
-
+            
             switch (response.Code)
             {
                 case HttpStatusCode.OK when !string.IsNullOrEmpty(response.Content):
-                    await AuthStateProvider.MarkUserAsAuthenticated(response.Content.Trim('"'));
+                    await AuthStateProvider.MarkUserAsAuthenticated(response.Content);
                     NavigationManager.NavigateTo("/", forceLoad: true);
                     break;
+                case HttpStatusCode.PreconditionRequired:
+                    _needTwoFactor = true;
+                    break;
                 case HttpStatusCode.Unauthorized:
-                    _errorMessage = response.Content?.Trim('"');
+                    _errorMessage = response.Content;
                     break;
                 default:
                     _errorMessage = "Ошибка аутентификации";

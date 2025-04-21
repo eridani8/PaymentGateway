@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Identity;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PaymentGateway.Core.Entities;
@@ -18,4 +19,8 @@ public class UserEntity : IdentityUser<Guid>
     public DateTime LastFundsResetAt { get; set; }
     
     public DateTime CreatedAt { get; set; }
+    [MaxLength(255)]
+    
+    [Encrypted]
+    public string? TwoFactorSecretKey { get; set; }
 }

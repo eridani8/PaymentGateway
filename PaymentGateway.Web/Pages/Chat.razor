@@ -159,6 +159,8 @@
     {
         if (string.IsNullOrWhiteSpace(_currentMessageText)) return;
 
+        if (_currentMessageText.Length > 1000) Snackbar.Add("Сообщение должно быть короче 1000 символов", Severity.Error);
+
         await NotificationService.SendChatMessage(_currentMessageText);
 
         _currentMessageText = "";

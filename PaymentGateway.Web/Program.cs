@@ -44,6 +44,7 @@ builder.Services.AddSingleton(new JsonSerializerOptions
 
 builder.Services.AddScoped<IValidator<LoginDto>, LoginModelValidator>();
 builder.Services.AddScoped<IValidator<ChangePasswordDto>, ChangePasswordValidator>();
+builder.Services.AddScoped<IValidator<TwoFactorVerifyDto>, TwoFactorVerifyDtoValidator>();
 
 builder.Services.AddScoped<IValidator<RequisiteCreateDto>, RequisiteCreateDtoValidator>();
 builder.Services.AddScoped<IValidator<PaymentCreateDto>, PaymentCreateDtoValidator>();

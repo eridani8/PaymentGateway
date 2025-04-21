@@ -1,0 +1,141 @@
+﻿@using System.Net
+@implements IDisposable
+@inject IUserService UserService
+@inject CustomAuthStateProvider AuthStateProvider
+@inject NavigationManager NavigationManager
+@inject ILogger<TwoFactorRouter> Logger
+
+@code {
+    [Parameter]
+    public RenderFragment ChildContent { get; set; } = null!;
+    
+    private bool _isTwoFactorSetupRequired;
+    private bool _hasCheckedTwoFactorStatus;
+    private bool _isUnsubscribed;
+    
+    protected override void OnInitialized()
+    {
+        NavigationManager.LocationChanged += HandleLocationChanged;
+    }
+    
+    protected override async Task OnInitializedAsync()
+    {
+        await CheckTwoFactorSetupRequiredAsync();
+    }
+    
+    private async void HandleLocationChanged(object? sender, LocationChangedEventArgs args)
+    {
+        try
+        {
+            var currentUrl = args.Location;
+            
+            if (_isUnsubscribed) return;
+                
+            if (_hasCheckedTwoFactorStatus && !_isTwoFactorSetupRequired)
+            {
+                UnsubscribeFromLocationChanges();
+                return;
+            }
+                
+            await Task.Delay(1000);
+            await CheckTwoFactorSetupRequiredAsync();
+            
+            if (_isTwoFactorSetupRequired)
+            {
+                await RedirectIfNeeded(currentUrl);
+            }
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e, e.Message);
+        }
+    }
+    
+    private async Task CheckTwoFactorSetupRequiredAsync()
+    {
+        try
+        {
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+            
+            if (user.Identity?.IsAuthenticated != true)
+            {
+                _isTwoFactorSetupRequired = false;
+                _hasCheckedTwoFactorStatus = false;
+                return;
+            }
+            
+            if (user.IsInRole("Admin"))
+            {
+                var statusResponse = await UserService.GetTwoFactorStatusAsync();
+                
+                if (statusResponse is { Code: HttpStatusCode.OK, Data: not null })
+                {
+                    var previousStatus = _isTwoFactorSetupRequired;
+                    _isTwoFactorSetupRequired = statusResponse.Data.IsSetupRequired;
+                    _hasCheckedTwoFactorStatus = true;
+                    
+                    if (previousStatus && !_isTwoFactorSetupRequired)
+                    {
+                        UnsubscribeFromLocationChanges();
+                    }
+                    else switch (_isTwoFactorSetupRequired)
+                    {
+                        case true:
+                            await RedirectIfNeeded(NavigationManager.Uri);
+                            break;
+                        case false:
+                            UnsubscribeFromLocationChanges();
+                            break;
+                    }
+                }
+            }
+            else
+            {
+                _isTwoFactorSetupRequired = false;
+                _hasCheckedTwoFactorStatus = true;
+                UnsubscribeFromLocationChanges();
+            }
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e, e.Message);
+        }
+    }
+    
+    private void UnsubscribeFromLocationChanges()
+    {
+        if (_isUnsubscribed) return;
+        NavigationManager.LocationChanged -= HandleLocationChanged;
+        _isUnsubscribed = true;
+        StateHasChanged();
+    }
+    
+    private Task RedirectIfNeeded(string currentUrl)
+    {
+        if (!_isTwoFactorSetupRequired) return Task.CompletedTask;
+        
+        var isAllowedUrl = 
+            currentUrl.Contains("/two-factor-setup", StringComparison.OrdinalIgnoreCase) ||
+            currentUrl.Contains("/logout", StringComparison.OrdinalIgnoreCase) ||
+            currentUrl.Contains("/error", StringComparison.OrdinalIgnoreCase) ||
+            currentUrl.Contains("/unauthorized", StringComparison.OrdinalIgnoreCase) ||
+            currentUrl.Contains("/access-denied", StringComparison.OrdinalIgnoreCase);
+
+        if (isAllowedUrl) return Task.CompletedTask;
+        
+        NavigationManager.NavigateTo("/two-factor-setup", replace: true);
+
+        return Task.CompletedTask;
+    }
+    
+    public void Dispose()
+    {
+        if (!_isUnsubscribed)
+        {
+            NavigationManager.LocationChanged -= HandleLocationChanged;
+        }
+    }
+}
+
+@ChildContent 

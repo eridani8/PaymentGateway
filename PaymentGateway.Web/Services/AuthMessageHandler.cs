@@ -31,15 +31,15 @@ public class AuthMessageHandler(
 
         var response = await base.SendAsync(request, cancellationToken);
 
-        if (response.StatusCode == HttpStatusCode.Unauthorized)
-        {
-            await customAuthStateProvider.MarkUserAsLoggedOut();
-            
-            _ = Task.Run(() => 
-            {
-                navigationManager.NavigateTo("/login", true);
-            }, cancellationToken);
-        }
+        // if (response.StatusCode == HttpStatusCode.Unauthorized)
+        // {
+        //     await customAuthStateProvider.MarkUserAsLoggedOut();
+        //     
+        //     _ = Task.Run(() => 
+        //     {
+        //         navigationManager.NavigateTo("/login", true);
+        //     }, cancellationToken);
+        // }
 
         return response;
     }

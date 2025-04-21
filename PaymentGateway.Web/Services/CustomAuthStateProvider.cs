@@ -60,7 +60,13 @@ public class CustomAuthStateProvider(ILocalStorageService localStorage) : Authen
         NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()))));
     }
 
-    private static IEnumerable<Claim> ParseClaimsFromJwt(string jwt)
+    public Task NotifyAuthenticationStateChanged()
+    {
+        NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
+        return Task.CompletedTask;
+    }
+
+    private static List<Claim> ParseClaimsFromJwt(string jwt)
     {
         var payload = jwt.Split('.')[1];
         var jsonBytes = ParseBase64WithoutPadding(payload);

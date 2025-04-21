@@ -20,8 +20,7 @@ public static class ValidatorRules
     public static IRuleBuilderOptions<T, string> ValidFullName<T>(this IRuleBuilder<T, string> rule)
     {
         return rule
-            .NotEmpty()
-            .WithMessage("Требуется указать имя и фамилию")
+            .NotEmpty().WithMessage("Введите имя")
             .Length(4, 40).WithMessage("Имя и фамилия должны быть от 4 до 40 символов")
             .Matches(ValidationRegexps.FullNameRegex())
             .WithMessage("Имя и фамилия должна содержать только буквы и пробелы")
@@ -85,34 +84,27 @@ public static class ValidatorRules
             .GreaterThan(0).WithMessage("Приоритет должен быть больше 0")
             .LessThanOrEqualTo(maxPriority).WithMessage($"Приоритет должен быть меньше или равен {maxPriority}");
     }
-    
+
     public static IRuleBuilderOptions<T, int> ValidNumber<T>(this IRuleBuilder<T, int> rule)
     {
         return rule
             .LessThanOrEqualTo(int.MaxValue).WithMessage($"Число должно быть меньше или равно {int.MaxValue}");
     }
 
-    public static IRuleBuilderOptions<T, DateTime> ValidDate<T>(this IRuleBuilder<T, DateTime> rule)
-    {
-        return rule
-            .NotEmpty().WithMessage("Требуется указать дату")
-            .Must(date => date != default).WithMessage("Дата не может быть значением по умолчанию")
-            .LessThanOrEqualTo(DateTime.UtcNow).WithMessage("Дата не может быть в будущем");
-    }
-
     public static IRuleBuilderOptions<T, string> ValidUsername<T>(this IRuleBuilder<T, string> rule)
     {
         return rule
-            .NotEmpty().WithMessage("Обязательное поле")
+            .NotEmpty().WithMessage("Введите логин")
             .MinimumLength(4).WithMessage("Минимальная длина логина 4 символа")
             .MaximumLength(50).WithMessage("Максимальная длина логина 50 символов")
-            .Matches(ValidationRegexps.LoginRegex()).WithMessage("Логин должен начинаться с буквы и содержать только латинские буквы, цифры и подчёркивания");
+            .Matches(ValidationRegexps.LoginRegex())
+            .WithMessage("Логин должен начинаться с буквы и содержать только латинские буквы, цифры и подчёркивания");
     }
 
     public static IRuleBuilderOptions<T, string> ValidPassword<T>(this IRuleBuilder<T, string> rule)
     {
         return rule
-            .NotEmpty().WithMessage("Обязательное поле")
+            .NotEmpty().WithMessage("Введите пароль")
             .MinimumLength(6).WithMessage("Минимальная длина пароля 6 символов")
             .MaximumLength(100).WithMessage("Максимальная длина пароля 100 символов")
             .Matches("[A-Z]").WithMessage("Пароль должен содержать хотя бы одну заглавную букву")
@@ -131,5 +123,12 @@ public static class ValidatorRules
             .WithMessage("Роли содержат недопустимые значения")
             .Must(roles => roles.Intersect(allowedValues).Any())
             .WithMessage("Требуется хотя бы одна роль");
+    }
+
+    public static IRuleBuilderOptions<T, string> ValidAuthCode<T>(this IRuleBuilder<T, string> rule)
+    {
+        return rule
+            .NotEmpty().WithMessage("Введите код аутентификации")
+            .Length(6).WithMessage("Код должен содержать 6 цифр");
     }
 }
