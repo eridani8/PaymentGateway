@@ -64,6 +64,16 @@
                              Hover="true">
                     <Columns>
                         <HierarchyColumn/>
+                        <TemplateColumn Title="Владелец">
+                            <CellTemplate Context="cellContext">
+                                @if (!string.IsNullOrEmpty(cellContext.Item.User?.Username))
+                                {
+                                    <MudChip Icon="@Icons.Material.Filled.Person"
+                                             Color="Color.Primary"
+                                             Text="@cellContext.Item.User.Username"/>
+                                }
+                            </CellTemplate>
+                        </TemplateColumn>
                         <TemplateColumn Title="Тип">
                             <CellTemplate Context="cellContext">
                                 @(cellContext.Item.PaymentType == PaymentType.PhoneNumber ? "Телефон" : "Карта")

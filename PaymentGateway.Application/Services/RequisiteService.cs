@@ -74,6 +74,7 @@ public class RequisiteService(
     {
         var entities = await unit.RequisiteRepository.QueryableGetAll()
             .Include(r => r.Payment)
+            .Include(r => r.User)
             .AsNoTracking()
             .OrderByDescending(r => r.CreatedAt)
             .ToListAsync();
@@ -84,6 +85,7 @@ public class RequisiteService(
     {
         var entities = await unit.RequisiteRepository.QueryableGetAll()
             .Include(r => r.Payment)
+            .Include(r => r.User)
             .AsNoTracking()
             .Where(r => r.UserId == userId)
             .OrderByDescending(r => r.CreatedAt)
@@ -94,6 +96,7 @@ public class RequisiteService(
     public async Task<RequisiteDto?> GetRequisiteById(Guid id, Guid userId)
     {
         var requisite = await unit.RequisiteRepository.QueryableGetAll()
+            .Include(r => r.Payment)
             .Include(r => r.User)
             .FirstOrDefaultAsync(r => r.Id == id && r.UserId == userId);
         return requisite is null ? null : mapper.Map<RequisiteDto>(requisite);
