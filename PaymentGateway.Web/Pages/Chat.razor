@@ -7,41 +7,45 @@
 @inject ISnackbar Snackbar
 @inject ILogger<Chat> Logger
 @inject NotificationService NotificationService
+@inject IJSRuntime JSRuntime
+@implements IAsyncDisposable
 
 <AuthorizeView Roles="Admin,Support">
     <Authorized>
-        <MudContainer MaxWidth="MaxWidth.ExtraExtraLarge" Class="mt-4">
-            <MudGrid>
-                <MudItem xs="12" sm="9">
+        <MudContainer MaxWidth="MaxWidth.ExtraExtraLarge" Class="mt-4" Style="height: 90vh; padding-bottom: 16px;">
+            <MudGrid Style="height: 100%;">
+                <MudItem xs="12" sm="9" Style="height: 100%;">
                     <MudPaper Class="pa-4" Elevation="12" Style="height: 100%; display: flex; flex-direction: column;">
                         <MudText Typo="Typo.h6" Class="mb-4">Чат</MudText>
-                        <MudPaper Class="flex-grow-1 pa-4 mb-4" Style="overflow-y: auto; max-height: 500px;">
+                        <div @ref="_chatContainer" style="overflow-y: auto; flex-grow: 1; display: flex; flex-direction: column; margin-bottom: 16px;">
                             @foreach (var message in _messages)
                             {
-                                <MudPaper Class="pa-2 mb-2" Elevation="0">
-                                    <MudText>@message.Message</MudText>
-                                    <MudText Typo="Typo.caption" Class="text-right">@message.Timestamp.ToString("HH:mm")</MudText>
-                                </MudPaper>
+                                <MudChat>
+                                    <MudChatHeader Time="@message.Timestamp.ToString("HH:mm:ss")"
+                                                   Name="@message.Username"/>
+                                    <MudChatBubble Variant="Variant.Text">@message.Message</MudChatBubble>
+                                </MudChat>
                             }
-                        </MudPaper>
+                        </div>
                         <MudStack Row="true">
-                            <MudTextField @bind-Value="_currentMessageText" 
-                                          Variant="Variant.Outlined" 
+                            <MudTextField @bind-Value="_currentMessageText"
+                                          Variant="Variant.Outlined"
                                           Placeholder="Введите сообщение..."
-                                          Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.Send"
-                                          AdornmentColor="Color.Primary"
+                                          Immediate="true"
                                           OnKeyDown="@OnKeyDown"/>
+                            <MudButton OnClick="@(SendMessage)">
+                                <MudIcon Icon="@Icons.Material.Filled.Send"></MudIcon>
+                            </MudButton>
                         </MudStack>
                     </MudPaper>
                 </MudItem>
-                <MudItem xs="12" sm="3">
-                    <MudPaper Class="pa-4" Elevation="12">
+                <MudItem xs="12" sm="3" Style="height: 100%;">
+                    <MudPaper Class="pa-4" Elevation="12" Style="height: 100%;">
                         <MudList T="UserState">
                             @foreach (var user in _users)
                             {
                                 <MudListItem T="UserState">
                                     <MudText>@user.Username</MudText>
-                                    <MudText Typo="Typo.caption">@string.Join(", ", user.Roles)</MudText>
                                 </MudListItem>
                             }
                         </MudList>
@@ -61,38 +65,22 @@
     private string _currentMessageText = string.Empty;
     private readonly List<ChatMessageDto> _messages = [];
     private List<UserState> _users = [];
+    private ElementReference _chatContainer;
 
     protected override async Task OnInitializedAsync()
     {
         await LoadUsers();
-        
+
         NotificationService.SubscribeToUserConnected(HandleUserConnected);
         NotificationService.SubscribeToUserDisconnected(HandleUserDisconnected);
-        
-        // await SignalRService.InitializeAsync();
-        // 
-        // SubscribeToChatEvents();
-    }
-
-    private async Task LoadUsers()
-    {
-        try
-        {
-            _users = await NotificationService.GetAdminsAndSupports();
-        
-            StateHasChanged();
-        }
-        catch (Exception e)
-        {
-            Logger.LogError(e, "Ошибка при загрузке списка пользователей: {Message}", e.Message);
-            Snackbar.Add($"Ошибка при загрузке списка пользователей: {e.Message}", Severity.Error);
-        }
+        NotificationService.SubscribeToChatMessages(HandleChatMessages);
     }
 
     private async void HandleUserConnected(UserState state)
     {
         try
         {
+            if (_users.Any(u => u.Id == state.Id)) return;
             _users.Add(state);
             await InvokeAsync(StateHasChanged);
         }
@@ -101,7 +89,7 @@
             Logger.LogError(e, "Ошибка при добавлении пользователя");
         }
     }
-    
+
     private async void HandleUserDisconnected(UserState state)
     {
         try
@@ -115,56 +103,42 @@
         }
     }
 
-    private void SubscribeToChatEvents()
+    private async void HandleChatMessages(ChatMessageDto message)
     {
-        // SignalRService.SubscribeToChatMessages(message =>
-        // {
-        //     _messages.Add(message);
-        //     StateHasChanged();
-        // });
-        //
-        // SignalRService.SubscribeToUserConnections((userId, roles) =>
-        // {
-        //     var userState = new UserState
-        //     {
-        //         Id = Guid.Parse(userId),
-        //         Username = userId,
-        //         Roles = roles
-        //     };
-        //     _onlineUsers.TryAdd(userState.Id, userState);
-        //     StateHasChanged();
-        // });
-        //
-        // SignalRService.SubscribeToUserDisconnections(userId =>
-        // {
-        //     if (!Guid.TryParse(userId, out var guid)) return;
-        //     _onlineUsers.TryRemove(guid, out _);
-        //     StateHasChanged();
-        // });
+        try
+        {
+            _messages.Add(message);
+            await InvokeAsync(StateHasChanged);
+            await ScrollToBottom();
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e, "Ошибка при добавлении сообщения");
+        }
+    }
+
+    private async Task LoadUsers()
+    {
+        try
+        {
+            _users = await NotificationService.GetAdminsAndSupports();
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e, "Ошибка при загрузке списка пользователей: {Message}", e.Message);
+            Snackbar.Add($"Ошибка при загрузке списка пользователей: {e.Message}", Severity.Error);
+        }
     }
 
     private async Task SendMessage()
     {
-        // if (string.IsNullOrWhiteSpace(_currentMessageText)) return;
-        //
-        // try
-        // {
-        //     var message = new ChatMessageDto
-        //     {
-        //         Id = Guid.CreateVersion7(),
-        //         Message = _currentMessageText,
-        //         Timestamp = DateTime.UtcNow
-        //     };
-        //
-        //     await SignalRService.SendChatMessage(message);
-        //     _currentMessageText = string.Empty;
-        //     StateHasChanged();
-        // }
-        // catch (Exception e)
-        // {
-        //     Logger.LogError(e, e.Message);
-        //     Snackbar.Add("Ошибка при отправке сообщения", Severity.Error);
-        // }
+        if (string.IsNullOrWhiteSpace(_currentMessageText)) return;
+
+        await NotificationService.SendChatMessage(_currentMessageText);
+
+        _currentMessageText = "";
+        await ScrollToBottom();
     }
 
     private async Task OnKeyDown(KeyboardEventArgs e)
@@ -173,6 +147,26 @@
         {
             await SendMessage();
         }
+    }
+
+    private async Task ScrollToBottom()
+    {
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("scrollToBottom", _chatContainer);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Ошибка при прокрутке чата вниз");
+        }
+    }
+
+    public ValueTask DisposeAsync()
+    {
+        NotificationService.UnsubscribeFromUserConnected();
+        NotificationService.UnsubscribeFromUserDisconnected();
+        NotificationService.UnsubscribeFromChatMessages();
+        return ValueTask.CompletedTask;
     }
 
 }

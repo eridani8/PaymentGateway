@@ -124,16 +124,25 @@ public class NotificationHub(ILogger<NotificationHub> logger) : Hub<IHubClient>
     }
 
     [Authorize(Roles = "Admin,Support")]
-    public async Task SendChatMessage(ChatMessageDto message)
+    public async Task SendChatMessage(string message)
     {
         var userId = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-        if (!string.IsNullOrEmpty(userId))
+        var username = Context.User?.FindFirst(ClaimTypes.Name)?.Value;
+        if (!string.IsNullOrEmpty(userId) && !string.IsNullOrEmpty(username))
         {
-            message.UserId = Guid.Parse(userId);
-            message.Timestamp = DateTime.UtcNow;
+            var messageDto = new ChatMessageDto()
+            {
+                Id = Guid.CreateVersion7(),
+                UserId = Guid.Parse(userId),
+                Username = username,
+                Timestamp = DateTime.UtcNow,
+                Message = message
+            };
 
-            await Clients.All.ChatMessageReceived(message);
+            if (GetUsersByRoles(["Admin", "Support"]) is { Count: > 0 } staffIds)
+            {
+                await Clients.Clients(staffIds).ChatMessageReceived(messageDto);
+            }
         }
     }
 

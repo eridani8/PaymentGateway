@@ -31,8 +31,21 @@ public class GatewayHost(IServiceProvider serviceProvider, ILogger<GatewayHost> 
         try
         {
             logger.LogInformation("Сервис останавливается");
+            
             await _cts.CancelAsync();
-            await Task.WhenAll(_paymentProcessing, _fundsResetProcessing);
+            
+            try
+            {
+                if (_paymentProcessing != null) await _paymentProcessing;
+            }
+            catch (TaskCanceledException) { }
+            
+            try
+            {
+                if (_fundsResetProcessing != null)
+                    await _fundsResetProcessing;
+            }
+            catch (TaskCanceledException) { }
             
             using var scope = serviceProvider.CreateScope();
             var unit = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
@@ -45,8 +58,8 @@ public class GatewayHost(IServiceProvider serviceProvider, ILogger<GatewayHost> 
         finally
         {
             _cts.Dispose();
-            _paymentProcessing.Dispose();
-            _fundsResetProcessing.Dispose();
+            _paymentProcessing?.Dispose();
+            _fundsResetProcessing?.Dispose();
             logger.LogInformation("Сервис остановлен");
         }
     }
@@ -77,7 +90,11 @@ public class GatewayHost(IServiceProvider serviceProvider, ILogger<GatewayHost> 
             }
             finally
             {
-                await Task.Delay(_gatewayProcessDelay, _cts.Token);
+                try
+                {
+                    await Task.Delay(_gatewayProcessDelay, _cts.Token);
+                }
+                catch (OperationCanceledException) { }
             }
         }
     }
@@ -104,7 +121,11 @@ public class GatewayHost(IServiceProvider serviceProvider, ILogger<GatewayHost> 
             }
             finally
             {
-                await Task.Delay(_fundsResetDelay, _cts.Token);
+                try
+                {
+                    await Task.Delay(_fundsResetDelay, _cts.Token);
+                }
+                catch (OperationCanceledException) { }
             }
         }
     }

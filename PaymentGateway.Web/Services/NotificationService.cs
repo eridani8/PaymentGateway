@@ -9,6 +9,7 @@ using PaymentGateway.Shared.DTOs.User;
 using Polly;
 using Polly.Retry;
 using MudBlazor;
+using PaymentGateway.Shared.DTOs.Chat;
 
 namespace PaymentGateway.Web.Services;
 
@@ -472,18 +473,6 @@ public class NotificationService(
     #endregion
 
     #region Chat
-
-    public void SubscribeToUserConnected(Action<UserState> handler)
-    {
-        Subscribe(SignalREvents.UserConnected, handler);
-    }
-
-    public void SubscribeToUserDisconnected(Action<UserState> handler)
-    {
-        Subscribe(SignalREvents.UserDisconnected, handler);
-    }
-
-    #endregion
     
     public async Task<List<UserState>> GetAdminsAndSupports()
     {
@@ -497,4 +486,50 @@ public class NotificationService(
             return [];
         }
     }
+
+    public void SubscribeToUserConnected(Action<UserState> handler)
+    {
+        Subscribe(SignalREvents.UserConnected, handler);
+    }
+
+    public void UnsubscribeFromUserConnected()
+    {
+        Unsubscribe(SignalREvents.UserConnected);
+    }
+
+    public void SubscribeToUserDisconnected(Action<UserState> handler)
+    {
+        Subscribe(SignalREvents.UserDisconnected, handler);
+    }
+
+    public void UnsubscribeFromUserDisconnected()
+    {
+        Unsubscribe(SignalREvents.UserDisconnected);
+    }
+    
+    public void SubscribeToChatMessages(Action<ChatMessageDto> handler)
+    {
+        Subscribe(SignalREvents.ChatMessageReceived, handler);
+    }
+
+    public void UnsubscribeFromChatMessages()
+    {
+        Unsubscribe(SignalREvents.ChatMessageReceived);
+    }
+    
+    public async Task SendChatMessage(string message)
+    {
+        try
+        {
+            await _hubConnection!.InvokeAsync(SignalREvents.SendChatMessage, message);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Ошибка при отправке сообщения в чат");
+            throw;
+        }
+    }
+
+    #endregion
+    
 }
