@@ -17,27 +17,21 @@ public class NotificationService(
     {
         try
         {
-            logger.LogInformation("NotifyUserUpdated вызван для пользователя {UserId}", user.Id);
-            
             var tasks = new List<Task>();
             
-            var adminIds = NotificationHub.GetUsersByRoles(["Admin"]);
-            
-            if (adminIds.Count > 0)
+            if (NotificationHub.GetUsersByRoles(["Admin"]) is { Count: > 0 } adminIds)
             {
                 var adminTask = hubContext.Clients.Clients(adminIds).UserUpdated(user);
                 tasks.Add(adminTask);
-                logger.LogInformation("Запущено уведомление об обновлении пользователя для {Count} администраторов, ConnectionIds: {ConnectionIds}", 
-                    adminIds.Count, string.Join(", ", adminIds));
+            }
+
+            if (NotificationHub.GetUserConnectionId(user.Id) is { } connectionId)
+            {
+                var userTask = hubContext.Clients.Client(connectionId).UserUpdated(user);
+                tasks.Add(userTask);
             }
             
-            var broadcastTask = hubContext.Clients.All.UserUpdated(user);
-            tasks.Add(broadcastTask);
-            logger.LogInformation("Запущено широковещательное уведомление об обновлении пользователя {UserId}", user.Id);
-            
             await Task.WhenAll(tasks);
-            
-            logger.LogInformation("Все уведомления об обновлении пользователя {UserId} отправлены успешно", user.Id);
         }
         catch (Exception e)
         {
@@ -49,27 +43,15 @@ public class NotificationService(
     {
         try
         {
-            logger.LogInformation("NotifyUserDeleted вызван для пользователя {UserId}", id);
-            
             var tasks = new List<Task>();
             
-            var adminIds = NotificationHub.GetUsersByRoles(["Admin"]);
-            
-            if (adminIds.Count > 0)
+            if (NotificationHub.GetUsersByRoles(["Admin"]) is { Count: > 0 } adminIds)
             {
                 var adminTask = hubContext.Clients.Clients(adminIds).UserDeleted(id);
                 tasks.Add(adminTask);
-                logger.LogInformation("Запущено уведомление об удалении пользователя для {Count} администраторов, ConnectionIds: {ConnectionIds}", 
-                    adminIds.Count, string.Join(", ", adminIds));
             }
             
-            var broadcastTask = hubContext.Clients.All.UserDeleted(id);
-            tasks.Add(broadcastTask);
-            logger.LogInformation("Запущено широковещательное уведомление об удалении пользователя {UserId}", id);
-            
             await Task.WhenAll(tasks);
-            
-            logger.LogInformation("Все уведомления об удалении пользователя {UserId} отправлены успешно", id);
         }
         catch (Exception e)
         {
@@ -81,27 +63,21 @@ public class NotificationService(
     {
         try
         {
-            logger.LogInformation("NotifyRequisiteUpdated вызван для реквизита {RequisiteId}", requisite.Id);
-            
             var tasks = new List<Task>();
             
-            var adminIds = NotificationHub.GetUsersByRoles(["Admin"]);
-            
-            if (adminIds.Count > 0)
+            if (NotificationHub.GetUsersByRoles(["Admin"]) is { Count: > 0 } adminIds)
             {
                 var adminTask = hubContext.Clients.Clients(adminIds).RequisiteUpdated(requisite);
                 tasks.Add(adminTask);
-                logger.LogInformation("Запущено уведомление об обновлении реквизита для {Count} администраторов, ConnectionIds: {ConnectionIds}", 
-                    adminIds.Count, string.Join(", ", adminIds));
+            }
+
+            if (NotificationHub.GetUserConnectionId(requisite.UserId) is { } connectionId)
+            {
+                var userTask = hubContext.Clients.Client(connectionId).RequisiteUpdated(requisite);
+                tasks.Add(userTask);
             }
             
-            var broadcastTask = hubContext.Clients.All.RequisiteUpdated(requisite);
-            tasks.Add(broadcastTask);
-            logger.LogInformation("Запущено широковещательное уведомление об обновлении реквизита {RequisiteId}", requisite.Id);
-            
             await Task.WhenAll(tasks);
-            
-            logger.LogInformation("Все уведомления об обновлении реквизита {RequisiteId} отправлены успешно", requisite.Id);
         }
         catch (Exception e)
         {
@@ -113,27 +89,21 @@ public class NotificationService(
     {
         try
         {
-            logger.LogInformation("NotifyRequisiteDeleted вызван для реквизита {RequisiteId}", requisiteId);
-            
             var tasks = new List<Task>();
             
-            var adminIds = NotificationHub.GetUsersByRoles(["Admin"]);
-            
-            if (adminIds.Count > 0)
+            if (NotificationHub.GetUsersByRoles(["Admin"]) is { Count: > 0 } adminIds)
             {
                 var adminTask = hubContext.Clients.Clients(adminIds).RequisiteDeleted(requisiteId);
                 tasks.Add(adminTask);
-                logger.LogInformation("Запущено уведомление об удалении реквизита для {Count} администраторов, ConnectionIds: {ConnectionIds}", 
-                    adminIds.Count, string.Join(", ", adminIds));
+            }
+
+            if (NotificationHub.GetUserConnectionId(userId) is { } connectionId)
+            {
+                var userTask = hubContext.Clients.Client(connectionId).RequisiteDeleted(requisiteId);
+                tasks.Add(userTask);
             }
             
-            var broadcastTask = hubContext.Clients.All.RequisiteDeleted(requisiteId);
-            tasks.Add(broadcastTask);
-            logger.LogInformation("Запущено широковещательное уведомление об удалении реквизита {RequisiteId}", requisiteId);
-            
             await Task.WhenAll(tasks);
-            
-            logger.LogInformation("Все уведомления об удалении реквизита {RequisiteId} отправлены успешно", requisiteId);
         }
         catch (Exception e)
         {
@@ -145,27 +115,21 @@ public class NotificationService(
     {
         try
         {
-            logger.LogInformation("NotifyPaymentUpdated вызван для платежа {PaymentId}", payment.Id);
-            
             var tasks = new List<Task>();
             
-            var staffIds = NotificationHub.GetUsersByRoles(["Admin", "Support"]);
-            
-            if (staffIds.Count > 0)
+            if (NotificationHub.GetUsersByRoles(["Admin", "Support"]) is { Count: > 0 } staffIds)
             {
                 var staffTask = hubContext.Clients.Clients(staffIds).PaymentUpdated(payment);
                 tasks.Add(staffTask);
-                logger.LogInformation("Запущено уведомление об обновлении платежа для {Count} сотрудников, ConnectionIds: {ConnectionIds}", 
-                    staffIds.Count, string.Join(", ", staffIds));
+            }
+
+            if (payment.Requisite != null && NotificationHub.GetUserConnectionId(payment.Requisite.UserId) is { } connectionId)
+            {
+                var userTask = hubContext.Clients.Client(connectionId).PaymentUpdated(payment);
+                tasks.Add(userTask);
             }
             
-            var broadcastTask = hubContext.Clients.All.PaymentUpdated(payment);
-            tasks.Add(broadcastTask);
-            logger.LogInformation("Запущено широковещательное уведомление об обновлении платежа {PaymentId}", payment.Id);
-            
             await Task.WhenAll(tasks);
-            
-            logger.LogInformation("Все уведомления об обновлении платежа {PaymentId} отправлены успешно", payment.Id);
         }
         catch (Exception e)
         {
@@ -177,27 +141,21 @@ public class NotificationService(
     {
         try
         {
-            logger.LogInformation("NotifyPaymentDeleted вызван для платежа {PaymentId}", id);
-            
             var tasks = new List<Task>();
             
-            var staffIds = NotificationHub.GetUsersByRoles(["Admin", "Support"]);
-            
-            if (staffIds.Count > 0)
+            if (NotificationHub.GetUsersByRoles(["Admin", "Support"]) is { Count: > 0 } staffIds)
             {
                 var staffTask = hubContext.Clients.Clients(staffIds).PaymentDeleted(id);
                 tasks.Add(staffTask);
-                logger.LogInformation("Запущено уведомление об удалении платежа для {Count} сотрудников, ConnectionIds: {ConnectionIds}", 
-                    staffIds.Count, string.Join(", ", staffIds));
+            }
+
+            if (userId != null && NotificationHub.GetUserConnectionId(userId.Value) is { } connectionId)
+            {
+                var userTask = hubContext.Clients.Client(connectionId).PaymentDeleted(id);
+                tasks.Add(userTask);
             }
             
-            var broadcastTask = hubContext.Clients.All.PaymentDeleted(id);
-            tasks.Add(broadcastTask);
-            logger.LogInformation("Запущено широковещательное уведомление об удалении платежа {PaymentId}", id);
-            
             await Task.WhenAll(tasks);
-            
-            logger.LogInformation("Все уведомления об удалении платежа {PaymentId} отправлены успешно", id);
         }
         catch (Exception e)
         {

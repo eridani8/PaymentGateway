@@ -107,12 +107,15 @@ public class NotificationHub(ILogger<NotificationHub> logger) : Hub<IHubClient>
             .Select(kvp => kvp.Key)
             .ToList();
         
-        if (_hubContext != null && connectionIds.Count == 0 && ConnectedUsers.Count > 0)
-        {
-            _ = _hubContext.Clients.All.KeepAlive();
-        }
-        
         return connectionIds;
+    }
+
+    public static string? GetUserConnectionId(Guid id)
+    {
+        var user = ConnectedUsers
+            .FirstOrDefault(kvp => kvp.Value.Id == id);
+
+        return user.Equals(default(KeyValuePair<string, UserState>)) ? null : user.Key;
     }
 
     public Task<List<UserState>> GetUsers()
