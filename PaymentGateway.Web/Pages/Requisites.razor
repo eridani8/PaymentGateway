@@ -64,13 +64,11 @@
                              Hover="true">
                     <Columns>
                         <HierarchyColumn/>
-                        <PropertyColumn Property="x => x.FullName" Title="Владелец"/>
                         <TemplateColumn Title="Тип">
                             <CellTemplate Context="cellContext">
                                 @(cellContext.Item.PaymentType == PaymentType.PhoneNumber ? "Телефон" : "Карта")
                             </CellTemplate>
                         </TemplateColumn>
-                        <PropertyColumn Property="x => x.PaymentData" Title="Платежные данные"/>
                         <TemplateColumn Title="Лимит (день)">
                             <CellTemplate Context="cellContext">
                                 @($"{cellContext.Item.DayReceivedFunds:N0}/{cellContext.Item.DayLimit:N0}")
@@ -372,7 +370,7 @@
     {
         RequisiteStatus.Active => "Активный",
         RequisiteStatus.Pending => "Ожидание",
-        RequisiteStatus.Cooldown => "Перерыв",
+        RequisiteStatus.Cooldown => "Пауза",
         RequisiteStatus.Inactive => "Неактивный",
         _ => "Неизвестно"
     };
