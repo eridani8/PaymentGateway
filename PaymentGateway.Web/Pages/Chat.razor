@@ -1,5 +1,4 @@
 ﻿@page "/chat"
-@using System.Collections.Concurrent
 @using PaymentGateway.Shared.DTOs.Chat
 @using PaymentGateway.Shared.DTOs.User
 @attribute [Authorize(Roles = "Admin,Support")]
@@ -7,7 +6,7 @@
 @inject ISnackbar Snackbar
 @inject ILogger<Chat> Logger
 @inject NotificationService NotificationService
-@inject IJSRuntime JSRuntime
+@inject IJSRuntime JsRuntime
 @implements IAsyncDisposable
 
 <AuthorizeView Roles="Admin,Support">
@@ -16,7 +15,6 @@
             <MudGrid Style="height: 100%;">
                 <MudItem xs="12" sm="9" Style="height: 100%;">
                     <MudPaper Class="pa-4" Elevation="12" Style="height: 100%; display: flex; flex-direction: column;">
-                        <MudText Typo="Typo.h6" Class="mb-4">Чат</MudText>
                         <div @ref="_chatContainer" style="overflow-y: auto; flex-grow: 1; display: flex; flex-direction: column; margin-bottom: 16px;">
                             @foreach (var message in _messages)
                             {
@@ -153,7 +151,7 @@
     {
         try
         {
-            await JSRuntime.InvokeVoidAsync("scrollToBottom", _chatContainer);
+            await JsRuntime.InvokeVoidAsync("scrollToBottom", _chatContainer);
         }
         catch (Exception ex)
         {
