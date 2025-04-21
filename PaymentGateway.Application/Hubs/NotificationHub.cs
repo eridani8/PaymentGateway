@@ -59,15 +59,10 @@ public class NotificationHub(ILogger<NotificationHub> logger) : Hub<IHubClient>
 
                 ConnectedUsers[Context.ConnectionId] = state;
 
-                logger.LogDebug("Клиент подключен: {ConnectionId}, Пользователь: {User}, Роли: {Roles}",
-                    Context.ConnectionId, userName, string.Join(", ", roles));
-
-                await Clients.All.UserConnected(state);
-            }
-            else
-            {
-                logger.LogWarning("Подключение клиента без идентификатора пользователя: {ConnectionId}",
-                    Context.ConnectionId);
+                if (GetUsersByRoles(["Admin", "Support"]) is { Count: > 0 } staffIds)
+                {
+                    await Clients.Clients(staffIds).UserConnected(state);
+                }
             }
 
             await base.OnConnectedAsync();
@@ -85,13 +80,10 @@ public class NotificationHub(ILogger<NotificationHub> logger) : Hub<IHubClient>
         {
             if (ConnectedUsers.Remove(Context.ConnectionId, out var state))
             {
-                logger.LogDebug("Клиент отключен: {ConnectionId}, Пользователь: {User}", Context.ConnectionId,
-                    state.Username);
-                await Clients.All.UserDisconnected(state);
-            }
-            else
-            {
-                logger.LogDebug("Клиент отключен (неизвестный пользователь): {ConnectionId}", Context.ConnectionId);
+                if (GetUsersByRoles(["Admin", "Support"]) is { Count: > 0 } staffIds)
+                {
+                    await Clients.Clients(staffIds).UserDisconnected(state);
+                }
             }
 
             await base.OnDisconnectedAsync(exception);
