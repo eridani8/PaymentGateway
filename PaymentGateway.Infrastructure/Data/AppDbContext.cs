@@ -12,6 +12,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICryptographyS
     public DbSet<PaymentEntity> Payments { get; set; }
     public DbSet<RequisiteEntity> Requisites { get; set; }
     public DbSet<TransactionEntity> Transactions { get; set; }
+    public DbSet<ChatMessageEntity> ChatMessages { get; set; }
     
     // public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     // {
@@ -118,6 +119,18 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICryptographyS
                 .WithMany()
                 .HasForeignKey(e => e.RequisiteId)
                 .OnDelete(DeleteBehavior.SetNull);
+        });
+        
+        modelBuilder.Entity<ChatMessageEntity>(entity =>
+        {
+            entity.HasIndex(e => e.Id).IsUnique();
+            entity.HasIndex(e => e.UserId);
+            entity.HasIndex(e => e.Timestamp);
+            
+            entity.HasOne(e => e.User)
+                .WithMany()
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

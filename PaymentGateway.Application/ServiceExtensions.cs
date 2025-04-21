@@ -45,6 +45,7 @@ public static class ServiceExtensions
 
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IAdminService, AdminService>();
+        services.AddScoped<IChatMessageService, ChatMessageService>();
         
         services.AddScoped<IGatewayHandler, GatewayHandler>();
 

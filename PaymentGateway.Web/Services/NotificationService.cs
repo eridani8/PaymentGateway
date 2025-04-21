@@ -526,7 +526,19 @@ public class NotificationService(
         catch (Exception ex)
         {
             logger.LogError(ex, "Ошибка при отправке сообщения в чат");
-            throw;
+        }
+    }
+
+    public async Task<List<ChatMessageDto>> GetChatHistory()
+    {
+        try
+        {
+            return await _hubConnection!.InvokeAsync<List<ChatMessageDto>>(SignalREvents.GetChatMessages);
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, "Ошибка загрузки истории чата");
+            return [];
         }
     }
 

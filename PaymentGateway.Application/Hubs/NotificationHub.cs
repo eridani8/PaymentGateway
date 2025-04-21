@@ -3,13 +3,16 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
+using PaymentGateway.Core.Interfaces;
 using PaymentGateway.Shared.DTOs.Chat;
 using PaymentGateway.Shared.DTOs.User;
 using PaymentGateway.Shared.Interfaces;
 
 namespace PaymentGateway.Application.Hubs;
 
-public class NotificationHub(ILogger<NotificationHub> logger) : Hub<IHubClient>
+public class NotificationHub(
+    ILogger<NotificationHub> logger,
+    IChatMessageService chatMessageService) : Hub<IHubClient>
 {
     private static IHubContext<NotificationHub, IHubClient>? _hubContext;
     private static readonly ConcurrentDictionary<string, UserState> ConnectedUsers = new();
@@ -122,6 +125,20 @@ public class NotificationHub(ILogger<NotificationHub> logger) : Hub<IHubClient>
                 u.Roles.Any(r => roles.Contains(r)))
             .ToList());
     }
+    
+    [Authorize(Roles = "Admin,Support")]
+    public async Task<List<ChatMessageDto>> GetChatMessages()
+    {
+        try
+        {
+            return await chatMessageService.GetAllMessages();
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Ошибка при получении истории сообщений");
+            return [];
+        }
+    }
 
     [Authorize(Roles = "Admin,Support")]
     public async Task SendChatMessage(string message)
@@ -139,9 +156,18 @@ public class NotificationHub(ILogger<NotificationHub> logger) : Hub<IHubClient>
                 Message = message
             };
 
-            if (GetUsersByRoles(["Admin", "Support"]) is { Count: > 0 } staffIds)
+            try
             {
-                await Clients.Clients(staffIds).ChatMessageReceived(messageDto);
+                await chatMessageService.SaveMessage(messageDto);
+                
+                if (GetUsersByRoles(["Admin", "Support"]) is { Count: > 0 } staffIds)
+                {
+                    await Clients.Clients(staffIds).ChatMessageReceived(messageDto);
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Ошибка при сохранении сообщения в базу данных");
             }
         }
     }

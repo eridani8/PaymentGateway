@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using PaymentGateway.Core.Entities;
 using PaymentGateway.Core.Interfaces;
+using PaymentGateway.Core.Interfaces.Repositories;
 using PaymentGateway.Infrastructure.Data;
 using PaymentGateway.Infrastructure.Repositories;
 
@@ -27,6 +28,7 @@ public static class ServiceExtensions
         services.AddScoped<IPaymentRepository, PaymentRepository>();
         services.AddScoped<IRequisiteRepository, RequisiteRepository>();
         services.AddScoped<ITransactionRepository, TransactionRepository>();
+        services.AddScoped<IChatMessageRepository, ChatMessageRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         
         return services;
