@@ -48,7 +48,7 @@ public class PaymentController(
             var userId = User.GetCurrentUserId();
             if (userId == Guid.Empty) return Unauthorized();
             var payment = await service.ManualConfirmPayment(dto, userId);
-            logger.LogInformation("Ручное подтверждение платежа {paymentId} [{UserId}]", payment.Id, User.GetCurrentUserId());
+            logger.LogInformation("Ручное подтверждение платежа {paymentId} [{User}]", payment.Id, User.GetCurrentUsername());
             return Ok(true);
         }
         catch (PaymentNotFound)
@@ -76,7 +76,7 @@ public class PaymentController(
             var userId = User.GetCurrentUserId();
             if (userId == Guid.Empty) return Unauthorized();
             var payment = await service.CancelPayment(dto, userId);
-            logger.LogInformation("Отмена платежа {paymentId} [{UserId}]", payment.Id, User.GetCurrentUserId());
+            logger.LogInformation("Отмена платежа {paymentId} [{User}]", payment.Id, User.GetCurrentUsername());
             return Ok(true);
         }
         catch (PaymentNotFound)

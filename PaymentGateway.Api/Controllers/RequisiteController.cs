@@ -26,7 +26,7 @@ public class RequisiteController(IRequisiteService service, ILogger<RequisiteCon
             if (userId == Guid.Empty) return Unauthorized();
             var requisite = await service.CreateRequisite(dto, userId);
             if (requisite is null) return BadRequest();
-            logger.LogInformation("Создание реквизита {requisiteId} [{UserId}]", requisite.Id, User.GetCurrentUserId());
+            logger.LogInformation("Создание реквизита {requisiteId} [{User}]", requisite.Id, User.GetCurrentUsername());
             return Ok(requisite);
         }
         catch (DuplicateRequisiteException e)
@@ -65,7 +65,7 @@ public class RequisiteController(IRequisiteService service, ILogger<RequisiteCon
     {
         var userId = User.GetCurrentUserId();
         if (userId == Guid.Empty) return Unauthorized();
-        var requisite = await service.GetRequisiteById(id, userId);
+        var requisite = await service.GetRequisiteById(id);
         if (requisite is null) return NotFound();
         return Ok(requisite);
     }
@@ -79,7 +79,7 @@ public class RequisiteController(IRequisiteService service, ILogger<RequisiteCon
         {
             var requisite = await service.UpdateRequisite(id, dto);
             if (requisite is null) return BadRequest();
-            logger.LogInformation("Обновление реквизита {requisiteId} [{UserId}]", requisite.Id, User.GetCurrentUserId());
+            logger.LogInformation("Обновление реквизита {requisiteId} [{User}]", requisite.Id, User.GetCurrentUsername());
             return Ok(requisite);
         }
         catch (ValidationException e)
@@ -93,7 +93,7 @@ public class RequisiteController(IRequisiteService service, ILogger<RequisiteCon
     {
         var requisite = await service.DeleteRequisite(id);
         if (requisite is null) return NotFound();
-        logger.LogInformation("Удаление реквизита {requisiteId} [{UserId}]", id, User.GetCurrentUserId());
+        logger.LogInformation("Удаление реквизита {requisiteId} [{User}]", id, User.GetCurrentUsername());
         return Ok(requisite);
     }
 }

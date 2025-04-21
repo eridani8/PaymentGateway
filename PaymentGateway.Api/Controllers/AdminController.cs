@@ -23,7 +23,7 @@ public class AdminController(IAdminService service, ILogger<AdminController> log
         {
             var user = await service.CreateUser(dto);
             if (user is null) return BadRequest();
-            logger.LogInformation("Создание пользователя {username} [{UserId}]", dto.Username, User.GetCurrentUserId());
+            logger.LogInformation("Создание пользователя {username} [{User}]", dto.Username, User.GetCurrentUsername());
             return Ok(user);
         }
         catch (DuplicateUserException)
@@ -67,7 +67,7 @@ public class AdminController(IAdminService service, ILogger<AdminController> log
             var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             var result = await service.DeleteUser(id, currentUserId);
             if (result is null) return BadRequest();
-            logger.LogInformation("Удаление пользователя {username} [{UserId}]", result.UserName, User.GetCurrentUserId());
+            logger.LogInformation("Удаление пользователя {username} [{User}]", result.UserName, User.GetCurrentUsername());
             return Ok(true);
         }
         catch (DeleteUserException e)
@@ -85,7 +85,7 @@ public class AdminController(IAdminService service, ILogger<AdminController> log
         {
             var user = await service.UpdateUser(dto);
             if (user is null) return NotFound();
-            logger.LogInformation("Обновление пользователя {username} [{UserId}]", user.Username, User.GetCurrentUserId());
+            logger.LogInformation("Обновление пользователя {username} [{User}]", user.Username, User.GetCurrentUsername());
             return Ok(user);
         }
         catch (ValidationException e)

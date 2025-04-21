@@ -35,17 +35,14 @@ public class RequisiteService(
         {
             return null;
         }
-        
-        var userRequisitesCount = await unit.RequisiteRepository.QueryableGetAll()
-            .CountAsync(r => r.UserId == userId);
-            
+
+        var userRequisitesCount = await unit.RequisiteRepository.GetUserRequisitesCount(userId);
         if (userRequisitesCount >= user.MaxRequisitesCount)
         {
             throw new RequisiteLimitExceededException($"Достигнут лимит реквизитов. Максимум: {user.MaxRequisitesCount}");
         }
         
-        var requisites = await unit.RequisiteRepository.GetAll();
-        var containsRequisite = requisites.FirstOrDefault(r => r.PaymentData.Equals(dto.PaymentData));
+        var containsRequisite = await unit.RequisiteRepository.HasSimilarRequisite(dto.PaymentData);
         if (containsRequisite is not null)
         {
             throw new DuplicateRequisiteException("Реквизит с такими платежными данными уже существует");
@@ -72,33 +69,19 @@ public class RequisiteService(
 
     public async Task<IEnumerable<RequisiteDto>> GetAllRequisites()
     {
-        var entities = await unit.RequisiteRepository.QueryableGetAll()
-            .Include(r => r.Payment)
-            .Include(r => r.User)
-            .AsNoTracking()
-            .OrderByDescending(r => r.CreatedAt)
-            .ToListAsync();
+        var entities = await unit.RequisiteRepository.GetAllRequisites();
         return mapper.Map<IEnumerable<RequisiteDto>>(entities);
     }
 
     public async Task<IEnumerable<RequisiteDto>> GetUserRequisites(Guid userId)
     {
-        var entities = await unit.RequisiteRepository.QueryableGetAll()
-            .Include(r => r.Payment)
-            .Include(r => r.User)
-            .AsNoTracking()
-            .Where(r => r.UserId == userId)
-            .OrderByDescending(r => r.CreatedAt)
-            .ToListAsync();
+        var entities = await unit.RequisiteRepository.GetUserRequisites(userId);
         return mapper.Map<IEnumerable<RequisiteDto>>(entities);
     }
 
-    public async Task<RequisiteDto?> GetRequisiteById(Guid id, Guid userId)
+    public async Task<RequisiteDto?> GetRequisiteById(Guid id)
     {
-        var requisite = await unit.RequisiteRepository.QueryableGetAll()
-            .Include(r => r.Payment)
-            .Include(r => r.User)
-            .FirstOrDefaultAsync(r => r.Id == id && r.UserId == userId);
+        var requisite = await unit.RequisiteRepository.GetRequisiteById(id);
         return requisite is null ? null : mapper.Map<RequisiteDto>(requisite);
     }
 
@@ -109,10 +92,8 @@ public class RequisiteService(
         {
             throw new ValidationException(validation.Errors);
         }
-        
-        var requisite = await unit.RequisiteRepository.GetById(id,
-            r => r.User,
-            r => r.Payment);
+
+        var requisite = await unit.RequisiteRepository.GetRequisiteById(id);
         if (requisite is null) return null;
         
         var now = DateTime.UtcNow;
@@ -137,7 +118,7 @@ public class RequisiteService(
 
     public async Task<RequisiteDto?> DeleteRequisite(Guid id)
     {
-        var requisite = await unit.RequisiteRepository.GetById(id, r => r.User);
+        var requisite = await unit.RequisiteRepository.GetRequisiteById(id);
         if (requisite is null) return null;
 
         requisite.User.RequisitesCount--;

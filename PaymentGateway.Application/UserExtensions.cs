@@ -13,4 +13,10 @@ public static class UserExtensions
         }
         return userId;
     }
+    
+    public static string GetCurrentUsername(this ClaimsPrincipal user)
+    {
+        var usernameClaim = user.FindFirst(ClaimTypes.Name);
+        return string.IsNullOrEmpty(usernameClaim?.Value) ? "NULL" : usernameClaim.Value;
+    }
 }

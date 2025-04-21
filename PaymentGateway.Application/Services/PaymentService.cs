@@ -32,10 +32,7 @@ public class PaymentService(
             throw new ValidationException(validation.Errors);
         }
 
-        var containsEntity = await unit.PaymentRepository
-            .QueryableGetAll()
-            .AsNoTracking()
-            .FirstOrDefaultAsync(p => p.ExternalPaymentId == dto.ExternalPaymentId);
+        var containsEntity = await unit.PaymentRepository.GetExistingPayment(dto.ExternalPaymentId);
         if (containsEntity is not null)
         {
             throw new DuplicatePaymentException();
@@ -61,10 +58,7 @@ public class PaymentService(
             throw new ValidationException(validation.Errors);
         }
 
-        var payment = await unit.PaymentRepository.GetById(dto.PaymentId,
-            p => p.Requisite,
-            p => p.Transaction);
-
+        var payment = await unit.PaymentRepository.PaymentById(dto.PaymentId);
         if (payment is null)
         {
             throw new PaymentNotFound();
@@ -110,10 +104,7 @@ public class PaymentService(
             throw new ValidationException(validation.Errors);
         }
 
-        var payment = await unit.PaymentRepository.GetById(dto.PaymentId,
-            p => p.Requisite,
-            p => p.Transaction);
-
+        var payment = await unit.PaymentRepository.PaymentById(dto.PaymentId);
         if (payment is null)
         {
             throw new PaymentNotFound();
@@ -157,46 +148,25 @@ public class PaymentService(
 
     public async Task<IEnumerable<PaymentDto>> GetAllPayments()
     {
-        var entities = await unit.PaymentRepository.QueryableGetAll()
-            .Include(p => p.Requisite)
-            .ThenInclude(p => p.User)
-            .Include(p => p.Transaction)
-            .AsNoTracking()
-            .OrderByDescending(p => p.CreatedAt)
-            .ToListAsync();
+        var entities = await unit.PaymentRepository.GetAllPayments();
         return mapper.Map<IEnumerable<PaymentDto>>(entities);
     }
 
     public async Task<IEnumerable<PaymentDto>> GetUserPayments(Guid userId)
     {
-        var entities = await unit.PaymentRepository.QueryableGetAll()
-            .Include(p => p.Requisite)
-            .ThenInclude(p => p.User)
-            .Include(p => p.Transaction)
-            .Where(p => p.Requisite != null && p.Requisite.UserId == userId)
-            .AsNoTracking()
-            .OrderByDescending(p => p.CreatedAt)
-            .ToListAsync();
+        var entities = await unit.PaymentRepository.GetUserPayments(userId);
         return mapper.Map<IEnumerable<PaymentDto>>(entities);
     }
 
     public async Task<PaymentDto?> GetPaymentById(Guid id)
     {
-        var entity = await unit.PaymentRepository.GetById(id,
-            p => p.Requisite,
-            p => p.Transaction,
-            p => p.ManualConfirmUser,
-            p => p.CanceledByUser);
+        var entity = await unit.PaymentRepository.PaymentById(id);
         return entity is not null ? mapper.Map<PaymentDto>(entity) : null;
     }
 
     public async Task<PaymentEntity?> DeletePayment(Guid id)
     {
-        var entity = await unit.PaymentRepository.GetById(id,
-            p => p.Requisite,
-            p => p.Transaction,
-            p => p.ManualConfirmUser,
-            p => p.CanceledByUser);
+        var entity = await unit.PaymentRepository.PaymentById(id);
         if (entity is null) return null;
 
         if (entity.Requisite != null && entity.Requisite.PaymentId == id)
