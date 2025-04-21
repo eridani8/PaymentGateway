@@ -78,7 +78,7 @@
     {
         try
         {
-            _users = await NotificationService.GetUsers();
+            _users = await NotificationService.GetAdminsAndSupports();
         
             StateHasChanged();
         }

@@ -13,5 +13,5 @@ public static class SignalREvents
     public const string UserConnected = "UserConnected";
     public const string UserDisconnected = "UserDisconnected";
     public const string SendChatMessage = "SendChatMessage";
-    public const string GetUsers = "GetUsers";
+    public const string GetAdminsAndSupports = "GetAdminsAndSupports";
 }

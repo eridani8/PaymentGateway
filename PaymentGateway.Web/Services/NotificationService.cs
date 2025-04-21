@@ -23,8 +23,6 @@ public class NotificationService(
     private Timer? _pingTimer;
     private const int PingInterval = 10000;
     private bool _isDisposed;
-
-    public event EventHandler<bool>? ConnectionChanged;
     
     public bool IsConnected => _hubConnection?.State == HubConnectionState.Connected;
 
@@ -153,8 +151,6 @@ public class NotificationService(
                 logger.LogInformation("Попытка подключения к SignalR хабу: {HubUrl}", _hubUrl);
                 await _hubConnection.StartAsync();
                 logger.LogInformation("SignalR соединение установлено успешно");
-                
-                ConnectionChanged?.Invoke(this, true);
 
                 if (_pingTimer != null)
                 {
@@ -291,8 +287,6 @@ public class NotificationService(
             {
                 if (_isDisposed) return;
                 
-                ConnectionChanged?.Invoke(this, false);
-                
                 if (_pingTimer != null)
                 {
                     await _pingTimer.DisposeAsync();
@@ -354,15 +348,6 @@ public class NotificationService(
         {
             _isDisposed = true;
             logger.LogInformation("[{InstanceId}] Начало утилизации NotificationService", _instanceId);
-            
-            try
-            {
-                ConnectionChanged?.Invoke(this, false);
-            }
-            catch (Exception ex)
-            {
-                logger.LogWarning(ex, "Ошибка при уведомлении о закрытии соединения");
-            }
             
             Unsubscribe(SignalREvents.UserUpdated);
             Unsubscribe(SignalREvents.UserDeleted);
@@ -500,11 +485,11 @@ public class NotificationService(
 
     #endregion
     
-    public async Task<List<UserState>> GetUsers()
+    public async Task<List<UserState>> GetAdminsAndSupports()
     {
         try
         {
-            return await _hubConnection!.InvokeAsync<List<UserState>>(SignalREvents.GetUsers);
+            return await _hubConnection!.InvokeAsync<List<UserState>>(SignalREvents.GetAdminsAndSupports);
         }
         catch (Exception e)
         {

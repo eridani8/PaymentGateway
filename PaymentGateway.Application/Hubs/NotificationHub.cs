@@ -56,16 +56,18 @@ public class NotificationHub(ILogger<NotificationHub> logger) : Hub<IHubClient>
                     Username = userName,
                     Roles = roles
                 };
-                
+
                 ConnectedUsers[Context.ConnectionId] = state;
-                
-                logger.LogDebug("Клиент подключен: {ConnectionId}, Пользователь: {User}, Роли: {Roles}", Context.ConnectionId, userName, string.Join(", ", roles));
+
+                logger.LogDebug("Клиент подключен: {ConnectionId}, Пользователь: {User}, Роли: {Roles}",
+                    Context.ConnectionId, userName, string.Join(", ", roles));
 
                 await Clients.All.UserConnected(state);
             }
             else
             {
-                logger.LogWarning("Подключение клиента без идентификатора пользователя: {ConnectionId}", Context.ConnectionId);
+                logger.LogWarning("Подключение клиента без идентификатора пользователя: {ConnectionId}",
+                    Context.ConnectionId);
             }
 
             await base.OnConnectedAsync();
@@ -83,7 +85,8 @@ public class NotificationHub(ILogger<NotificationHub> logger) : Hub<IHubClient>
         {
             if (ConnectedUsers.Remove(Context.ConnectionId, out var state))
             {
-                logger.LogDebug("Клиент отключен: {ConnectionId}, Пользователь: {User}", Context.ConnectionId, state.Username);
+                logger.LogDebug("Клиент отключен: {ConnectionId}, Пользователь: {User}", Context.ConnectionId,
+                    state.Username);
                 await Clients.All.UserDisconnected(state);
             }
             else
@@ -99,14 +102,14 @@ public class NotificationHub(ILogger<NotificationHub> logger) : Hub<IHubClient>
             throw;
         }
     }
-    
+
     public static List<string> GetUsersByRoles(string[] roles)
     {
         var connectionIds = ConnectedUsers
             .Where(kvp => kvp.Value.Roles.Any(roles.Contains))
             .Select(kvp => kvp.Key)
             .ToList();
-        
+
         return connectionIds;
     }
 
@@ -118,21 +121,26 @@ public class NotificationHub(ILogger<NotificationHub> logger) : Hub<IHubClient>
         return user.Equals(default(KeyValuePair<string, UserState>)) ? null : user.Key;
     }
 
-    public Task<List<UserState>> GetUsers()
+    public Task<List<UserState>> GetAdminsAndSupports()
     {
-        return Task.FromResult(ConnectedUsers.Values.ToList());
+        var roles = new[] { "Admin", "Support" };
+
+        return Task.FromResult(ConnectedUsers.Values
+            .Where(u =>
+                u.Roles.Any(r => roles.Contains(r)))
+            .ToList());
     }
 
     [Authorize(Roles = "Admin,Support")]
     public async Task SendChatMessage(ChatMessageDto message)
     {
         var userId = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-    
+
         if (!string.IsNullOrEmpty(userId))
         {
             message.UserId = Guid.Parse(userId);
             message.Timestamp = DateTime.UtcNow;
-    
+
             await Clients.All.ChatMessageReceived(message);
         }
     }
@@ -143,7 +151,7 @@ public class NotificationHub(ILogger<NotificationHub> logger) : Hub<IHubClient>
         {
             KeepAliveTimer?.Dispose();
         }
-        
+
         base.Dispose(disposing);
     }
-} 
+}
