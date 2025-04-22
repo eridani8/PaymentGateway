@@ -34,6 +34,15 @@ public class AuthMessageHandler(
         if (response.StatusCode == HttpStatusCode.Unauthorized)
         {
             await customAuthStateProvider.MarkUserAsLoggedOut();
+            
+            _ = Task.Run(() => 
+            {
+                var currentUri = navigationManager.Uri;
+                if (!currentUri.EndsWith("/login", StringComparison.OrdinalIgnoreCase))
+                {
+                    navigationManager.NavigateTo("/login", true);
+                }
+            }, cancellationToken);
         }
 
         return response;
