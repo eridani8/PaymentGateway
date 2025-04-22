@@ -120,10 +120,12 @@ public class NotificationHub(
     {
         var roles = new[] { "Admin", "Support" };
 
-        return Task.FromResult(ConnectedUsers.Values
-            .Where(u =>
-                u.Roles.Any(r => roles.Contains(r)))
-            .ToList());
+        var result = ConnectedUsers.Values
+            .Where(u => u.Roles.Any(r => roles.Contains(r)))
+            .DistinctBy(u => u.Id)
+            .ToList();
+
+        return Task.FromResult(result);
     }
     
     [Authorize(Roles = "Admin,Support")]
