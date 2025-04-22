@@ -174,7 +174,6 @@
             if (response.Code == HttpStatusCode.OK)
             {
                 _setupComplete = true;
-                Snackbar.Add("Двухфакторная аутентификация успешно настроена!", Severity.Success);
 
                 await AuthStateProvider.NotifyAuthenticationStateChanged();
 
