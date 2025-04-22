@@ -106,14 +106,14 @@
                         </TemplateColumn>
                         <TemplateColumn Title="Действия">
                             <CellTemplate Context="cellContext">
-                                <MudButtonGroup Variant="Variant.Text" Size="Size.Small">
-                                    <MudButton OnClick="@(() => OpenEditDialog(cellContext.Item))"
-                                             StartIcon="@Icons.Material.Filled.Edit"
-                                             Color="Color.Primary"/>
-                                    <MudButton OnClick="@(() => DeleteUser(cellContext.Item))"
-                                             StartIcon="@Icons.Material.Filled.Delete"
-                                             Color="Color.Error"/>
-                                </MudButtonGroup>
+                                <MudIconButton Variant="Variant.Outlined"
+                                               OnClick="@(() => OpenEditDialog(cellContext.Item))"
+                                               Icon="@Icons.Material.Filled.Edit"
+                                               Color="Color.Primary"/>
+                                <MudIconButton Variant="Variant.Outlined"
+                                               OnClick="@(() => DeleteUser(cellContext.Item))"
+                                               Icon="@Icons.Material.Filled.Delete"
+                                               Color="Color.Error"/>
                             </CellTemplate>
                         </TemplateColumn>
                     </Columns>
@@ -121,7 +121,7 @@
                         <MudStack>
                             <MudTooltip Placement="Placement.Left" Text="Id пользователя">
                                 <MudStack Row="true">
-                                    <MudIcon Icon="@Icons.Material.Filled.AssignmentInd" Class="mr-2" />
+                                    <MudIcon Icon="@Icons.Material.Filled.AssignmentInd" Class="mr-2"/>
                                     <MudText Typo="Typo.body1">@rowContext.Item.Id</MudText>
                                 </MudStack>
                             </MudTooltip>
@@ -152,7 +152,7 @@
         {
             await LoadUsers();
             await LoadUserRoles();
-            
+
             NotificationService.SubscribeToUserUpdates(HandleUserUpdate);
             NotificationService.SubscribeToUserDeletions(HandleUserDeleted);
         }
@@ -168,7 +168,7 @@
         try
         {
             var userIds = _users.Select(u => u.Id).ToList();
-            
+
             _userRoles = await AdminService.GetUsersRoles(userIds);
         }
         catch (Exception e)
@@ -183,7 +183,7 @@
         try
         {
             Logger.LogInformation("Получено обновление пользователя: {UserId}", updatedUser.Id);
-                
+
             var existingUser = _users.FirstOrDefault(u => u.Id == updatedUser.Id);
             if (existingUser != null)
             {
@@ -211,14 +211,14 @@
         try
         {
             Logger.LogInformation("Получено уведомление об удалении пользователя: {UserId}", userId);
-            
+
             var user = _users.FirstOrDefault(u => u.Id == userId);
             if (user == null) return;
-            
+
             _users.Remove(user);
             _userRoles.Remove(userId);
             Logger.LogInformation("Пользователь удален из списка: {UserId}", userId);
-            
+
             await InvokeAsync(StateHasChanged);
         }
         catch (Exception e)
@@ -233,7 +233,7 @@
         {
             NotificationService.UnsubscribeFromUserUpdates();
             NotificationService.UnsubscribeFromUserDeletions();
-            
+
             Logger.LogInformation("Отписки от событий выполнены успешно");
         }
         catch (Exception e)
@@ -290,7 +290,7 @@
             try
             {
                 var deleteResult = await AdminService.DeleteUser(user.Id);
-                
+
                 if (deleteResult)
                 {
                     Snackbar.Add($"Пользователь {user.Username} успешно удален", Severity.Success);
@@ -372,7 +372,7 @@
                 _users = [];
                 _userRoles = [];
             }
-            
+
             _isFiltered = true;
 
             if (_users.Count == 0)
@@ -390,7 +390,7 @@
             _isLoading = false;
         }
     }
-    
+
     private async Task ClearSearch()
     {
         _searchUserId = string.Empty;
@@ -398,4 +398,5 @@
         _isFiltered = false;
         await LoadUsers();
     }
+
 }

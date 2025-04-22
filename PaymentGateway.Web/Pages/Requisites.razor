@@ -123,15 +123,15 @@
                         <TemplateColumn Title="Действия">
                             <CellTemplate Context="cellContext">
                                 <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                               Variant="Variant.Outlined"
                                                Color="Color.Primary"
-                                               Size="Size.Small"
                                                OnClick="@(() => OpenEditDialog(cellContext.Item))"
                                                Disabled="@(cellContext.Item.Status == RequisiteStatus.Pending)">
                                     Редактировать
                                 </MudIconButton>
                                 <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                               Variant="Variant.Outlined"
                                                Color="Color.Error"
-                                               Size="Size.Small"
                                                OnClick="@(() => OpenDeleteDialog(cellContext.Item))"
                                                Disabled="@(cellContext.Item.Status == RequisiteStatus.Pending)">
                                     Удалить

@@ -64,7 +64,6 @@
     private readonly List<ChatMessageDto> _messages = [];
     private List<UserState> _users = [];
     private ElementReference _chatContainer;
-    private bool _isLoading;
 
     protected override async Task OnInitializedAsync()
     {
@@ -80,7 +79,6 @@
     {
         try
         {
-            _isLoading = true;
             var messages = await NotificationService.GetChatHistory();
             if (messages.Any())
             {
@@ -94,17 +92,13 @@
             Logger.LogError(e, "Ошибка при загрузке истории сообщений");
             Snackbar.Add("Ошибка при загрузке истории сообщений", Severity.Error);
         }
-        finally
-        {
-            _isLoading = false;
-        }
     }
 
     private async void HandleUserConnected(UserState state)
     {
         try
         {
-            if (_users.Any(u => u.Id == state.Id)) return;
+            if (_users.Any(u => u.Username.Equals(state.Username, StringComparison.Ordinal))) return;
             _users.Add(state);
             await InvokeAsync(StateHasChanged);
         }
