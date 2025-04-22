@@ -58,7 +58,7 @@ public class AdminService(
         }
         return null;
     }
-
+    
     public async Task<Dictionary<Guid, string>> GetUsersRoles(List<Guid> userIds)
     {
         try
@@ -75,5 +75,11 @@ public class AdminService(
             logger.LogError(e, "Ошибка при получении ролей пользователей");
             throw;
         }
+    }
+    
+    public async Task<bool> ResetTwoFactorAsync(Guid userId)
+    {
+        var response = await PostRequest($"{ApiEndpoint}/ResetTwoFactor/{userId}");
+        return response.Code == System.Net.HttpStatusCode.OK;
     }
 }

@@ -251,8 +251,9 @@ try
     using (var scope = app.Services.CreateScope())
     {
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<UserEntity>>();
 
-        var roles = new[] { "User", "Admin", "Support" };
+        var roles = new[] { "Admin", "User", "Support" };
         foreach (var role in roles)
         {
             if (!await roleManager.RoleExistsAsync(role))
@@ -261,31 +262,36 @@ try
             }
         }
 
-        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<UserEntity>>();
+        await CreateUser("root");
+        await CreateUser("eridani");
 
-        var rootUser = await userManager.FindByNameAsync("root");
-        if (rootUser == null)
+        async Task CreateUser(string username)
         {
-            rootUser = new UserEntity
+            
+            var defaultUser = await userManager.FindByNameAsync(username);
+            if (defaultUser == null)
             {
-                Id = Guid.CreateVersion7(),
-                UserName = "root",
-                IsActive = true,
-                MaxRequisitesCount = int.MaxValue,
-                MaxDailyMoneyReceptionLimit = 999_999_999_999.99m,
-                CreatedAt = DateTime.UtcNow
-            };
-            var result = await userManager.CreateAsync(rootUser, "Qwerty123_");
-            if (!result.Succeeded)
-            {
-                throw new ApplicationException("Ошибка при создании root пользователя");
-            }
-
-            foreach (var role in roles)
-            {
-                if (!await userManager.IsInRoleAsync(rootUser, role))
+                defaultUser = new UserEntity
                 {
-                    await userManager.AddToRoleAsync(rootUser, role);
+                    Id = Guid.CreateVersion7(),
+                    UserName = username,
+                    IsActive = true,
+                    MaxRequisitesCount = int.MaxValue,
+                    MaxDailyMoneyReceptionLimit = 999_999_999_999.99m,
+                    CreatedAt = DateTime.UtcNow
+                };
+                var result = await userManager.CreateAsync(defaultUser, "Qwerty123_");
+                if (!result.Succeeded)
+                {
+                    throw new ApplicationException($"Ошибка при создании пользователя {username}");
+                }
+
+                foreach (var role in roles)
+                {
+                    if (!await userManager.IsInRoleAsync(defaultUser, role))
+                    {
+                        await userManager.AddToRoleAsync(defaultUser, role);
+                    }
                 }
             }
         }

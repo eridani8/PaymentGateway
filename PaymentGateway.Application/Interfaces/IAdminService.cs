@@ -11,4 +11,5 @@ public interface IAdminService
     Task<UserEntity?> DeleteUser(Guid id, string? currentUserId);
     Task<UserDto?> UpdateUser(UpdateUserDto dto);
     Task<Dictionary<Guid, string>> GetUsersRoles(List<Guid> ids);
+    Task<bool> ResetTwoFactorAsync(Guid userId);
 }

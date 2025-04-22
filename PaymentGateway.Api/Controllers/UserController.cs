@@ -49,22 +49,23 @@ public class UserController(
             return Unauthorized("Неверный логин или пароль");
         }
 
-        if (user.TwoFactorEnabled && string.IsNullOrEmpty(model.TwoFactorCode))
+        switch (user.TwoFactorEnabled)
         {
-            return StatusCode(428);
-        }
-
-        if (user.TwoFactorEnabled && !string.IsNullOrEmpty(model.TwoFactorCode))
-        {
-            var isValid = TotpService.VerifyTotpCode(user.TwoFactorSecretKey ?? string.Empty, model.TwoFactorCode);
-            if (!isValid)
+            case true when string.IsNullOrEmpty(model.TwoFactorCode):
+                return StatusCode(428);
+            case true when !string.IsNullOrEmpty(model.TwoFactorCode):
             {
-                return Unauthorized("Неверный код аутентификации");
+                var isValid = TotpService.VerifyTotpCode(user.TwoFactorSecretKey ?? string.Empty, model.TwoFactorCode);
+                if (!isValid)
+                {
+                    return Unauthorized("Неверный код аутентификации");
+                }
+
+                break;
             }
         }
 
         var roles = await userManager.GetRolesAsync(user);
-        
         var token = tokenService.GenerateJwtToken(user, roles);
         
         return Ok(token);

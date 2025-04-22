@@ -140,4 +140,24 @@ public class AdminService(
         
         return roles;
     }
+    
+    public async Task<bool> ResetTwoFactorAsync(Guid userId)
+    {
+        var user = await userManager.FindByIdAsync(userId.ToString());
+        if (user == null)
+        {
+            return false;
+        }
+        
+        user.TwoFactorEnabled = false;
+        user.TwoFactorSecretKey = null;
+        
+        var result = await userManager.UpdateAsync(user);
+
+        if (!result.Succeeded) return false;
+        
+        var userDto = mapper.Map<UserDto>(user);
+        await notificationService.NotifyUserUpdated(userDto);
+        return true;
+    }
 }

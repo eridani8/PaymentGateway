@@ -55,7 +55,7 @@ public class AdminController(IAdminService service, ILogger<AdminController> log
         {
             return NotFound();
         }
-        
+
         return Ok(user);
     }
 
@@ -67,7 +67,8 @@ public class AdminController(IAdminService service, ILogger<AdminController> log
             var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             var result = await service.DeleteUser(id, currentUserId);
             if (result is null) return BadRequest();
-            logger.LogInformation("Удаление пользователя {username} [{User}]", result.UserName, User.GetCurrentUsername());
+            logger.LogInformation("Удаление пользователя {username} [{User}]", result.UserName,
+                User.GetCurrentUsername());
             return Ok(true);
         }
         catch (DeleteUserException e)
@@ -85,7 +86,8 @@ public class AdminController(IAdminService service, ILogger<AdminController> log
         {
             var user = await service.UpdateUser(dto);
             if (user is null) return NotFound();
-            logger.LogInformation("Обновление пользователя {username} [{User}]", user.Username, User.GetCurrentUsername());
+            logger.LogInformation("Обновление пользователя {username} [{User}]", user.Username,
+                User.GetCurrentUsername());
             return Ok(user);
         }
         catch (ValidationException e)
@@ -98,10 +100,20 @@ public class AdminController(IAdminService service, ILogger<AdminController> log
     public async Task<ActionResult<Dictionary<Guid, string>>> GetUsersRoles([FromQuery] string userIds)
     {
         var ids = userIds.Split(',')
-                .Select(Guid.Parse)
-                .ToList();
-            
-            var roles = await service.GetUsersRoles(ids);
-            return Ok(roles);
+            .Select(Guid.Parse)
+            .ToList();
+
+        var roles = await service.GetUsersRoles(ids);
+        return Ok(roles);
+    }
+
+    [HttpPost("{userId:guid}")]
+    public async Task<ActionResult> ResetTwoFactor(Guid userId)
+    {
+        var result = await service.ResetTwoFactorAsync(userId);
+        if (!result) return BadRequest();
+        logger.LogInformation("Сброс двухфакторной аутентификации для пользователя {userId} [{User}]", userId, User.GetCurrentUsername());
+        
+        return Ok();
     }
 }

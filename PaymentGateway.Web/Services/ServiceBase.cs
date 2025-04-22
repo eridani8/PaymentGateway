@@ -13,6 +13,11 @@ public class ServiceBase(IHttpClientFactory factory, ILogger<ServiceBase> logger
     {
         return await SendRequest(HttpMethod.Post, url, model);
     }
+    
+    public async Task<Response> PostRequest(string url)
+    {
+        return await SendRequest(HttpMethod.Post, url);
+    }
 
     public async Task<T?> PostRequest<T>(string url, object model)
     {

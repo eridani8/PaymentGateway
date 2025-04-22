@@ -10,4 +10,5 @@ public interface IAdminService
     Task<UserDto?> UpdateUser(UpdateUserDto dto);
     Task<UserDto?> GetUserById(Guid userId);
     Task<Dictionary<Guid, string>> GetUsersRoles(List<Guid> users);
+    Task<bool> ResetTwoFactorAsync(Guid userId);
 }
