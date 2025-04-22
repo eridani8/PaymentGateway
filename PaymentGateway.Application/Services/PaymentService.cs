@@ -82,9 +82,7 @@ public class PaymentService(
 
         var userRoles = await userManager.GetRolesAsync(user);
 
-        if (payment.Requisite.UserId != currentUserId ||
-            !(userRoles.Contains("User") && userRoles.Contains("Admin") && userRoles.Contains("Support")) ||
-            !userRoles.Contains("Support"))
+        if (payment.Requisite.UserId != currentUserId || !userRoles.Contains("Admin") || !userRoles.Contains("Support"))
         {
             throw new ManualConfirmException("Недостаточно прав для подтверждения платежа");
         }
