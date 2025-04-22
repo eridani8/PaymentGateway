@@ -46,11 +46,13 @@ public class PaymentRepository(AppDbContext context, ICache cache)
     public async Task<PaymentEntity?> PaymentById(Guid id)
     {
         return await
-            GetById(id,
-                p => p.Requisite,
-                p => p.Transaction,
-                p => p.ManualConfirmUser,
-                p => p.CanceledByUser);
+            QueryableGetAll()
+                .Include(p => p.Requisite)
+                .ThenInclude(r => r.User)
+                .Include(p => p.Transaction)
+                .Include(p => p.ManualConfirmUser)
+                .Include(p => p.CanceledByUser)
+                .FirstOrDefaultAsync(p => p.Id == id);
     }
 
     public async Task<List<PaymentEntity>> GetAllPayments()
@@ -67,7 +69,7 @@ public class PaymentRepository(AppDbContext context, ICache cache)
 
     public async Task<List<PaymentEntity>> GetUserPayments(Guid userId)
     {
-        return await 
+        return await
             QueryableGetAll()
                 .Include(p => p.Requisite)
                 .ThenInclude(p => p.User)
