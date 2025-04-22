@@ -6,20 +6,23 @@ using PaymentGateway.Infrastructure.Data;
 
 namespace PaymentGateway.Infrastructure.Repositories;
 
-public class ChatMessageRepository(AppDbContext context, ICache cache) : RepositoryBase<ChatMessageEntity>(context, cache), IChatMessageRepository
+public class ChatMessageRepository(AppDbContext context, ICache cache)
+    : RepositoryBase<ChatMessageEntity>(context, cache), IChatMessageRepository
 {
-    public async Task<List<ChatMessageEntity>> GetAll()
+    private readonly AppDbContext _context = context;
+
+    public new async Task<List<ChatMessageEntity>> GetAll()
     {
-        return await context.ChatMessages
+        return await _context.ChatMessages
             .Include(m => m.User)
             .OrderBy(m => m.Timestamp)
             .ToListAsync();
     }
 
-    public async Task<ChatMessageEntity> Add(ChatMessageEntity message)
+    public new async Task<ChatMessageEntity> Add(ChatMessageEntity message)
     {
-        context.ChatMessages.Add(message);
-        await context.SaveChangesAsync();
+        _context.ChatMessages.Add(message);
+        await _context.SaveChangesAsync();
         return message;
     }
-} 
+}
