@@ -61,9 +61,10 @@ public static class ValidatorRules
 
     public static IRuleBuilderOptions<T, decimal> ValidMoneyAmount<T>(this IRuleBuilder<T, decimal> rule)
     {
+        const decimal maxAmount = 9999999999999999m;
         return rule
             .GreaterThan(0).WithMessage("Сумма должна быть больше 0")
-            .LessThanOrEqualTo(decimal.MaxValue).WithMessage("Сумма слишком большая")
+            .LessThanOrEqualTo(maxAmount).WithMessage($"Сумма должна быть меньше или равна {maxAmount:N0}")
             .Must(amount => amount == Math.Floor(amount))
             .WithMessage("Сумма должна быть целым числом без десятичной части");
     }
