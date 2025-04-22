@@ -61,12 +61,11 @@ public static class ValidatorRules
 
     public static IRuleBuilderOptions<T, decimal> ValidMoneyAmount<T>(this IRuleBuilder<T, decimal> rule)
     {
-        const decimal maxAmount = 9999999999999999.99m;
         return rule
             .GreaterThan(0).WithMessage("Сумма должна быть больше 0")
-            .LessThanOrEqualTo(maxAmount).WithMessage($"Сумма должна быть меньше или равна {maxAmount:N2}")
-            .Must(amount => amount == Math.Round(amount, 2))
-            .WithMessage("Сумма должна быть округлена до двух знаков после запятой");
+            .LessThanOrEqualTo(decimal.MaxValue).WithMessage("Сумма слишком большая")
+            .Must(amount => amount == Math.Floor(amount))
+            .WithMessage("Сумма должна быть целым числом без десятичной части");
     }
 
     public static IRuleBuilderOptions<T, TimeSpan> ValidCooldown<T>(this IRuleBuilder<T, TimeSpan> rule)

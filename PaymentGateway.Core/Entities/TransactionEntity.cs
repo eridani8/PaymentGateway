@@ -37,8 +37,8 @@ public sealed class TransactionEntity : ITransactionEntity, ICacheable
     /// <summary>
     /// Сумма, извлечённая из платежа
     /// </summary>
-    [Range(0, 9999999999999999.99)]
-    [Column(TypeName = "decimal(18,2)")]
+    [Range(0, double.MaxValue)]
+    [Column(TypeName = "decimal(20,0)")]
     public decimal ExtractedAmount { get; set; }
     
     /// <summary>

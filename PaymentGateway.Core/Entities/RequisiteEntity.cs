@@ -84,15 +84,15 @@ public class RequisiteEntity : IRequisiteEntity, ICacheable
     /// <summary>
     /// Полученные за день средства
     /// </summary>
-    [Range(0, 9999999999999999.99)]
-    [Column(TypeName = "decimal(18,2)")]
+    [Range(0, double.MaxValue)]
+    [Column(TypeName = "decimal(20,0)")]
     public decimal DayReceivedFunds { get; set; }
 
     /// <summary>
     /// Дневной лимит
     /// </summary>
-    [Range(0, 9999999999999999.99)]
-    [Column(TypeName = "decimal(18,2)")]
+    [Range(0, double.MaxValue)]
+    [Column(TypeName = "decimal(20,0)")]
     public decimal DayLimit { get; set; }
 
     /// <summary>
@@ -103,15 +103,15 @@ public class RequisiteEntity : IRequisiteEntity, ICacheable
     /// <summary>
     /// Полученные за месяц средства
     /// </summary>
-    [Range(0, 9999999999999999.99)]
-    [Column(TypeName = "decimal(18,2)")]
+    [Range(0, double.MaxValue)]
+    [Column(TypeName = "decimal(20,0)")]
     public decimal MonthReceivedFunds { get; set; }
 
     /// <summary>
     /// Месячный лимит
     /// </summary>
-    [Range(0, 9999999999999999.99)]
-    [Column(TypeName = "decimal(18,2)")]
+    [Range(0, double.MaxValue)]
+    [Column(TypeName = "decimal(20,0)")]
     public decimal MonthLimit { get; set; }
 
     /// <summary>

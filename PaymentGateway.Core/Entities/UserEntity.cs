@@ -10,10 +10,12 @@ public class UserEntity : IdentityUser<Guid>
     public int RequisitesCount { get; set; }
     public int MaxRequisitesCount { get; set; }
     
-    [Column(TypeName = "decimal(18,2)")]
+    [Range(0, double.MaxValue)]
+    [Column(TypeName = "decimal(20,0)")]
     public decimal MaxDailyMoneyReceptionLimit { get; set; }
     
-    [Column(TypeName = "decimal(18,2)")]
+    [Range(0, double.MaxValue)]
+    [Column(TypeName = "decimal(20,0)")]
     public decimal ReceivedDailyFunds { get; set; }
     
     public DateTime LastFundsResetAt { get; set; }

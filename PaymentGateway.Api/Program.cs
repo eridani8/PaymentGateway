@@ -277,7 +277,7 @@ try
                     UserName = username,
                     IsActive = true,
                     MaxRequisitesCount = int.MaxValue,
-                    MaxDailyMoneyReceptionLimit = 999_999_999_999.99m,
+                    MaxDailyMoneyReceptionLimit = decimal.MaxValue,
                     CreatedAt = DateTime.UtcNow
                 };
                 var result = await userManager.CreateAsync(defaultUser, "Qwerty123_");

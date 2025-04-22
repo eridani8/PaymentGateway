@@ -28,8 +28,8 @@ public sealed class PaymentEntity : IPaymentEntity, ICacheable
     /// <summary>
     /// Сумма платежа
     /// </summary>
-    [Range(0, 9999999999999999.99)]
-    [Column(TypeName = "decimal(18,2)")] 
+    [Range(0, double.MaxValue)]
+    [Column(TypeName = "decimal(20,0)")] 
     public decimal Amount { get; init; }
 
     /// <summary>
