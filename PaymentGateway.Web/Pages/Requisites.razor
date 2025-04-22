@@ -124,20 +124,22 @@
                         <PropertyColumn Property="x => x.Priority" Title="Приоритет"/>
                         <TemplateColumn Title="Действия">
                             <CellTemplate Context="cellContext">
-                                <MudIconButton Icon="@Icons.Material.Filled.Edit"
-                                               Variant="Variant.Outlined"
-                                               Color="Color.Primary"
-                                               OnClick="@(() => OpenEditDialog(cellContext.Item))"
-                                               Disabled="@(cellContext.Item.Status == RequisiteStatus.Pending)">
-                                    Редактировать
-                                </MudIconButton>
-                                <MudIconButton Icon="@Icons.Material.Filled.Delete"
-                                               Variant="Variant.Outlined"
-                                               Color="Color.Error"
-                                               OnClick="@(() => OpenDeleteDialog(cellContext.Item))"
-                                               Disabled="@(cellContext.Item.Status == RequisiteStatus.Pending)">
-                                    Удалить
-                                </MudIconButton>
+                                <MudStack Row="true">
+                                    <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                                   Variant="Variant.Outlined"
+                                                   Color="Color.Primary"
+                                                   OnClick="@(() => OpenEditDialog(cellContext.Item))"
+                                                   Disabled="@(cellContext.Item.Status == RequisiteStatus.Pending)">
+                                        Редактировать
+                                    </MudIconButton>
+                                    <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                                   Variant="Variant.Outlined"
+                                                   Color="Color.Error"
+                                                   OnClick="@(() => OpenDeleteDialog(cellContext.Item))"
+                                                   Disabled="@(cellContext.Item.Status == RequisiteStatus.Pending)">
+                                        Удалить
+                                    </MudIconButton>
+                                </MudStack>
                             </CellTemplate>
                         </TemplateColumn>
                     </Columns>

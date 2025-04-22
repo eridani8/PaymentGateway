@@ -99,14 +99,16 @@
                         </TemplateColumn>
                         <TemplateColumn Title="Действия">
                             <CellTemplate Context="cellContext">
-                                <MudIconButton Variant="Variant.Outlined"
-                                               OnClick="@(() => OpenEditDialog(cellContext.Item))"
-                                               Icon="@Icons.Material.Filled.Edit"
-                                               Color="Color.Primary"/>
-                                <MudIconButton Variant="Variant.Outlined"
-                                               OnClick="@(() => DeleteUser(cellContext.Item))"
-                                               Icon="@Icons.Material.Filled.Delete"
-                                               Color="Color.Error"/>
+                                <MudStack Row="true">
+                                    <MudIconButton Variant="Variant.Outlined"
+                                                   OnClick="@(() => OpenEditDialog(cellContext.Item))"
+                                                   Icon="@Icons.Material.Filled.Edit"
+                                                   Color="Color.Primary"/>
+                                    <MudIconButton Variant="Variant.Outlined"
+                                                   OnClick="@(() => DeleteUser(cellContext.Item))"
+                                                   Icon="@Icons.Material.Filled.Delete"
+                                                   Color="Color.Error"/>
+                                </MudStack>
                             </CellTemplate>
                         </TemplateColumn>
                     </Columns>
