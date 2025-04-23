@@ -77,6 +77,8 @@ try
 
     #endregion
 
+    builder.Services.Configure<GatewaySettings>(builder.Configuration.GetSection(nameof(GatewaySettings)));
+
     builder.Host.UseSerilog(Log.Logger);
 
     builder.Services.AddControllers(options =>

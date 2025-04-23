@@ -199,18 +199,29 @@
     private string _searchUserId = string.Empty;
     private string _searchError = string.Empty;
     private bool _isFiltered;
+    private PaymentAssignmentAlgorithm _currentAlgorithm;
 
     protected override async Task OnInitializedAsync()
     {
-        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        _isAdminUser = authState.User.IsInRole("Admin");
-        
-        await LoadRequisites();
-        
-        NotificationService.SubscribeToRequisiteUpdates(HandleRequisiteUpdate);
-        NotificationService.SubscribeToRequisiteDeletions(HandleRequisiteDeleted);
-        
-        _refreshTimer = new Timer(TimerTick, null, RefreshInterval, RefreshInterval);
+        try
+        {
+            @* _currentAlgorithm = await SettingsService.GetPaymentAlgorithm(); *@
+            
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            _isAdminUser = authState.User.IsInRole("Admin");
+
+            await LoadRequisites();
+            
+            NotificationService.SubscribeToRequisiteUpdates(HandleRequisiteUpdate);
+            NotificationService.SubscribeToRequisiteDeletions(HandleRequisiteDeleted);
+            
+            _refreshTimer = new Timer(TimerTick, null, RefreshInterval, RefreshInterval);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error initializing requisites page");
+            Snackbar.Add("Ошибка при загрузке данных: " + ex.Message, Severity.Error);
+        }
     }
 
     private async void HandleRequisiteUpdate(RequisiteDto updatedRequisite)

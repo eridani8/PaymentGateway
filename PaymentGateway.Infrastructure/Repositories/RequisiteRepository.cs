@@ -1,14 +1,14 @@
-﻿using Microsoft.AspNetCore.Components.RenderTree;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using PaymentGateway.Core;
 using PaymentGateway.Core.Entities;
 using PaymentGateway.Core.Interfaces;
 using PaymentGateway.Infrastructure.Data;
-using PaymentGateway.Shared.DTOs.Requisite;
 using PaymentGateway.Shared.Enums;
 
 namespace PaymentGateway.Infrastructure.Repositories;
 
-public class RequisiteRepository(AppDbContext context)
+public class RequisiteRepository(AppDbContext context, IOptions<GatewaySettings> gatewaySettings)
     : RepositoryBase<RequisiteEntity>(context), IRequisiteRepository
 {
     public async Task<List<RequisiteEntity>> GetAll()
