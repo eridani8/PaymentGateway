@@ -23,34 +23,26 @@ public class RequisiteRepository(AppDbContext context, IOptions<GatewaySettings>
         var currentTime = DateTime.UtcNow;
         var currentTimeOnly = TimeOnly.FromDateTime(currentTime);
 
-        switch (gatewaySettings.Value.AppointmentAlgorithm)
+        var query = Queryable()
+            .Include(r => r.Payment)
+            .Include(r => r.User)
+            .Where(r => r.IsActive && r.Status == RequisiteStatus.Active && r.PaymentId == null &&
+                        (
+                            (r.WorkFrom == TimeOnly.MinValue && r.WorkTo == TimeOnly.MinValue) ||
+                            (r.WorkFrom <= r.WorkTo && currentTimeOnly >= r.WorkFrom &&
+                             currentTimeOnly <= r.WorkTo) ||
+                            (r.WorkFrom > r.WorkTo &&
+                             (currentTimeOnly >= r.WorkFrom || currentTimeOnly <= r.WorkTo))
+                        ) &&
+                        (r.User.MaxDailyMoneyReceptionLimit == 0 ||
+                         r.User.ReceivedDailyFunds < r.User.MaxDailyMoneyReceptionLimit));
+
+        return gatewaySettings.Value.AppointmentAlgorithm switch
         {
-            case RequisiteAssignmentAlgorithm.Priority:
-            {
-                var requisites = await
-                    Queryable()
-                        .Include(r => r.Payment)
-                        .Include(r => r.User)
-                        .Where(r => r.IsActive && r.Status == RequisiteStatus.Active && r.PaymentId == null &&
-                                    (
-                                        (r.WorkFrom == TimeOnly.MinValue && r.WorkTo == TimeOnly.MinValue) ||
-                                        (r.WorkFrom <= r.WorkTo && currentTimeOnly >= r.WorkFrom &&
-                                         currentTimeOnly <= r.WorkTo) ||
-                                        (r.WorkFrom > r.WorkTo &&
-                                         (currentTimeOnly >= r.WorkFrom || currentTimeOnly <= r.WorkTo))
-                                    ) &&
-                                    (r.User.MaxDailyMoneyReceptionLimit == 0 ||
-                                     r.User.ReceivedDailyFunds < r.User.MaxDailyMoneyReceptionLimit))
-                        .OrderByDescending(r => r.Priority)
-                        .ThenBy(r => r.LastOperationTime ?? DateTime.MaxValue)
-                        .ToListAsync();
-                return requisites;
-            }
-            case RequisiteAssignmentAlgorithm.Distribution:
-                return []; // TODO
-            default:
-                return [];
-        }
+            RequisiteAssignmentAlgorithm.Priority => await query.OrderByDescending(r => r.Priority).ToListAsync(),
+            RequisiteAssignmentAlgorithm.Distribution => await query.OrderBy(r => r.DayOperationsCount).ToListAsync(),
+            _ => []
+        };
     }
 
     public async Task<int> GetUserRequisitesCount(Guid userId)
