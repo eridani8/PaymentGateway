@@ -2,10 +2,13 @@
 using FluentValidation;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using PaymentGateway.Application.Interfaces;
+using PaymentGateway.Core;
 using PaymentGateway.Core.Entities;
 using PaymentGateway.Core.Exceptions;
 using PaymentGateway.Shared.DTOs.User;
+using PaymentGateway.Shared.Enums;
 using PaymentGateway.Shared.Interfaces;
 
 namespace PaymentGateway.Application.Services;
@@ -15,7 +18,8 @@ public class AdminService(
     UserManager<UserEntity> userManager,
     IValidator<CreateUserDto> createValidator,
     IValidator<UpdateUserDto> updateValidator,
-    INotificationService notificationService) : IAdminService
+    INotificationService notificationService,
+    IOptions<GatewaySettings> gatewaySettings) : IAdminService
 {
     public async Task<UserDto?> CreateUser(CreateUserDto dto)
     {
@@ -159,5 +163,15 @@ public class AdminService(
         var userDto = mapper.Map<UserDto>(user);
         await notificationService.NotifyUserUpdated(userDto);
         return true;
+    }
+
+    public int GetCurrentRequisiteAssignmentAlgorithm()
+    {
+        return (int)gatewaySettings.Value.AppointmentAlgorithm;
+    }
+
+    public void SetRequisiteAssignmentAlgorithm(int algorithm)
+    {
+        gatewaySettings.Value.AppointmentAlgorithm = (RequisiteAssignmentAlgorithm)algorithm;
     }
 }

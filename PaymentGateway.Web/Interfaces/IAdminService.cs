@@ -1,4 +1,5 @@
 ﻿using PaymentGateway.Shared.DTOs.User;
+using PaymentGateway.Shared.Enums;
 
 namespace PaymentGateway.Web.Interfaces;
 
@@ -11,4 +12,6 @@ public interface IAdminService
     Task<UserDto?> GetUserById(Guid userId);
     Task<Dictionary<Guid, string>> GetUsersRoles(List<Guid> users);
     Task<bool> ResetTwoFactorAsync(Guid userId);
+    Task<RequisiteAssignmentAlgorithm> GetCurrentRequisiteAssignmentAlgorithm();
+    Task<bool> SetRequisiteAssignmentAlgorithm(int algorithm);
 }

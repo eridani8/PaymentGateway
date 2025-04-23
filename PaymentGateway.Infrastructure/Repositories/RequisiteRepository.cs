@@ -23,24 +23,34 @@ public class RequisiteRepository(AppDbContext context, IOptions<GatewaySettings>
         var currentTime = DateTime.UtcNow;
         var currentTimeOnly = TimeOnly.FromDateTime(currentTime);
 
-        var requisites = await
-            Queryable()
-                .Include(r => r.Payment)
-                .Include(r => r.User)
-                .Where(r => r.IsActive && r.Status == RequisiteStatus.Active && r.PaymentId == null &&
-                            (
-                                (r.WorkFrom == TimeOnly.MinValue && r.WorkTo == TimeOnly.MinValue) ||
-                                (r.WorkFrom <= r.WorkTo && currentTimeOnly >= r.WorkFrom &&
-                                 currentTimeOnly <= r.WorkTo) ||
-                                (r.WorkFrom > r.WorkTo &&
-                                 (currentTimeOnly >= r.WorkFrom || currentTimeOnly <= r.WorkTo))
-                            ) &&
-                            (r.User.MaxDailyMoneyReceptionLimit == 0 ||
-                             r.User.ReceivedDailyFunds < r.User.MaxDailyMoneyReceptionLimit))
-                .OrderByDescending(r => r.Priority)
-                .ThenBy(r => r.LastOperationTime ?? DateTime.MaxValue)
-                .ToListAsync();
-        return requisites;
+        switch (gatewaySettings.Value.AppointmentAlgorithm)
+        {
+            case RequisiteAssignmentAlgorithm.Priority:
+            {
+                var requisites = await
+                    Queryable()
+                        .Include(r => r.Payment)
+                        .Include(r => r.User)
+                        .Where(r => r.IsActive && r.Status == RequisiteStatus.Active && r.PaymentId == null &&
+                                    (
+                                        (r.WorkFrom == TimeOnly.MinValue && r.WorkTo == TimeOnly.MinValue) ||
+                                        (r.WorkFrom <= r.WorkTo && currentTimeOnly >= r.WorkFrom &&
+                                         currentTimeOnly <= r.WorkTo) ||
+                                        (r.WorkFrom > r.WorkTo &&
+                                         (currentTimeOnly >= r.WorkFrom || currentTimeOnly <= r.WorkTo))
+                                    ) &&
+                                    (r.User.MaxDailyMoneyReceptionLimit == 0 ||
+                                     r.User.ReceivedDailyFunds < r.User.MaxDailyMoneyReceptionLimit))
+                        .OrderByDescending(r => r.Priority)
+                        .ThenBy(r => r.LastOperationTime ?? DateTime.MaxValue)
+                        .ToListAsync();
+                return requisites;
+            }
+            case RequisiteAssignmentAlgorithm.Distribution:
+                return []; // TODO
+            default:
+                return [];
+        }
     }
 
     public async Task<int> GetUserRequisitesCount(Guid userId)
@@ -63,7 +73,7 @@ public class RequisiteRepository(AppDbContext context, IOptions<GatewaySettings>
 
     public async Task<List<RequisiteEntity>> GetUserRequisites(Guid userId)
     {
-        return await 
+        return await
             Queryable()
                 .Include(r => r.Payment)
                 .Include(r => r.User)
@@ -75,7 +85,7 @@ public class RequisiteRepository(AppDbContext context, IOptions<GatewaySettings>
 
     public async Task<RequisiteEntity?> GetRequisiteById(Guid id)
     {
-        return await 
+        return await
             Queryable()
                 .Include(r => r.Payment)
                 .Include(r => r.User)

@@ -4,5 +4,5 @@ namespace PaymentGateway.Core;
 
 public class GatewaySettings
 {
-    public PaymentAssignmentAlgorithm AppointmentAlgorithm { get; set; } = PaymentAssignmentAlgorithm.Priority;
+    public RequisiteAssignmentAlgorithm AppointmentAlgorithm { get; set; } = RequisiteAssignmentAlgorithm.Priority;
 } 

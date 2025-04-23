@@ -6,13 +6,18 @@ using PaymentGateway.Application;
 using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Core.Exceptions;
 using PaymentGateway.Shared.DTOs.User;
+using PaymentGateway.Shared.Enums;
+using PaymentGateway.Shared.Interfaces;
 
 namespace PaymentGateway.Api.Controllers;
 
 [ApiController]
 [Route("[controller]/[action]")]
 [Authorize(Roles = "Admin")]
-public class AdminController(IAdminService service, ILogger<AdminController> logger) : ControllerBase
+public class AdminController(
+    IAdminService service,
+    ILogger<AdminController> logger,
+    INotificationService notificationService) : ControllerBase
 {
     [HttpPost]
     public async Task<ActionResult<UserDto>> CreateUser([FromBody] CreateUserDto? dto)
@@ -112,8 +117,35 @@ public class AdminController(IAdminService service, ILogger<AdminController> log
     {
         var result = await service.ResetTwoFactorAsync(userId);
         if (!result) return BadRequest();
-        logger.LogInformation("Сброс двухфакторной аутентификации для пользователя {userId} [{User}]", userId, User.GetCurrentUsername());
-        
+        logger.LogInformation("Сброс двухфакторной аутентификации для пользователя {userId} [{User}]", userId,
+            User.GetCurrentUsername());
+
         return Ok();
+    }
+
+    [HttpGet]
+    public ActionResult<int> GetCurrentRequisiteAssignmentAlgorithm()
+    {
+        var algorithm = service.GetCurrentRequisiteAssignmentAlgorithm();
+        return Ok(algorithm);
+    }
+
+    [HttpPost]
+    public ActionResult<bool> SetRequisiteAssignmentAlgorithm([FromBody] int algorithm)
+    {
+        if (!Enum.IsDefined(typeof(RequisiteAssignmentAlgorithm), algorithm))
+        {
+            return BadRequest("Указан недопустимый алгоритм");
+        }
+
+        var old = (RequisiteAssignmentAlgorithm)service.GetCurrentRequisiteAssignmentAlgorithm();
+
+        service.SetRequisiteAssignmentAlgorithm(algorithm);
+
+        notificationService.NotifyRequisiteAssignmentAlgorithmChanged((RequisiteAssignmentAlgorithm)algorithm);
+
+        logger.LogInformation("Изменение алгоритма подбора реквизитов. С {old} на {new} [{User}]", old, (RequisiteAssignmentAlgorithm)algorithm, User.GetCurrentUsername());
+
+        return Ok(true);
     }
 }

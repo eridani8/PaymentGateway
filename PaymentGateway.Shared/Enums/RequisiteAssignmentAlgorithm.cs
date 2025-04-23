@@ -1,6 +1,6 @@
 namespace PaymentGateway.Shared.Enums;
 
-public enum PaymentAssignmentAlgorithm
+public enum RequisiteAssignmentAlgorithm
 {
     Priority = 0,
     Distribution = 1,

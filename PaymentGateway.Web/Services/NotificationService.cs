@@ -359,6 +359,7 @@ public class NotificationService(
             Unsubscribe(SignalREvents.ChatMessageReceived);
             Unsubscribe(SignalREvents.UserConnected);
             Unsubscribe(SignalREvents.UserDisconnected);
+            Unsubscribe(SignalREvents.ChangeRequisiteAssignmentAlgorithm);
             
             if (_pingTimer != null)
             {
@@ -468,6 +469,16 @@ public class NotificationService(
     public void UnsubscribeFromRequisiteDeletions()
     {
         Unsubscribe(SignalREvents.RequisiteDeleted);
+    }
+
+    public void SubscribeToChangeRequisiteAssignmentAlgorithm(Action<int> handler)
+    {
+        Subscribe(SignalREvents.ChangeRequisiteAssignmentAlgorithm, handler);
+    }
+
+    public void UnsubscribeFromChangeRequisiteAssignmentAlgorithm()
+    {
+        Unsubscribe(SignalREvents.ChangeRequisiteAssignmentAlgorithm);
     }
 
     #endregion

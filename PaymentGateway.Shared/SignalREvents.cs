@@ -15,4 +15,5 @@ public static class SignalREvents
     public const string SendChatMessage = "SendChatMessage";
     public const string GetAdminsAndSupports = "GetAdminsAndSupports";
     public const string GetChatMessages = "GetChatMessages";
+    public const string ChangeRequisiteAssignmentAlgorithm = "ChangeRequisiteAssignmentAlgorithm";
 }

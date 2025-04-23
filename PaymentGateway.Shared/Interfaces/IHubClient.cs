@@ -2,6 +2,7 @@ using PaymentGateway.Shared.DTOs.Payment;
 using PaymentGateway.Shared.DTOs.Requisite;
 using PaymentGateway.Shared.DTOs.User;
 using PaymentGateway.Shared.DTOs.Chat;
+using PaymentGateway.Shared.Enums;
 
 namespace PaymentGateway.Shared.Interfaces;
 
@@ -17,4 +18,5 @@ public interface IHubClient
     Task ChatMessageReceived(ChatMessageDto message);
     Task UserConnected(UserState state);
     Task UserDisconnected(UserState state);
+    Task ChangeRequisiteAssignmentAlgorithm(RequisiteAssignmentAlgorithm algorithm);
 } 

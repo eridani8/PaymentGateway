@@ -4,6 +4,7 @@ using PaymentGateway.Application.Hubs;
 using PaymentGateway.Shared.DTOs.Payment;
 using PaymentGateway.Shared.DTOs.Requisite;
 using PaymentGateway.Shared.DTOs.User;
+using PaymentGateway.Shared.Enums;
 using PaymentGateway.Shared.Interfaces;
 
 namespace PaymentGateway.Application.Services;
@@ -160,6 +161,26 @@ public class NotificationService(
         catch (Exception e)
         {
             logger.LogError(e, "Ошибка отправки уведомления об удалении платежа {PaymentId}", id);
+        }
+    }
+
+    public async Task NotifyRequisiteAssignmentAlgorithmChanged(RequisiteAssignmentAlgorithm algorithm)
+    {
+        try
+        {
+            var tasks = new List<Task>();
+            
+            if (NotificationHub.GetUsersByRoles(["Admin"]) is { Count: > 0 } staffIds)
+            {
+                var staffTask = hubContext.Clients.Clients(staffIds).ChangeRequisiteAssignmentAlgorithm(algorithm);
+                tasks.Add(staffTask);
+            }
+            
+            await Task.WhenAll(tasks);
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, "Ошибка отправки уведомления об изменении алгоритма подбора реквизитов");
         }
     }
 } 

@@ -9,6 +9,7 @@
 @inject NavigationManager NavigationManager
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NotificationService NotificationService
+@inject IAdminService AdminService
 @implements IAsyncDisposable
 
 <AuthorizeView Roles="User,Admin,Support">
@@ -28,6 +29,11 @@
                     <MudSpacer/>
                     <AuthorizeView Roles="Admin, Support">
                         <Authorized Context="adminContext">
+                            <MudSelect T="RequisiteAssignmentAlgorithm" Value="_currentAlgorithm" ValueChanged="RequisiteAssignmentAlgorithmChanged">
+                                <MudSelectItem Value="RequisiteAssignmentAlgorithm.Priority">Приоритет</MudSelectItem>
+                                <MudSelectItem Value="RequisiteAssignmentAlgorithm.Distribution">Равномерно</MudSelectItem>
+                            </MudSelect>
+                            <MudSpacer/>
                             <MudStack Row="true" Spacing="1">
                                 <MudTextField @bind-Value="_searchUserId" Label="ID пользователя"
                                               Adornment="Adornment.End"
@@ -199,22 +205,26 @@
     private string _searchUserId = string.Empty;
     private string _searchError = string.Empty;
     private bool _isFiltered;
-    private PaymentAssignmentAlgorithm _currentAlgorithm;
+    private RequisiteAssignmentAlgorithm _currentAlgorithm;
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            @* _currentAlgorithm = await SettingsService.GetPaymentAlgorithm(); *@
-            
             var authState = await AuthStateProvider.GetAuthenticationStateAsync();
             _isAdminUser = authState.User.IsInRole("Admin");
 
+            if (_isAdminUser)
+            {
+                _currentAlgorithm = await AdminService.GetCurrentRequisiteAssignmentAlgorithm();
+                NotificationService.SubscribeToChangeRequisiteAssignmentAlgorithm(HandleChangeRequisiteAssignmentAlgorithm);
+            }
+
             await LoadRequisites();
-            
+
             NotificationService.SubscribeToRequisiteUpdates(HandleRequisiteUpdate);
             NotificationService.SubscribeToRequisiteDeletions(HandleRequisiteDeleted);
-            
+
             _refreshTimer = new Timer(TimerTick, null, RefreshInterval, RefreshInterval);
         }
         catch (Exception ex)
@@ -222,6 +232,11 @@
             Logger.LogError(ex, "Error initializing requisites page");
             Snackbar.Add("Ошибка при загрузке данных: " + ex.Message, Severity.Error);
         }
+    }
+
+    private void HandleChangeRequisiteAssignmentAlgorithm(int algorithm)
+    {
+        _currentAlgorithm = (RequisiteAssignmentAlgorithm)algorithm;
     }
 
     private async void HandleRequisiteUpdate(RequisiteDto updatedRequisite)
@@ -290,6 +305,10 @@
         {
             NotificationService.UnsubscribeFromRequisiteUpdates();
             NotificationService.UnsubscribeFromRequisiteDeletions();
+            if (_isAdminUser)
+            {
+                NotificationService.UnsubscribeFromChangeRequisiteAssignmentAlgorithm();
+            }
             await _refreshTimer.DisposeAsync();
         }
         catch (Exception e)
@@ -465,7 +484,7 @@
             _isLoading = false;
         }
     }
-    
+
     private async Task ClearSearch()
     {
         _searchUserId = string.Empty;
@@ -474,4 +493,12 @@
         await LoadRequisites();
     }
 
+    private async Task RequisiteAssignmentAlgorithmChanged(RequisiteAssignmentAlgorithm algorithm)
+    {
+        var result = await AdminService.SetRequisiteAssignmentAlgorithm((int)algorithm);
+        if (!result)
+        {
+            Snackbar.Add("Ошибка при назначении алгоритма подбора реквизита", Severity.Error);
+        }
+    }
 }
