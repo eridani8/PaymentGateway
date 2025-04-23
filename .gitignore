@@ -6,3 +6,4 @@ riderModule.iml
 /Builds
 /.idea
 /PaymentGateway.sln.DotSettings.user
+/PaymentGateway.Infrastructure/Migrations
