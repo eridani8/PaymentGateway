@@ -11,6 +11,6 @@ public interface IRequisiteRepository : IRepositoryBase<RequisiteEntity>
     Task<List<RequisiteEntity>> GetUserRequisites(Guid userId);
     Task<RequisiteEntity?> GetRequisiteById(Guid id);
     Task<RequisiteEntity?> HasSimilarRequisite(string paymentData);
-    void InvalidateCache(RequisiteEntity requisite);
-    void UpdateCache(RequisiteEntity requisite);
+    // void InvalidateCache(RequisiteEntity requisite);
+    // void UpdateCache(RequisiteEntity requisite);
 }
