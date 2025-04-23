@@ -1,14 +1,15 @@
 ﻿using AutoMapper;
 using FluentValidation;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Core.Entities;
 using PaymentGateway.Core.Exceptions;
-using PaymentGateway.Core.Interfaces;
 using PaymentGateway.Infrastructure.Interfaces;
+using PaymentGateway.Shared.DTOs.Payment;
+using PaymentGateway.Shared.DTOs.Requisite;
 using PaymentGateway.Shared.DTOs.Transaction;
+using PaymentGateway.Shared.Enums;
 using PaymentGateway.Shared.Interfaces;
 
 namespace PaymentGateway.Application.Services;
@@ -18,10 +19,11 @@ public class TransactionService(
     IMapper mapper,
     IValidator<TransactionCreateDto> validator,
     ILogger<TransactionService> logger,
-    IPaymentConfirmationService paymentConfirmationService)
+    IPaymentConfirmationService paymentConfirmationService,
+    INotificationService notificationService)
     : ITransactionService
 {
-    public async Task<TransactionDto> CreateTransaction(TransactionCreateDto dto)
+    public async Task<TransactionDto?> CreateTransaction(TransactionCreateDto dto)
     {
         var validation = await validator.ValidateAsync(dto);
         if (!validation.IsValid)
@@ -29,53 +31,61 @@ public class TransactionService(
             throw new ValidationException(validation.Errors);
         }
 
-        var requisite = await unit.RequisiteRepository
-            .Queryable()
-            .Include(r => r.Payment)
-            .Include(r => r.User)
-            .FirstOrDefaultAsync(r => r.PaymentData == dto.PaymentData);
+        await using var transaction = await unit.Context.Database.BeginTransactionAsync();
 
-        if (requisite?.Payment is not { } payment)
+        try
         {
-            throw new RequisiteNotFound("Реквизит не найден или не связан с платежом");
-        }
+            var requisite = await unit.RequisiteRepository
+                .Queryable()
+                .Include(r => r.Payment)
+                .Include(r => r.User)
+                .FirstOrDefaultAsync(r => r.PaymentData == dto.PaymentData && r.Payment != null && r.Payment.Status != PaymentStatus.Confirmed);
 
-        if (payment.Amount != dto.ExtractedAmount)
+            if (requisite?.Payment is not { } payment)
+            {
+                throw new RequisiteNotFound("Реквизит не найден или не связан с платежом");
+            }
+
+            if (payment.Amount != dto.ExtractedAmount)
+            {
+                throw new WrongPaymentAmount($"Сумма платежа {dto.ExtractedAmount}, ожидалось {payment.Amount}");
+            }
+
+            var transactionEntity = mapper.Map<TransactionEntity>(dto);
+            
+            logger.LogInformation("Поступление платежа на сумму {amount}", transactionEntity.ExtractedAmount);
+            
+            payment.ConfirmTransaction(transactionEntity);
+            await unit.TransactionRepository.Add(transactionEntity);
+            await paymentConfirmationService.ProcessPaymentConfirmation(payment, requisite, dto.ExtractedAmount);
+            
+            await unit.Commit();
+            await transaction.CommitAsync();
+            
+            var paymentDto = mapper.Map<PaymentDto>(payment);
+            await notificationService.NotifyPaymentUpdated(paymentDto);
+            var requisiteDto = mapper.Map<RequisiteDto>(requisite);
+            await notificationService.NotifyRequisiteUpdated(requisiteDto);
+
+            return mapper.Map<TransactionDto>(transactionEntity);
+        }
+        catch (Exception e)
         {
-            throw new WrongPaymentAmount($"Сумма платежа {dto.ExtractedAmount}, ожидалось {payment.Amount}");
+            await transaction.RollbackAsync();
+            logger.LogError(e, "Ошибка при обработке транзакции");
+            throw;
         }
-
-        var transaction = mapper.Map<TransactionEntity>(dto);
-        
-        logger.LogInformation("Поступление платежа на сумму {amount}", transaction.ExtractedAmount);
-        
-        payment.ConfirmTransaction(transaction);
-
-        await unit.TransactionRepository.Add(transaction);
-        await paymentConfirmationService.ProcessPaymentConfirmation(payment, requisite, dto.ExtractedAmount);
-        await unit.Commit();
-
-        return mapper.Map<TransactionDto>(transaction);
     }
     
     public async Task<List<TransactionDto>> GetAllTransactions()
     {
-        var transactions = await unit.TransactionRepository
-            .Queryable()
-            .OrderByDescending(t => t.ReceivedAt)
-            .ToListAsync();
-            
+        var transactions = await unit.TransactionRepository.GetAllTransactions();
         return mapper.Map<List<TransactionDto>>(transactions);
     }
     
     public async Task<List<TransactionDto>> GetUserTransactions(Guid userId)
     {
-        var transactions = await unit.TransactionRepository
-            .Queryable()
-            .Where(t => t.Requisite != null && t.Requisite.UserId == userId)
-            .OrderByDescending(t => t.ReceivedAt)
-            .ToListAsync();
-            
+        var transactions = await unit.TransactionRepository.GetUserTransactions(userId);
         return mapper.Map<List<TransactionDto>>(transactions);
     }
 }

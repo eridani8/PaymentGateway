@@ -91,6 +91,11 @@ public class PaymentService(
         payment.ManualConfirm(user.Id);
 
         await paymentConfirmationService.ProcessPaymentConfirmation(payment, requisite, payment.Amount);
+        
+        var paymentDto = mapper.Map<PaymentDto>(payment);
+        await notificationService.NotifyPaymentUpdated(paymentDto);
+        var requisiteDto = mapper.Map<RequisiteDto>(requisite);
+        await notificationService.NotifyRequisiteUpdated(requisiteDto);
 
         return payment;
     }

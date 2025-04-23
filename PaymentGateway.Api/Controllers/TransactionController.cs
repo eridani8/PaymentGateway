@@ -21,6 +21,7 @@ public class TransactionController(ITransactionService service) : ControllerBase
         try
         {
             var transaction = await service.CreateTransaction(dto);
+            if (transaction is null) throw new ApplicationException("Ошибка обработки транзакции");
             return Ok(transaction);
         }
         catch (RequisiteNotFound)

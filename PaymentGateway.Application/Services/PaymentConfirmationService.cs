@@ -38,14 +38,5 @@ public class PaymentConfirmationService(
         
         unit.RequisiteRepository.Update(requisite);
         unit.PaymentRepository.Update(payment);
-        
-        await unit.Commit();
-
-        var paymentDto = mapper.Map<PaymentDto>(payment);
-        await notificationService.NotifyPaymentUpdated(paymentDto);
-        
-        var requisiteDto = mapper.Map<RequisiteDto>(requisite);
-        
-        await notificationService.NotifyRequisiteUpdated(requisiteDto);
     }
 } 
