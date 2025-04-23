@@ -1,6 +1,7 @@
 using AutoMapper;
 using PaymentGateway.Core.Entities;
 using PaymentGateway.Core.Interfaces;
+using PaymentGateway.Infrastructure.Interfaces;
 using PaymentGateway.Shared.DTOs.Chat;
 
 namespace PaymentGateway.Application.Services;

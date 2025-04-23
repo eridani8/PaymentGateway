@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Core.Entities;
 using PaymentGateway.Core.Interfaces;
+using PaymentGateway.Infrastructure.Interfaces;
 using PaymentGateway.Shared.DTOs.Payment;
 using PaymentGateway.Shared.DTOs.Requisite;
 using PaymentGateway.Shared.DTOs.User;
@@ -73,6 +74,8 @@ public class GatewayHandler(
                 logger.LogError(e, "Ошибка при обработке реквизита {requisiteId}", requisite.Id);
             }
         }
+
+        await unit.Commit();
     }
 
     public async Task HandleUnprocessedPayments(IUnitOfWork unit)
@@ -92,35 +95,46 @@ public class GatewayHandler(
         
         foreach (var payment in unprocessedPayments)
         {
-            if (freeRequisites.Count == 0)
+            await using var transaction = await unit.Context.Database.BeginTransactionAsync();
+            try
             {
-                logger.LogWarning(noAvailableRequisites);
-                return;
-            }
+                if (freeRequisites.Count == 0)
+                {
+                    logger.LogWarning(noAvailableRequisites);
+                    return;
+                }
             
-            var requisite = freeRequisites.FirstOrDefault(r => 
-                r.DayLimit >= payment.Amount && 
-                (r.DayLimit - r.DayReceivedFunds) >= payment.Amount &&
-                (r.MonthLimit == 0 || r.MonthLimit >= payment.Amount) &&
-                (r.MonthLimit == 0 || (r.MonthLimit - r.MonthReceivedFunds) >= payment.Amount)
-            );
-            if (requisite is null)
+                var requisite = freeRequisites.FirstOrDefault(r => 
+                    r.DayLimit >= payment.Amount && 
+                    (r.DayLimit - r.DayReceivedFunds) >= payment.Amount &&
+                    (r.MonthLimit == 0 || r.MonthLimit >= payment.Amount) &&
+                    (r.MonthLimit == 0 || (r.MonthLimit - r.MonthReceivedFunds) >= payment.Amount)
+                );
+                if (requisite is null)
+                {
+                    logger.LogWarning("Нет подходящего реквизита для платежа {paymentId} с суммой {amount}", payment.Id, payment.Amount);
+                    continue;
+                }
+                freeRequisites.Remove(requisite);
+            
+                requisite.AssignToPayment(payment);
+                payment.MarkAsPending(requisite);
+                
+                await transaction.CommitAsync();
+            
+                var paymentDto = mapper.Map<PaymentDto>(payment);
+                var requisiteDto = mapper.Map<RequisiteDto>(requisite);
+
+                await notificationService.NotifyPaymentUpdated(paymentDto);
+                await notificationService.NotifyRequisiteUpdated(requisiteDto);
+
+                logger.LogInformation("Платеж {payment} назначен реквизиту {requisite}", payment.Id, requisite.Id);
+            }
+            catch (Exception e)
             {
-                logger.LogWarning("Нет подходящего реквизита для платежа {paymentId} с суммой {amount}", payment.Id, payment.Amount);
-                continue;
+                logger.LogError(e, "Ошибка при обработке платежа {PaymentId}", payment.Id);
+                await transaction.RollbackAsync();
             }
-            freeRequisites.Remove(requisite);
-            
-            requisite.AssignToPayment(payment);
-            payment.MarkAsPending(requisite);
-            
-            var paymentDto = mapper.Map<PaymentDto>(payment);
-            var requisiteDto = mapper.Map<RequisiteDto>(requisite);
-
-            await notificationService.NotifyPaymentUpdated(paymentDto);
-            await notificationService.NotifyRequisiteUpdated(requisiteDto);
-
-            logger.LogInformation("Платеж {payment} назначен реквизиту {requisite}", payment.Id, requisite.Id);
         }
     }
     
@@ -145,6 +159,8 @@ public class GatewayHandler(
                 logger.LogInformation("Платеж {paymentId} на сумму {amount} отменен из-за истечения срока ожидания", expiredPayment.Id, expiredPayment.Amount);
             }
         }
+
+        await unit.Commit();
     }
     
     public async Task HandleUserFundsReset(UserManager<UserEntity> userManager)

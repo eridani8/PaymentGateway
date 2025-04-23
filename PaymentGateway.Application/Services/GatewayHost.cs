@@ -5,13 +5,14 @@ using Microsoft.Extensions.Logging;
 using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Core.Entities;
 using PaymentGateway.Core.Interfaces;
+using PaymentGateway.Infrastructure.Interfaces;
 
 namespace PaymentGateway.Application.Services;
 
 public class GatewayHost(IServiceProvider serviceProvider, ILogger<GatewayHost> logger) : IHostedService
 {
     private readonly TimeSpan _startDelay = TimeSpan.FromSeconds(1);
-    private readonly TimeSpan _gatewayProcessDelay = TimeSpan.FromSeconds(3);
+    private readonly TimeSpan _gatewayProcessDelay = TimeSpan.FromSeconds(5);
     private readonly TimeSpan _fundsResetDelay = TimeSpan.FromHours(12);
     
     private Task _paymentProcessing = null!;
@@ -36,14 +37,13 @@ public class GatewayHost(IServiceProvider serviceProvider, ILogger<GatewayHost> 
             
             try
             {
-                if (_paymentProcessing != null) await _paymentProcessing;
+                await _paymentProcessing;
             }
             catch (TaskCanceledException) { }
             
             try
             {
-                if (_fundsResetProcessing != null)
-                    await _fundsResetProcessing;
+                await _fundsResetProcessing;
             }
             catch (TaskCanceledException) { }
             
@@ -58,8 +58,8 @@ public class GatewayHost(IServiceProvider serviceProvider, ILogger<GatewayHost> 
         finally
         {
             _cts.Dispose();
-            _paymentProcessing?.Dispose();
-            _fundsResetProcessing?.Dispose();
+            _paymentProcessing.Dispose();
+            _fundsResetProcessing.Dispose();
             logger.LogInformation("Сервис остановлен");
         }
     }
@@ -80,8 +80,6 @@ public class GatewayHost(IServiceProvider serviceProvider, ILogger<GatewayHost> 
                 await handler.HandleRequisites(unit);
                 await handler.HandleUnprocessedPayments(unit);
                 await handler.HandleExpiredPayments(unit);
-
-                await unit.Commit();
             }
             catch (OperationCanceledException) { }
             catch (Exception e)

@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using PaymentGateway.Core.Interfaces;
 using PaymentGateway.Core.Interfaces.Repositories;
+using PaymentGateway.Infrastructure.Interfaces;
 
 namespace PaymentGateway.Infrastructure.Data;
 
@@ -12,6 +13,8 @@ public sealed class UnitOfWork(
     IChatMessageRepository chatMessageRepository,
     ILogger<UnitOfWork> logger) : IUnitOfWork, IDisposable
 {
+    public AppDbContext Context { get; } = context;
+    
     private bool _disposed;
 
     public IRequisiteRepository RequisiteRepository { get; } = requisiteRepository;
@@ -28,33 +31,7 @@ public sealed class UnitOfWork(
 
         try
         {
-            // var entries = context.ChangeTracker.Entries()
-            //     .Where(e => e.State is EntityState.Modified or EntityState.Deleted)
-            //     .ToList();
-
-            await context.SaveChangesAsync();
-
-            // foreach (var entry in entries)
-            // {
-            //     if (entry.Entity is not ICacheable cacheable) continue;
-            //     try
-            //     {
-            //         switch (entry.State)
-            //         {
-            //             case EntityState.Modified:
-            //                 UpdateEntityCache(entry.Entity);
-            //                 break;
-            //             case EntityState.Deleted:
-            //                 InvalidateEntityCache(entry.Entity);
-            //                 break;
-            //         }
-            //     }
-            //     catch (Exception ex)
-            //     {
-            //         logger.LogError(ex, "Ошибка при обновлении кеша для сущности {entityType} с ID {entityId}",
-            //             entry.Entity.GetType().Name, cacheable.Id);
-            //     }
-            // }
+            await Context.SaveChangesAsync();
         }
         catch (Exception ex)
         {
@@ -62,39 +39,13 @@ public sealed class UnitOfWork(
             throw;
         }
     }
-
-    // private void UpdateEntityCache(object entity)
-    // {
-    //     switch (entity)
-    //     {
-    //         case RequisiteEntity requisite:
-    //             RequisiteRepository.UpdateCache(requisite);
-    //             break;
-    //         case PaymentEntity payment:
-    //             PaymentRepository.UpdateCache(payment);
-    //             break;
-    //     }
-    // }
-    //
-    // private void InvalidateEntityCache(object entity)
-    // {
-    //     switch (entity)
-    //     {
-    //         case RequisiteEntity requisite:
-    //             RequisiteRepository.InvalidateCache(requisite);
-    //             break;
-    //         case PaymentEntity payment:
-    //             PaymentRepository.InvalidateCache(payment);
-    //             break;
-    //     }
-    // }
-
+    
     private void Dispose(bool disposing)
     {
         if (_disposed) return;
         if (disposing)
         {
-            context.Dispose();
+            Context.Dispose();
         }
 
         _disposed = true;

@@ -5,6 +5,7 @@ using PaymentGateway.Core.Entities;
 using PaymentGateway.Core.Interfaces;
 using PaymentGateway.Core.Interfaces.Repositories;
 using PaymentGateway.Infrastructure.Data;
+using PaymentGateway.Infrastructure.Interfaces;
 using PaymentGateway.Infrastructure.Repositories;
 
 namespace PaymentGateway.Infrastructure;

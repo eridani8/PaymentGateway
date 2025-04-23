@@ -7,6 +7,7 @@ using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Core.Entities;
 using PaymentGateway.Core.Exceptions;
 using PaymentGateway.Core.Interfaces;
+using PaymentGateway.Infrastructure.Interfaces;
 using PaymentGateway.Shared.DTOs.Transaction;
 using PaymentGateway.Shared.Interfaces;
 
