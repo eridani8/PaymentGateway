@@ -29,9 +29,11 @@
                     <MudSpacer/>
                     <AuthorizeView Roles="Admin, Support">
                         <Authorized Context="adminContext">
-                            <MudSelect T="RequisiteAssignmentAlgorithm" Value="_currentAlgorithm" ValueChanged="RequisiteAssignmentAlgorithmChanged">
+                            <MudSelect T="RequisiteAssignmentAlgorithm" Value="_currentAlgorithm"
+                                       ValueChanged="RequisiteAssignmentAlgorithmChanged">
                                 <MudSelectItem Value="RequisiteAssignmentAlgorithm.Priority">Приоритет</MudSelectItem>
-                                <MudSelectItem Value="RequisiteAssignmentAlgorithm.Distribution">Равномерно</MudSelectItem>
+                                <MudSelectItem Value="RequisiteAssignmentAlgorithm.Distribution">Равномерно
+                                </MudSelectItem>
                             </MudSelect>
                             <MudSpacer/>
                             <MudStack Row="true" Spacing="1">
@@ -97,7 +99,6 @@
                                 @($"{cellContext.Item.MonthReceivedFunds:N0}/{cellContext.Item.MonthLimit:N0}")
                             </CellTemplate>
                         </TemplateColumn>
-                        <PropertyColumn Property="x => x.DayOperationsCount" Title="Операций (день)"/>
                         <TemplateColumn Title="Статус">
                             <CellTemplate Context="cellContext">
                                 <MudChip Color="@GetStatusColor(cellContext.Item.Status)" Size="Size.Medium">
@@ -127,7 +128,6 @@
                                 }
                             </CellTemplate>
                         </TemplateColumn>
-                        <PropertyColumn Property="x => x.Priority" Title="Приоритет"/>
                         <TemplateColumn Title="Действия">
                             <CellTemplate Context="cellContext">
                                 <MudStack Row="true">
@@ -148,6 +148,19 @@
                                 </MudStack>
                             </CellTemplate>
                         </TemplateColumn>
+                        <AuthorizeView Roles="Admin, Support">
+                            <Authorized Context="adminContext">
+                                @switch (_currentAlgorithm)
+                                {
+                                    case RequisiteAssignmentAlgorithm.Priority:
+                                        <PropertyColumn Property="x => x.Priority" Title="Приоритет"/>
+                                        break;
+                                    case RequisiteAssignmentAlgorithm.Distribution:
+                                        <PropertyColumn Property="x => x.DayOperationsCount" Title="Операций"/>
+                                        break;
+                                }
+                            </Authorized>
+                        </AuthorizeView>
                     </Columns>
                     <ChildRowContent Context="rowContext">
                         <MudStack>
@@ -309,6 +322,7 @@
             {
                 NotificationService.UnsubscribeFromChangeRequisiteAssignmentAlgorithm();
             }
+
             await _refreshTimer.DisposeAsync();
         }
         catch (Exception e)
@@ -501,4 +515,5 @@
             Snackbar.Add("Ошибка при назначении алгоритма подбора реквизита", Severity.Error);
         }
     }
+
 }
