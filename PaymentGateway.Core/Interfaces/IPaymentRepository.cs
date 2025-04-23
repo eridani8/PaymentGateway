@@ -10,6 +10,4 @@ public interface IPaymentRepository : IRepositoryBase<PaymentEntity>
     Task<PaymentEntity?> PaymentById(Guid id);
     Task<List<PaymentEntity>> GetAllPayments();
     Task<List<PaymentEntity>> GetUserPayments(Guid userId);
-    // void InvalidateCache(PaymentEntity payment);
-    // void UpdateCache(PaymentEntity payment);
 }

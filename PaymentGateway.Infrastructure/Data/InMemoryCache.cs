@@ -4,6 +4,7 @@ using System.Text.Json.Serialization;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using PaymentGateway.Core;
+using PaymentGateway.Core.Entities;
 using PaymentGateway.Core.Interfaces;
 
 namespace PaymentGateway.Infrastructure.Data;
@@ -67,13 +68,13 @@ public class InMemoryCache(IMemoryCache cache, ILogger<InMemoryCache> logger, Js
         logger.LogDebug("Cache {operation}: {key}", Keys.ContainsKey(key) ? "updated" : "added", key);
     }
 
-    public void Set<T>(string key, T obj, TimeSpan? expiry = null) where T : ICacheable
+    public void Set<T>(string key, T obj, TimeSpan? expiry = null) where T : BaseEntity
     {
         var json = JsonSerializer.Serialize(obj, options);
         SetCacheInternal(key, json, expiry);
     }
 
-    public void Set<T>(T obj, TimeSpan? expiry = null) where T : ICacheable
+    public void Set<T>(T obj, TimeSpan? expiry = null) where T : BaseEntity
     {
         Set(GetCacheKey<T>(obj.Id), obj, expiry);
     }
@@ -102,7 +103,7 @@ public class InMemoryCache(IMemoryCache cache, ILogger<InMemoryCache> logger, Js
         Keys.TryRemove(key, out _);
     }
 
-    public void Remove<T>(T obj) where T : ICacheable
+    public void Remove<T>(T obj) where T : BaseEntity
     {
         Remove(GetCacheKey<T>(obj.Id));
     }

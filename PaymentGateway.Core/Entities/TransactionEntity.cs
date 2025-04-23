@@ -5,15 +5,10 @@ using PaymentGateway.Shared.Enums;
 
 namespace PaymentGateway.Core.Entities;
 
-public sealed class TransactionEntity : ITransactionEntity, ICacheable
+public sealed class TransactionEntity : BaseEntity, ITransactionEntity
 {
     // ReSharper disable once EmptyConstructor
     public TransactionEntity() { }
-    
-    /// <summary>
-    /// Идентификатор транзакции
-    /// </summary>
-    public Guid Id { get; init; }
     
     /// <summary>
     /// Идентификатор реквизита

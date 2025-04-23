@@ -1,12 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PaymentGateway.Core.Interfaces;
 using PaymentGateway.Infrastructure.Data;
-using System.Linq.Expressions;
+using PaymentGateway.Core.Entities;
 
 namespace PaymentGateway.Infrastructure.Repositories;
 
 public class RepositoryBase<TEntity>(AppDbContext context)
-    : IRepositoryBase<TEntity> where TEntity : class, ICacheable
+    : IRepositoryBase<TEntity> where TEntity : BaseEntity
 {
     private readonly DbSet<TEntity> _entities = context.Set<TEntity>();
     
@@ -23,20 +23,10 @@ public class RepositoryBase<TEntity>(AppDbContext context)
     public void Update(TEntity entity)
     {
         _entities.Update(entity);
-        // OnEntityUpdated(entity);
     }
 
     public void Delete(TEntity entity)
     {
         _entities.Remove(entity);
-        // OnEntityDeleted(entity);
     }
-    
-    // protected virtual void OnEntityUpdated(TEntity entity)
-    // {
-    // }
-    //
-    // protected virtual void OnEntityDeleted(TEntity entity)
-    // {
-    // }
 }

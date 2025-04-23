@@ -5,15 +5,10 @@ using PaymentGateway.Shared.Enums;
 
 namespace PaymentGateway.Core.Entities;
 
-public sealed class PaymentEntity : IPaymentEntity, ICacheable
+public sealed class PaymentEntity : BaseEntity, IPaymentEntity
 {
     // ReSharper disable once EmptyConstructor
     public PaymentEntity() { }
-    
-    /// <summary>
-    /// Идентификатор платежа
-    /// </summary>
-    public Guid Id { get; init; }
 
     /// <summary>
     /// Идентификатор платежа во внешней системе
