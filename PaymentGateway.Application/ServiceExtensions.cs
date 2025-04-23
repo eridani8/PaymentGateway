@@ -24,6 +24,7 @@ public static class ServiceExtensions
         services.AddAutoMapper(typeof(PaymentProfile));
         services.AddAutoMapper(typeof(TransactionProfile));
         services.AddAutoMapper(typeof(UserProfile));
+        services.AddAutoMapper(typeof(ChatMessageProfile));
         
         services.AddScoped<IValidator<RequisiteCreateDto>, RequisiteCreateDtoValidator>();
         services.AddScoped<IValidator<RequisiteUpdateDto>, RequisiteUpdateDtoValidator>();

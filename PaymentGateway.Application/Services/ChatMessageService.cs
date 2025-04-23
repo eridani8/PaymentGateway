@@ -9,17 +9,17 @@ public class ChatMessageService(
     IUnitOfWork unitOfWork, 
     IMapper mapper) : IChatMessageService
 {
-    public async Task<List<ChatMessageDto>> GetAllMessages()
+    public async Task<List<ChatMessageDto>> GetAllChatMessages()
     {
-        var messages = await unitOfWork.ChatMessageRepository.GetAll();
+        var messages = await unitOfWork.ChatMessageRepository.GetAllChatMessages();
         return mapper.Map<List<ChatMessageDto>>(messages);
     }
 
-    public async Task<ChatMessageDto> SaveMessage(ChatMessageDto message)
+    public async Task<ChatMessageDto> SaveChatMessage(ChatMessageDto message)
     {
         var entity = mapper.Map<ChatMessageEntity>(message);
         
-        var savedMessage = await unitOfWork.ChatMessageRepository.Add(entity);
+        var savedMessage = await unitOfWork.ChatMessageRepository.AddChatMessage(entity);
         return mapper.Map<ChatMessageDto>(savedMessage);
     }
 } 

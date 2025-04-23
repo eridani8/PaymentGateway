@@ -10,7 +10,7 @@ namespace PaymentGateway.Infrastructure.Data;
 
 public class InMemoryCache(IMemoryCache cache, ILogger<InMemoryCache> logger, JsonSerializerOptions options) : ICache
 {
-    public static TimeSpan DefaultExpiration = TimeSpan.FromSeconds(30);
+    public static TimeSpan DefaultExpiration = TimeSpan.FromMinutes(5);
 
     public ConcurrentDictionary<string, CacheMetadata> Keys { get; } = new();
 
@@ -150,5 +150,15 @@ public class InMemoryCache(IMemoryCache cache, ILogger<InMemoryCache> logger, Js
     public static string GetCacheKey(Type entityType, Guid id)
     {
         return $"{entityType.Name}:{id}";
+    }
+
+    public void SetString(string key, string value, TimeSpan? expiry = null)
+    {
+        SetCacheInternal(key, value, expiry);
+    }
+
+    public string? GetString(string key)
+    {
+        return cache.Get(key) as string;
     }
 }

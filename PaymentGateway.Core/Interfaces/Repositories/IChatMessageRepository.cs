@@ -4,6 +4,6 @@ namespace PaymentGateway.Core.Interfaces.Repositories;
 
 public interface IChatMessageRepository
 {
-    Task<List<ChatMessageEntity>> GetAll();
-    Task<ChatMessageEntity> Add(ChatMessageEntity message);
+    Task<List<ChatMessageEntity>> GetAllChatMessages();
+    Task<ChatMessageEntity> AddChatMessage(ChatMessageEntity message);
 } 

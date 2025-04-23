@@ -4,6 +4,6 @@ namespace PaymentGateway.Core.Interfaces;
 
 public interface IChatMessageService
 {
-    Task<List<ChatMessageDto>> GetAllMessages();
-    Task<ChatMessageDto> SaveMessage(ChatMessageDto message);
+    Task<List<ChatMessageDto>> GetAllChatMessages();
+    Task<ChatMessageDto> SaveChatMessage(ChatMessageDto message);
 } 

@@ -2,8 +2,7 @@
 
 public interface IRepositoryBase<TEntity> where TEntity : class
 {
-    IQueryable<TEntity> QueryableGetAll();
-    Task<List<TEntity>> GetAll();
+    IQueryable<TEntity> Queryable();
     Task Add(TEntity entity);
     void Update(TEntity entity);
     void Delete(TEntity entity);

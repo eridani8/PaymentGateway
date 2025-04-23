@@ -29,7 +29,7 @@ public class TransactionService(
         }
 
         var requisite = await unit.RequisiteRepository
-            .QueryableGetAll()
+            .Queryable()
             .Include(r => r.Payment)
             .Include(r => r.User)
             .FirstOrDefaultAsync(r => r.PaymentData == dto.PaymentData);
@@ -60,7 +60,7 @@ public class TransactionService(
     public async Task<List<TransactionDto>> GetAllTransactions()
     {
         var transactions = await unit.TransactionRepository
-            .QueryableGetAll()
+            .Queryable()
             .OrderByDescending(t => t.ReceivedAt)
             .ToListAsync();
             
@@ -70,7 +70,7 @@ public class TransactionService(
     public async Task<List<TransactionDto>> GetUserTransactions(Guid userId)
     {
         var transactions = await unit.TransactionRepository
-            .QueryableGetAll()
+            .Queryable()
             .Where(t => t.Requisite != null && t.Requisite.UserId == userId)
             .OrderByDescending(t => t.ReceivedAt)
             .ToListAsync();

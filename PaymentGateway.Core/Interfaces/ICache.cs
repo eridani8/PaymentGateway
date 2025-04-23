@@ -18,4 +18,6 @@ public interface ICache
     bool Exists(string key);
     IEnumerable<T> GetByPrefix<T>(string prefix);
     TimeSpan? GetRemainingLifetime(string key);
+    void SetString(string key, string value, TimeSpan? expiry = null);
+    string? GetString(string key);
 }

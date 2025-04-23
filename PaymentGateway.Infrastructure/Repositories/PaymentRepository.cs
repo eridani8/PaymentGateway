@@ -8,13 +8,13 @@ using PaymentGateway.Shared.Interfaces;
 
 namespace PaymentGateway.Infrastructure.Repositories;
 
-public class PaymentRepository(AppDbContext context, ICache cache)
-    : RepositoryBase<PaymentEntity>(context, cache), IPaymentRepository
+public class PaymentRepository(AppDbContext context)
+    : RepositoryBase<PaymentEntity>(context), IPaymentRepository
 {
     public async Task<List<PaymentEntity>> GetUnprocessedPayments()
     {
         return await
-            QueryableGetAll()
+            Queryable()
                 .Include(p => p.Requisite)
                 .Where(p => p.Requisite == null && p.Status == PaymentStatus.Created)
                 .OrderBy(p => p.CreatedAt)
@@ -25,7 +25,7 @@ public class PaymentRepository(AppDbContext context, ICache cache)
     {
         var now = DateTime.UtcNow;
         return await
-            QueryableGetAll()
+            Queryable()
                 .Include(p => p.Requisite)
                 .Where(p =>
                     p.ExpiresAt.HasValue &&
@@ -38,7 +38,7 @@ public class PaymentRepository(AppDbContext context, ICache cache)
     public async Task<PaymentEntity?> GetExistingPayment(Guid externalPaymentId)
     {
         return await
-            QueryableGetAll()
+            Queryable()
                 .AsNoTracking()
                 .FirstOrDefaultAsync(p => p.ExternalPaymentId == externalPaymentId);
     }
@@ -46,7 +46,7 @@ public class PaymentRepository(AppDbContext context, ICache cache)
     public async Task<PaymentEntity?> PaymentById(Guid id)
     {
         return await
-            QueryableGetAll()
+            Queryable()
                 .Include(p => p.Requisite)
                 .ThenInclude(r => r.User)
                 .Include(p => p.Transaction)
@@ -58,7 +58,7 @@ public class PaymentRepository(AppDbContext context, ICache cache)
     public async Task<List<PaymentEntity>> GetAllPayments()
     {
         return await
-            QueryableGetAll()
+            Queryable()
                 .Include(p => p.Requisite)
                 .ThenInclude(p => p.User)
                 .Include(p => p.Transaction)
@@ -70,7 +70,7 @@ public class PaymentRepository(AppDbContext context, ICache cache)
     public async Task<List<PaymentEntity>> GetUserPayments(Guid userId)
     {
         return await
-            QueryableGetAll()
+            Queryable()
                 .Include(p => p.Requisite)
                 .ThenInclude(p => p.User)
                 .Include(p => p.Transaction)

@@ -14,48 +14,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICryptographyS
     public DbSet<TransactionEntity> Transactions { get; set; }
     public DbSet<ChatMessageEntity> ChatMessages { get; set; }
     
-    // public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
-    // {
-    //     var cacheUpdates = new List<ICacheable>();
-    //     var cacheRemovals = new List<ICacheable>();
-    //     
-    //     foreach (var entry in ChangeTracker.Entries<ICacheable>())
-    //     {
-    //         switch (entry.State)
-    //         {
-    //             case EntityState.Added:
-    //             case EntityState.Modified:
-    //                 cacheUpdates.Add(entry.Entity);
-    //                 break;
-    //
-    //             case EntityState.Deleted:
-    //                 cacheRemovals.Add(entry.Entity);
-    //                 break;
-    //             case EntityState.Detached:
-    //             case EntityState.Unchanged:
-    //             default:
-    //                 continue;
-    //         }
-    //     }
-    //     
-    //     var result = await base.SaveChangesAsync(cancellationToken);
-    //
-    //     if (result > 0)
-    //     {
-    //         foreach (var entity in cacheRemovals)
-    //         {
-    //             cache.Remove(entity.GetType(), entity.Id);
-    //         }
-    //     
-    //         foreach (var entity in cacheUpdates)
-    //         {
-    //             cache.Set(entity.GetType(), entity.Id, entity);
-    //         }
-    //     }
-    //     
-    //     return result;
-    // } // TODO cache
-    
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -130,7 +88,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICryptographyS
             entity.HasOne(e => e.User)
                 .WithMany()
                 .HasForeignKey(e => e.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.SetNull);
         });
     }
 }

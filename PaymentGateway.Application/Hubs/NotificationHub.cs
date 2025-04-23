@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Security.Claims;
+using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
@@ -133,7 +134,7 @@ public class NotificationHub(
     {
         try
         {
-            return await chatMessageService.GetAllMessages();
+            return await chatMessageService.GetAllChatMessages();
         }
         catch (Exception ex)
         {
@@ -160,7 +161,7 @@ public class NotificationHub(
 
             try
             {
-                await chatMessageService.SaveMessage(messageDto);
+                messageDto = await chatMessageService.SaveChatMessage(messageDto);
                 
                 if (GetUsersByRoles(["Admin", "Support"]) is { Count: > 0 } staffIds)
                 {

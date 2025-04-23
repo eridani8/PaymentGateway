@@ -8,16 +8,23 @@ using PaymentGateway.Shared.Enums;
 
 namespace PaymentGateway.Infrastructure.Repositories;
 
-public class RequisiteRepository(AppDbContext context, ICache cache)
-    : RepositoryBase<RequisiteEntity>(context, cache), IRequisiteRepository
+public class RequisiteRepository(AppDbContext context)
+    : RepositoryBase<RequisiteEntity>(context), IRequisiteRepository
 {
+    public async Task<List<RequisiteEntity>> GetAll()
+    {
+        return await
+            Queryable()
+                .ToListAsync();
+    }
+
     public async Task<List<RequisiteEntity>> GetFreeRequisites()
     {
         var currentTime = DateTime.UtcNow;
         var currentTimeOnly = TimeOnly.FromDateTime(currentTime);
 
         var requisites = await
-            QueryableGetAll()
+            Queryable()
                 .Include(r => r.Payment)
                 .Include(r => r.User)
                 .Where(r => r.IsActive && r.Status == RequisiteStatus.Active && r.PaymentId == null &&
@@ -39,14 +46,14 @@ public class RequisiteRepository(AppDbContext context, ICache cache)
     public async Task<int> GetUserRequisitesCount(Guid userId)
     {
         return await
-            QueryableGetAll()
+            Queryable()
                 .CountAsync(r => r.UserId == userId);
     }
 
     public async Task<List<RequisiteEntity>> GetAllRequisites()
     {
         return await
-            QueryableGetAll()
+            Queryable()
                 .Include(r => r.Payment)
                 .Include(r => r.User)
                 .AsNoTracking()
@@ -57,7 +64,7 @@ public class RequisiteRepository(AppDbContext context, ICache cache)
     public async Task<List<RequisiteEntity>> GetUserRequisites(Guid userId)
     {
         return await 
-            QueryableGetAll()
+            Queryable()
                 .Include(r => r.Payment)
                 .Include(r => r.User)
                 .AsNoTracking()
@@ -69,7 +76,7 @@ public class RequisiteRepository(AppDbContext context, ICache cache)
     public async Task<RequisiteEntity?> GetRequisiteById(Guid id)
     {
         return await 
-            QueryableGetAll()
+            Queryable()
                 .Include(r => r.Payment)
                 .Include(r => r.User)
                 .FirstOrDefaultAsync(r => r.Id == id);
@@ -78,7 +85,7 @@ public class RequisiteRepository(AppDbContext context, ICache cache)
     public async Task<RequisiteEntity?> HasSimilarRequisite(string paymentData)
     {
         return await
-            QueryableGetAll()
+            Queryable()
                 .FirstOrDefaultAsync(r => r.PaymentData.Equals(paymentData));
     }
 }

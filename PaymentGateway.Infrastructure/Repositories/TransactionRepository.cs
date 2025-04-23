@@ -4,6 +4,6 @@ using PaymentGateway.Infrastructure.Data;
 
 namespace PaymentGateway.Infrastructure.Repositories;
 
-public class TransactionRepository(AppDbContext context, ICache cache) : RepositoryBase<TransactionEntity>(context, cache), ITransactionRepository 
+public class TransactionRepository(AppDbContext context) : RepositoryBase<TransactionEntity>(context), ITransactionRepository 
 {
 }
