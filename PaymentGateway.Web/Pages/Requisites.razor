@@ -32,8 +32,7 @@
                             <MudSelect T="RequisiteAssignmentAlgorithm" Value="_currentAlgorithm"
                                        ValueChanged="RequisiteAssignmentAlgorithmChanged">
                                 <MudSelectItem Value="RequisiteAssignmentAlgorithm.Priority">Приоритет</MudSelectItem>
-                                <MudSelectItem Value="RequisiteAssignmentAlgorithm.Distribution">Равномерно
-                                </MudSelectItem>
+                                <MudSelectItem Value="RequisiteAssignmentAlgorithm.Distribution">Равномерно</MudSelectItem>
                             </MudSelect>
                             <MudSpacer/>
                             <MudStack Row="true" Spacing="1">
@@ -156,7 +155,7 @@
                                         <PropertyColumn Property="x => x.Priority" Title="Приоритет"/>
                                         break;
                                     case RequisiteAssignmentAlgorithm.Distribution:
-                                        <PropertyColumn Property="x => x.DayOperationsCount" Title="Равномерно"/>
+                                        <PropertyColumn Property="x => x.DayOperationsCount" Title="Операций"/>
                                         break;
                                 }
                             </Authorized>
