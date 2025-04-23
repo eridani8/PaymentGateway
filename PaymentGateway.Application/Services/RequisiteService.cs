@@ -1,12 +1,10 @@
 ﻿using AutoMapper;
 using FluentValidation;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Core.Entities;
 using PaymentGateway.Core.Exceptions;
-using PaymentGateway.Core.Interfaces;
 using PaymentGateway.Infrastructure.Interfaces;
 using PaymentGateway.Shared.DTOs.Requisite;
 using PaymentGateway.Shared.DTOs.User;
@@ -53,6 +51,8 @@ public class RequisiteService(
         {
             opts.Items["UserId"] = userId;
         });
+        
+        requisite.User = user;
         
         await unit.RequisiteRepository.Add(requisite);
         await unit.Commit();

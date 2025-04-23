@@ -16,7 +16,7 @@ public sealed class UnitOfWork(
     public AppDbContext Context { get; } = context;
     
     private bool _disposed;
-
+    
     public IRequisiteRepository RequisiteRepository { get; } = requisiteRepository;
     public IPaymentRepository PaymentRepository { get; } = paymentRepository;
     public ITransactionRepository TransactionRepository { get; } = transactionRepository;

@@ -14,7 +14,7 @@ public static class ServiceExtensions
 {
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, string connectionString)
     {
-        services.AddDbContext<AppDbContext>(o =>
+        services.AddDbContextPool<AppDbContext>(o =>
         {
             o.UseNpgsql(connectionString);
         });

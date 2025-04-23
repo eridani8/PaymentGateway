@@ -11,7 +11,7 @@ public static class ServiceExtensions
         services.Configure<CryptographyConfig>(configuration.GetSection(nameof(CryptographyConfig)));
         services.Configure<AuthConfig>(configuration.GetSection(nameof(AuthConfig)));
     
-        services.AddScoped<ICryptographyService, CryptographyService>();
+        services.AddSingleton<ICryptographyService, CryptographyService>();
 
         return services;
     }
