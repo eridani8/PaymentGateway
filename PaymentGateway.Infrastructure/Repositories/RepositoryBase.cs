@@ -23,10 +23,20 @@ public class RepositoryBase<TEntity>(AppDbContext context)
     public void Update(TEntity entity)
     {
         _entities.Update(entity);
+        OnEntityUpdated(entity);
     }
 
     public void Delete(TEntity entity)
     {
         _entities.Remove(entity);
+        OnEntityDeleted(entity);
+    }
+    
+    protected virtual void OnEntityUpdated(TEntity entity)
+    {
+    }
+    
+    protected virtual void OnEntityDeleted(TEntity entity)
+    {
     }
 }
