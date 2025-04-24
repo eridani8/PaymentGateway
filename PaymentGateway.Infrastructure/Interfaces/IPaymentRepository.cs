@@ -1,6 +1,6 @@
 ﻿using PaymentGateway.Core.Entities;
 
-namespace PaymentGateway.Core.Interfaces;
+namespace PaymentGateway.Infrastructure.Interfaces;
 
 public interface IPaymentRepository : IRepositoryBase<PaymentEntity>
 {

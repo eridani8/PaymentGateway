@@ -35,11 +35,12 @@ public class TransactionService(
 
         try
         {
-            var requisite = await unit.RequisiteRepository
-                .Queryable()
+            var requisite = await unit.RequisiteRepository.GetSet()
                 .Include(r => r.Payment)
                 .Include(r => r.User)
-                .FirstOrDefaultAsync(r => r.PaymentData == dto.PaymentData && r.Payment != null && r.Payment.Status != PaymentStatus.Confirmed);
+                .FirstOrDefaultAsync(r =>
+                    r.PaymentData == dto.PaymentData && r.Payment != null &&
+                    r.Payment.Status != PaymentStatus.Confirmed);
 
             if (requisite?.Payment is not { } payment)
             {
@@ -52,16 +53,16 @@ public class TransactionService(
             }
 
             var transactionEntity = mapper.Map<TransactionEntity>(dto);
-            
+
             logger.LogInformation("Поступление платежа на сумму {amount}", transactionEntity.ExtractedAmount);
-            
+
             payment.ConfirmTransaction(transactionEntity);
             await unit.TransactionRepository.Add(transactionEntity);
             await paymentConfirmationService.ProcessPaymentConfirmation(payment, requisite, dto.ExtractedAmount);
-            
+
             await unit.Commit();
             await transaction.CommitAsync();
-            
+
             var paymentDto = mapper.Map<PaymentDto>(payment);
             await notificationService.NotifyPaymentUpdated(paymentDto);
             var requisiteDto = mapper.Map<RequisiteDto>(requisite);
@@ -76,13 +77,13 @@ public class TransactionService(
             throw;
         }
     }
-    
+
     public async Task<List<TransactionDto>> GetAllTransactions()
     {
         var transactions = await unit.TransactionRepository.GetAllTransactions();
         return mapper.Map<List<TransactionDto>>(transactions);
     }
-    
+
     public async Task<List<TransactionDto>> GetUserTransactions(Guid userId)
     {
         var transactions = await unit.TransactionRepository.GetUserTransactions(userId);

@@ -2,31 +2,30 @@
 using PaymentGateway.Core.Interfaces;
 using PaymentGateway.Infrastructure.Data;
 using PaymentGateway.Core.Entities;
+using PaymentGateway.Infrastructure.Interfaces;
 
 namespace PaymentGateway.Infrastructure.Repositories;
 
 public class RepositoryBase<TEntity>(AppDbContext context)
     : IRepositoryBase<TEntity> where TEntity : BaseEntity
 {
-    private readonly DbSet<TEntity> _entities = context.Set<TEntity>();
-    
-    public IQueryable<TEntity> Queryable()
+    public DbSet<TEntity> GetSet()
     {
-        return _entities;
+        return context.Set<TEntity>();
     }
-
+    
     public async Task Add(TEntity entity)
     {
-        await _entities.AddAsync(entity); 
+        await GetSet().AddAsync(entity); 
     }
 
     public void Update(TEntity entity)
     {
-        _entities.Update(entity);
+        GetSet().Update(entity);
     }
 
     public void Delete(TEntity entity)
     {
-        _entities.Remove(entity);
+        GetSet().Remove(entity);
     }
 }
