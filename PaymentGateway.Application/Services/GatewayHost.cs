@@ -49,7 +49,7 @@ public class GatewayHost(IServiceProvider serviceProvider, ILogger<GatewayHost> 
             
             using var scope = serviceProvider.CreateScope();
             var unit = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
-            await unit.Commit();
+            await unit.Commit(cancellationToken);
         }
         catch (Exception e)
         {

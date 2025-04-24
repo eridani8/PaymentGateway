@@ -122,7 +122,7 @@ public class GatewayHandler(
 
                 requisite.AssignToPayment(payment);
                 payment.MarkAsPending(requisite);
-
+                await unit.Commit();
                 await transaction.CommitAsync();
 
                 var paymentDto = mapper.Map<PaymentDto>(payment);

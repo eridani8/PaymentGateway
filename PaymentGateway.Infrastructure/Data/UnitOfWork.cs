@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System.Data;
+using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.Logging;
 using PaymentGateway.Core.Interfaces.Repositories;
 using PaymentGateway.Infrastructure.Interfaces;
 
@@ -21,7 +23,7 @@ public sealed class UnitOfWork(
     public ITransactionRepository TransactionRepository { get; } = transactionRepository;
     public IChatRepository ChatRepository { get; } = chatRepository;
 
-    public async Task Commit()
+    public async Task Commit(CancellationToken cancellationToken = default)
     {
         if (_disposed)
         {
@@ -30,7 +32,7 @@ public sealed class UnitOfWork(
 
         try
         {
-            await Context.SaveChangesAsync();
+            await Context.SaveChangesAsync(cancellationToken);
         }
         catch (Exception ex)
         {
