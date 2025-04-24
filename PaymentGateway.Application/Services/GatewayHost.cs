@@ -12,7 +12,7 @@ namespace PaymentGateway.Application.Services;
 public class GatewayHost(IServiceProvider serviceProvider, ILogger<GatewayHost> logger) : IHostedService
 {
     private readonly TimeSpan _startDelay = TimeSpan.FromSeconds(1);
-    private readonly TimeSpan _gatewayProcessDelay = TimeSpan.FromSeconds(5);
+    private readonly TimeSpan _gatewayProcessDelay = TimeSpan.FromSeconds(3);
     private readonly TimeSpan _fundsResetDelay = TimeSpan.FromHours(12);
     
     private Task _paymentProcessing = null!;
