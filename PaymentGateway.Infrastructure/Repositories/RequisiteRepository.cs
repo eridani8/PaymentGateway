@@ -2,7 +2,6 @@
 using Microsoft.Extensions.Options;
 using PaymentGateway.Core;
 using PaymentGateway.Core.Entities;
-using PaymentGateway.Core.Interfaces;
 using PaymentGateway.Infrastructure.Data;
 using PaymentGateway.Infrastructure.Interfaces;
 using PaymentGateway.Shared.Enums;
@@ -14,7 +13,7 @@ public class RequisiteRepository(
     IOptions<GatewaySettings> gatewaySettings)
     : RepositoryBase<RequisiteEntity>(context), IRequisiteRepository
 {
-    public async Task<List<RequisiteEntity>> GetAll()
+    public async Task<List<RequisiteEntity>> GetAllTracked()
     {
         return await GetSet().ToListAsync();
     }

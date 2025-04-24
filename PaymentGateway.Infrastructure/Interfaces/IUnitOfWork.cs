@@ -1,5 +1,4 @@
-﻿using PaymentGateway.Core.Interfaces;
-using PaymentGateway.Core.Interfaces.Repositories;
+﻿using PaymentGateway.Core.Interfaces.Repositories;
 using PaymentGateway.Infrastructure.Data;
 
 namespace PaymentGateway.Infrastructure.Interfaces;
@@ -10,6 +9,6 @@ public interface IUnitOfWork
     IRequisiteRepository RequisiteRepository { get; }
     IPaymentRepository PaymentRepository { get; }
     ITransactionRepository TransactionRepository { get; }
-    IChatMessageRepository ChatMessageRepository { get; }
+    IChatRepository ChatRepository { get; }
     Task Commit();
 }

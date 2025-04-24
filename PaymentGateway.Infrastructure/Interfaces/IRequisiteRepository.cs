@@ -4,7 +4,7 @@ namespace PaymentGateway.Infrastructure.Interfaces;
 
 public interface IRequisiteRepository : IRepositoryBase<RequisiteEntity>
 {
-    Task<List<RequisiteEntity>> GetAll();
+    Task<List<RequisiteEntity>> GetAllTracked();
     Task<List<RequisiteEntity>> GetFreeRequisites();
     Task<int> GetUserRequisitesCount(Guid userId);
     Task<List<RequisiteEntity>> GetAllRequisites();

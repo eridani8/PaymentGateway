@@ -12,7 +12,7 @@ public class ChatMessageService(
 {
     public async Task<List<ChatMessageDto>> GetAllChatMessages()
     {
-        var messages = await unitOfWork.ChatMessageRepository.GetAllChatMessages();
+        var messages = await unitOfWork.ChatRepository.GetAllChatMessages();
         return mapper.Map<List<ChatMessageDto>>(messages);
     }
 
@@ -20,7 +20,7 @@ public class ChatMessageService(
     {
         var entity = mapper.Map<ChatMessageEntity>(message);
         
-        var savedMessage = await unitOfWork.ChatMessageRepository.AddChatMessage(entity);
+        var savedMessage = await unitOfWork.ChatRepository.AddChatMessage(entity);
         return mapper.Map<ChatMessageDto>(savedMessage);
     }
 } 

@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Logging;
-using PaymentGateway.Core.Interfaces;
 using PaymentGateway.Core.Interfaces.Repositories;
 using PaymentGateway.Infrastructure.Interfaces;
 
@@ -10,7 +9,7 @@ public sealed class UnitOfWork(
     IRequisiteRepository requisiteRepository,
     IPaymentRepository paymentRepository,
     ITransactionRepository transactionRepository,
-    IChatMessageRepository chatMessageRepository,
+    IChatRepository chatRepository,
     ILogger<UnitOfWork> logger) : IUnitOfWork, IDisposable
 {
     public AppDbContext Context { get; } = context;
@@ -20,7 +19,7 @@ public sealed class UnitOfWork(
     public IRequisiteRepository RequisiteRepository { get; } = requisiteRepository;
     public IPaymentRepository PaymentRepository { get; } = paymentRepository;
     public ITransactionRepository TransactionRepository { get; } = transactionRepository;
-    public IChatMessageRepository ChatMessageRepository { get; } = chatMessageRepository;
+    public IChatRepository ChatRepository { get; } = chatRepository;
 
     public async Task Commit()
     {

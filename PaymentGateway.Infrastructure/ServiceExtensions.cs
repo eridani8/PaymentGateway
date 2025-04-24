@@ -2,11 +2,11 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using PaymentGateway.Core.Entities;
-using PaymentGateway.Core.Interfaces;
 using PaymentGateway.Core.Interfaces.Repositories;
 using PaymentGateway.Infrastructure.Data;
 using PaymentGateway.Infrastructure.Interfaces;
 using PaymentGateway.Infrastructure.Repositories;
+using PaymentGateway.Infrastructure.Repositories.Cached;
 
 namespace PaymentGateway.Infrastructure;
 
@@ -24,12 +24,19 @@ public static class ServiceExtensions
             .AddDefaultTokenProviders();
     
         services.AddMemoryCache();
-        services.AddSingleton<ICache, InMemoryCache>();
+
+        services.AddScoped<PaymentRepository>();
+        services.AddScoped<IPaymentRepository, CachedPaymentRepository>();
         
-        services.AddScoped<IPaymentRepository, PaymentRepository>();
-        services.AddScoped<IRequisiteRepository, RequisiteRepository>();
+        services.AddScoped<RequisiteRepository>();
+        services.AddScoped<IRequisiteRepository, CachedRequisiteRepository>();
+
+        services.AddScoped<TransactionRepository>();
         services.AddScoped<ITransactionRepository, TransactionRepository>();
-        services.AddScoped<IChatMessageRepository, ChatMessageRepository>();
+        
+        services.AddScoped<ChatRepository>();
+        services.AddScoped<IChatRepository, CachedChatRepository>();
+        
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         
         return services;

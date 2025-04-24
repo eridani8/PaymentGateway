@@ -1,0 +1,27 @@
+﻿using Microsoft.Extensions.Caching.Memory;
+using PaymentGateway.Core.Entities;
+using PaymentGateway.Core.Interfaces.Repositories;
+
+namespace PaymentGateway.Infrastructure.Repositories.Cached;
+
+public class CachedChatRepository(ChatRepository repository, IMemoryCache cache) : IChatRepository
+{
+    private const string Key = "ChatMessages";
+    public async Task<List<ChatMessageEntity>> GetAllChatMessages()
+    {
+        var result = await cache.GetOrCreateAsync(Key, entry =>
+        {
+            entry.SetSlidingExpiration(TimeSpan.FromHours(1));
+            entry.SetAbsoluteExpiration(TimeSpan.FromHours(12));
+            return repository.GetAllChatMessages();
+        });
+    
+        return result ?? [];
+    }
+
+    public Task<ChatMessageEntity> AddChatMessage(ChatMessageEntity message)
+    {
+        cache.Remove(Key);
+        return repository.AddChatMessage(message);
+    }
+}
