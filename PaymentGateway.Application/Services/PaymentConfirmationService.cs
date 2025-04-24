@@ -14,10 +14,8 @@ namespace PaymentGateway.Application.Services;
 
 public class PaymentConfirmationService(
     IUnitOfWork unit,
-    IMapper mapper,
     ILogger<PaymentConfirmationService> logger,
-    UserManager<UserEntity> userManager,
-    INotificationService notificationService) : IPaymentConfirmationService
+    UserManager<UserEntity> userManager) : IPaymentConfirmationService
 {
     public async Task ProcessPaymentConfirmation(PaymentEntity payment, RequisiteEntity requisite, decimal amount)
     {

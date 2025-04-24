@@ -39,7 +39,7 @@ public class TransactionController(ITransactionService service) : ControllerBase
     }
     
     [HttpGet]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Support")]
     public async Task<ActionResult<List<TransactionDto>>> GetAll()
     {
         try

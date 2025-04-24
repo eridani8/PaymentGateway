@@ -90,14 +90,14 @@
 @code {
     private bool _isLoading = true;
     private List<TransactionDto> _transactions = [];
-    private bool _isAdminUser;
+    private bool _isShowAll;
     private Timer _refreshTimer = null!;
     private const int RefreshInterval = 3000;
 
     protected override async Task OnInitializedAsync()
     {
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        _isAdminUser = authState.User.IsInRole("Admin");
+        _isShowAll = authState.User.IsInRole("Admin") || authState.User.IsInRole("Support");
         
         await LoadTransactions();
         
@@ -167,7 +167,7 @@
         try
         {
             _isLoading = true;
-            _transactions = _isAdminUser
+            _transactions = _isShowAll
                 ? await TransactionService.GetTransactions()
                 : await TransactionService.GetUserTransactions();
         }

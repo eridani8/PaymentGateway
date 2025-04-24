@@ -178,7 +178,7 @@
 @code {
     private bool _isLoading = true;
     private List<PaymentDto> _payments = [];
-    private bool _isAdminUser;
+    private bool _isShowAll;
     private Timer _refreshTimer = null!;
     private const int RefreshInterval = 3000;
     private string _searchUserId = string.Empty;
@@ -188,7 +188,7 @@
     protected override async Task OnInitializedAsync()
     {
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        _isAdminUser = authState.User.IsInRole("Admin");
+        _isShowAll = authState.User.IsInRole("Admin") || authState.User.IsInRole("Support");
         
         await LoadPayments();
         
@@ -282,7 +282,7 @@
         try
         {
             _isLoading = true;
-            _payments = _isAdminUser
+            _payments = _isShowAll
                 ? await PaymentService.GetPayments()
                 : await PaymentService.GetUserPayments();
         }

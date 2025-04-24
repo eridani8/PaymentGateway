@@ -44,7 +44,7 @@ public class RequisiteController(IRequisiteService service, ILogger<RequisiteCon
     }
     
     [HttpGet]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Support")]
     public async Task<ActionResult<IEnumerable<RequisiteDto>>> GetAll()
     {
         var requisites = await service.GetAllRequisites();
