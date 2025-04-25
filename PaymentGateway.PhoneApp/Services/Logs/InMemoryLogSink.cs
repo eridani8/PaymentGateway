@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using LiteDB;
 using Serilog.Core;
 using Serilog.Events;
 
@@ -6,19 +7,33 @@ namespace PaymentGateway.PhoneApp.Services.Logs;
 
 public class InMemoryLogSink : ILogEventSink
 {
+    private readonly LiteContext _context;
     public ObservableCollection<LogEntry> Logs { get; } = [];
     
     public event EventHandler<LogEntry>? LogAdded;
+
+    public InMemoryLogSink(LiteContext context)
+    {
+        _context = context;
+        var logs = context.Logs.FindAll().ToList();
+        foreach (var log in logs)
+        {
+            Logs.Add(log);
+        }
+    }
     
     public void Emit(LogEvent logEvent)
     {
-        var timestamp = logEvent.Timestamp.LocalDateTime.ToString("HH:mm:ss");
-        var level = logEvent.Level.ToString();
         var exception = logEvent.Exception != null ? Environment.NewLine + logEvent.Exception : "";
-        
-        var message = $"[{timestamp} {level}]{Environment.NewLine}{logEvent.RenderMessage()}{exception}";
-        var logEntry = new LogEntry(message, logEvent.Level);
-        
+        var message = $"{logEvent.RenderMessage()}{exception}";
+        var logEntry = new LogEntry()
+        {
+            Id = ObjectId.NewObjectId(),
+            Timestamp = logEvent.Timestamp.LocalDateTime,
+            Level = logEvent.Level,
+            Message = message
+        };
+        _context.Logs.Insert(logEntry);
         Logs.Add(logEntry);
         LogAdded?.Invoke(this, logEntry);
     }

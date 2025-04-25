@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using PaymentGateway.PhoneApp.Pages;
 using PaymentGateway.PhoneApp.Resources.Fonts;
+using PaymentGateway.PhoneApp.Services;
 using PaymentGateway.PhoneApp.Services.Logs;
 using PaymentGateway.PhoneApp.ViewModels;
 using Serilog;
@@ -13,8 +14,10 @@ public static class MauiProgram
 {
     public static MauiApp CreateMauiApp()
     {
+        var liteContext = new LiteContext();
         var levelSwitch = new LoggingLevelSwitch();
-        var sink = new InMemoryLogSink();
+        
+        var sink = new InMemoryLogSink(liteContext);
         Log.Logger = new LoggerConfiguration()
             .MinimumLevel.ControlledBy(levelSwitch)
             .Enrich.FromLogContext()
@@ -35,17 +38,16 @@ public static class MauiProgram
             });
 
         builder.Services.AddSingleton(sink);
+        builder.Services.AddSingleton(liteContext);
 
         builder.Services.AddTransient<MainViewModel>();
         builder.Services.AddTransient<MainPage>();
         
         builder.Services.AddTransient<LogsViewModel>();
         builder.Services.AddTransient<LogsPage>();
-
-#if DEBUG
+        
         builder.Logging.ClearProviders();
-        builder.Logging.AddSerilog(dispose: true);
-#endif
+        builder.Logging.AddSerilog(Log.Logger, true);
 
         return builder.Build();
     }

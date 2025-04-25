@@ -1,4 +1,5 @@
-<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8"?>
+
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="PaymentGateway.PhoneApp.Pages.LogsPage"
@@ -11,39 +12,40 @@
     <ContentPage.Resources>
         <converters:LogLevelToColorConverter x:Key="LogLevelToColorConverter" />
     </ContentPage.Resources>
-    
-    <Grid RowDefinitions="*,Auto">
-        <CollectionView 
-            Grid.Row="0" 
+
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="Очистить" Command="{Binding ClearLogsCommand}" Order="Secondary" />
+        <ToolbarItem Text="Экспортировать" Command="{Binding ExportLogsCommand}" Order="Secondary" />
+        <ToolbarItem Text="Тест логи" Command="{Binding TestLogsCommand}" Order="Secondary" />
+    </ContentPage.ToolbarItems>
+
+    <Grid RowDefinitions="*">
+        <CollectionView
+            Grid.Row="0"
             x:Name="LogsCollectionView"
             ItemsSource="{Binding Sink.Logs}"
             VerticalScrollBarVisibility="Always"
-            Margin="10">
+            Margin="10"
+            ItemsUpdatingScrollMode="KeepLastItemInView"
+            RemainingItemsThreshold="10">
+            <CollectionView.ItemsLayout>
+                <LinearItemsLayout Orientation="Vertical" ItemSpacing="2" />
+            </CollectionView.ItemsLayout>
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="logs:LogEntry">
-                    <Border StrokeShape="RoundRectangle 10" Margin="0,3" Padding="10">
-                        <Label Text="{Binding Message}" 
-                               FontSize="14" 
+                    <Border StrokeShape="RoundRectangle 10" Margin="0,2" Padding="10">
+                        <Label Text="{Binding AsString}"
+                               FontSize="14"
                                TextColor="{Binding Level, Converter={StaticResource LogLevelToColorConverter}}" />
                     </Border>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
             <CollectionView.EmptyView>
-                <Label Text="Список логов пуст" 
-                       HorizontalOptions="Center" 
-                       VerticalOptions="Center" 
+                <Label Text="Список логов пуст"
+                       HorizontalOptions="Center"
+                       VerticalOptions="Center"
                        TextColor="{StaticResource Gray500}" />
             </CollectionView.EmptyView>
         </CollectionView>
-
-        <HorizontalStackLayout Grid.Row="1" 
-                               Spacing="10" 
-                               HorizontalOptions="Center"
-                               Margin="0,0,0,10">
-            <Button Text="Очистить" 
-                    Command="{Binding ClearLogsCommand}" 
-                    BackgroundColor="{StaticResource Error}"
-                    Margin="5" />
-        </HorizontalStackLayout>
     </Grid>
-</ContentPage> 
+</ContentPage>
