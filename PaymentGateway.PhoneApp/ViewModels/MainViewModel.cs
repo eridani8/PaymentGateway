@@ -17,6 +17,7 @@ public partial class MainViewModel : BaseViewModel
         {
             IsBusy = true;
             await Toast.Make("hello").Show();
+            await Task.Delay(2000);
         }
         finally
         {

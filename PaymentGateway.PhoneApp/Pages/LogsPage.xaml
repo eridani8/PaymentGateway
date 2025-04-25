@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="PaymentGateway.PhoneApp.Pages.LogsPage"
+             xmlns:converters="clr-namespace:PaymentGateway.PhoneApp.Converters"
+             xmlns:logs="clr-namespace:PaymentGateway.PhoneApp.Services.Logs"
+             xmlns:viewModels="clr-namespace:PaymentGateway.PhoneApp.ViewModels"
+             x:DataType="viewModels:LogsViewModel"
+             Title="{Binding Title}">
+
+    <ContentPage.Resources>
+        <converters:LogLevelToColorConverter x:Key="LogLevelToColorConverter" />
+    </ContentPage.Resources>
+    
+    <Grid RowDefinitions="*,Auto">
+        <CollectionView 
+            Grid.Row="0" 
+            x:Name="LogsCollectionView"
+            ItemsSource="{Binding Sink.Logs}"
+            VerticalScrollBarVisibility="Always"
+            Margin="10">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="logs:LogEntry">
+                    <Border StrokeShape="RoundRectangle 10" Margin="0,3" Padding="10">
+                        <Label Text="{Binding Message}" 
+                               FontSize="14" 
+                               TextColor="{Binding Level, Converter={StaticResource LogLevelToColorConverter}}" />
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+            <CollectionView.EmptyView>
+                <Label Text="Список логов пуст" 
+                       HorizontalOptions="Center" 
+                       VerticalOptions="Center" 
+                       TextColor="{StaticResource Gray500}" />
+            </CollectionView.EmptyView>
+        </CollectionView>
+
+        <HorizontalStackLayout Grid.Row="1" 
+                               Spacing="10" 
+                               HorizontalOptions="Center"
+                               Margin="0,0,0,10">
+            <Button Text="Очистить" 
+                    Command="{Binding ClearLogsCommand}" 
+                    BackgroundColor="{StaticResource Error}"
+                    Margin="5" />
+        </HorizontalStackLayout>
+    </Grid>
+</ContentPage> 

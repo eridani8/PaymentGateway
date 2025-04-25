@@ -12,6 +12,10 @@
     <Color x:Key="Secondary">#315659</Color>
     <Color x:Key="SecondaryDarkText">#9880e5</Color>
     <Color x:Key="Tertiary">#124E78</Color>
+    <Color x:Key="Error">#B9314F</Color>
+    <Color x:Key="Success">#169873</Color>
+    <Color x:Key="Warning">#df9c54</Color>
+    <Color x:Key="Info">#2374AB</Color>
 
     <Color x:Key="DarkBackground">#17171a</Color>
     <Color x:Key="LightOnDarkBackground">#C3C3C3</Color>
@@ -38,7 +42,10 @@
     <SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource Secondary}"/>
     <SolidColorBrush x:Key="TertiaryBrush" Color="{StaticResource Tertiary}"/>
     <SolidColorBrush x:Key="WhiteBrush" Color="{StaticResource White}"/>
-    <SolidColorBrush x:Key="BlackBrush" Color="{StaticResource Black}"/>
+    <SolidColorBrush x:Key="ErrorBrush" Color="{StaticResource Error}"/>
+    <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource Success}"/>
+    <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource Warning}"/>
+    <SolidColorBrush x:Key="InfoBrush" Color="{StaticResource Info}"/>
 
     <SolidColorBrush x:Key="Gray100Brush" Color="{StaticResource Gray100}"/>
     <SolidColorBrush x:Key="Gray200Brush" Color="{StaticResource Gray200}"/>
