@@ -50,8 +50,8 @@ public class AvailabilityHost(IAvailabilityChecker checker, ILogger<Availability
         {
             try
             {
-                var result = await checker.CheckAvailable();
-                logger.LogDebug("Проверка доступности: {state}", result);
+                await checker.CheckAvailable(_cts.Token);
+                logger.LogDebug("Проверка доступности: {state}", checker.State);
             }
             catch (OperationCanceledException) { }
             catch (Exception e)

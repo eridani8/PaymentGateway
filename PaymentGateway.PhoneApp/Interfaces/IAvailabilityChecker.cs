@@ -2,6 +2,6 @@
 
 public interface IAvailabilityChecker
 {
-    bool State { get;  }
-    Task<bool> CheckAvailable();
+    bool State { get; }
+    Task CheckAvailable(CancellationToken token = default);
 }

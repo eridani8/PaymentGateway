@@ -10,12 +10,10 @@ public class BackgroundServiceManager(
     
     public async Task StartAllServicesAsync()
     {
-        logger.LogInformation("Запуск фоновых сервисов");
-        
         try
         {
             await availabilityHost.StartAsync(_cts.Token);
-            logger.LogInformation("Фоновые сервисы успешно запущены");
+            logger.LogInformation("Фоновые сервисы запущены");
         }
         catch (Exception ex)
         {
@@ -26,8 +24,6 @@ public class BackgroundServiceManager(
     
     public async Task StopAllServicesAsync()
     {
-        logger.LogInformation("Остановка фоновых сервисов");
-        
         try
         {
             await availabilityHost.StopAsync(CancellationToken.None);

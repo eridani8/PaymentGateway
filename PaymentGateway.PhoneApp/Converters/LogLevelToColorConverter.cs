@@ -14,8 +14,8 @@ public class LogLevelToColorConverter : IValueConverter
                 LogEventLevel.Error or LogEventLevel.Fatal => Application.Current?.Resources["Error"],
                 LogEventLevel.Warning => Application.Current?.Resources["Warning"],
                 LogEventLevel.Information => Application.Current?.Resources["Gray300"],
-                LogEventLevel.Debug => Application.Current?.Resources["Gray300"],
-                LogEventLevel.Verbose => Application.Current?.Resources["Gray300"],
+                LogEventLevel.Debug => Application.Current?.Resources["Gray500"],
+                LogEventLevel.Verbose => Application.Current?.Resources["Gray600"],
                 _ => Application.Current?.Resources["LightOnDarkBackground"]
             };
         }

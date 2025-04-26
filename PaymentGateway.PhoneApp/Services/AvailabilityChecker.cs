@@ -7,20 +7,19 @@ public class AvailabilityChecker(IHttpClientFactory clientFactory, ILogger<Avail
 {
     public bool State { get; private set; }
 
-    public async Task<bool> CheckAvailable()
+    public async Task CheckAvailable(CancellationToken token = default)
     {
         try
         {
             using var client = clientFactory.CreateClient("API");
-            var response = await client.GetAsync($"{client.BaseAddress}/Health/CheckAvailable");
+            var response = await client.GetAsync($"{client.BaseAddress}/Health/CheckAvailable", token);
             var isSuccess = response.IsSuccessStatusCode;
             State = isSuccess;
-            return isSuccess;
         }
+        catch (OperationCanceledException) { }
         catch (Exception e)
         {
             logger.LogError(e, e.Message);
-            return false;
         }
     }
 }
