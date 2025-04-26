@@ -6,6 +6,7 @@ namespace PaymentGateway.Api.Controllers;
 [Route("[controller]/[action]")]
 public class HealthController : ControllerBase
 {
+    [HttpGet]
     public IActionResult CheckAvailable()
     {
         return Ok();
