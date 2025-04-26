@@ -1,14 +1,21 @@
-﻿namespace PaymentGateway.PhoneApp;
+﻿using PaymentGateway.PhoneApp.Services;
+
+namespace PaymentGateway.PhoneApp;
 
 public partial class App : Application
 {
-    public App()
+    private readonly BackgroundServiceManager _serviceManager;
+
+    public App(BackgroundServiceManager serviceManager)
     {
+        _serviceManager = serviceManager;
         InitializeComponent();
     }
-    
+
     protected override Window CreateWindow(IActivationState? activationState)
     {
-        return new Window(new AppShell());
+        _ = _serviceManager.StartAllServicesAsync();
+        var shell = new AppShell();
+        return new Window(shell);
     }
 }

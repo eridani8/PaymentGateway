@@ -5,7 +5,7 @@ using PaymentGateway.PhoneApp.Interfaces;
 namespace PaymentGateway.PhoneApp.ViewModels;
 
 public partial class ServiceUnavailableViewModel(
-    IServiceAvailabilityChecker checker,
+    IAvailabilityChecker checker,
     ILogger<ServiceUnavailableViewModel> logger) : BaseViewModel
 {
     [RelayCommand]

@@ -1,6 +1,7 @@
 ﻿namespace PaymentGateway.PhoneApp.Interfaces;
 
-public interface IServiceAvailabilityChecker
+public interface IAvailabilityChecker
 {
+    bool State { get;  }
     Task<bool> CheckAvailable();
 }

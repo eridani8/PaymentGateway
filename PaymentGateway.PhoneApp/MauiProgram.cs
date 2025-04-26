@@ -2,6 +2,7 @@
 using System.Reflection;
 using CommunityToolkit.Maui;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using PaymentGateway.PhoneApp.Interfaces;
@@ -73,19 +74,21 @@ public static class MauiProgram
         builder.Services.AddSingleton(sink);
         
         builder.Services.AddSingleton<IAlertService, AlertService>();
-        builder.Services.AddSingleton<IServiceAvailabilityChecker, ServiceAvailabilityChecker>();
+        builder.Services.AddSingleton<IAvailabilityChecker, AvailabilityChecker>();
+        builder.Services.AddSingleton<AvailabilityHost>();
+        builder.Services.AddSingleton<BackgroundServiceManager>();
 
-        builder.Services.AddTransient<MainViewModel>();
-        builder.Services.AddTransient<LogsViewModel>();
-        builder.Services.AddTransient<ServiceUnavailableViewModel>();
+        builder.Services.AddSingleton<MainViewModel>();
+        builder.Services.AddSingleton<LogsViewModel>();
+        builder.Services.AddSingleton<ServiceUnavailableViewModel>();
         
-        builder.Services.AddTransient<MainPage>();
-        builder.Services.AddTransient<LogsPage>();
-        builder.Services.AddTransient<ServiceUnavailablePage>();
+        builder.Services.AddSingleton<MainPage>();
+        builder.Services.AddSingleton<LogsPage>();
+        builder.Services.AddSingleton<ServiceUnavailablePage>();
         
         builder.Logging.ClearProviders();
         builder.Logging.AddSerilog(dispose: true);
-
+        
         return builder.Build();
     }
 }

@@ -3,16 +3,19 @@ using PaymentGateway.PhoneApp.Interfaces;
 
 namespace PaymentGateway.PhoneApp.Services;
 
-public class ServiceAvailabilityChecker(IHttpClientFactory clientFactory, ILogger<ServiceAvailabilityChecker> logger)
-    : IServiceAvailabilityChecker
+public class AvailabilityChecker(IHttpClientFactory clientFactory, ILogger<AvailabilityChecker> logger) : IAvailabilityChecker
 {
+    public bool State { get; private set; }
+
     public async Task<bool> CheckAvailable()
     {
         try
         {
             using var client = clientFactory.CreateClient("API");
             var response = await client.GetAsync($"{client.BaseAddress}/Health/CheckAvailable");
-            return response.IsSuccessStatusCode;
+            var isSuccess = response.IsSuccessStatusCode;
+            State = isSuccess;
+            return isSuccess;
         }
         catch (Exception e)
         {
