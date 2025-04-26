@@ -13,5 +13,6 @@ public partial class AppShell : Shell
     private static void RegisterRoutes()
     {
         Routing.RegisterRoute(nameof(LogsPage), typeof(LogsPage));
+        Routing.RegisterRoute(nameof(ServiceUnavailablePage), typeof(ServiceUnavailablePage));
     }
 }

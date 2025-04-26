@@ -6,8 +6,7 @@
              xmlns:converters="clr-namespace:PaymentGateway.PhoneApp.Converters"
              xmlns:logs="clr-namespace:PaymentGateway.PhoneApp.Services.Logs"
              xmlns:viewModels="clr-namespace:PaymentGateway.PhoneApp.ViewModels"
-             x:DataType="viewModels:LogsViewModel"
-             Title="{Binding Title}">
+             x:DataType="viewModels:LogsViewModel">
 
     <ContentPage.Resources>
         <converters:LogLevelToColorConverter x:Key="LogLevelToColorConverter" />

@@ -4,8 +4,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:viewModels="clr-namespace:PaymentGateway.PhoneApp.ViewModels"
              x:Class="PaymentGateway.PhoneApp.Pages.MainPage"
-             x:DataType="viewModels:MainViewModel"
-             Title="{Binding Title}">
+             x:DataType="viewModels:MainViewModel">
 
     <Grid>
         <VerticalStackLayout Spacing="25" Padding="30,0" VerticalOptions="Center">

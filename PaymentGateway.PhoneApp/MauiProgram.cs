@@ -1,7 +1,9 @@
-﻿using System.Reflection;
+﻿using System.Net.Http.Headers;
+using System.Reflection;
 using CommunityToolkit.Maui;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using PaymentGateway.PhoneApp.Interfaces;
 using PaymentGateway.PhoneApp.Pages;
 using PaymentGateway.PhoneApp.Resources.Fonts;
@@ -57,16 +59,27 @@ public static class MauiProgram
             .WriteTo.Sink(sink)
             .CreateLogger();
 
+        builder.Services.AddHttpClient("API", (serviceProvider, client) =>
+        {
+            var appSettings = serviceProvider.GetRequiredService<IOptions<AppSettings>>().Value;
+
+            client.BaseAddress = new Uri(appSettings.ServiceUrl);
+            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        });
+
         builder.Services.AddSingleton(liteContext);
         builder.Services.AddSingleton(sink);
         
         builder.Services.AddSingleton<IAlertService, AlertService>();
+        builder.Services.AddSingleton<IServiceAvailabilityChecker, ServiceAvailabilityChecker>();
 
         builder.Services.AddTransient<MainViewModel>();
-        builder.Services.AddTransient<MainPage>();
-        
         builder.Services.AddTransient<LogsViewModel>();
+        builder.Services.AddTransient<ServiceUnavailableViewModel>();
+        
+        builder.Services.AddTransient<MainPage>();
         builder.Services.AddTransient<LogsPage>();
+        builder.Services.AddTransient<ServiceUnavailablePage>();
         
         builder.Logging.ClearProviders();
         builder.Logging.AddSerilog(dispose: true);

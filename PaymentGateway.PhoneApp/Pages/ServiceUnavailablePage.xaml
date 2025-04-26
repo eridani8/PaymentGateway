@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewModels="clr-namespace:PaymentGateway.PhoneApp.ViewModels"
+             x:Class="PaymentGateway.PhoneApp.Pages.ServiceUnavailablePage"
+             BackgroundColor="{DynamicResource PageBackgroundColor}"
+             x:DataType="viewModels:ServiceUnavailableViewModel">
+    <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="20" Padding="20">
+        <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />
+        <Label Text="Сервис недоступен" FontSize="24" FontAttributes="Bold" HorizontalOptions="Center" />
+        <Label
+            Text="Не удалось подключиться к сервису. Пожалуйста, проверьте подключение к интернету или дождитесь пока сервис возобновит работу."
+            HorizontalOptions="Center" HorizontalTextAlignment="Center" />
+
+        <StackLayout Orientation="Horizontal" HorizontalOptions="Center" Spacing="10">
+            <Button Text="Проверить еще"
+                    Command="{Binding CheckConnectionCommand}"
+                    HorizontalOptions="Center"
+                    Margin="0,20,0,0" />
+        </StackLayout>
+    </VerticalStackLayout>
+</ContentPage>

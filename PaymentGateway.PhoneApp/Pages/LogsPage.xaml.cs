@@ -44,7 +44,7 @@ public partial class LogsPage : ContentPage
         {
             try
             {
-                await Task.Delay(50);
+                await Task.Delay(100);
                 
                 var count = _viewModel.Sink.Logs.Count;
                 if (count > 0)

@@ -9,26 +9,20 @@ using PaymentGateway.PhoneApp.Interfaces;
 
 namespace PaymentGateway.PhoneApp.ViewModels;
 
-public partial class LogsViewModel : BaseViewModel
+public partial class LogsViewModel(
+    InMemoryLogSink sink,
+    ILogger<LogsViewModel> logger,
+    LiteContext context,
+    IAlertService alertService)
+    : BaseViewModel
 {
-    [ObservableProperty] private InMemoryLogSink _sink;
-    private readonly ILogger _logger;
-    private readonly LiteContext _context;
-    private readonly IAlertService _alertService;
-
-    public LogsViewModel(InMemoryLogSink sink, ILogger<LogsViewModel> logger, LiteContext context, IAlertService alertService)
-    {
-        Title = "Логи";
-        _sink = sink;
-        _logger = logger;
-        _context = context;
-        _alertService = alertService;
-    }
+    [ObservableProperty] private InMemoryLogSink _sink = sink;
+    private readonly ILogger _logger = logger;
 
     [RelayCommand]
     private async Task ClearLogs()
     {
-        var confirmed = await _alertService.ShowConfirmationAsync(
+        var confirmed = await alertService.ShowConfirmationAsync(
             "Очистить логи",
             "Вы уверены, что хотите очистить логи?",
             "Да", "Отмена");
@@ -36,7 +30,7 @@ public partial class LogsViewModel : BaseViewModel
         if (confirmed)
         {
             Sink.Logs.Clear();
-            _context.Logs.DeleteAll();
+            context.Logs.DeleteAll();
         }
     }
 
