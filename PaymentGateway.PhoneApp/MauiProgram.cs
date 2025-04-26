@@ -2,12 +2,11 @@
 using System.Reflection;
 using CommunityToolkit.Maui;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.Maui.LifecycleEvents;
 using PaymentGateway.PhoneApp.Interfaces;
 using PaymentGateway.PhoneApp.Pages;
-using PaymentGateway.PhoneApp.Resources.Fonts;
 using PaymentGateway.PhoneApp.Services;
 using PaymentGateway.PhoneApp.Services.Logs;
 using PaymentGateway.PhoneApp.ViewModels;
@@ -26,12 +25,29 @@ public static class MauiProgram
             .UseMauiApp<App>()
             .UseMauiCommunityToolkit()
             .ConfigureMauiHandlers(_ => { })
+            .ConfigureLifecycleEvents(events =>
+            {
+#if ANDROID
+                events.AddAndroid(android => android
+                    .OnApplicationCreate(app => 
+                    {
+                    })
+                    .OnCreate((activity, _) => 
+                    {
+                    })
+                    .OnStop(activity => 
+                    {
+                    })
+                    .OnDestroy(activity => 
+                    {
+                    }));
+#endif
+            })
             .ConfigureFonts(fonts =>
             {
-                fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
-                fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
-                fonts.AddFont("SegoeUI-Semibold.ttf", "SegoeSemibold");
-                fonts.AddFont("FluentSystemIcons-Regular.ttf", FluentUI.FontFamily);
+                fonts.AddFont("JetBrainsMono-Regular.ttf", "JetBrainsMono");
+                fonts.AddFont("JetBrainsMono-Bold.ttf", "JetBrainsMono-Bold");
+                fonts.AddFont("JetBrainsMono-Italic.ttf", "JetBrainsMono-Italic");
             });
 
         var assembly = Assembly.GetExecutingAssembly();
@@ -53,7 +69,7 @@ public static class MauiProgram
         var liteContext = new LiteContext(settings!);
         var sink = new InMemoryLogSink(liteContext);
         
-        var levelSwitch = new LoggingLevelSwitch(LogEventLevel.Information);
+        var levelSwitch = new LoggingLevelSwitch(LogEventLevel.Debug);
         Log.Logger = new LoggerConfiguration()
             .MinimumLevel.ControlledBy(levelSwitch)
             .Enrich.FromLogContext()
@@ -83,9 +99,6 @@ public static class MauiProgram
         
         builder.Services.AddSingleton<IAvailabilityChecker, AvailabilityChecker>();
         builder.Services.AddSingleton<ServiceUnavailableViewModel>();
-        
-        builder.Services.AddSingleton<AvailabilityHost>();
-        builder.Services.AddSingleton<BackgroundServiceManager>();
         
         builder.Logging.ClearProviders();
         builder.Logging.AddSerilog(dispose: true);

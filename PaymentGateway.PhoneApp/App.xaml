@@ -13,6 +13,30 @@
                 <ResourceDictionary Source="Resources/Styles/AppStyles.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <toolkit:InvertedBoolConverter x:Key="InverseBoolConverter" />
+            
+            <x:String x:Key="AppFont">JetBrainsMono</x:String>
+            
+            <Style TargetType="NavigationPage">
+                <Setter Property="BarTextColor" Value="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}" />
+                <Setter Property="BarBackgroundColor" Value="{AppThemeBinding Light={StaticResource LightBackground}, Dark={StaticResource DarkBackground}}" />
+                <Setter Property="IconColor" Value="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}" />
+            </Style>
+            
+            <Style TargetType="Label">
+                <Setter Property="FontFamily" Value="JetBrainsMono" />
+            </Style>
+            
+            <Style TargetType="Entry">
+                <Setter Property="FontFamily" Value="JetBrainsMono" />
+            </Style>
+            
+            <Style TargetType="Button">
+                <Setter Property="FontFamily" Value="JetBrainsMono" />
+            </Style>
+            
+            <Style TargetType="Span">
+                <Setter Property="FontFamily" Value="JetBrainsMono" />
+            </Style>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

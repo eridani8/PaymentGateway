@@ -16,6 +16,7 @@ public partial class ServiceUnavailableViewModel(
         IsBusy = true;
         try
         {
+            await checker.CheckAvailable();
             await checker.ShowOrHideUnavailableModal();
         }
         catch (Exception e)

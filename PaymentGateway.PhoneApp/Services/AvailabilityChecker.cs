@@ -30,26 +30,49 @@ public class AvailabilityChecker(
         }
     }
 
+    public async Task BackgroundCheckAsync(CancellationToken token = default)
+    {
+        try
+        {
+            await CheckAvailable(token);
+            logger.LogDebug("Проверка доступности: {state}", State);
+            await ShowOrHideUnavailableModal(token);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Ошибка при проверке доступности");
+        }
+    }
+
     public async Task ShowOrHideUnavailableModal(CancellationToken token = default)
     {
-        await CheckAvailable(token);
-        logger.LogDebug("Проверка доступности: {state}", State);
-        var serviceUnavailablePageShown = Shell.Current.Navigation.ModalStack.Any(p => p is ServiceUnavailablePage);
-        if (!State)
+        try
         {
-            if (!serviceUnavailablePageShown)
+            if (Shell.Current == null) return;
+
+            if (Shell.Current.Navigation is { } navigation)
             {
-                var viewModel = serviceProvider.GetRequiredService<ServiceUnavailableViewModel>();
-                await Shell.Current.Navigation.PushModalAsync(
-                    new ServiceUnavailablePage(viewModel), true);
+                var serviceUnavailablePageShown = navigation.ModalStack.Any(p => p is ServiceUnavailablePage);
+                if (!State)
+                {
+                    if (!serviceUnavailablePageShown)
+                    {
+                        var viewModel = serviceProvider.GetRequiredService<ServiceUnavailableViewModel>();
+                        await navigation.PushModalAsync(new ServiceUnavailablePage(viewModel), true);
+                    }
+                }
+                else
+                {
+                    if (serviceUnavailablePageShown)
+                    {
+                        await navigation.PopModalAsync(true);
+                    }
+                }
             }
         }
-        else
+        catch (Exception e)
         {
-            if (serviceUnavailablePageShown)
-            {
-                await Shell.Current.Navigation.PopModalAsync(true);
-            }
+            logger.LogError(e, e.Message);
         }
     }
 }
