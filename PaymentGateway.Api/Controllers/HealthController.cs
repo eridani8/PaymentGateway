@@ -7,8 +7,8 @@ namespace PaymentGateway.Api.Controllers;
 public class HealthController : ControllerBase
 {
     [HttpGet]
-    public IActionResult CheckAvailable()
+    public Task<IActionResult> CheckAvailable()
     {
-        return Ok();
+        return Task.FromResult<IActionResult>(Ok());
     }
 }
