@@ -53,7 +53,7 @@ public static class MauiProgram
         var liteContext = new LiteContext(settings!);
         var sink = new InMemoryLogSink(liteContext);
         
-        var levelSwitch = new LoggingLevelSwitch(LogEventLevel.Debug);
+        var levelSwitch = new LoggingLevelSwitch(LogEventLevel.Information);
         Log.Logger = new LoggerConfiguration()
             .MinimumLevel.ControlledBy(levelSwitch)
             .Enrich.FromLogContext()
@@ -73,17 +73,19 @@ public static class MauiProgram
         builder.Services.AddSingleton(sink);
         
         builder.Services.AddSingleton<IAlertService, AlertService>();
-        builder.Services.AddSingleton<IAvailabilityChecker, AvailabilityChecker>();
-        builder.Services.AddSingleton<AvailabilityHost>();
-        builder.Services.AddSingleton<BackgroundServiceManager>();
-
+        
         builder.Services.AddSingleton<MainViewModel>();
         builder.Services.AddSingleton<LogsViewModel>();
-        builder.Services.AddSingleton<ServiceUnavailableViewModel>();
         
         builder.Services.AddSingleton<MainPage>();
         builder.Services.AddSingleton<LogsPage>();
         builder.Services.AddSingleton<ServiceUnavailablePage>();
+        
+        builder.Services.AddSingleton<IAvailabilityChecker, AvailabilityChecker>();
+        builder.Services.AddSingleton<ServiceUnavailableViewModel>();
+        
+        builder.Services.AddSingleton<AvailabilityHost>();
+        builder.Services.AddSingleton<BackgroundServiceManager>();
         
         builder.Logging.ClearProviders();
         builder.Logging.AddSerilog(dispose: true);

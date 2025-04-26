@@ -16,11 +16,7 @@ public partial class ServiceUnavailableViewModel(
         IsBusy = true;
         try
         {
-            await checker.CheckAvailable();
-            if (checker.State)
-            {
-                await Shell.Current.Navigation.PopModalAsync(true);
-            }
+            await checker.ShowOrHideUnavailableModal();
         }
         catch (Exception e)
         {

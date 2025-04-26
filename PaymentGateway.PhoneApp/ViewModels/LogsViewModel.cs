@@ -90,7 +90,8 @@ public partial class LogsViewModel(
     {
         _logger.LogInformation("Test Information");
         _logger.LogError("Test Error");
-        _logger.LogCritical("Test Critical");
         _logger.LogWarning("Test Warning");
+        _logger.LogDebug("Test Debug");
+        _logger.LogCritical("Test Critical");
     }
 } 

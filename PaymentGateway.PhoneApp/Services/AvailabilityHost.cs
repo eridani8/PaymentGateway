@@ -4,14 +4,16 @@ using PaymentGateway.PhoneApp.Interfaces;
 
 namespace PaymentGateway.PhoneApp.Services;
 
-public class AvailabilityHost(IAvailabilityChecker checker, ILogger<AvailabilityHost> logger) : IHostedService
+public class AvailabilityHost(
+    IAvailabilityChecker checker,
+    ILogger<AvailabilityHost> logger) : IHostedService
 {
     private readonly TimeSpan _startDelay = TimeSpan.FromSeconds(1);
     private readonly TimeSpan _processDelay = TimeSpan.FromSeconds(10);
-    
+
     private Task _task = null!;
     private CancellationTokenSource _cts = null!;
-    
+
     public Task StartAsync(CancellationToken cancellationToken)
     {
         _cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -24,7 +26,6 @@ public class AvailabilityHost(IAvailabilityChecker checker, ILogger<Availability
         try
         {
             await _cts.CancelAsync();
-
             try
             {
                 await _task;
@@ -45,13 +46,12 @@ public class AvailabilityHost(IAvailabilityChecker checker, ILogger<Availability
     private async Task Worker()
     {
         await Task.Delay(_startDelay, _cts.Token);
-        
+
         while (!_cts.Token.IsCancellationRequested)
         {
             try
             {
-                await checker.CheckAvailable(_cts.Token);
-                logger.LogDebug("Проверка доступности: {state}", checker.State);
+                await checker.ShowOrHideUnavailableModal(_cts.Token);
             }
             catch (OperationCanceledException) { }
             catch (Exception e)
@@ -64,7 +64,9 @@ public class AvailabilityHost(IAvailabilityChecker checker, ILogger<Availability
                 {
                     await Task.Delay(_processDelay, _cts.Token);
                 }
-                catch (OperationCanceledException) { }
+                catch (OperationCanceledException)
+                {
+                }
             }
         }
     }
