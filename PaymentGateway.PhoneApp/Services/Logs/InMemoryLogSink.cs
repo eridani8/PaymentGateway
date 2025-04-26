@@ -9,19 +9,26 @@ public class InMemoryLogSink : ILogEventSink
 {
     private readonly LiteContext _context;
     public ObservableCollection<LogEntry> Logs { get; } = [];
-    
+
     public event EventHandler<LogEntry>? LogAdded;
 
     public InMemoryLogSink(LiteContext context)
     {
         _context = context;
-        var logs = context.Logs.FindAll().ToList();
+        LoadLogs();
+    }
+
+    private void LoadLogs()
+    {
+        var logs = _context.Logs
+            .FindAll()
+            .ToList();
         foreach (var log in logs)
         {
             Logs.Add(log);
         }
     }
-    
+
     public void Emit(LogEvent logEvent)
     {
         var exception = logEvent.Exception != null ? Environment.NewLine + logEvent.Exception : "";

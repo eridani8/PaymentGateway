@@ -5,6 +5,7 @@ using PaymentGateway.PhoneApp.Services;
 using PaymentGateway.PhoneApp.Services.Logs;
 using System.Text;
 using CommunityToolkit.Maui.Storage;
+using PaymentGateway.PhoneApp.Interfaces;
 
 namespace PaymentGateway.PhoneApp.ViewModels;
 
@@ -13,20 +14,30 @@ public partial class LogsViewModel : BaseViewModel
     [ObservableProperty] private InMemoryLogSink _sink;
     private readonly ILogger _logger;
     private readonly LiteContext _context;
+    private readonly IAlertService _alertService;
 
-    public LogsViewModel(InMemoryLogSink sink, ILogger<LogsViewModel> logger, LiteContext context)
+    public LogsViewModel(InMemoryLogSink sink, ILogger<LogsViewModel> logger, LiteContext context, IAlertService alertService)
     {
         Title = "Логи";
         _sink = sink;
         _logger = logger;
         _context = context;
+        _alertService = alertService;
     }
 
     [RelayCommand]
-    private void ClearLogs()
+    private async Task ClearLogs()
     {
-        Sink.Logs.Clear();
-        _context.Logs.DeleteAll();
+        var confirmed = await _alertService.ShowConfirmationAsync(
+            "Очистить логи",
+            "Вы уверены, что хотите очистить логи?",
+            "Да", "Отмена");
+
+        if (confirmed)
+        {
+            Sink.Logs.Clear();
+            _context.Logs.DeleteAll();
+        }
     }
 
     [RelayCommand]
@@ -83,9 +94,9 @@ public partial class LogsViewModel : BaseViewModel
     [RelayCommand]
     private void TestLogs()
     {
-        _logger.LogInformation("TestLogs");
-        _logger.LogError("TestLogs");
-        _logger.LogCritical("TestLogs");
-        _logger.LogWarning("TestLogs");
+        _logger.LogInformation("Test Information");
+        _logger.LogError("Test Error");
+        _logger.LogCritical("Test Critical");
+        _logger.LogWarning("Test Warning");
     }
 } 

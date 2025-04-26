@@ -1,5 +1,4 @@
 ﻿using System.Globalization;
-using System.Text;
 using LiteDB;
 using Serilog.Events;
 

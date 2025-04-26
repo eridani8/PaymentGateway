@@ -1,5 +1,8 @@
-﻿using CommunityToolkit.Maui;
+﻿using System.Reflection;
+using CommunityToolkit.Maui;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using PaymentGateway.PhoneApp.Interfaces;
 using PaymentGateway.PhoneApp.Pages;
 using PaymentGateway.PhoneApp.Resources.Fonts;
 using PaymentGateway.PhoneApp.Services;
@@ -14,16 +17,6 @@ public static class MauiProgram
 {
     public static MauiApp CreateMauiApp()
     {
-        var liteContext = new LiteContext();
-        var levelSwitch = new LoggingLevelSwitch();
-        
-        var sink = new InMemoryLogSink(liteContext);
-        Log.Logger = new LoggerConfiguration()
-            .MinimumLevel.ControlledBy(levelSwitch)
-            .Enrich.FromLogContext()
-            .WriteTo.Sink(sink)
-            .CreateLogger();
-
         var builder = MauiApp.CreateBuilder();
         builder
             .UseMauiApp<App>()
@@ -37,8 +30,37 @@ public static class MauiProgram
                 fonts.AddFont("FluentSystemIcons-Regular.ttf", FluentUI.FontFamily);
             });
 
-        builder.Services.AddSingleton(sink);
+        var assembly = Assembly.GetExecutingAssembly();
+        using var stream = assembly.GetManifestResourceStream("PaymentGateway.PhoneApp.appsettings.json");
+
+        if (stream is null)
+        {
+            throw new  ApplicationException("Необходим конфигурационный файл");
+        }
+
+        var config = new ConfigurationBuilder()
+            .AddJsonStream(stream)
+            .Build();
+        
+        builder.Configuration.AddConfiguration(config);
+        builder.Services.Configure<AppSettings>(config);
+        var settings = builder.Configuration.Get<AppSettings>();
+
+        var liteContext = new LiteContext(settings!);
+        var sink = new InMemoryLogSink(liteContext);
+        
+        var levelSwitch = new LoggingLevelSwitch();
+        
+        Log.Logger = new LoggerConfiguration()
+            .MinimumLevel.ControlledBy(levelSwitch)
+            .Enrich.FromLogContext()
+            .WriteTo.Sink(sink)
+            .CreateLogger();
+
         builder.Services.AddSingleton(liteContext);
+        builder.Services.AddSingleton(sink);
+        
+        builder.Services.AddSingleton<IAlertService, AlertService>();
 
         builder.Services.AddTransient<MainViewModel>();
         builder.Services.AddTransient<MainPage>();
@@ -47,7 +69,7 @@ public static class MauiProgram
         builder.Services.AddTransient<LogsPage>();
         
         builder.Logging.ClearProviders();
-        builder.Logging.AddSerilog(Log.Logger, true);
+        builder.Logging.AddSerilog(dispose: true);
 
         return builder.Build();
     }
