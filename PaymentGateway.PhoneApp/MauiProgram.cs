@@ -12,6 +12,7 @@ using PaymentGateway.PhoneApp.Services.Logs;
 using PaymentGateway.PhoneApp.ViewModels;
 using Serilog;
 using Serilog.Core;
+using Serilog.Events;
 
 namespace PaymentGateway.PhoneApp;
 
@@ -56,6 +57,7 @@ public static class MauiProgram
         Log.Logger = new LoggerConfiguration()
             .MinimumLevel.ControlledBy(levelSwitch)
             .Enrich.FromLogContext()
+            .MinimumLevel.Override("System.Net.Http.HttpClient", LogEventLevel.Warning)
             .WriteTo.Sink(sink)
             .CreateLogger();
 

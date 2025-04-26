@@ -14,7 +14,7 @@
             HorizontalOptions="Center" HorizontalTextAlignment="Center" />
 
         <StackLayout Orientation="Horizontal" HorizontalOptions="Center" Spacing="10">
-            <Button Text="Проверить еще"
+            <Button Text="Проверить снова"
                     Command="{Binding CheckConnectionCommand}"
                     HorizontalOptions="Center"
                     Margin="0,20,0,0" />

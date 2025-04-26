@@ -16,8 +16,4 @@
         Title="Логи"
         ContentTemplate="{DataTemplate pages:LogsPage}" />
 
-    <ShellContent
-        Title="Сервис недоступен"
-        ContentTemplate="{DataTemplate pages:ServiceUnavailablePage}" />
-
 </Shell>
