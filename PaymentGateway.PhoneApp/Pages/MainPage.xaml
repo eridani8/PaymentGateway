@@ -8,24 +8,7 @@
 
     <Grid>
         <VerticalStackLayout Spacing="25" Padding="30,0" VerticalOptions="Center">
-
-            <ActivityIndicator IsRunning="{Binding IsBusy}"
-                               IsVisible="{Binding IsBusy}"
-                               HorizontalOptions="Center"
-                               VerticalOptions="Center" />
             
-            <Label
-                Text="Welcome"
-                SemanticProperties.HeadingLevel="Level1"
-                FontSize="32"
-                HorizontalOptions="Center" />
-
-            <Button
-                Text="hello"
-                Command="{Binding ShowToastCommand}"
-                IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBoolConverter}}"
-                HorizontalOptions="Center" />
-
         </VerticalStackLayout>
     </Grid>
 
