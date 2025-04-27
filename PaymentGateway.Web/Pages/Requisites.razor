@@ -269,7 +269,7 @@
             }
             else
             {
-                _requisites.Add(updatedRequisite);
+                _requisites.Insert(0, updatedRequisite);
                 Logger.LogInformation("Добавлен новый реквизит: {RequisiteId}", updatedRequisite.Id);
             }
 

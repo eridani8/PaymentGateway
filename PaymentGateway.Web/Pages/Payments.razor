@@ -226,7 +226,7 @@
             }
             else
             {
-                _payments.Add(updatedPayment);
+                _payments.Insert(0, updatedPayment);
                 Logger.LogInformation("Добавлен новый платеж: {PaymentId}", updatedPayment.Id);
             }
 

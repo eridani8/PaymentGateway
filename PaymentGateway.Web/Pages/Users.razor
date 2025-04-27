@@ -188,7 +188,7 @@
             }
             else
             {
-                _users.Add(updatedUser);
+                _users.Insert(0, updatedUser);
                 Logger.LogInformation("Добавлен новый пользователь: {UserId}", updatedUser.Id);
             }
 

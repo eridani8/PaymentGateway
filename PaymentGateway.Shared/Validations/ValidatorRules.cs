@@ -23,8 +23,7 @@ public static class ValidatorRules
             .NotEmpty().WithMessage("Введите имя")
             .Length(4, 40).WithMessage("Имя и фамилия должны быть от 4 до 40 символов")
             .Matches(ValidationRegexps.FullNameRegex())
-            .WithMessage("Имя и фамилия должна содержать только буквы и пробелы")
-            .Must(name => name.Split(' ').Length == 2).WithMessage("Имя и фамилия должна состоять из 2-х слов");
+            .WithMessage("Имя и фамилия должна содержать только буквы и пробелы");
     }
 
     public static IRuleBuilderOptions<T, string> ValidPhoneNumber<T>(this IRuleBuilder<T, string> rule)
