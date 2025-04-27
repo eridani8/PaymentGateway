@@ -14,7 +14,7 @@ public class BackgroundService : Service
 {
     private const int NotificationId = 99999;
     private const string ChannelId = "PaymentGatewayChannel";
-    private const string ChannelName = "Фоновая работа";
+    private const string ChannelName = "PaymentGatewayForegroundService";
     private const string ActionStop = "com.eridani8.paymentgateway.STOP_SERVICE";
     private const string ActionStart = "com.eridani8.paymentgateway.START_SERVICE";
 
