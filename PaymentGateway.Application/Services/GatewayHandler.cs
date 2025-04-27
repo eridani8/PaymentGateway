@@ -96,7 +96,6 @@ public class GatewayHandler(
 
         foreach (var payment in unprocessedPayments)
         {
-            await using var transaction = await unit.Context.Database.BeginTransactionAsync();
             try
             {
                 if (freeRequisites.Count == 0)
@@ -123,7 +122,6 @@ public class GatewayHandler(
                 requisite.AssignToPayment(payment);
                 payment.MarkAsPending(requisite);
                 await unit.Commit();
-                await transaction.CommitAsync();
 
                 var paymentDto = mapper.Map<PaymentDto>(payment);
                 var requisiteDto = mapper.Map<RequisiteDto>(requisite);
@@ -136,7 +134,6 @@ public class GatewayHandler(
             catch (Exception e)
             {
                 logger.LogError(e, "Ошибка при обработке платежа {PaymentId}", payment.Id);
-                await transaction.RollbackAsync();
             }
         }
     }

@@ -31,8 +31,6 @@ public class TransactionService(
             throw new ValidationException(validation.Errors);
         }
 
-        await using var transaction = await unit.Context.Database.BeginTransactionAsync();
-
         try
         {
             var requisite = await unit.RequisiteRepository.GetSet()
@@ -61,7 +59,6 @@ public class TransactionService(
             await paymentConfirmationService.ProcessPaymentConfirmation(payment, requisite, dto.ExtractedAmount);
 
             await unit.Commit();
-            await transaction.CommitAsync();
 
             var paymentDto = mapper.Map<PaymentDto>(payment);
             await notificationService.NotifyPaymentUpdated(paymentDto);
@@ -72,9 +69,8 @@ public class TransactionService(
         }
         catch (Exception e)
         {
-            await transaction.RollbackAsync();
             logger.LogError(e, "Ошибка при обработке транзакции");
-            throw;
+            return null;
         }
     }
 
