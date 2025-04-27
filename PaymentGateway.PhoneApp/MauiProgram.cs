@@ -101,6 +101,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<ServiceUnavailableViewModel>();
         
         builder.Services.AddSingleton<ISmsProcessor, SmsProcessor>();
+        builder.Services.AddSingleton<IBackgroundServiceManager, BackgroundServiceManager>();
         
         builder.Logging.ClearProviders();
         builder.Logging.AddSerilog(dispose: true);

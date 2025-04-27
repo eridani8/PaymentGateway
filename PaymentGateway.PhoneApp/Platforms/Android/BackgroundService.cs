@@ -6,6 +6,7 @@ using Android.OS;
 using AndroidX.Core.App;
 using Microsoft.Extensions.Logging;
 using PaymentGateway.PhoneApp.Interfaces;
+using PaymentGateway.PhoneApp.Services;
 
 namespace PaymentGateway.PhoneApp;
 
@@ -20,6 +21,7 @@ public class BackgroundService : Service
 
     private IAvailabilityChecker? _availabilityChecker;
     private ILogger<BackgroundService>? _logger;
+    private IBackgroundServiceManager? _backgroundServiceManager;
     private PowerManager.WakeLock? _wakeLock;
     private bool _isRunning;
     private bool _previousServiceState;
@@ -44,6 +46,7 @@ public class BackgroundService : Service
         {
             _logger = services.GetRequiredService<ILogger<BackgroundService>>();
             _availabilityChecker = services.GetRequiredService<IAvailabilityChecker>();
+            _backgroundServiceManager = services.GetRequiredService<IBackgroundServiceManager>();
             if (_availabilityChecker != null)
             {
                 _previousServiceState = _availabilityChecker.State;
@@ -75,6 +78,9 @@ public class BackgroundService : Service
         
         StopBackgroundTimer();
         ReleaseWakeLock();
+        
+        _backgroundServiceManager?.SetRunningState(false);
+        
         base.OnDestroy();
     }
 
@@ -97,6 +103,9 @@ public class BackgroundService : Service
     private void StartBackgroundProcess()
     {
         _isRunning = true;
+        
+        _backgroundServiceManager?.SetRunningState(true);
+        
         var notification = BuildNotification(GetStatusText());
         
         StartForeground(NotificationId, notification, ForegroundService.TypeDataSync);
@@ -108,6 +117,9 @@ public class BackgroundService : Service
     private void StopBackgroundProcess()
     {
         _isRunning = false;
+        
+        _backgroundServiceManager?.SetRunningState(false);
+        
         StopBackgroundTimer();
         
         var notification = BuildNotification(GetStatusText());

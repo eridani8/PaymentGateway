@@ -12,6 +12,7 @@ public class SmsReceiver : BroadcastReceiver
 {
     private readonly ILogger<SmsReceiver>? _logger;
     private readonly ISmsProcessor? _smsProcessor;
+    private readonly IBackgroundServiceManager? _backgroundServiceManager;
 
     public SmsReceiver()
     {
@@ -20,6 +21,7 @@ public class SmsReceiver : BroadcastReceiver
         
         _logger = app.Services.GetRequiredService<ILogger<SmsReceiver>>();
         _smsProcessor = app.Services.GetRequiredService<ISmsProcessor>();
+        _backgroundServiceManager = app.Services.GetRequiredService<IBackgroundServiceManager>();
     }
 
     public override void OnReceive(Context? context, Intent? intent)
@@ -28,6 +30,8 @@ public class SmsReceiver : BroadcastReceiver
 
         try
         {
+            if (_backgroundServiceManager is not { IsRunning: true } || _smsProcessor == null) return;
+
             var messages = Telephony.Sms.Intents.GetMessagesFromIntent(intent);
             if (messages == null || messages.Length == 0) return;
 
@@ -38,7 +42,7 @@ public class SmsReceiver : BroadcastReceiver
                     var senderPhone = message.DisplayOriginatingAddress ?? string.Empty;
                     var messageBody = message.DisplayMessageBody ?? string.Empty;
 
-                    _smsProcessor?.ProcessSms(senderPhone, messageBody);
+                    _smsProcessor.ProcessSms(senderPhone, messageBody);
                 }
                 catch (Exception e)
                 {
