@@ -24,9 +24,9 @@ public class AvailabilityChecker(
         catch (OperationCanceledException)
         {
         }
-        catch (Exception e)
+        catch
         {
-            logger.LogError(e, e.Message);
+            // ignore
         }
     }
 
@@ -58,14 +58,20 @@ public class AvailabilityChecker(
                     if (!serviceUnavailablePageShown)
                     {
                         var viewModel = serviceProvider.GetRequiredService<ServiceUnavailableViewModel>();
-                        await navigation.PushModalAsync(new ServiceUnavailablePage(viewModel), true);
+                        MainThread.BeginInvokeOnMainThread(async void () =>
+                        {
+                            await navigation.PushModalAsync(new ServiceUnavailablePage(viewModel), true);
+                        });
                     }
                 }
                 else
                 {
                     if (serviceUnavailablePageShown)
                     {
-                        await navigation.PopModalAsync(true);
+                        MainThread.BeginInvokeOnMainThread(async void () =>
+                        {
+                            await navigation.PopModalAsync(true);
+                        });
                     }
                 }
             }
