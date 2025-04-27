@@ -6,7 +6,6 @@ using Android.OS;
 using AndroidX.Core.App;
 using Microsoft.Extensions.Logging;
 using PaymentGateway.PhoneApp.Interfaces;
-using PaymentGateway.PhoneApp.Services;
 
 namespace PaymentGateway.PhoneApp;
 

@@ -13,6 +13,7 @@ public class SmsReceiver : BroadcastReceiver
     private readonly ILogger<SmsReceiver>? _logger;
     private readonly ISmsProcessor? _smsProcessor;
     private readonly IBackgroundServiceManager? _backgroundServiceManager;
+    private IAvailabilityChecker? _availabilityChecker;
 
     public SmsReceiver()
     {
@@ -21,6 +22,7 @@ public class SmsReceiver : BroadcastReceiver
         
         _logger = app.Services.GetRequiredService<ILogger<SmsReceiver>>();
         _smsProcessor = app.Services.GetRequiredService<ISmsProcessor>();
+        _availabilityChecker = app.Services.GetRequiredService<IAvailabilityChecker>();
         _backgroundServiceManager = app.Services.GetRequiredService<IBackgroundServiceManager>();
     }
 
@@ -30,7 +32,9 @@ public class SmsReceiver : BroadcastReceiver
 
         try
         {
-            if (_backgroundServiceManager is not { IsRunning: true } || _smsProcessor == null) return;
+            if (_smsProcessor == null) return;
+            if (_backgroundServiceManager is not { IsRunning: true }) return;
+            if (_availabilityChecker is not { State: true }) return;
 
             var messages = Telephony.Sms.Intents.GetMessagesFromIntent(intent);
             if (messages == null || messages.Length == 0) return;
