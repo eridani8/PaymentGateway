@@ -33,7 +33,7 @@
                         <PropertyColumn Property="x => x.ExtractedAmount" Title="Сумма"/>
                         <TemplateColumn Title="Источник">
                             <CellTemplate Context="cellContext">
-                                <MudChip Color="Color.Primary" Size="Size.Medium">
+                                <MudChip Color="Color.Primary" Size="Size.Small">
                                     @GetSourceText(cellContext.Item.Source)
                                 </MudChip>
                             </CellTemplate>

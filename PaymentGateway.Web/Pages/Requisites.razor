@@ -132,6 +132,7 @@
                             <CellTemplate Context="cellContext">
                                 <MudStack Row="true">
                                     <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                                   Size="Size.Small"
                                                    Variant="Variant.Outlined"
                                                    Color="Color.Primary"
                                                    OnClick="@(() => OpenEditDialog(cellContext.Item))"
@@ -139,6 +140,7 @@
                                         Редактировать
                                     </MudIconButton>
                                     <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                                   Size="Size.Small"
                                                    Variant="Variant.Outlined"
                                                    Color="Color.Error"
                                                    OnClick="@(() => OpenDeleteDialog(cellContext.Item))"
