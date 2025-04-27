@@ -57,7 +57,8 @@
                              Filterable="true"
                              Hideable="true"
                              Bordered="true"
-                             Hover="true">
+                             Hover="true"
+                             Dense="true">
                     <Columns>
                         <HierarchyColumn/>
                         <TemplateColumn Title="Владелец реквизита">
@@ -73,7 +74,7 @@
                         <PropertyColumn Property="x => x.Amount" Title="Сумма"/>
                         <TemplateColumn Title="Статус">
                             <CellTemplate Context="cellContext">
-                                <MudChip Color="@GetStatusColor(cellContext.Item.Status)" Size="Size.Medium">
+                                <MudChip Size="Size.Small" Color="@GetStatusColor(cellContext.Item.Status)">
                                     @GetStatusText(cellContext.Item.Status)
                                     @if (cellContext.Item.Status == PaymentStatus.Pending)
                                     {
