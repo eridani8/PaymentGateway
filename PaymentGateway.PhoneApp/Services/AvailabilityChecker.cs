@@ -44,11 +44,11 @@ public class AvailabilityChecker(
         }
     }
 
-    public async Task ShowOrHideUnavailableModal(CancellationToken token = default)
+    public Task ShowOrHideUnavailableModal(CancellationToken token = default)
     {
         try
         {
-            if (Shell.Current == null) return;
+            if (Shell.Current == null) return Task.CompletedTask;
 
             if (Shell.Current.Navigation is { } navigation)
             {
@@ -80,5 +80,7 @@ public class AvailabilityChecker(
         {
             logger.LogError(e, e.Message);
         }
+
+        return Task.CompletedTask;
     }
 }
