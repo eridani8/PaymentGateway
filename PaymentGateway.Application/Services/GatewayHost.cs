@@ -4,7 +4,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Core.Entities;
-using PaymentGateway.Core.Interfaces;
 using PaymentGateway.Infrastructure.Interfaces;
 
 namespace PaymentGateway.Application.Services;
@@ -22,8 +21,8 @@ public class GatewayHost(IServiceProvider serviceProvider, ILogger<GatewayHost> 
     public Task StartAsync(CancellationToken cancellationToken)
     {
         _cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        _paymentProcessing = GatewayProcess();
-        _fundsResetProcessing = UserFundsResetProcess();
+        _paymentProcessing = Task.Run(GatewayProcess, _cts.Token);
+        _fundsResetProcessing = Task.Run(UserFundsResetProcess, _cts.Token);
         return Task.CompletedTask;
     }
 
