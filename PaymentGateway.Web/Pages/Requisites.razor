@@ -101,7 +101,7 @@
                         </TemplateColumn>
                         <TemplateColumn Title="Статус">
                             <CellTemplate Context="cellContext">
-                                <MudChip Size="Size.Small" Color="@GetStatusColor(cellContext.Item.Status)" Size="Size.Medium">
+                                <MudChip Size="Size.Small" Color="@GetStatusColor(cellContext.Item.Status)">
                                     @GetStatusText(cellContext.Item.Status)
                                     @switch (cellContext.Item.Status)
                                     {
