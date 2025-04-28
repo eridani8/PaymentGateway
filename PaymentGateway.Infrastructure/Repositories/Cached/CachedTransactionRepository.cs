@@ -5,52 +5,37 @@ using PaymentGateway.Infrastructure.Interfaces;
 
 namespace PaymentGateway.Infrastructure.Repositories.Cached;
 
-public class CachedTransactionRepository(TransactionRepository repository, IMemoryCache cache) : ITransactionRepository
+public class CachedTransactionRepository(TransactionRepository repository, IMemoryCache cache) 
+    : BaseCachedRepository<TransactionEntity, TransactionRepository>(repository, cache), ITransactionRepository
 {
-    private const string Key = "Transactions";
-    private static string UserKey(Guid userId) => $"{Key}:User:{userId}";
+    protected override string CacheKeyPrefix => "Transactions";
     
-    public DbSet<TransactionEntity> GetSet()
+    public override Task Add(TransactionEntity entity)
     {
-        return repository.GetSet();
+        InvalidateCache();
+        return Repository.Add(entity);
     }
 
-    public Task Add(TransactionEntity entity)
+    public override void Update(TransactionEntity entity)
     {
-        return repository.Add(entity);
+        InvalidateCache();
+        Repository.Update(entity);
     }
 
-    public void Update(TransactionEntity entity)
+    public override void Delete(TransactionEntity entity)
     {
-        repository.Update(entity);
+        InvalidateCache();
+        Repository.Delete(entity);
+
     }
 
-    public void Delete(TransactionEntity entity)
+    public Task<List<TransactionEntity>> GetAllTransactions()
     {
-        repository.Delete(entity);
+        return GetCachedData(GetFullCacheKey(), Repository.GetAllTransactions);
     }
 
-    public async Task<List<TransactionEntity>> GetAllTransactions()
+    public Task<List<TransactionEntity>> GetUserTransactions(Guid userId)
     {
-        var result = await cache.GetOrCreateAsync(Key, entry =>
-        {
-            entry.SetSlidingExpiration(TimeSpan.FromSeconds(45));
-            entry.SetAbsoluteExpiration(TimeSpan.FromMinutes(2));
-            return repository.GetAllTransactions();
-        });
-    
-        return result ?? [];
-    }
-
-    public async Task<List<TransactionEntity>> GetUserTransactions(Guid userId)
-    {
-        var result = await cache.GetOrCreateAsync(UserKey(userId), entry =>
-        {
-            entry.SetSlidingExpiration(TimeSpan.FromSeconds(45));
-            entry.SetAbsoluteExpiration(TimeSpan.FromMinutes(2));
-            return repository.GetUserTransactions(userId);
-        });
-    
-        return result ?? [];
+        return GetCachedData(GetUserKey(userId), () => Repository.GetUserTransactions(userId));
     }
 }

@@ -1,82 +1,59 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
+﻿using Microsoft.Extensions.Caching.Memory;
 using PaymentGateway.Core.Entities;
 using PaymentGateway.Infrastructure.Interfaces;
 
 namespace PaymentGateway.Infrastructure.Repositories.Cached;
 
-public class CachedPaymentRepository(PaymentRepository repository, IMemoryCache cache) : IPaymentRepository
+public class CachedPaymentRepository(PaymentRepository repository, IMemoryCache cache) 
+    : BaseCachedRepository<PaymentEntity, PaymentRepository>(repository, cache), IPaymentRepository
 {
-    private const string Key = "Payments";
-    private static string UserKey(Guid userId) => $"{Key}:User:{userId}";
+    protected override string CacheKeyPrefix => "Payments";
     
-    public DbSet<PaymentEntity> GetSet()
+    public override Task Add(PaymentEntity entity)
     {
-        return repository.GetSet();
+        InvalidateCache(entity.UserId);
+        return Repository.Add(entity);
     }
 
-    public Task Add(PaymentEntity entity)
+    public override void Update(PaymentEntity entity)
     {
-        cache.Remove(Key);
-        cache.Remove(UserKey(entity.Id));
-        return repository.Add(entity);
+        InvalidateCache(entity.UserId);
+        Repository.Update(entity);
     }
 
-    public void Update(PaymentEntity entity)
+    public override void Delete(PaymentEntity entity)
     {
-        cache.Remove(Key);
-        cache.Remove(UserKey(entity.Id));
-        repository.Update(entity);
-    }
-
-    public void Delete(PaymentEntity entity)
-    {
-        cache.Remove(Key);
-        cache.Remove(UserKey(entity.Id));
-        repository.Delete(entity);
+        InvalidateCache(entity.UserId);
+        Repository.Delete(entity);
     }
 
     public Task<List<PaymentEntity>> GetUnprocessedPayments()
     {
-        return repository.GetUnprocessedPayments();
+        return Repository.GetUnprocessedPayments();
     }
 
     public Task<List<PaymentEntity>> GetExpiredPayments()
     {
-        return repository.GetExpiredPayments();
+        return Repository.GetExpiredPayments();
     }
 
     public Task<PaymentEntity?> GetExistingPayment(Guid externalPaymentId)
     {
-        return repository.GetExistingPayment(externalPaymentId);
+        return Repository.GetExistingPayment(externalPaymentId);
     }
 
     public Task<PaymentEntity?> PaymentById(Guid id)
     {
-        return repository.PaymentById(id);
+        return Repository.PaymentById(id);
     }
 
-    public async Task<List<PaymentEntity>> GetAllPayments()
+    public Task<List<PaymentEntity>> GetAllPayments()
     {
-        var result = await cache.GetOrCreateAsync(Key, entry =>
-        {
-            entry.SetSlidingExpiration(TimeSpan.FromSeconds(45));
-            entry.SetAbsoluteExpiration(TimeSpan.FromMinutes(2));
-            return repository.GetAllPayments();
-        });
-    
-        return result ?? [];
+        return GetCachedData(GetFullCacheKey(), Repository.GetAllPayments);
     }
 
-    public async Task<List<PaymentEntity>> GetUserPayments(Guid userId)
+    public Task<List<PaymentEntity>> GetUserPayments(Guid userId)
     {
-        var result = await cache.GetOrCreateAsync(UserKey(userId), entry =>
-        {
-            entry.SetSlidingExpiration(TimeSpan.FromSeconds(45));
-            entry.SetAbsoluteExpiration(TimeSpan.FromMinutes(2));
-            return repository.GetUserPayments(userId);
-        });
-    
-        return result ?? [];
+        return GetCachedData(GetUserKey(userId), () => Repository.GetUserPayments(userId));
     }
 }

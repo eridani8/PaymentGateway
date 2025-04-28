@@ -5,83 +5,61 @@ using PaymentGateway.Infrastructure.Interfaces;
 
 namespace PaymentGateway.Infrastructure.Repositories.Cached;
 
-public class CachedRequisiteRepository(RequisiteRepository repository, IMemoryCache cache) : IRequisiteRepository
+public class CachedRequisiteRepository(RequisiteRepository repository, IMemoryCache cache) 
+    : BaseCachedRepository<RequisiteEntity, RequisiteRepository>(repository, cache), IRequisiteRepository
 {
-    private const string Key = "Requisites";
-    private static string UserKey(Guid userId) => $"{Key}:User:{userId}";
-    
-    public DbSet<RequisiteEntity> GetSet()
+    protected override string CacheKeyPrefix => "Requisites";
+
+    public override Task Add(RequisiteEntity entity)
     {
-        return repository.GetSet();
+        InvalidateCache(entity.UserId);
+        return Repository.Add(entity);
     }
 
-    public Task Add(RequisiteEntity entity)
+    public override void Update(RequisiteEntity entity)
     {
-        cache.Remove(Key);
-        cache.Remove(UserKey(entity.UserId));
-        return repository.Add(entity);
+        InvalidateCache(entity.UserId);
+        Repository.Update(entity);
     }
 
-    public void Update(RequisiteEntity entity)
+    public override void Delete(RequisiteEntity entity)
     {
-        cache.Remove(Key);
-        cache.Remove(UserKey(entity.UserId));
-        repository.Update(entity);
-    }
-
-    public void Delete(RequisiteEntity entity)
-    {
-        cache.Remove(Key);
-        cache.Remove(UserKey(entity.UserId));
-        repository.Delete(entity);
+        InvalidateCache(entity.UserId);
+        Repository.Delete(entity);
     }
 
     public Task<List<RequisiteEntity>> GetAllTracked()
     {
-        return repository.GetAllTracked();
+        return Repository.GetAllTracked();
     }
 
     public Task<List<RequisiteEntity>> GetFreeRequisites()
     {
-        return repository.GetFreeRequisites();
+        return Repository.GetFreeRequisites();
     }
 
     public Task<int> GetUserRequisitesCount(Guid userId)
     {
-        return repository.GetUserRequisitesCount(userId);
+        return Repository.GetUserRequisitesCount(userId);
     }
 
-    public async Task<List<RequisiteEntity>> GetAllRequisites()
+    public Task<List<RequisiteEntity>> GetAllRequisites()
     {
-        var result = await cache.GetOrCreateAsync(Key, entry =>
-        {
-            entry.SetSlidingExpiration(TimeSpan.FromSeconds(45));
-            entry.SetAbsoluteExpiration(TimeSpan.FromMinutes(2));
-            return repository.GetFreeRequisites();
-        });
-    
-        return result ?? [];
+        return GetCachedData(GetFullCacheKey(), Repository.GetFreeRequisites);
     }
 
-    public async Task<List<RequisiteEntity>> GetUserRequisites(Guid userId)
+    public Task<List<RequisiteEntity>> GetUserRequisites(Guid userId)
     {
-        var result = await cache.GetOrCreateAsync(UserKey(userId), entry =>
-        {
-            entry.SetSlidingExpiration(TimeSpan.FromSeconds(45));
-            entry.SetAbsoluteExpiration(TimeSpan.FromMinutes(2));
-            return repository.GetUserRequisites(userId);
-        });
-    
-        return result ?? [];
+        return GetCachedData(GetUserKey(userId), () => Repository.GetUserRequisites(userId));
     }
 
     public Task<RequisiteEntity?> GetRequisiteById(Guid id)
     {
-        return repository.GetRequisiteById(id);
+        return Repository.GetRequisiteById(id);
     }
 
     public Task<RequisiteEntity?> HasSimilarRequisite(string paymentData)
     {
-        return repository.HasSimilarRequisite(paymentData);
+        return Repository.HasSimilarRequisite(paymentData);
     }
 }

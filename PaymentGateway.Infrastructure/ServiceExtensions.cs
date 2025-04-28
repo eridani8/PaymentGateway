@@ -32,7 +32,7 @@ public static class ServiceExtensions
         services.AddScoped<IRequisiteRepository, CachedRequisiteRepository>();
 
         services.AddScoped<TransactionRepository>();
-        services.AddScoped<ITransactionRepository, TransactionRepository>();
+        services.AddScoped<ITransactionRepository, CachedTransactionRepository>();
         
         services.AddScoped<ChatRepository>();
         services.AddScoped<IChatRepository, CachedChatRepository>();

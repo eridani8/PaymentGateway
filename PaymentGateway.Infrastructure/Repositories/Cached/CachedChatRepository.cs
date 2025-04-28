@@ -6,12 +6,13 @@ namespace PaymentGateway.Infrastructure.Repositories.Cached;
 
 public class CachedChatRepository(ChatRepository repository, IMemoryCache cache) : IChatRepository
 {
-    private const string Key = "ChatMessages";
+    private const string CacheKey = "ChatMessages";
+
     public async Task<List<ChatMessageEntity>> GetAllChatMessages()
     {
-        var result = await cache.GetOrCreateAsync(Key, entry =>
+        var result = await cache.GetOrCreateAsync(CacheKey, entry =>
         {
-            entry.SetSlidingExpiration(TimeSpan.FromHours(1));
+            entry.SetSlidingExpiration(TimeSpan.FromHours(6));
             entry.SetAbsoluteExpiration(TimeSpan.FromHours(12));
             return repository.GetAllChatMessages();
         });
@@ -21,7 +22,7 @@ public class CachedChatRepository(ChatRepository repository, IMemoryCache cache)
 
     public Task<ChatMessageEntity> AddChatMessage(ChatMessageEntity message)
     {
-        cache.Remove(Key);
+        cache.Remove(CacheKey);
         return repository.AddChatMessage(message);
     }
 }
