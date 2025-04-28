@@ -1,7 +1,7 @@
 ﻿@page "/chat"
 @using PaymentGateway.Shared.DTOs.Chat
 @using PaymentGateway.Shared.DTOs.User
-@attribute [Authorize(Roles = "Admin,Support")]
+@attribute [Authorize(Roles = "Admin,Support,User")]
 @inject NavigationManager NavigationManager
 @inject ISnackbar Snackbar
 @inject ILogger<Chat> Logger
