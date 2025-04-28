@@ -13,7 +13,7 @@ public static class SignalREvents
     public const string UserConnected = "UserConnected";
     public const string UserDisconnected = "UserDisconnected";
     public const string SendChatMessage = "SendChatMessage";
-    public const string GetAdminsAndSupports = "GetAdminsAndSupports";
+    public const string GetAllUsers = "GetAllUsers";
     public const string GetChatMessages = "GetChatMessages";
     public const string ChangeRequisiteAssignmentAlgorithm = "ChangeRequisiteAssignmentAlgorithm";
 }

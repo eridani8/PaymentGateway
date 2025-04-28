@@ -485,11 +485,11 @@ public class NotificationService(
 
     #region Chat
     
-    public async Task<List<UserState>> GetAdminsAndSupports()
+    public async Task<List<UserState>> GetAllUsers()
     {
         try
         {
-            return await _hubConnection!.InvokeAsync<List<UserState>>(SignalREvents.GetAdminsAndSupports);
+            return await _hubConnection!.InvokeAsync<List<UserState>>(SignalREvents.GetAllUsers);
         }
         catch (Exception e)
         {

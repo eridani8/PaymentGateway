@@ -139,7 +139,7 @@
     {
         try
         {
-            _users = await NotificationService.GetAdminsAndSupports();
+            _users = await NotificationService.GetAllUsers();
             await InvokeAsync(StateHasChanged);
         }
         catch (Exception e)

@@ -114,22 +114,15 @@ public class NotificationHub(
         var user = ConnectedUsers
             .FirstOrDefault(kvp => kvp.Value.Id == id);
 
-        return user.Equals(default(KeyValuePair<string, UserState>)) ? null : user.Key;
+        return string.IsNullOrEmpty(user.Key) ? null : user.Key;
     }
 
-    public Task<List<UserState>> GetAdminsAndSupports()
+    public Task<List<UserState>> GetAllUsers()
     {
-        var roles = new[] { "Admin", "Support" };
-
-        var result = ConnectedUsers.Values
-            .Where(u => u.Roles.Any(r => roles.Contains(r)))
-            .DistinctBy(u => u.Id)
-            .ToList();
-
+        var result = ConnectedUsers.Values.ToList();
         return Task.FromResult(result);
     }
     
-    [Authorize(Roles = "Admin,Support")]
     public async Task<List<ChatMessageDto>> GetChatMessages()
     {
         try
@@ -143,7 +136,6 @@ public class NotificationHub(
         }
     }
 
-    [Authorize(Roles = "Admin,Support")]
     public async Task SendChatMessage(string message)
     {
         var userId = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -162,11 +154,7 @@ public class NotificationHub(
             try
             {
                 messageDto = await chatMessageService.SaveChatMessage(messageDto);
-                
-                if (GetUsersByRoles(["Admin", "Support"]) is { Count: > 0 } staffIds)
-                {
-                    await Clients.Clients(staffIds).ChatMessageReceived(messageDto);
-                }
+                await Clients.All.ChatMessageReceived(messageDto);
             }
             catch (Exception ex)
             {
