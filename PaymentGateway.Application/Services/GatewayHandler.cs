@@ -9,6 +9,7 @@ using PaymentGateway.Infrastructure.Interfaces;
 using PaymentGateway.Shared.DTOs.Payment;
 using PaymentGateway.Shared.DTOs.Requisite;
 using PaymentGateway.Shared.DTOs.User;
+using PaymentGateway.Shared.Enums;
 using PaymentGateway.Shared.Interfaces;
 
 namespace PaymentGateway.Application.Services;
@@ -57,7 +58,8 @@ public class GatewayHandler(
                 }
 
                 var currentMonth = new DateTime(now.Year, now.Month, 1);
-                var lastMonthlyResetDate = new DateTime(requisite.LastMonthlyFundsResetAt.Year, requisite.LastMonthlyFundsResetAt.Month, 1);
+                var lastMonthlyResetDate = new DateTime(requisite.LastMonthlyFundsResetAt.Year,
+                    requisite.LastMonthlyFundsResetAt.Month, 1);
                 var monthlyResetCacheKey = $"monthly_funds_reset:{requisite.Id}:{currentMonth:yyyy-MM}";
 
                 if (lastMonthlyResetDate < currentMonth && cache.Get(monthlyResetCacheKey) is null)
@@ -85,12 +87,17 @@ public class GatewayHandler(
 
         if (unprocessedPayments.Count == 0) return;
 
-        var freeRequisites = await unit.RequisiteRepository.GetFreeRequisites(unprocessedPayments.Count);
+        var freeRequisites = await unit.RequisiteRepository.GetFreeRequisites(unprocessedPayments.Count * 2);
 
-        const string noAvailableRequisites = "Нет свободных реквизитов для обработки платежей";
         if (freeRequisites.Count == 0)
         {
-            logger.LogWarning(noAvailableRequisites);
+            var noRequisitesCacheKey = "no_requisites_warning";
+            if (cache.Get(noRequisitesCacheKey) is null)
+            {
+                logger.LogWarning("Нет свободных реквизитов для обработки платежей");
+                cache.Set(noRequisitesCacheKey, 0, TimeSpan.FromMinutes(1));
+            }
+
             return;
         }
 
@@ -106,13 +113,23 @@ public class GatewayHandler(
                 );
                 if (requisite is null)
                 {
-                    logger.LogWarning("Нет подходящего реквизита для платежа {paymentId} с суммой {amount}", payment.Id,
-                        payment.Amount);
+                    var noSuitableRequisiteCacheKey = $"no_suitable_requisite_warning:{payment.Id}";
+                    if (cache.Get(noSuitableRequisiteCacheKey) is null)
+                    {
+                        logger.LogWarning("Нет подходящего реквизита для платежа {paymentId} с суммой {amount}",
+                            payment.Id,
+                            payment.Amount);
+                        cache.Set(noSuitableRequisiteCacheKey, 0, TimeSpan.FromMinutes(1));
+                    }
+                    continue;
+                }
+
+                if (!freeRequisites.Contains(requisite))
+                {
                     continue;
                 }
 
                 freeRequisites.Remove(requisite);
-
                 requisite.AssignToPayment(payment);
                 payment.MarkAsPending(requisite);
                 await unit.Commit();
@@ -151,8 +168,7 @@ public class GatewayHandler(
                 unit.PaymentRepository.Delete(expiredPayment);
                 await notificationService.NotifyPaymentDeleted(expiredPayment.Id,
                     requisiteUserId == Guid.Empty ? null : requisiteUserId);
-                logger.LogInformation("Платеж {paymentId} на сумму {amount} отменен из-за истечения срока ожидания",
-                    expiredPayment.Id, expiredPayment.Amount);
+                logger.LogInformation("Платеж {paymentId} на сумму {amount} отменен из-за истечения срока ожидания", expiredPayment.Id, expiredPayment.Amount);
             }
         }
 
