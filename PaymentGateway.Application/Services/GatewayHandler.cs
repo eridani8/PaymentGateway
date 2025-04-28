@@ -85,7 +85,7 @@ public class GatewayHandler(
 
         if (unprocessedPayments.Count == 0) return;
 
-        var freeRequisites = await unit.RequisiteRepository.GetFreeRequisites();
+        var freeRequisites = await unit.RequisiteRepository.GetFreeRequisites(unprocessedPayments.Count);
 
         const string noAvailableRequisites = "Нет свободных реквизитов для обработки платежей";
         if (freeRequisites.Count == 0)
@@ -98,12 +98,6 @@ public class GatewayHandler(
         {
             try
             {
-                if (freeRequisites.Count == 0)
-                {
-                    logger.LogWarning(noAvailableRequisites);
-                    return;
-                }
-
                 var requisite = freeRequisites.FirstOrDefault(r =>
                     r.DayLimit >= payment.Amount &&
                     (r.DayLimit - r.DayReceivedFunds) >= payment.Amount &&
