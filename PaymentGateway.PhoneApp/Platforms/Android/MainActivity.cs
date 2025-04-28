@@ -16,6 +16,9 @@ public class MainActivity : MauiAppCompatActivity
     private const string ActionStart = "com.eridani8.paymentgateway.START_SERVICE";
     private const int NotificationPermissionCode = 100;
     private const int SmsPermissionCode = 200;
+    private const int NotificationListenerSettingsCode = 300;
+    private const string NotificationListenerSettingsAction = "android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS";
+    private bool _isFromNotificationSettings;
 
     protected override void OnCreate(Bundle? savedInstanceState)
     {
@@ -27,14 +30,27 @@ public class MainActivity : MauiAppCompatActivity
         }
 
         RequestSmsPermissions();
+        RequestNotificationListenerPermission();
         StartBackgroundService();
         RequestBatteryOptimizationIgnore();
     }
 
+    protected override void OnResume()
+    {
+        base.OnResume();
+
+        if (!_isFromNotificationSettings) return;
+        _isFromNotificationSettings = false;
+            
+        if (IsNotificationListenerEnabled())
+        {
+            RestartBackgroundService();
+        }
+    }
+
     private void RequestNotificationPermission()
     {
-        if (ContextCompat.CheckSelfPermission(this, Android.Manifest.Permission.PostNotifications) !=
-            Permission.Granted)
+        if (ContextCompat.CheckSelfPermission(this, Android.Manifest.Permission.PostNotifications) != Permission.Granted)
         {
             ActivityCompat.RequestPermissions(
                 this,
@@ -134,5 +150,47 @@ public class MainActivity : MauiAppCompatActivity
         {
             // ignore
         }
+    }
+
+    private bool IsNotificationListenerEnabled()
+    {
+        var componentName = new ComponentName(this, Java.Lang.Class.FromType(typeof(NotificationListenerService)));
+        var enabledListeners = Android.Provider.Settings.Secure.GetString(
+            ContentResolver, 
+            "enabled_notification_listeners");
+            
+        return enabledListeners != null && enabledListeners.Contains(componentName.FlattenToString());
+    }
+
+    private void RequestNotificationListenerPermission()
+    {
+        if (IsNotificationListenerEnabled())
+        {
+            return;
+        }
+        
+        try
+        {
+            var intent = new Intent(NotificationListenerSettingsAction);
+            _isFromNotificationSettings = true;
+            StartActivityForResult(intent, NotificationListenerSettingsCode);
+        }
+        catch
+        {
+            _isFromNotificationSettings = false;
+        }
+    }
+
+    protected override void OnActivityResult(int requestCode, Result resultCode, Intent? data)
+    {
+        if (requestCode == NotificationListenerSettingsCode)
+        {
+            if (IsNotificationListenerEnabled())
+            {
+                RestartBackgroundService();
+            }
+        }
+        
+        base.OnActivityResult(requestCode, resultCode, data);
     }
 }

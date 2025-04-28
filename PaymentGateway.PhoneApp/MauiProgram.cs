@@ -102,6 +102,7 @@ public static class MauiProgram
         
         builder.Services.AddSingleton<ISmsProcessor, SmsProcessor>();
         builder.Services.AddSingleton<IBackgroundServiceManager, BackgroundServiceManager>();
+        builder.Services.AddSingleton<INotificationProcessor, NotificationProcessor>();
         
         builder.Logging.ClearProviders();
         builder.Logging.AddSerilog(dispose: true);
