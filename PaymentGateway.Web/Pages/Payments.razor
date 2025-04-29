@@ -61,7 +61,7 @@
                              Dense="true">
                     <Columns>
                         <HierarchyColumn/>
-                        <TemplateColumn Title="Владелец реквизита">
+                        <TemplateColumn Title="Владелец реквизита" Hidden="!_isShowAll">
                             <CellTemplate Context="cellContext">
                                 @if (!string.IsNullOrEmpty(cellContext.Item?.Requisite?.User?.Username))
                                 {
