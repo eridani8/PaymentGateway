@@ -12,7 +12,8 @@ using Swashbuckle.AspNetCore.Annotations;
 namespace PaymentGateway.Api.Controllers;
 
 [ApiController]
-[Route("[controller]/[action]")]
+[ApiVersion("1.0")]
+[Route("v{version:apiVersion}/[controller]/[action]")]
 [Produces("application/json")]
 [SwaggerTag("Пользовательские методы и аутентификация")]
 public class UserController(

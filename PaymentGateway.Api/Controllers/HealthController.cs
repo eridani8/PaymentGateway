@@ -3,7 +3,9 @@
 namespace PaymentGateway.Api.Controllers;
 
 [ApiController]
-[Route("[controller]/[action]")]
+[ApiVersion("1.0")]
+[Route("v{version:apiVersion}/[controller]/[action]")]
+[Produces("application/json")]
 public class HealthController : ControllerBase
 {
     [HttpGet]

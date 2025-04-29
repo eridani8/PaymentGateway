@@ -8,6 +8,8 @@ namespace PaymentGateway.Web.Services;
 public class ServiceBase(IHttpClientFactory factory, ILogger<ServiceBase> logger, JsonSerializerOptions jsonOptions) : IServiceBase
 {
     protected JsonSerializerOptions JsonOptions => jsonOptions;
+    
+    private const string apiVersion = "v1";
 
     public async Task<Response> PostRequest(string url, object model)
     {
@@ -67,6 +69,8 @@ public class ServiceBase(IHttpClientFactory factory, ILogger<ServiceBase> logger
     {
         HttpResponseMessage? httpResponse = null;
         string? content = null;
+
+        url = $"{apiVersion}/{url}";
         
         try
         {

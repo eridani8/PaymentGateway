@@ -10,7 +10,8 @@ using PaymentGateway.Shared.Enums;
 namespace PaymentGateway.Api.Controllers;
 
 [ApiController]
-[Route("[controller]/[action]")]
+[ApiVersion("1.0")]
+[Route("v{version:apiVersion}/[controller]/[action]")]
 [Authorize(Roles = "Admin")]
 public class TestsController(IRequisiteService requisiteService, IPaymentService paymentService)
     : ControllerBase

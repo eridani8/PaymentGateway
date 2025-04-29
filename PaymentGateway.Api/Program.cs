@@ -4,11 +4,12 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using NpgsqlTypes;
 using PaymentGateway.Api;
+using PaymentGateway.Api.Configuration;
 using PaymentGateway.Application;
 using PaymentGateway.Application.Hubs;
 using PaymentGateway.Application.Services;
@@ -92,34 +93,9 @@ try
         options.JsonSerializerOptions.MaxDepth = 128;
     });
     builder.Services.AddEndpointsApiExplorer();
-    builder.Services.AddSwaggerGen(o =>
-    {
-        o.EnableAnnotations();
-        o.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-        {
-            Description = "JWT Authorization",
-            Type = SecuritySchemeType.Http,
-            Name = "Authorization",
-            In = ParameterLocation.Header,
-            Scheme = "Bearer",
-            BearerFormat = "JWT",
-        });
-
-        o.AddSecurityRequirement(new OpenApiSecurityRequirement
-        {
-            {
-                new OpenApiSecurityScheme
-                {
-                    Reference = new OpenApiReference
-                    {
-                        Type = ReferenceType.SecurityScheme,
-                        Id = "Bearer"
-                    }
-                },
-                []
-            }
-        });
-    });
+    
+    builder.Services.AddApiVersioningConfiguration();
+    builder.Services.AddSwaggerVersioningConfiguration();
 
     builder.Services.AddCore(builder.Configuration);
     builder.Services.AddInfrastructure(connectionString);
@@ -229,10 +205,20 @@ try
 
     var app = builder.Build();
 
+    var apiVersionDescriptionProvider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
+
     // if (app.Environment.IsDevelopment()) // TODO
     {
         app.UseSwagger();
-        app.UseSwaggerUI();
+        app.UseSwaggerUI(options =>
+        {
+            foreach (var description in apiVersionDescriptionProvider.ApiVersionDescriptions)
+            {
+                options.SwaggerEndpoint(
+                    $"/swagger/{description.GroupName}/swagger.json",
+                    description.GroupName.ToUpperInvariant());
+            }
+        });
     }
 
     app.UseCors("AllowAll"); // TODO
