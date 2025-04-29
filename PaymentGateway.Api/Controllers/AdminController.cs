@@ -168,7 +168,7 @@ public class AdminController(
         return Ok(roles);
     }
 
-    [HttpPost("{userId:guid}")]
+    [HttpPut("{userId:guid}")]
     [SwaggerOperation(
         Summary = "Сброс двухфакторной аутентификации",
         Description = "Сбрасывает настройки двухфакторной аутентификации для указанного пользователя",
@@ -203,7 +203,7 @@ public class AdminController(
         return Ok(algorithm);
     }
 
-    [HttpPost]
+    [HttpPut]
     [SwaggerOperation(
         Summary = "Изменение алгоритма назначения реквизитов",
         Description = "Устанавливает новый алгоритм для назначения реквизитов",

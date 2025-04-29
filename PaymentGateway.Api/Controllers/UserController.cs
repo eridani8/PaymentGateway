@@ -7,7 +7,7 @@ using PaymentGateway.Core.Entities;
 using PaymentGateway.Core.Interfaces;
 using PaymentGateway.Shared;
 using PaymentGateway.Shared.DTOs.User;
- using Swashbuckle.AspNetCore.Annotations;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace PaymentGateway.Api.Controllers;
 
@@ -82,7 +82,7 @@ public class UserController(
         return Ok(token);
     }
     
-    [HttpPost]
+    [HttpPut]
     [Authorize]
     [SwaggerOperation(
         Summary = "Изменение пароля",
@@ -183,7 +183,7 @@ public class UserController(
         });
     }
     
-    [HttpPost]
+    [HttpPut]
     [SwaggerOperation(
         Summary = "Проверка кода двухфакторной аутентификации",
         Description = "Проверяет введенный код двухфакторной аутентификации",

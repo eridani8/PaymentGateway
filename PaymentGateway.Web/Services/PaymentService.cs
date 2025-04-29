@@ -43,7 +43,7 @@ public class PaymentService(
     
     public async Task<Response> ManualConfirmPayment(Guid id)
     {
-        return await PostRequest($"{ApiEndpoint}/ManualConfirmPayment", new PaymentManualConfirmDto()
+        return await PutRequest($"{ApiEndpoint}/ManualConfirmPayment", new PaymentManualConfirmDto()
         {
             PaymentId = id
         });
@@ -61,7 +61,7 @@ public class PaymentService(
             return new Response { Code = HttpStatusCode.Forbidden, Content = "Недостаточно прав для отмены платежа" };
         }
         
-        return await PostRequest($"{ApiEndpoint}/CancelPayment", new PaymentCancelDto()
+        return await PutRequest($"{ApiEndpoint}/CancelPayment", new PaymentCancelDto()
         {
             PaymentId = id
         });

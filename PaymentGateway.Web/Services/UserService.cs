@@ -26,7 +26,7 @@ public class UserService(
 
     public Task<Response> ChangePasswordAsync(ChangePasswordDto dto)
     {
-        return PostRequest($"{ApiEndpoint}/ChangePassword", dto);
+        return PutRequest($"{ApiEndpoint}/ChangePassword", dto);
     }
 
     public async Task<Response<TwoFactorStatusDto>> GetTwoFactorStatusAsync()
@@ -73,6 +73,6 @@ public class UserService(
 
     public async Task<Response> VerifyTwoFactorAsync(TwoFactorVerifyDto dto)
     {
-        return await PostRequest($"{ApiEndpoint}/VerifyTwoFactor", dto);
+        return await PutRequest($"{ApiEndpoint}/VerifyTwoFactor", dto);
     }
 }

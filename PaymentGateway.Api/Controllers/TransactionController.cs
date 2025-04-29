@@ -21,7 +21,7 @@ public class TransactionController(ITransactionService service) : ControllerBase
         Description = "Создает новую транзакцию в системе",
         OperationId = "CreateTransaction"
     )]
-    [SwaggerResponse(200, "Транзакция успешно создана", typeof(TransactionDto))]
+    [SwaggerResponse(201, "Транзакция успешно создана", typeof(TransactionDto))]
     [SwaggerResponse(400, "Неверные входные данные")]
     [SwaggerResponse(404, "Реквизит не найден")]
     public async Task<ActionResult<TransactionDto>> Create([FromBody] TransactionCreateDto? dto)
@@ -32,7 +32,7 @@ public class TransactionController(ITransactionService service) : ControllerBase
         {
             var transaction = await service.CreateTransaction(dto);
             if (transaction is null) throw new ApplicationException("Ошибка обработки транзакции");
-            return Ok(transaction);
+            return StatusCode(StatusCodes.Status201Created, transaction);
         }
         catch (RequisiteNotFound)
         {

@@ -48,7 +48,7 @@ public class PaymentController(
         }
     }
 
-    [HttpPost]
+    [HttpPut]
     [SwaggerOperation(
         Summary = "Ручное подтверждение платежа",
         Description = "Подтверждает платеж вручную",
@@ -84,7 +84,7 @@ public class PaymentController(
         }
     }
     
-    [HttpPost]
+    [HttpPut]
     [Authorize(Roles = "Admin,Support")]
     [SwaggerOperation(
         Summary = "Отмена платежа",

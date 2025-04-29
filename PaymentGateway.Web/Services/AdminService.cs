@@ -85,7 +85,7 @@ public class AdminService(
 
     public async Task<bool> ResetTwoFactorAsync(Guid userId)
     {
-        var response = await PostRequest($"{ApiEndpoint}/ResetTwoFactor/{userId}");
+        var response = await PutRequest($"{ApiEndpoint}/ResetTwoFactor/{userId}");
         return response.Code == HttpStatusCode.OK;
     }
 
@@ -104,7 +104,7 @@ public class AdminService(
 
     public async Task<bool> SetRequisiteAssignmentAlgorithm(int algorithm)
     {
-        var response = await PostRequest($"{ApiEndpoint}/SetRequisiteAssignmentAlgorithm", algorithm);
+        var response = await PutRequest($"{ApiEndpoint}/SetRequisiteAssignmentAlgorithm", algorithm);
         return response.Code == HttpStatusCode.OK;
     }
 }

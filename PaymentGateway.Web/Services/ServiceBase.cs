@@ -36,6 +36,11 @@ public class ServiceBase(IHttpClientFactory factory, ILogger<ServiceBase> logger
     {
         return await SendRequest(HttpMethod.Put, url, model);
     }
+    
+    public async Task<Response> PutRequest(string url)
+    {
+        return await SendRequest(HttpMethod.Put, url);
+    }
 
     public async Task<T?> PutRequest<T>(string url, object model)
     {
