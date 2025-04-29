@@ -7,12 +7,14 @@ using PaymentGateway.Core.Entities;
 using PaymentGateway.Core.Interfaces;
 using PaymentGateway.Shared;
 using PaymentGateway.Shared.DTOs.User;
+ using Swashbuckle.AspNetCore.Annotations;
 
 namespace PaymentGateway.Api.Controllers;
 
 [ApiController]
 [Route("[controller]/[action]")]
 [Produces("application/json")]
+[SwaggerTag("Пользовательские методы и аутентификация")]
 public class UserController(
     UserManager<UserEntity> userManager,
     SignInManager<UserEntity> signInManager,
@@ -22,6 +24,15 @@ public class UserController(
     IValidator<TwoFactorVerifyDto> twoFactorVerifyValidator) : ControllerBase
 {
     [HttpPost]
+    [SwaggerOperation(
+        Summary = "Аутентификация пользователя",
+        Description = "Выполняет вход пользователя в систему. При включенной двухфакторной аутентификации требует дополнительного кода.",
+        OperationId = "Login"
+    )]
+    [SwaggerResponse(200, "Успешная аутентификация, возвращает JWT-токен", typeof(string))]
+    [SwaggerResponse(400, "Неверные входные данные")]
+    [SwaggerResponse(401, "Неверные учетные данные")]
+    [SwaggerResponse(428, "Требуется двухфакторная аутентификация")]
     public async Task<IActionResult> Login([FromBody] LoginDto? model)
     {
         if (model is null) return BadRequest();
@@ -73,6 +84,15 @@ public class UserController(
     
     [HttpPost]
     [Authorize]
+    [SwaggerOperation(
+        Summary = "Изменение пароля",
+        Description = "Позволяет пользователю изменить свой пароль",
+        OperationId = "ChangePassword"
+    )]
+    [SwaggerResponse(200, "Пароль успешно изменен")]
+    [SwaggerResponse(400, "Неверные входные данные")]
+    [SwaggerResponse(401, "Пользователь не авторизован")]
+    [SwaggerResponse(404, "Пользователь не найден")]
     public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto? model)
     {
         if (model is null) return BadRequest();
@@ -103,6 +123,13 @@ public class UserController(
     }
     
     [HttpGet]
+    [SwaggerOperation(
+        Summary = "Статус двухфакторной аутентификации",
+        Description = "Возвращает информацию о состоянии двухфакторной аутентификации пользователя",
+        OperationId = "TwoFactorStatus"
+    )]
+    [SwaggerResponse(200, "Успешное получение статуса", typeof(TwoFactorStatusDto))]
+    [SwaggerResponse(404, "Пользователь не найден")]
     public async Task<IActionResult> TwoFactorStatus()
     {
         var user = await userManager.GetUserAsync(User);
@@ -124,6 +151,13 @@ public class UserController(
     }
     
     [HttpPost]
+    [SwaggerOperation(
+        Summary = "Включение двухфакторной аутентификации",
+        Description = "Генерирует QR-код и секретный ключ для настройки двухфакторной аутентификации",
+        OperationId = "EnableTwoFactor"
+    )]
+    [SwaggerResponse(200, "Успешная генерация данных", typeof(TwoFactorDto))]
+    [SwaggerResponse(404, "Пользователь не найден")]
     public async Task<IActionResult> EnableTwoFactor()
     {
         var user = await userManager.GetUserAsync(User);
@@ -150,6 +184,14 @@ public class UserController(
     }
     
     [HttpPost]
+    [SwaggerOperation(
+        Summary = "Проверка кода двухфакторной аутентификации",
+        Description = "Проверяет введенный код двухфакторной аутентификации",
+        OperationId = "VerifyTwoFactor"
+    )]
+    [SwaggerResponse(200, "Код успешно проверен")]
+    [SwaggerResponse(400, "Неверный код подтверждения")]
+    [SwaggerResponse(404, "Пользователь не найден")]
     public async Task<IActionResult> VerifyTwoFactor([FromBody] TwoFactorVerifyDto? model)
     {
         if (model is null) return BadRequest();

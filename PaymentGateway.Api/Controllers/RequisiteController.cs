@@ -5,6 +5,7 @@ using PaymentGateway.Application;
 using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Core.Exceptions;
 using PaymentGateway.Shared.DTOs.Requisite;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace PaymentGateway.Api.Controllers;
 
@@ -12,10 +13,19 @@ namespace PaymentGateway.Api.Controllers;
 [Route("[controller]/[action]")]
 [Produces("application/json")]
 [Authorize]
+[SwaggerTag("Управление реквизитами")]
 public class RequisiteController(IRequisiteService service, ILogger<RequisiteController> logger)
     : ControllerBase
 {
     [HttpPost]
+    [SwaggerOperation(
+        Summary = "Создание реквизита",
+        Description = "Создает новый реквизит для пользователя",
+        OperationId = "CreateRequisite"
+    )]
+    [SwaggerResponse(200, "Реквизит успешно создан", typeof(RequisiteDto))]
+    [SwaggerResponse(400, "Неверные входные данные")]
+    [SwaggerResponse(401, "Пользователь не авторизован")]
     public async Task<ActionResult<RequisiteDto>> Create([FromBody] RequisiteCreateDto? dto)
     {
         if (dto is null) return BadRequest();
@@ -45,6 +55,14 @@ public class RequisiteController(IRequisiteService service, ILogger<RequisiteCon
     
     [HttpGet]
     [Authorize(Roles = "Admin,Support")]
+    [SwaggerOperation(
+        Summary = "Получение всех реквизитов",
+        Description = "Возвращает список всех реквизитов в системе (только для администраторов и поддержки)",
+        OperationId = "GetAllRequisites"
+    )]
+    [SwaggerResponse(200, "Список реквизитов успешно получен", typeof(IEnumerable<RequisiteDto>))]
+    [SwaggerResponse(401, "Пользователь не авторизован")]
+    [SwaggerResponse(403, "Недостаточно прав")]
     public async Task<ActionResult<IEnumerable<RequisiteDto>>> GetAll()
     {
         var requisites = await service.GetAllRequisites();
@@ -52,6 +70,13 @@ public class RequisiteController(IRequisiteService service, ILogger<RequisiteCon
     }
 
     [HttpGet]
+    [SwaggerOperation(
+        Summary = "Получение реквизитов пользователя",
+        Description = "Возвращает список реквизитов текущего пользователя",
+        OperationId = "GetUserRequisites"
+    )]
+    [SwaggerResponse(200, "Список реквизитов успешно получен", typeof(IEnumerable<RequisiteDto>))]
+    [SwaggerResponse(401, "Пользователь не авторизован")]
     public async Task<ActionResult<IEnumerable<RequisiteDto>>> GetUserRequisites()
     {
         var userId = User.GetCurrentUserId();
@@ -61,6 +86,14 @@ public class RequisiteController(IRequisiteService service, ILogger<RequisiteCon
     }
     
     [HttpGet("{id:guid}")]
+    [SwaggerOperation(
+        Summary = "Получение реквизита по ID",
+        Description = "Возвращает информацию о реквизите по его идентификатору",
+        OperationId = "GetRequisiteById"
+    )]
+    [SwaggerResponse(200, "Реквизит успешно найден", typeof(RequisiteDto))]
+    [SwaggerResponse(401, "Пользователь не авторизован")]
+    [SwaggerResponse(404, "Реквизит не найден")]
     public async Task<ActionResult<RequisiteDto>> GetById(Guid id)
     {
         var userId = User.GetCurrentUserId();
@@ -71,6 +104,14 @@ public class RequisiteController(IRequisiteService service, ILogger<RequisiteCon
     }
     
     [HttpPut("{id:guid}")]
+    [SwaggerOperation(
+        Summary = "Обновление реквизита",
+        Description = "Обновляет информацию о реквизите",
+        OperationId = "UpdateRequisite"
+    )]
+    [SwaggerResponse(200, "Реквизит успешно обновлен", typeof(RequisiteDto))]
+    [SwaggerResponse(400, "Неверные входные данные")]
+    [SwaggerResponse(401, "Пользователь не авторизован")]
     public async Task<ActionResult<RequisiteDto>> Update(Guid id, [FromBody] RequisiteUpdateDto? dto)
     {
         if (dto is null) return BadRequest();
@@ -89,6 +130,14 @@ public class RequisiteController(IRequisiteService service, ILogger<RequisiteCon
     }
     
     [HttpDelete("{id:guid}")]
+    [SwaggerOperation(
+        Summary = "Удаление реквизита",
+        Description = "Удаляет реквизит по его идентификатору",
+        OperationId = "DeleteRequisite"
+    )]
+    [SwaggerResponse(200, "Реквизит успешно удален", typeof(RequisiteDto))]
+    [SwaggerResponse(401, "Пользователь не авторизован")]
+    [SwaggerResponse(404, "Реквизит не найден")]
     public async Task<ActionResult<RequisiteDto>> Delete(Guid id)
     {
         var requisite = await service.DeleteRequisite(id);

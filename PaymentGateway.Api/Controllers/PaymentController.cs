@@ -5,18 +5,28 @@ using PaymentGateway.Application;
 using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Core.Exceptions;
 using PaymentGateway.Shared.DTOs.Payment;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace PaymentGateway.Api.Controllers;
 
 [ApiController]
 [Route("[controller]/[action]")]
 [Produces("application/json")]
+[SwaggerTag("Управление платежами")]
 public class PaymentController(
     IPaymentService service,
     ILogger<PaymentController> logger)
     : ControllerBase
 {
     [HttpPost]
+    [SwaggerOperation(
+        Summary = "Создание платежа",
+        Description = "Создает новый платеж в системе",
+        OperationId = "CreatePayment"
+    )]
+    [SwaggerResponse(200, "Платеж успешно создан", typeof(PaymentDto))]
+    [SwaggerResponse(400, "Неверные входные данные")]
+    [SwaggerResponse(409, "Дублирующийся платеж")]
     public async Task<ActionResult<PaymentDto>> Create([FromBody] PaymentCreateDto? dto)
     {
         if (dto is null) return BadRequest();
@@ -39,6 +49,15 @@ public class PaymentController(
     }
 
     [HttpPost]
+    [SwaggerOperation(
+        Summary = "Ручное подтверждение платежа",
+        Description = "Подтверждает платеж вручную",
+        OperationId = "ManualConfirmPayment"
+    )]
+    [SwaggerResponse(200, "Платеж успешно подтвержден")]
+    [SwaggerResponse(400, "Неверные входные данные")]
+    [SwaggerResponse(401, "Пользователь не авторизован")]
+    [SwaggerResponse(404, "Платеж не найден")]
     public async Task<ActionResult<bool>> ManualConfirmPayment([FromBody] PaymentManualConfirmDto? dto)
     {
         if (dto is null) return BadRequest();
@@ -67,6 +86,16 @@ public class PaymentController(
     
     [HttpPost]
     [Authorize(Roles = "Admin,Support")]
+    [SwaggerOperation(
+        Summary = "Отмена платежа",
+        Description = "Отменяет платеж (только для администраторов и поддержки)",
+        OperationId = "CancelPayment"
+    )]
+    [SwaggerResponse(200, "Платеж успешно отменен")]
+    [SwaggerResponse(400, "Неверные входные данные")]
+    [SwaggerResponse(401, "Пользователь не авторизован")]
+    [SwaggerResponse(403, "Недостаточно прав")]
+    [SwaggerResponse(404, "Платеж не найден")]
     public async Task<ActionResult<bool>> CancelPayment([FromBody] PaymentCancelDto? dto)
     {
         if (dto is null) return BadRequest();
@@ -95,6 +124,14 @@ public class PaymentController(
     
     [HttpGet]
     [Authorize(Roles = "Admin,Support")]
+    [SwaggerOperation(
+        Summary = "Получение всех платежей",
+        Description = "Возвращает список всех платежей в системе (только для администраторов и поддержки)",
+        OperationId = "GetAllPayments"
+    )]
+    [SwaggerResponse(200, "Список платежей успешно получен", typeof(IEnumerable<PaymentDto>))]
+    [SwaggerResponse(401, "Пользователь не авторизован")]
+    [SwaggerResponse(403, "Недостаточно прав")]
     public async Task<ActionResult<IEnumerable<PaymentDto>>> GetAll()
     {
         var payments = await service.GetAllPayments();
@@ -102,6 +139,13 @@ public class PaymentController(
     }
 
     [HttpGet]
+    [SwaggerOperation(
+        Summary = "Получение платежей пользователя",
+        Description = "Возвращает список платежей текущего пользователя",
+        OperationId = "GetUserPayments"
+    )]
+    [SwaggerResponse(200, "Список платежей успешно получен", typeof(IEnumerable<PaymentDto>))]
+    [SwaggerResponse(401, "Пользователь не авторизован")]
     public async Task<ActionResult<IEnumerable<PaymentDto>>> GetUserPayments()
     {
         var userId = User.GetCurrentUserId();
@@ -111,6 +155,13 @@ public class PaymentController(
     }
     
     [HttpGet("{id:guid}")]
+    [SwaggerOperation(
+        Summary = "Получение платежа по ID",
+        Description = "Возвращает информацию о платеже по его идентификатору",
+        OperationId = "GetPaymentById"
+    )]
+    [SwaggerResponse(200, "Платеж успешно найден", typeof(PaymentDto))]
+    [SwaggerResponse(404, "Платеж не найден")]
     public async Task<ActionResult<PaymentDto>> GetById(Guid id)
     {
         var payment = await service.GetPaymentById(id);
@@ -120,6 +171,15 @@ public class PaymentController(
     
     [Authorize(Roles = "Admin,Support")]
     [HttpDelete("{id:guid}")]
+    [SwaggerOperation(
+        Summary = "Удаление платежа",
+        Description = "Удаляет платеж по его идентификатору (только для администраторов и поддержки)",
+        OperationId = "DeletePayment"
+    )]
+    [SwaggerResponse(200, "Платеж успешно удален", typeof(PaymentDto))]
+    [SwaggerResponse(401, "Пользователь не авторизован")]
+    [SwaggerResponse(403, "Недостаточно прав")]
+    [SwaggerResponse(404, "Платеж не найден")]
     public async Task<ActionResult<PaymentDto>> Delete(Guid id)
     {
         var payment = await service.DeletePayment(id);

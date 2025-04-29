@@ -8,18 +8,30 @@ using PaymentGateway.Core.Exceptions;
 using PaymentGateway.Shared.DTOs.User;
 using PaymentGateway.Shared.Enums;
 using PaymentGateway.Shared.Interfaces;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace PaymentGateway.Api.Controllers;
 
 [ApiController]
 [Route("[controller]/[action]")]
 [Authorize(Roles = "Admin")]
+[SwaggerTag("Административные методы управления пользователями и системой")]
 public class AdminController(
     IAdminService service,
     ILogger<AdminController> logger,
     INotificationService notificationService) : ControllerBase
 {
     [HttpPost]
+    [SwaggerOperation(
+        Summary = "Создание нового пользователя",
+        Description = "Создает нового пользователя в системе",
+        OperationId = "CreateUser"
+    )]
+    [SwaggerResponse(200, "Пользователь успешно создан", typeof(UserDto))]
+    [SwaggerResponse(400, "Неверные входные данные")]
+    [SwaggerResponse(401, "Пользователь не авторизован")]
+    [SwaggerResponse(403, "Недостаточно прав")]
+    [SwaggerResponse(409, "Пользователь с таким именем уже существует")]
     public async Task<ActionResult<UserDto>> CreateUser([FromBody] CreateUserDto? dto)
     {
         if (dto is null) return BadRequest();
@@ -46,6 +58,14 @@ public class AdminController(
     }
 
     [HttpGet]
+    [SwaggerOperation(
+        Summary = "Получение списка всех пользователей",
+        Description = "Возвращает список всех пользователей системы",
+        OperationId = "GetAllUsers"
+    )]
+    [SwaggerResponse(200, "Список пользователей успешно получен", typeof(List<UserDto>))]
+    [SwaggerResponse(401, "Пользователь не авторизован")]
+    [SwaggerResponse(403, "Недостаточно прав")]
     public async Task<ActionResult<List<UserDto>>> GetAllUsers()
     {
         var users = await service.GetAllUsers();
@@ -53,6 +73,15 @@ public class AdminController(
     }
 
     [HttpGet("{id:guid}")]
+    [SwaggerOperation(
+        Summary = "Получение пользователя по ID",
+        Description = "Возвращает информацию о пользователе по его идентификатору",
+        OperationId = "GetUserById"
+    )]
+    [SwaggerResponse(200, "Пользователь успешно найден", typeof(UserDto))]
+    [SwaggerResponse(401, "Пользователь не авторизован")]
+    [SwaggerResponse(403, "Недостаточно прав")]
+    [SwaggerResponse(404, "Пользователь не найден")]
     public async Task<ActionResult<UserDto>> GetUserById(Guid id)
     {
         var user = await service.GetUserById(id);
@@ -65,6 +94,15 @@ public class AdminController(
     }
 
     [HttpDelete("{id:guid}")]
+    [SwaggerOperation(
+        Summary = "Удаление пользователя",
+        Description = "Удаляет пользователя из системы по его идентификатору",
+        OperationId = "DeleteUser"
+    )]
+    [SwaggerResponse(200, "Пользователь успешно удален")]
+    [SwaggerResponse(400, "Неверные входные данные")]
+    [SwaggerResponse(401, "Пользователь не авторизован")]
+    [SwaggerResponse(403, "Недостаточно прав")]
     public async Task<ActionResult<bool>> DeleteUser(Guid id)
     {
         try
@@ -83,6 +121,16 @@ public class AdminController(
     }
 
     [HttpPut]
+    [SwaggerOperation(
+        Summary = "Обновление данных пользователя",
+        Description = "Обновляет информацию о пользователе",
+        OperationId = "UpdateUser"
+    )]
+    [SwaggerResponse(200, "Данные пользователя успешно обновлены", typeof(UserDto))]
+    [SwaggerResponse(400, "Неверные входные данные")]
+    [SwaggerResponse(401, "Пользователь не авторизован")]
+    [SwaggerResponse(403, "Недостаточно прав")]
+    [SwaggerResponse(404, "Пользователь не найден")]
     public async Task<ActionResult<UserDto>> UpdateUser([FromBody] UpdateUserDto? dto)
     {
         if (dto is null) return BadRequest();
@@ -102,6 +150,14 @@ public class AdminController(
     }
 
     [HttpGet]
+    [SwaggerOperation(
+        Summary = "Получение ролей пользователей",
+        Description = "Возвращает роли для списка пользователей по их идентификаторам",
+        OperationId = "GetUsersRoles"
+    )]
+    [SwaggerResponse(200, "Роли пользователей успешно получены", typeof(Dictionary<Guid, string>))]
+    [SwaggerResponse(401, "Пользователь не авторизован")]
+    [SwaggerResponse(403, "Недостаточно прав")]
     public async Task<ActionResult<Dictionary<Guid, string>>> GetUsersRoles([FromQuery] string userIds)
     {
         var ids = userIds.Split(',')
@@ -113,6 +169,15 @@ public class AdminController(
     }
 
     [HttpPost("{userId:guid}")]
+    [SwaggerOperation(
+        Summary = "Сброс двухфакторной аутентификации",
+        Description = "Сбрасывает настройки двухфакторной аутентификации для указанного пользователя",
+        OperationId = "ResetTwoFactor"
+    )]
+    [SwaggerResponse(200, "Двухфакторная аутентификация успешно сброшена")]
+    [SwaggerResponse(400, "Неверные входные данные")]
+    [SwaggerResponse(401, "Пользователь не авторизован")]
+    [SwaggerResponse(403, "Недостаточно прав")]
     public async Task<ActionResult> ResetTwoFactor(Guid userId)
     {
         var result = await service.ResetTwoFactorAsync(userId);
@@ -124,6 +189,14 @@ public class AdminController(
     }
 
     [HttpGet]
+    [SwaggerOperation(
+        Summary = "Получение текущего алгоритма назначения реквизитов",
+        Description = "Возвращает текущий алгоритм, используемый для назначения реквизитов",
+        OperationId = "GetCurrentRequisiteAssignmentAlgorithm"
+    )]
+    [SwaggerResponse(200, "Алгоритм успешно получен")]
+    [SwaggerResponse(401, "Пользователь не авторизован")]
+    [SwaggerResponse(403, "Недостаточно прав")]
     public ActionResult<int> GetCurrentRequisiteAssignmentAlgorithm()
     {
         var algorithm = service.GetCurrentRequisiteAssignmentAlgorithm();
@@ -131,6 +204,15 @@ public class AdminController(
     }
 
     [HttpPost]
+    [SwaggerOperation(
+        Summary = "Изменение алгоритма назначения реквизитов",
+        Description = "Устанавливает новый алгоритм для назначения реквизитов",
+        OperationId = "SetRequisiteAssignmentAlgorithm"
+    )]
+    [SwaggerResponse(200, "Алгоритм успешно изменен")]
+    [SwaggerResponse(400, "Неверные входные данные")]
+    [SwaggerResponse(401, "Пользователь не авторизован")]
+    [SwaggerResponse(403, "Недостаточно прав")]
     public ActionResult<bool> SetRequisiteAssignmentAlgorithm([FromBody] int algorithm)
     {
         if (!Enum.IsDefined(typeof(RequisiteAssignmentAlgorithm), algorithm))

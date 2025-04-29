@@ -5,15 +5,25 @@ using PaymentGateway.Application;
 using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Core.Exceptions;
 using PaymentGateway.Shared.DTOs.Transaction;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace PaymentGateway.Api.Controllers;
 
 [ApiController]
 [Route("[controller]/[action]")]
 [Produces("application/json")]
+[SwaggerTag("Управление транзакциями")]
 public class TransactionController(ITransactionService service) : ControllerBase
 {
     [HttpPost]
+    [SwaggerOperation(
+        Summary = "Создание транзакции",
+        Description = "Создает новую транзакцию в системе",
+        OperationId = "CreateTransaction"
+    )]
+    [SwaggerResponse(200, "Транзакция успешно создана", typeof(TransactionDto))]
+    [SwaggerResponse(400, "Неверные входные данные")]
+    [SwaggerResponse(404, "Реквизит не найден")]
     public async Task<ActionResult<TransactionDto>> Create([FromBody] TransactionCreateDto? dto)
     {
         if (dto is null) return BadRequest();
@@ -40,6 +50,15 @@ public class TransactionController(ITransactionService service) : ControllerBase
     
     [HttpGet]
     [Authorize(Roles = "Admin,Support")]
+    [SwaggerOperation(
+        Summary = "Получение всех транзакций",
+        Description = "Возвращает список всех транзакций в системе (только для администраторов и поддержки)",
+        OperationId = "GetAllTransactions"
+    )]
+    [SwaggerResponse(200, "Список транзакций успешно получен", typeof(List<TransactionDto>))]
+    [SwaggerResponse(401, "Пользователь не авторизован")]
+    [SwaggerResponse(403, "Недостаточно прав")]
+    [SwaggerResponse(500, "Внутренняя ошибка сервера")]
     public async Task<ActionResult<List<TransactionDto>>> GetAll()
     {
         try
@@ -55,6 +74,14 @@ public class TransactionController(ITransactionService service) : ControllerBase
     
     [HttpGet]
     [Authorize]
+    [SwaggerOperation(
+        Summary = "Получение транзакций пользователя",
+        Description = "Возвращает список транзакций текущего пользователя",
+        OperationId = "GetUserTransactions"
+    )]
+    [SwaggerResponse(200, "Список транзакций успешно получен", typeof(List<TransactionDto>))]
+    [SwaggerResponse(401, "Пользователь не авторизован")]
+    [SwaggerResponse(500, "Внутренняя ошибка сервера")]
     public async Task<ActionResult<List<TransactionDto>>> GetUserTransactions()
     {
         try
