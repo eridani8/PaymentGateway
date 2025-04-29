@@ -33,9 +33,9 @@ public class CachedRequisiteRepository(RequisiteRepository repository, IMemoryCa
         return Repository.GetAllTracked();
     }
 
-    public Task<List<RequisiteEntity>> GetFreeRequisites(int count)
+    public Task<List<RequisiteEntity>> GetFreeRequisites()
     {
-        return Repository.GetFreeRequisites(count);
+        return Repository.GetFreeRequisites();
     }
 
     public Task<int> GetUserRequisitesCount(Guid userId)

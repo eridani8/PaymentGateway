@@ -87,7 +87,7 @@ public class GatewayHandler(
 
         if (unprocessedPayments.Count == 0) return;
 
-        var freeRequisites = await unit.RequisiteRepository.GetFreeRequisites(unprocessedPayments.Count * 2);
+        var freeRequisites = await unit.RequisiteRepository.GetFreeRequisites();
 
         if (freeRequisites.Count == 0)
         {

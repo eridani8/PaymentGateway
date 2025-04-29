@@ -18,7 +18,7 @@ public class RequisiteRepository(
         return await GetSet().ToListAsync();
     }
     
-    public async Task<List<RequisiteEntity>> GetFreeRequisites(int count)
+    public async Task<List<RequisiteEntity>> GetFreeRequisites()
     {
         var currentTime = DateTime.UtcNow;
         var currentTimeOnly = TimeOnly.FromDateTime(currentTime);
@@ -39,8 +39,8 @@ public class RequisiteRepository(
 
         var requisites = gatewaySettings.Value.AppointmentAlgorithm switch
         {
-            RequisiteAssignmentAlgorithm.Priority => await query.OrderByDescending(r => r.Priority).Take(count).ToListAsync(),
-            RequisiteAssignmentAlgorithm.Distribution => await query.OrderBy(r => r.DayOperationsCount).Take(count).ToListAsync(),
+            RequisiteAssignmentAlgorithm.Priority => await query.OrderByDescending(r => r.Priority).ToListAsync(),
+            RequisiteAssignmentAlgorithm.Distribution => await query.OrderBy(r => r.DayOperationsCount).ToListAsync(),
             _ => []
         };
         return requisites;
