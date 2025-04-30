@@ -145,10 +145,10 @@
             {
                 var result = await AdminService.CreateUser(_createUserDto);
 
-                if (result != null)
+                if (result != null && result != Guid.Empty)
                 {
-                    Snackbar.Add($"Пользователь {result.Username} успешно создан", Severity.Success);
-                    MudDialog.Close(DialogResult.Ok(result));
+                    Snackbar.Add($"Пользователь успешно создан", Severity.Success);
+                    MudDialog.Close();
                 }
                 else
                 {

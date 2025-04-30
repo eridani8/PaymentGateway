@@ -211,10 +211,10 @@
                 
                 var result = await RequisiteService.CreateRequisite(_createRequisiteDto);
 
-                if (result != null)
+                if (result != null && result != Guid.Empty)
                 {
-                    Snackbar.Add($"Реквизит {result.FullName} успешно создан", Severity.Success);
-                    MudDialog.Close(DialogResult.Ok(result));
+                    Snackbar.Add($"Реквизит успешно создан", Severity.Success);
+                    MudDialog.Close();
                 }
                 else
                 {

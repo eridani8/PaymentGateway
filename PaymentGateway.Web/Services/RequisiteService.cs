@@ -12,7 +12,7 @@ public class RequisiteService(
     AuthenticationStateProvider authStateProvider,
     JsonSerializerOptions jsonOptions) : ServiceBase(factory, logger, jsonOptions), IRequisiteService
 {
-    private const string ApiEndpoint = "Requisite";
+    private const string apiEndpoint = "Requisite";
     
     public async Task<List<RequisiteDto>> GetRequisites()
     {
@@ -24,7 +24,7 @@ public class RequisiteService(
             return await GetUserRequisites();
         }
 
-        var response = await GetRequest($"{ApiEndpoint}/GetAll");
+        var response = await GetRequest($"{apiEndpoint}/GetAll");
         if (response.Code == HttpStatusCode.OK && !string.IsNullOrEmpty(response.Content))
         {
             return JsonSerializer.Deserialize<List<RequisiteDto>>(response.Content, JsonOptions) ?? [];
@@ -35,7 +35,7 @@ public class RequisiteService(
     
     public async Task<List<RequisiteDto>> GetUserRequisites()
     {
-        var response = await GetRequest($"{ApiEndpoint}/GetUserRequisites");
+        var response = await GetRequest($"{apiEndpoint}/GetUserRequisites");
         if (response.Code == HttpStatusCode.OK && !string.IsNullOrEmpty(response.Content))
         {
             return JsonSerializer.Deserialize<List<RequisiteDto>>(response.Content, JsonOptions) ?? [];
@@ -44,15 +44,15 @@ public class RequisiteService(
         return [];
     }
     
-    public async Task<RequisiteDto?> CreateRequisite(RequisiteCreateDto dto)
+    public async Task<Guid?> CreateRequisite(RequisiteCreateDto dto)
     {
         try
         {
-            var response = await PostRequest($"{ApiEndpoint}/Create", dto);
+            var response = await PostRequest($"{apiEndpoint}/Create", dto);
             
             if (response.Code == HttpStatusCode.OK && !string.IsNullOrEmpty(response.Content))
             {
-                return JsonSerializer.Deserialize<RequisiteDto>(response.Content, JsonOptions);
+                return JsonSerializer.Deserialize<Guid>(response.Content, JsonOptions);
             }
             
             if (response.Code == HttpStatusCode.BadRequest && !string.IsNullOrEmpty(response.Content))
@@ -73,7 +73,7 @@ public class RequisiteService(
     
     public async Task<Response> UpdateRequisite(Guid id, RequisiteUpdateDto dto)
     {
-        var response = await PutRequest($"{ApiEndpoint}/Update/{id}", dto);
+        var response = await PutRequest($"{apiEndpoint}/Update/{id}", dto);
         if (response.Code != HttpStatusCode.OK)
         {
             logger.LogWarning("Failed to update requisite {Id}. Status code: {StatusCode}", id, response.Code);
@@ -81,14 +81,9 @@ public class RequisiteService(
         return response;
     }
     
-    public async Task<RequisiteDto?> DeleteRequisite(Guid id)
+    public async Task<Response> DeleteRequisite(Guid id)
     {
-        var response = await DeleteRequest<RequisiteDto>($"{ApiEndpoint}/Delete/{id}");
-        if (response is null)
-        {
-            logger.LogWarning("Failed to delete requisite {Id}", id);
-        }
-        return response;
+        return await DeleteRequest($"{apiEndpoint}/Delete/{id}");
     }
 
     public async Task<List<RequisiteDto>> GetRequisitesByUserId(Guid userId)

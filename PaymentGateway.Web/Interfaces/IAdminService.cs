@@ -1,17 +1,18 @@
 ﻿using PaymentGateway.Shared.DTOs.User;
 using PaymentGateway.Shared.Enums;
+using PaymentGateway.Web.Services;
 
 namespace PaymentGateway.Web.Interfaces;
 
 public interface IAdminService
 {
     Task<List<UserDto>> GetAllUsers();
-    Task<UserDto?> CreateUser(CreateUserDto dto);
-    Task<bool> DeleteUser(Guid id);
-    Task<UserDto?> UpdateUser(UpdateUserDto dto);
+    Task<Guid?> CreateUser(CreateUserDto dto);
+    Task<Response> DeleteUser(Guid id);
+    Task<Response> UpdateUser(UpdateUserDto dto);
     Task<UserDto?> GetUserById(Guid userId);
     Task<Dictionary<Guid, string>> GetUsersRoles(List<Guid> users);
-    Task<bool> ResetTwoFactorAsync(Guid userId);
+    Task<bool> ResetTwoFactor(Guid userId);
     Task<RequisiteAssignmentAlgorithm> GetCurrentRequisiteAssignmentAlgorithm();
-    Task<bool> SetRequisiteAssignmentAlgorithm(int algorithm);
+    Task<Response> SetRequisiteAssignmentAlgorithm(int algorithm);
 }

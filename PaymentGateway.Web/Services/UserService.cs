@@ -10,11 +10,11 @@ public class UserService(
     ILogger<UserService> logger,
     JsonSerializerOptions jsonOptions) : ServiceBase(factory, logger, jsonOptions), IUserService
 {
-    private const string ApiEndpoint = "user";
+    private const string apiEndpoint = "user";
     
     public async Task<Response> Login(LoginDto dto)
     {
-        var response = await PostRequest($"{ApiEndpoint}/login", dto);
+        var response = await PostRequest($"{apiEndpoint}/login", dto);
         var result = new Response
         {
             Code = response.Code,
@@ -24,14 +24,14 @@ public class UserService(
         return result;
     }
 
-    public Task<Response> ChangePasswordAsync(ChangePasswordDto dto)
+    public Task<Response> ChangePassword(ChangePasswordDto dto)
     {
-        return PutRequest($"{ApiEndpoint}/ChangePassword", dto);
+        return PutRequest($"{apiEndpoint}/ChangePassword", dto);
     }
 
-    public async Task<Response<TwoFactorStatusDto>> GetTwoFactorStatusAsync()
+    public async Task<Response<TwoFactorStatusDto>> GetTwoFactorStatus()
     {
-        var response = await GetRequest($"{ApiEndpoint}/TwoFactorStatus");
+        var response = await GetRequest($"{apiEndpoint}/TwoFactorStatus");
         var result = new Response<TwoFactorStatusDto>
         {
             Code = response.Code,
@@ -50,9 +50,9 @@ public class UserService(
         return result;
     }
     
-    public async Task<Response<TwoFactorDto>> EnableTwoFactorAsync()
+    public async Task<Response<TwoFactorDto>> EnableTwoFactor()
     {
-        var response = await PostRequest($"{ApiEndpoint}/EnableTwoFactor", new {});
+        var response = await PutRequest($"{apiEndpoint}/EnableTwoFactor");
         var result = new Response<TwoFactorDto>
         {
             Code = response.Code,
@@ -71,8 +71,8 @@ public class UserService(
         return result;
     }
 
-    public async Task<Response> VerifyTwoFactorAsync(TwoFactorVerifyDto dto)
+    public async Task<Response> VerifyTwoFactor(TwoFactorVerifyDto dto)
     {
-        return await PutRequest($"{ApiEndpoint}/VerifyTwoFactor", dto);
+        return await PutRequest($"{apiEndpoint}/VerifyTwoFactor", dto);
     }
 }

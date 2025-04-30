@@ -1,4 +1,5 @@
 ﻿@page "/users"
+@using System.Net
 @using PaymentGateway.Shared.DTOs.User
 @attribute [Authorize(Roles = "Admin")]
 @inject IAdminService AdminService
@@ -261,13 +262,7 @@
 
     private async Task OpenCreateDialog()
     {
-        var dialog = await DialogService.ShowAsync<CreateUserDialog>();
-        var result = await dialog.Result;
-
-        if (result is { Canceled: false })
-        {
-            await LoadUsers();
-        }
+        await DialogService.ShowAsync<CreateUserDialog>();
     }
 
     private async Task DeleteUser(UserDto user)
@@ -287,14 +282,14 @@
             {
                 var deleteResult = await AdminService.DeleteUser(user.Id);
 
-                if (deleteResult)
+                if (deleteResult.Code == HttpStatusCode.OK)
                 {
                     Snackbar.Add($"Пользователь {user.Username} успешно удален", Severity.Success);
                     await LoadUsers();
                 }
                 else
                 {
-                    Snackbar.Add("Ошибка при удалении пользователя", Severity.Error);
+                    Snackbar.Add(deleteResult.Content ?? "Ошибка при удалении пользователя", Severity.Error);
                 }
             }
             catch (Exception e)
@@ -312,25 +307,10 @@
             ["User"] = user
         };
 
-        var dialog = await DialogService.ShowAsync<EditUserDialog>(null, parameters);
-        var result = await dialog.Result;
-
-        if (result is { Canceled: false })
-        {
-            var updateDto = (UpdateUserDto)result.Data!;
-            try
-            {
-                await AdminService.UpdateUser(updateDto);
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e, e.Message);
-                Snackbar.Add("Ошибка при обновлении пользователя", Severity.Error);
-            }
-        }
+        await DialogService.ShowAsync<EditUserDialog>(null, parameters);
     }
 
-    public static Color GetRoleColor(string role) => role switch
+    private static Color GetRoleColor(string role) => role switch
     {
         "Admin" => Color.Warning,
         "User" => Color.Secondary,

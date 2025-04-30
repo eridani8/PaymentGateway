@@ -28,7 +28,7 @@ public class PaymentController(
     [SwaggerResponse(200, "Платеж успешно создан", typeof(PaymentDto))]
     [SwaggerResponse(400, "Неверные входные данные")]
     [SwaggerResponse(409, "Дублирующийся платеж")]
-    public async Task<ActionResult<PaymentDto>> Create([FromBody] PaymentCreateDto? dto)
+    public async Task<ActionResult<Guid>> Create([FromBody] PaymentCreateDto? dto)
     {
         if (dto is null) return BadRequest();
 
@@ -37,7 +37,7 @@ public class PaymentController(
             var payment = await service.CreatePayment(dto);
             if (payment is null) return BadRequest();
             logger.LogInformation("Создание платежа {paymentId} на сумму {amount}", payment.Id, payment.Amount);
-            return Ok(payment);
+            return Ok(payment.Id);
         }
         catch (DuplicatePaymentException)
         {
@@ -59,7 +59,7 @@ public class PaymentController(
     [SwaggerResponse(400, "Неверные входные данные")]
     [SwaggerResponse(401, "Пользователь не авторизован")]
     [SwaggerResponse(404, "Платеж не найден")]
-    public async Task<ActionResult<bool>> ManualConfirmPayment([FromBody] PaymentManualConfirmDto? dto)
+    public async Task<ActionResult> ManualConfirmPayment([FromBody] PaymentManualConfirmDto? dto)
     {
         if (dto is null) return BadRequest();
 
@@ -69,7 +69,7 @@ public class PaymentController(
             if (userId == Guid.Empty) return Unauthorized();
             var payment = await service.ManualConfirmPayment(dto, userId);
             logger.LogInformation("Ручное подтверждение платежа {paymentId} [{User}]", payment.Id, User.GetCurrentUsername());
-            return Ok(true);
+            return Ok();
         }
         catch (PaymentNotFound)
         {
@@ -97,7 +97,7 @@ public class PaymentController(
     [SwaggerResponse(401, "Пользователь не авторизован")]
     [SwaggerResponse(403, "Недостаточно прав")]
     [SwaggerResponse(404, "Платеж не найден")]
-    public async Task<ActionResult<bool>> CancelPayment([FromBody] PaymentCancelDto? dto)
+    public async Task<ActionResult> CancelPayment([FromBody] PaymentCancelDto? dto)
     {
         if (dto is null) return BadRequest();
 
@@ -107,7 +107,7 @@ public class PaymentController(
             if (userId == Guid.Empty) return Unauthorized();
             var payment = await service.CancelPayment(dto, userId);
             logger.LogInformation("Отмена платежа {paymentId} [{User}]", payment.Id, User.GetCurrentUsername());
-            return Ok(true);
+            return Ok();
         }
         catch (PaymentNotFound)
         {

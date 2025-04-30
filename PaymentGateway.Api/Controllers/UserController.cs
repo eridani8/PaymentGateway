@@ -151,7 +151,7 @@ public class UserController(
         return Ok(result);
     }
     
-    [HttpPost]
+    [HttpPut]
     [SwaggerOperation(
         Summary = "Включение двухфакторной аутентификации",
         Description = "Генерирует QR-код и секретный ключ для настройки двухфакторной аутентификации",
@@ -159,7 +159,7 @@ public class UserController(
     )]
     [SwaggerResponse(200, "Успешная генерация данных", typeof(TwoFactorDto))]
     [SwaggerResponse(404, "Пользователь не найден")]
-    public async Task<IActionResult> EnableTwoFactor()
+    public async Task<ActionResult<TwoFactorDto>> EnableTwoFactor()
     {
         var user = await userManager.GetUserAsync(User);
         if (user == null)

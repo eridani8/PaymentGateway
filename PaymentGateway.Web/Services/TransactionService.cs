@@ -13,7 +13,7 @@ public class TransactionService(
     AuthenticationStateProvider authStateProvider,
     JsonSerializerOptions jsonOptions) : ServiceBase(factory, logger, jsonOptions), ITransactionService
 {
-    private const string ApiEndpoint = "Transaction";
+    private const string apiEndpoint = "Transaction";
     
     public async Task<List<TransactionDto>> GetTransactions()
     {
@@ -25,7 +25,7 @@ public class TransactionService(
             return await GetUserTransactions();
         }
         
-        var response = await GetRequest($"{ApiEndpoint}/GetAll");
+        var response = await GetRequest($"{apiEndpoint}/GetAll");
         if (response.Code == HttpStatusCode.OK && !string.IsNullOrEmpty(response.Content))
         {
             return JsonSerializer.Deserialize<List<TransactionDto>>(response.Content, JsonOptions) ?? [];
@@ -36,7 +36,7 @@ public class TransactionService(
 
     public async Task<List<TransactionDto>> GetUserTransactions()
     {
-        var response = await GetRequest($"{ApiEndpoint}/GetUserTransactions");
+        var response = await GetRequest($"{apiEndpoint}/GetUserTransactions");
         if (response.Code == HttpStatusCode.OK && !string.IsNullOrEmpty(response.Content))
         {
             return JsonSerializer.Deserialize<List<TransactionDto>>(response.Content, JsonOptions) ?? [];
@@ -57,7 +57,7 @@ public class TransactionService(
                 RawMessage = $"Поступление {amount} на счет {paymentData} через {source}"
             };
             
-            var response = await PostRequest<TransactionDto>($"{ApiEndpoint}/Create", dto);
+            var response = await PostRequest<TransactionDto>($"{apiEndpoint}/Create", dto);
             
             if (response != null)
             {

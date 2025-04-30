@@ -1,4 +1,5 @@
 ﻿@page "/requisites"
+@using System.Net
 @using PaymentGateway.Shared.DTOs.Requisite
 @using PaymentGateway.Shared.Enums
 @attribute [Authorize(Roles = "User,Admin,Support")]
@@ -357,13 +358,7 @@
 
     private async Task OpenCreateDialog()
     {
-        var dialog = await DialogService.ShowAsync<CreateRequisiteDialog>(null);
-        var result = await dialog.Result;
-
-        if (result is { Canceled: false })
-        {
-            await LoadRequisites();
-        }
+        await DialogService.ShowAsync<CreateRequisiteDialog>(null);
     }
 
     private async Task OpenEditDialog(RequisiteDto requisite)
@@ -373,13 +368,7 @@
             ["Requisite"] = requisite
         };
 
-        var dialog = await DialogService.ShowAsync<EditRequisiteDialog>(null, parameters);
-        var result = await dialog.Result;
-
-        if (result is { Canceled: false })
-        {
-            await LoadRequisites();
-        }
+        await DialogService.ShowAsync<EditRequisiteDialog>(null, parameters);
     }
 
     private async Task OpenDeleteDialog(RequisiteDto requisite)
@@ -514,7 +503,7 @@
     private async Task RequisiteAssignmentAlgorithmChanged(RequisiteAssignmentAlgorithm algorithm)
     {
         var result = await AdminService.SetRequisiteAssignmentAlgorithm((int)algorithm);
-        if (!result)
+        if (result.Code != HttpStatusCode.OK)
         {
             Snackbar.Add("Ошибка при назначении алгоритма подбора реквизита", Severity.Error);
         }

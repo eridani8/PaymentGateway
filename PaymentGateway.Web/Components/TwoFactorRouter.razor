@@ -67,7 +67,7 @@
             
             if (user.IsInRole("Admin"))
             {
-                var statusResponse = await UserService.GetTwoFactorStatusAsync();
+                var statusResponse = await UserService.GetTwoFactorStatus();
                 
                 if (statusResponse is { Code: HttpStatusCode.OK, Data: not null })
                 {

@@ -73,7 +73,7 @@
         
         if (_form.IsValid)
         {
-            var response = await UserService.ChangePasswordAsync(_changePasswordDto);
+            var response = await UserService.ChangePassword(_changePasswordDto);
             
             if (response.Code == HttpStatusCode.OK)
             {

@@ -229,11 +229,11 @@
                 if (result is { Code: HttpStatusCode.OK })
                 {
                     Snackbar.Add($"Реквизит {_updateRequisiteDto.FullName} успешно обновлен", Severity.Success);
-                    MudDialog.Close(DialogResult.Ok(true));
+                    MudDialog.Close();
                 }
                 else
                 {
-                    _errorMessage = "Ошибка при обновлении реквизита";
+                    _errorMessage = result.Content ?? "Ошибка при обновлении реквизита";
                 }
             }
             catch (Exception e)

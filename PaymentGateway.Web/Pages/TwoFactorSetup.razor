@@ -117,7 +117,7 @@
 
         try
         {
-            var statusResponse = await UserService.GetTwoFactorStatusAsync();
+            var statusResponse = await UserService.GetTwoFactorStatus();
             if (statusResponse.Code != HttpStatusCode.OK || statusResponse.Data == null)
             {
                 _error = "Не удалось проверить статус двухфакторной аутентификации";
@@ -130,7 +130,7 @@
                 return;
             }
 
-            var response = await UserService.EnableTwoFactorAsync();
+            var response = await UserService.EnableTwoFactor();
             if (response.Code != HttpStatusCode.OK || response.Data == null)
             {
                 _error = "Не удалось получить данные для настройки двухфакторной аутентификации";
@@ -171,7 +171,7 @@
 
         try
         {
-            var response = await UserService.VerifyTwoFactorAsync(_verifyModel);
+            var response = await UserService.VerifyTwoFactor(_verifyModel);
             if (response.Code == HttpStatusCode.OK)
             {
                 _setupComplete = true;

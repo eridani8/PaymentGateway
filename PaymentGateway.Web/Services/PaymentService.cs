@@ -12,27 +12,13 @@ public class PaymentService(
     AuthenticationStateProvider authStateProvider,
     JsonSerializerOptions jsonOptions) : ServiceBase(factory, logger, jsonOptions), IPaymentService
 {
-    private const string ApiEndpoint = "Payment";
+    private const string apiEndpoint = "Payment";
     
-    public async Task<PaymentDto?> CreatePayment(PaymentCreateDto dto)
+    public async Task<Guid?> CreatePayment(PaymentCreateDto dto)
     {
         try
         {
-            var response = await PostRequest($"{ApiEndpoint}/Create", dto);
-            
-            if (response.Code == HttpStatusCode.OK && !string.IsNullOrEmpty(response.Content))
-            {
-                return JsonSerializer.Deserialize<PaymentDto>(response.Content, JsonOptions);
-            }
-            
-            if (response.Code == HttpStatusCode.BadRequest && !string.IsNullOrEmpty(response.Content))
-            {
-                var errorMessage = response.Content;
-                throw new Exception(errorMessage);
-            }
-            
-            logger.LogWarning("Failed to create payment. Status code: {StatusCode}", response.Code);
-            return null;
+            return await PostRequest<Guid>($"{apiEndpoint}/Create", dto);
         }
         catch (Exception ex)
         {
@@ -43,7 +29,7 @@ public class PaymentService(
     
     public async Task<Response> ManualConfirmPayment(Guid id)
     {
-        return await PutRequest($"{ApiEndpoint}/ManualConfirmPayment", new PaymentManualConfirmDto()
+        return await PutRequest($"{apiEndpoint}/ManualConfirmPayment", new PaymentManualConfirmDto()
         {
             PaymentId = id
         });
@@ -51,17 +37,7 @@ public class PaymentService(
 
     public async Task<Response> CancelPayment(Guid id)
     {
-        var authState = await authStateProvider.GetAuthenticationStateAsync();
-        var isAdmin = authState.User.IsInRole("Admin");
-        var isSupport = authState.User.IsInRole("Support");
-        
-        if (!isAdmin && !isSupport)
-        {
-            logger.LogWarning("Unauthorized user attempted to cancel payment: {PaymentId}", id);
-            return new Response { Code = HttpStatusCode.Forbidden, Content = "Недостаточно прав для отмены платежа" };
-        }
-        
-        return await PutRequest($"{ApiEndpoint}/CancelPayment", new PaymentCancelDto()
+        return await PutRequest($"{apiEndpoint}/CancelPayment", new PaymentCancelDto()
         {
             PaymentId = id
         });
@@ -77,7 +53,7 @@ public class PaymentService(
             return await GetUserPayments();
         }
         
-        var response = await GetRequest($"{ApiEndpoint}/GetAll");
+        var response = await GetRequest($"{apiEndpoint}/GetAll");
         if (response.Code == HttpStatusCode.OK && !string.IsNullOrEmpty(response.Content))
         {
             return JsonSerializer.Deserialize<List<PaymentDto>>(response.Content, JsonOptions) ?? [];
@@ -88,7 +64,7 @@ public class PaymentService(
 
     public async Task<List<PaymentDto>> GetUserPayments()
     {
-        var response = await GetRequest($"{ApiEndpoint}/GetUserPayments");
+        var response = await GetRequest($"{apiEndpoint}/GetUserPayments");
         if (response.Code == HttpStatusCode.OK && !string.IsNullOrEmpty(response.Content))
         {
             return JsonSerializer.Deserialize<List<PaymentDto>>(response.Content, JsonOptions) ?? [];
@@ -116,7 +92,7 @@ public class PaymentService(
     
     public async Task<PaymentDto?> GetPaymentById(Guid id)
     {
-        var response = await GetRequest($"{ApiEndpoint}/GetById/{id}");
+        var response = await GetRequest($"{apiEndpoint}/GetById/{id}");
         
         if (response.Code == HttpStatusCode.OK && !string.IsNullOrEmpty(response.Content))
         {

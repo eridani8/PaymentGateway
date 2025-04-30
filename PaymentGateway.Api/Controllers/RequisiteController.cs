@@ -27,7 +27,7 @@ public class RequisiteController(IRequisiteService service, ILogger<RequisiteCon
     [SwaggerResponse(200, "Реквизит успешно создан", typeof(RequisiteDto))]
     [SwaggerResponse(400, "Неверные входные данные")]
     [SwaggerResponse(401, "Пользователь не авторизован")]
-    public async Task<ActionResult<RequisiteDto>> Create([FromBody] RequisiteCreateDto? dto)
+    public async Task<ActionResult<Guid>> Create([FromBody] RequisiteCreateDto? dto)
     {
         if (dto is null) return BadRequest();
 
@@ -38,7 +38,7 @@ public class RequisiteController(IRequisiteService service, ILogger<RequisiteCon
             var requisite = await service.CreateRequisite(dto, userId);
             if (requisite is null) return BadRequest();
             logger.LogInformation("Создание реквизита {requisiteId} [{User}]", requisite.Id, User.GetCurrentUsername());
-            return Ok(requisite);
+            return Ok(requisite.Id);
         }
         catch (DuplicateRequisiteException e)
         {
@@ -113,7 +113,7 @@ public class RequisiteController(IRequisiteService service, ILogger<RequisiteCon
     [SwaggerResponse(200, "Реквизит успешно обновлен", typeof(RequisiteDto))]
     [SwaggerResponse(400, "Неверные входные данные")]
     [SwaggerResponse(401, "Пользователь не авторизован")]
-    public async Task<ActionResult<RequisiteDto>> Update(Guid id, [FromBody] RequisiteUpdateDto? dto)
+    public async Task<ActionResult> Update(Guid id, [FromBody] RequisiteUpdateDto? dto)
     {
         if (dto is null) return BadRequest();
 
@@ -122,7 +122,7 @@ public class RequisiteController(IRequisiteService service, ILogger<RequisiteCon
             var requisite = await service.UpdateRequisite(id, dto);
             if (requisite is null) return BadRequest();
             logger.LogInformation("Обновление реквизита {requisiteId} [{User}]", requisite.Id, User.GetCurrentUsername());
-            return Ok(requisite);
+            return Ok();
         }
         catch (ValidationException e)
         {
@@ -139,7 +139,7 @@ public class RequisiteController(IRequisiteService service, ILogger<RequisiteCon
     [SwaggerResponse(200, "Реквизит успешно удален", typeof(RequisiteDto))]
     [SwaggerResponse(401, "Пользователь не авторизован")]
     [SwaggerResponse(404, "Реквизит не найден")]
-    public async Task<ActionResult<RequisiteDto>> Delete(Guid id)
+    public async Task<ActionResult> Delete(Guid id)
     {
         var requisite = await service.DeleteRequisite(id);
         if (requisite is null) return NotFound();

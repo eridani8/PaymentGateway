@@ -34,7 +34,7 @@ public class AdminController(
     [SwaggerResponse(401, "Пользователь не авторизован")]
     [SwaggerResponse(403, "Недостаточно прав")]
     [SwaggerResponse(409, "Пользователь с таким именем уже существует")]
-    public async Task<ActionResult<UserDto>> CreateUser([FromBody] CreateUserDto? dto)
+    public async Task<ActionResult<Guid>> CreateUser([FromBody] CreateUserDto? dto)
     {
         if (dto is null) return BadRequest();
 
@@ -43,7 +43,7 @@ public class AdminController(
             var user = await service.CreateUser(dto);
             if (user is null) return BadRequest();
             logger.LogInformation("Создание пользователя {username} [{User}]", dto.Username, User.GetCurrentUsername());
-            return Ok(user);
+            return Ok(user.Id);
         }
         catch (DuplicateUserException)
         {
@@ -105,7 +105,7 @@ public class AdminController(
     [SwaggerResponse(400, "Неверные входные данные")]
     [SwaggerResponse(401, "Пользователь не авторизован")]
     [SwaggerResponse(403, "Недостаточно прав")]
-    public async Task<ActionResult<bool>> DeleteUser(Guid id)
+    public async Task<ActionResult> DeleteUser(Guid id)
     {
         try
         {
@@ -114,7 +114,7 @@ public class AdminController(
             if (result is null) return BadRequest();
             logger.LogInformation("Удаление пользователя {username} [{User}]", result.UserName,
                 User.GetCurrentUsername());
-            return Ok(true);
+            return Ok();
         }
         catch (DeleteUserException e)
         {
@@ -133,7 +133,7 @@ public class AdminController(
     [SwaggerResponse(401, "Пользователь не авторизован")]
     [SwaggerResponse(403, "Недостаточно прав")]
     [SwaggerResponse(404, "Пользователь не найден")]
-    public async Task<ActionResult<UserDto>> UpdateUser([FromBody] UpdateUserDto? dto)
+    public async Task<ActionResult> UpdateUser([FromBody] UpdateUserDto? dto)
     {
         if (dto is null) return BadRequest();
 
@@ -143,7 +143,7 @@ public class AdminController(
             if (user is null) return NotFound();
             logger.LogInformation("Обновление пользователя {username} [{User}]", user.Username,
                 User.GetCurrentUsername());
-            return Ok(user);
+            return Ok();
         }
         catch (ValidationException e)
         {
@@ -215,7 +215,7 @@ public class AdminController(
     [SwaggerResponse(400, "Неверные входные данные")]
     [SwaggerResponse(401, "Пользователь не авторизован")]
     [SwaggerResponse(403, "Недостаточно прав")]
-    public ActionResult<bool> SetRequisiteAssignmentAlgorithm([FromBody] int algorithm)
+    public ActionResult SetRequisiteAssignmentAlgorithm([FromBody] int algorithm)
     {
         if (!Enum.IsDefined(typeof(RequisiteAssignmentAlgorithm), algorithm))
         {
@@ -230,6 +230,6 @@ public class AdminController(
 
         logger.LogInformation("Изменение алгоритма подбора реквизитов. С {old} на {new} [{User}]", old, (RequisiteAssignmentAlgorithm)algorithm, User.GetCurrentUsername());
 
-        return Ok(true);
+        return Ok();
     }
 }

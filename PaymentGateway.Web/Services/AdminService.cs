@@ -13,11 +13,11 @@ public class AdminService(
     JsonSerializerOptions jsonOptions,
     AuthenticationStateProvider authStateProvider) : ServiceBase(factory, logger, jsonOptions), IAdminService
 {
-    private const string ApiEndpoint = "Admin";
+    private const string apiEndpoint = "Admin";
 
     public async Task<List<UserDto>> GetAllUsers()
     {
-        var response = await GetRequest($"{ApiEndpoint}/GetAllUsers");
+        var response = await GetRequest($"{apiEndpoint}/GetAllUsers");
         if (response.Code == HttpStatusCode.OK)
         {
             return JsonSerializer.Deserialize<List<UserDto>>(response.Content ?? string.Empty, JsonOptions) ?? [];
@@ -26,9 +26,9 @@ public class AdminService(
         return [];
     }
 
-    public async Task<UserDto?> CreateUser(CreateUserDto dto)
+    public async Task<Guid?> CreateUser(CreateUserDto dto)
     {
-        return await PostRequest<UserDto>($"{ApiEndpoint}/CreateUser", dto);
+        return await PostRequest<Guid>($"{apiEndpoint}/CreateUser", dto);
     }
 
     public async Task<UserDto?> GetUserById(Guid id)
@@ -46,28 +46,21 @@ public class AdminService(
         return allPayments.FirstOrDefault(u => u.Id == id);
     }
 
-    public async Task<bool> DeleteUser(Guid id)
+    public async Task<Response> DeleteUser(Guid id)
     {
-        var response = await DeleteRequest($"{ApiEndpoint}/DeleteUser/{id}");
-        return response.Code == HttpStatusCode.OK;
+        return await DeleteRequest($"{apiEndpoint}/DeleteUser/{id}");
     }
 
-    public async Task<UserDto?> UpdateUser(UpdateUserDto dto)
+    public async Task<Response> UpdateUser(UpdateUserDto dto)
     {
-        var response = await PutRequest($"{ApiEndpoint}/UpdateUser", dto);
-        if (response.Code == HttpStatusCode.OK)
-        {
-            return JsonSerializer.Deserialize<UserDto>(response.Content ?? string.Empty, JsonOptions);
-        }
-
-        return null;
+        return await PutRequest($"{apiEndpoint}/UpdateUser", dto);
     }
 
     public async Task<Dictionary<Guid, string>> GetUsersRoles(List<Guid> userIds)
     {
         try
         {
-            var response = await GetRequest($"{ApiEndpoint}/GetUsersRoles?userIds={string.Join(",", userIds)}");
+            var response = await GetRequest($"{apiEndpoint}/GetUsersRoles?userIds={string.Join(",", userIds)}");
             if (response.Code == HttpStatusCode.OK)
             {
                 return JsonSerializer.Deserialize<Dictionary<Guid, string>>(response.Content ?? string.Empty,
@@ -83,15 +76,15 @@ public class AdminService(
         }
     }
 
-    public async Task<bool> ResetTwoFactorAsync(Guid userId)
+    public async Task<bool> ResetTwoFactor(Guid userId)
     {
-        var response = await PutRequest($"{ApiEndpoint}/ResetTwoFactor/{userId}");
+        var response = await PutRequest($"{apiEndpoint}/ResetTwoFactor/{userId}");
         return response.Code == HttpStatusCode.OK;
     }
 
     public async Task<RequisiteAssignmentAlgorithm> GetCurrentRequisiteAssignmentAlgorithm()
     {
-        var response = await GetRequest($"{ApiEndpoint}/GetCurrentRequisiteAssignmentAlgorithm");
+        var response = await GetRequest($"{apiEndpoint}/GetCurrentRequisiteAssignmentAlgorithm");
         if (response.Code == HttpStatusCode.OK &&
             !string.IsNullOrEmpty(response.Content) &&
             Enum.TryParse<RequisiteAssignmentAlgorithm>(response.Content.Trim('"'), out var algorithmEnum))
@@ -102,9 +95,8 @@ public class AdminService(
         return RequisiteAssignmentAlgorithm.Priority;
     }
 
-    public async Task<bool> SetRequisiteAssignmentAlgorithm(int algorithm)
+    public async Task<Response> SetRequisiteAssignmentAlgorithm(int algorithm)
     {
-        var response = await PutRequest($"{ApiEndpoint}/SetRequisiteAssignmentAlgorithm", algorithm);
-        return response.Code == HttpStatusCode.OK;
+        return await PutRequest($"{apiEndpoint}/SetRequisiteAssignmentAlgorithm", algorithm);
     }
 }
