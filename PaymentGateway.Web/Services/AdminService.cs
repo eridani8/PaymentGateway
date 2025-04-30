@@ -26,9 +26,9 @@ public class AdminService(
         return [];
     }
 
-    public async Task<Guid?> CreateUser(CreateUserDto dto)
+    public async Task<Response> CreateUser(CreateUserDto dto)
     {
-        return await PostRequest<Guid>($"{apiEndpoint}/CreateUser", dto);
+        return await PostRequest($"{apiEndpoint}/CreateUser", dto);
     }
 
     public async Task<UserDto?> GetUserById(Guid id)
@@ -76,10 +76,9 @@ public class AdminService(
         }
     }
 
-    public async Task<bool> ResetTwoFactor(Guid userId)
+    public async Task<Response> ResetTwoFactor(Guid userId)
     {
-        var response = await PutRequest($"{apiEndpoint}/ResetTwoFactor/{userId}");
-        return response.Code == HttpStatusCode.OK;
+        return await PutRequest($"{apiEndpoint}/ResetTwoFactor/{userId}");
     }
 
     public async Task<RequisiteAssignmentAlgorithm> GetCurrentRequisiteAssignmentAlgorithm()

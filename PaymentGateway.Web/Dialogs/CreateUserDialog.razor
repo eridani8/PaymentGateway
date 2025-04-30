@@ -1,4 +1,5 @@
-﻿@using System.Security.Claims
+﻿@using System.Net
+@using System.Security.Claims
 @using PaymentGateway.Shared.DTOs.User
 @using PaymentGateway.Shared.Validations.Validators.User
 @inject IAdminService AdminService
@@ -145,14 +146,14 @@
             {
                 var result = await AdminService.CreateUser(_createUserDto);
 
-                if (result != null && result != Guid.Empty)
+                if (result.Code == HttpStatusCode.OK)
                 {
                     Snackbar.Add($"Пользователь успешно создан", Severity.Success);
                     MudDialog.Close();
                 }
                 else
                 {
-                    _errorMessage = "Ошибка при создании пользователя";
+                    _errorMessage = result.Content ?? "Ошибка при создании пользователя";
                 }
             }
             catch (Exception e)

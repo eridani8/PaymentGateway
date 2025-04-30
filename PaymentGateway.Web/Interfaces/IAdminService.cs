@@ -7,12 +7,12 @@ namespace PaymentGateway.Web.Interfaces;
 public interface IAdminService
 {
     Task<List<UserDto>> GetAllUsers();
-    Task<Guid?> CreateUser(CreateUserDto dto);
+    Task<Response> CreateUser(CreateUserDto dto);
     Task<Response> DeleteUser(Guid id);
     Task<Response> UpdateUser(UpdateUserDto dto);
     Task<UserDto?> GetUserById(Guid userId);
     Task<Dictionary<Guid, string>> GetUsersRoles(List<Guid> users);
-    Task<bool> ResetTwoFactor(Guid userId);
+    Task<Response> ResetTwoFactor(Guid userId);
     Task<RequisiteAssignmentAlgorithm> GetCurrentRequisiteAssignmentAlgorithm();
     Task<Response> SetRequisiteAssignmentAlgorithm(int algorithm);
 }

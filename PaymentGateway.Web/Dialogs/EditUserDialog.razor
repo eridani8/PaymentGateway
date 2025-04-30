@@ -195,13 +195,13 @@
         {
             var result = await AdminService.ResetTwoFactor(User.Id);
             
-            if (result)
+            if (result.Code == HttpStatusCode.OK)
             {
                 Snackbar.Add($"Двухфакторная аутентификация для пользователя {User.Username} сброшена", Severity.Success);
             }
             else
             {
-                _errorMessage = "Ошибка при сбросе двухфакторной аутентификации";
+                _errorMessage = result.Content ?? "Ошибка при сбросе двухфакторной аутентификации";
             }
         }
         catch (Exception e)
