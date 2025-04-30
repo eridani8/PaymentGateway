@@ -1,3 +1,4 @@
+@using System.Net
 @using PaymentGateway.Shared.DTOs.Requisite
 @using PaymentGateway.Shared.Enums
 @using PaymentGateway.Shared.Validations.Validators.Requisite
@@ -211,14 +212,14 @@
                 
                 var result = await RequisiteService.CreateRequisite(_createRequisiteDto);
 
-                if (result != null && result != Guid.Empty)
+                if (result.Code == HttpStatusCode.OK)
                 {
                     Snackbar.Add($"Реквизит успешно создан", Severity.Success);
                     MudDialog.Close();
                 }
                 else
                 {
-                    _errorMessage = "Ошибка при создании реквизита";
+                    _errorMessage = result.Content ?? "Ошибка при создании реквизита";
                 }
             }
             catch (Exception e)

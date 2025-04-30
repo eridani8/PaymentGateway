@@ -44,25 +44,11 @@ public class RequisiteService(
         return [];
     }
     
-    public async Task<Guid?> CreateRequisite(RequisiteCreateDto dto)
+    public async Task<Response> CreateRequisite(RequisiteCreateDto dto)
     {
         try
         {
-            var response = await PostRequest($"{apiEndpoint}/Create", dto);
-            
-            if (response.Code == HttpStatusCode.OK && !string.IsNullOrEmpty(response.Content))
-            {
-                return JsonSerializer.Deserialize<Guid>(response.Content, JsonOptions);
-            }
-            
-            if (response.Code == HttpStatusCode.BadRequest && !string.IsNullOrEmpty(response.Content))
-            {
-                var errorMessage = response.Content;
-                throw new Exception(errorMessage);
-            }
-            
-            logger.LogWarning("Failed to create requisite. Status code: {StatusCode}", response.Code);
-            return null;
+            return await PostRequest($"{apiEndpoint}/Create", dto);
         }
         catch (Exception ex)
         {

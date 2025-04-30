@@ -1,4 +1,5 @@
 ﻿@page "/"
+@using System.Net
 @using PaymentGateway.Shared.DTOs.Payment
 @using PaymentGateway.Shared.Validations.Validators.Payment
 @using Severity = MudBlazor.Severity
@@ -55,9 +56,13 @@
         try
         {
             var newPayment = await PaymentService.CreatePayment(_paymentModel);
-            if (newPayment != null && newPayment != Guid.Empty)
+            if (newPayment.Code == HttpStatusCode.OK)
             {
                 Navigation.NavigateTo($"/payment/{newPayment}");
+            }
+            else
+            {
+                Snackbar.Add(newPayment.Content ?? "Ошибка при создании платежа");
             }
         }
         catch (Exception ex)

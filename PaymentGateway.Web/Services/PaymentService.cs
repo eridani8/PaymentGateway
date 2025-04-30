@@ -14,17 +14,9 @@ public class PaymentService(
 {
     private const string apiEndpoint = "Payment";
     
-    public async Task<Guid?> CreatePayment(PaymentCreateDto dto)
+    public async Task<Response> CreatePayment(PaymentCreateDto dto)
     {
-        try
-        {
-            return await PostRequest<Guid>($"{apiEndpoint}/Create", dto);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error creating payment");
-            throw;
-        }
+        return await PostRequest($"{apiEndpoint}/Create", dto);
     }
     
     public async Task<Response> ManualConfirmPayment(Guid id)

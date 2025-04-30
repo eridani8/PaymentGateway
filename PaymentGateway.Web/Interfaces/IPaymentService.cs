@@ -5,7 +5,7 @@ namespace PaymentGateway.Web.Interfaces;
 
 public interface IPaymentService
 {
-    Task<Guid?> CreatePayment(PaymentCreateDto dto);
+    Task<Response> CreatePayment(PaymentCreateDto dto);
     Task<Response> ManualConfirmPayment(Guid id);
     Task<Response> CancelPayment(Guid id);
     Task<List<PaymentDto>> GetPayments();
