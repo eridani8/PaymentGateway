@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
 using NpgsqlTypes;
 using PaymentGateway.Api;
 using PaymentGateway.Api.Configuration;

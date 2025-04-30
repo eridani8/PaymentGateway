@@ -93,7 +93,7 @@
     private List<TransactionDto> _transactions = [];
     private bool _isShowAll;
     private Timer _refreshTimer = null!;
-    private const int RefreshInterval = 3000;
+    private const int refreshInterval = 3000;
 
     protected override async Task OnInitializedAsync()
     {
@@ -107,7 +107,7 @@
             
         Logger.LogInformation("Подписки на обновления транзакций настроены");
         
-        _refreshTimer = new Timer(TimerTick, null, RefreshInterval, RefreshInterval);
+        _refreshTimer = new Timer(TimerTick, null, refreshInterval, refreshInterval);
     }
 
     private async void TimerTick(object? state)

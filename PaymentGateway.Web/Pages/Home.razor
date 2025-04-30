@@ -56,13 +56,13 @@
         try
         {
             var newPayment = await PaymentService.CreatePayment(_paymentModel);
-            if (newPayment.Code == HttpStatusCode.OK)
+            if (newPayment != null)
             {
-                Navigation.NavigateTo($"/payment/{newPayment}");
+                Navigation.NavigateTo($"/payment/{newPayment.Id}");
             }
             else
             {
-                Snackbar.Add(newPayment.Content ?? "Ошибка при создании платежа");
+                Snackbar.Add("Ошибка при создании платежа");
             }
         }
         catch (Exception ex)

@@ -1,7 +1,5 @@
 using System.Collections.Concurrent;
 using System.Security.Claims;
-using AutoMapper;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using PaymentGateway.Core.Interfaces;
@@ -18,11 +16,11 @@ public class NotificationHub(
     private static IHubContext<NotificationHub, IHubClient>? _hubContext;
     private static readonly ConcurrentDictionary<string, UserState> ConnectedUsers = new();
     private static readonly Timer? KeepAliveTimer;
-    private const int KeepAliveInterval = 15000;
+    private const int keepAliveInterval = 15000;
 
     static NotificationHub()
     {
-        KeepAliveTimer = new Timer(SendKeepAlive, null, KeepAliveInterval, KeepAliveInterval);
+        KeepAliveTimer = new Timer(SendKeepAlive, null, keepAliveInterval, keepAliveInterval);
     }
 
     private static async void SendKeepAlive(object? state)

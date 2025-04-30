@@ -99,7 +99,7 @@
     private bool _isDarkMode = true;
     private MudThemeProvider _themeProvider = null!;
     private MudTheme? _theme;
-    private const string ThemeKey = "preferred-theme";
+    private const string themeKey = "preferred-theme";
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -121,9 +121,9 @@
             LayoutProperties = new LayoutProperties()
         };
 
-        if (await LocalStorage.ContainKeyAsync(ThemeKey))
+        if (await LocalStorage.ContainKeyAsync(themeKey))
         {
-            _isDarkMode = await LocalStorage.GetItemAsync<bool>(ThemeKey);
+            _isDarkMode = await LocalStorage.GetItemAsync<bool>(themeKey);
         }
 
         await InitializeSignalR();
@@ -164,20 +164,20 @@
     private async Task DarkModeToggle()
     {
         _isDarkMode = !_isDarkMode;
-        await LocalStorage.SetItemAsync(ThemeKey, _isDarkMode);
+        await LocalStorage.SetItemAsync(themeKey, _isDarkMode);
     }
 
-    private const string Primary = "#663882";
-    private const string Secondary = "#306d65";
-    private const string Info = "#2374AB";
-    private const string Success = "#169873";
-    private const string Warning = "#df9c54";
-    private const string Error = "#B9314F";
+    private const string primary = "#663882";
+    private const string secondary = "#306d65";
+    private const string info = "#2374AB";
+    private const string success = "#169873";
+    private const string warning = "#df9c54";
+    private const string error = "#B9314F";
 
     private readonly PaletteLight _lightPalette = new()
     {
-        Primary = Primary,
-        Secondary = Secondary,
+        Primary = primary,
+        Secondary = secondary,
         Black = "#110e2d",
         AppbarText = "#424242",
         AppbarBackground = "rgba(255,255,255,0.8)",
@@ -186,16 +186,16 @@
         GrayLighter = "#f9f9f9",
         TextPrimary = "#110e2d",
         TextSecondary = "#424242",
-        Info = Info,
-        Success = Success,
-        Warning = Warning,
-        Error = Error,
+        Info = info,
+        Success = success,
+        Warning = warning,
+        Error = error,
     };
 
     private readonly PaletteDark _darkPalette = new()
     {
-        Primary = Primary,
-        Secondary = Secondary,
+        Primary = primary,
+        Secondary = secondary,
         Surface = "#1e1e2d",
         Background = "#1a1a27",
         BackgroundGray = "#151521",
@@ -212,10 +212,10 @@
         DrawerText = "#92929f",
         GrayLight = "#2a2833",
         GrayLighter = "#1e1e2d",
-        Info = Info,
-        Success = Success,
-        Warning = Warning,
-        Error = Error,
+        Info = info,
+        Success = success,
+        Warning = warning,
+        Error = error,
         LinesDefault = "#33323e",
         TableLines = "#33323e",
         Divider = "#292838",

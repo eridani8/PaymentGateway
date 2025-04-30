@@ -25,24 +25,6 @@ public static class MauiProgram
             .UseMauiApp<App>()
             .UseMauiCommunityToolkit()
             .ConfigureMauiHandlers(_ => { })
-            .ConfigureLifecycleEvents(events =>
-            {
-#if ANDROID
-                events.AddAndroid(android => android
-                    .OnApplicationCreate(app => 
-                    {
-                    })
-                    .OnCreate((activity, _) => 
-                    {
-                    })
-                    .OnStop(activity => 
-                    {
-                    })
-                    .OnDestroy(activity => 
-                    {
-                    }));
-#endif
-            })
             .ConfigureFonts(fonts =>
             {
                 fonts.AddFont("JetBrainsMono-Regular.ttf", "JetBrainsMono");

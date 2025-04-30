@@ -129,20 +129,20 @@ public class CustomAuthStateProvider(ILocalStorageService localStorage) : Authen
         return Convert.FromBase64String(base64);
     }
 
-    private const string TokenKey = "authToken";
+    private const string tokenKey = "authToken";
 
     public async Task<string?> GetTokenFromLocalStorageAsync()
     {
-        return await localStorage.GetItemAsync<string>(TokenKey);
+        return await localStorage.GetItemAsync<string>(tokenKey);
     }
 
     private async Task SetTokenInLocalStorageAsync(string token)
     {
-        await localStorage.SetItemAsync(TokenKey, token);
+        await localStorage.SetItemAsync(tokenKey, token);
     }
 
     private async Task RemoveTokenFromLocalStorageAsync()
     {
-        await localStorage.RemoveItemAsync(TokenKey);
+        await localStorage.RemoveItemAsync(tokenKey);
     }
 }

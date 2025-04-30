@@ -1,5 +1,4 @@
-﻿using System.Data;
-using PaymentGateway.Core.Interfaces.Repositories;
+﻿using PaymentGateway.Core.Interfaces.Repositories;
 using PaymentGateway.Infrastructure.Data;
 
 namespace PaymentGateway.Infrastructure.Interfaces;

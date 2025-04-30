@@ -6,9 +6,9 @@ namespace PaymentGateway.Shared;
 
 public static class TotpService
 {
-    private const int TotpSize = 6;
-    private const int StepSeconds = 30;
-    private const int ValidationWindow = 1;
+    private const int totpSize = 6;
+    private const int stepSeconds = 30;
+    private const int validationWindow = 1;
     
     public static string GenerateSecretKey()
     {
@@ -21,7 +21,7 @@ public static class TotpService
         var encodedIssuer = Uri.EscapeDataString(issuer);
         var encodedAccountName = Uri.EscapeDataString(accountName);
         
-        return $"otpauth://totp/{encodedIssuer}:{encodedAccountName}?secret={secretKey}&issuer={encodedIssuer}&algorithm=SHA1&digits={TotpSize}&period={StepSeconds}";
+        return $"otpauth://totp/{encodedIssuer}:{encodedAccountName}?secret={secretKey}&issuer={encodedIssuer}&algorithm=SHA1&digits={totpSize}&period={stepSeconds}";
     }
     
     public static string GenerateQrCodeBase64(string totpUri)
@@ -45,8 +45,8 @@ public static class TotpService
         try
         {
             var keyBytes = Base32Encoding.ToBytes(secretKey);
-            var totp = new Totp(keyBytes, step: StepSeconds, totpSize: TotpSize);
-            return totp.VerifyTotp(totpCode, out _, new VerificationWindow(ValidationWindow));
+            var totp = new Totp(keyBytes, step: stepSeconds, totpSize: totpSize);
+            return totp.VerifyTotp(totpCode, out _, new VerificationWindow(validationWindow));
         }
         catch
         {

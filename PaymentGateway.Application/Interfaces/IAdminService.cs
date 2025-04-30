@@ -1,6 +1,5 @@
 ﻿using PaymentGateway.Core.Entities;
 using PaymentGateway.Shared.DTOs.User;
-using PaymentGateway.Shared.Enums;
 
 namespace PaymentGateway.Application.Interfaces;
 

@@ -6,7 +6,6 @@
 @attribute [AllowAnonymous]
 @inject IPaymentService PaymentService
 @inject ISnackbar Snackbar
-@inject NavigationManager Navigation
 @inject ILogger<Payment> Logger
 @inject ITransactionService TransactionService
 @implements IDisposable
@@ -172,7 +171,7 @@
     private bool _isSimulating;
     private bool _showSuccessDialog;
     private Timer? _refreshTimer;
-    private const int RefreshInterval = 3000;
+    private const int refreshInterval = 3000;
     private readonly TransactionSource[] _selectedTransactionType = [TransactionSource.Sms, TransactionSource.Push];
     private readonly TransactionCreateDto _transactionDto = new();
 
@@ -180,7 +179,7 @@
     {
         await LoadPayment();
 
-        _refreshTimer = new Timer(TimerTick, null, RefreshInterval, RefreshInterval);
+        _refreshTimer = new Timer(TimerTick, null, refreshInterval, refreshInterval);
     }
 
     private async Task LoadPayment()

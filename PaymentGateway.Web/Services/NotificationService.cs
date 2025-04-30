@@ -8,7 +8,6 @@ using PaymentGateway.Shared.DTOs.Transaction;
 using PaymentGateway.Shared.DTOs.User;
 using Polly;
 using Polly.Retry;
-using MudBlazor;
 using PaymentGateway.Shared.DTOs.Chat;
 
 namespace PaymentGateway.Web.Services;
@@ -22,7 +21,7 @@ public class NotificationService(
     private HubConnection? _hubConnection;
     private readonly string _hubUrl = $"{settings.Value.BaseAddress}/notificationHub";
     private Timer? _pingTimer;
-    private const int PingInterval = 10000;
+    private const int pingInterval = 10000;
     private bool _isDisposed;
     
     public bool IsConnected => _hubConnection?.State == HubConnectionState.Connected;
@@ -168,7 +167,7 @@ public class NotificationService(
                     {
                         logger.LogError(e, "Ошибка при отправке ping");
                     }
-                }, null, PingInterval, PingInterval);
+                }, null, pingInterval, pingInterval);
                 
                 logger.LogInformation("Таймер ping успешно настроен");
             }

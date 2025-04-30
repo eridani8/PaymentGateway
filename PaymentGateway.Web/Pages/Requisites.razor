@@ -218,7 +218,7 @@
     private bool _isShowAll;
     private bool _isAdmin;
     private Timer _refreshTimer = null!;
-    private const int RefreshInterval = 3000;
+    private const int refreshInterval = 3000;
     private string _searchUserId = string.Empty;
     private string _searchError = string.Empty;
     private bool _isFiltered;
@@ -243,7 +243,7 @@
             NotificationService.SubscribeToRequisiteUpdates(HandleRequisiteUpdate);
             NotificationService.SubscribeToRequisiteDeletions(HandleRequisiteDeleted);
 
-            _refreshTimer = new Timer(TimerTick, null, RefreshInterval, RefreshInterval);
+            _refreshTimer = new Timer(TimerTick, null, refreshInterval, refreshInterval);
         }
         catch (Exception ex)
         {

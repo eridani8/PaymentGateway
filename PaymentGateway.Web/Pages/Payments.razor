@@ -182,7 +182,7 @@
     private List<PaymentDto> _payments = [];
     private bool _isShowAll;
     private Timer _refreshTimer = null!;
-    private const int RefreshInterval = 3000;
+    private const int refreshInterval = 3000;
     private string _searchUserId = string.Empty;
     private string _searchError = string.Empty;
     private bool _isFiltered;
@@ -197,7 +197,7 @@
         NotificationService.SubscribeToPaymentUpdates(HandlePaymentUpdate);
         NotificationService.SubscribeToPaymentDeletions(HandlePaymentDeleted);
         
-        _refreshTimer = new Timer(TimerTick, null, RefreshInterval, RefreshInterval);
+        _refreshTimer = new Timer(TimerTick, null, refreshInterval, refreshInterval);
     }
 
     private async void TimerTick(object? state)

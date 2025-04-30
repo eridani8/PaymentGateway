@@ -2,13 +2,13 @@
 
 public static class TimeOnlyExtensions
 {
-    private const string UserTimeZoneId = "Europe/Moscow";
+    private const string userTimeZoneId = "Europe/Moscow";
     
     public static TimeOnly LocalToUtcTimeOnly(this TimeOnly localTime)
     {
         if (localTime == TimeOnly.MinValue) return TimeOnly.MinValue;
         
-        var userTimeZone = TimeZoneInfo.FindSystemTimeZoneById(UserTimeZoneId);
+        var userTimeZone = TimeZoneInfo.FindSystemTimeZoneById(userTimeZoneId);
 
         var fixedDate = new DateTime(2000, 1, 1);
         
@@ -25,7 +25,7 @@ public static class TimeOnlyExtensions
     {
         if (utcTime == TimeOnly.MinValue) return TimeOnly.MinValue;
         
-        var userTimeZone = TimeZoneInfo.FindSystemTimeZoneById(UserTimeZoneId);
+        var userTimeZone = TimeZoneInfo.FindSystemTimeZoneById(userTimeZoneId);
 
         var fixedDate = new DateTime(2000, 1, 1);
         

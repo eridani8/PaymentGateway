@@ -14,9 +14,31 @@ public class PaymentService(
 {
     private const string apiEndpoint = "Payment";
     
-    public async Task<Response> CreatePayment(PaymentCreateDto dto)
+    public async Task<PaymentDto?> CreatePayment(PaymentCreateDto dto)
     {
-        return await PostRequest($"{apiEndpoint}/Create", dto);
+        try
+        {
+            var response = await PostRequest($"{apiEndpoint}/Create", dto);
+            
+            if (response.Code == HttpStatusCode.OK && !string.IsNullOrEmpty(response.Content))
+            {
+                return JsonSerializer.Deserialize<PaymentDto>(response.Content, JsonOptions);
+            }
+            
+            if (response.Code == HttpStatusCode.BadRequest && !string.IsNullOrEmpty(response.Content))
+            {
+                var errorMessage = response.Content;
+                throw new Exception(errorMessage);
+            }
+            
+            logger.LogWarning("Failed to create payment. Status code: {StatusCode}", response.Code);
+            return null;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error creating payment");
+            throw;
+        }
     }
     
     public async Task<Response> ManualConfirmPayment(Guid id)
