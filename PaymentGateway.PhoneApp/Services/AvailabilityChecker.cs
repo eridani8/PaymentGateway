@@ -10,6 +10,7 @@ public class AvailabilityChecker(
     ILogger<AvailabilityChecker> logger,
     IServiceProvider serviceProvider) : IAvailabilityChecker
 {
+    private const string apiVersion = "v1";
     public bool State { get; private set; }
 
     public async Task CheckAvailable(CancellationToken token = default)
@@ -17,7 +18,7 @@ public class AvailabilityChecker(
         try
         {
             using var client = clientFactory.CreateClient("API");
-            var response = await client.GetAsync($"{client.BaseAddress}/Health/CheckAvailable", token);
+            var response = await client.GetAsync($"{client.BaseAddress}/{apiVersion}/Health/CheckAvailable", token);
             var isSuccess = response.IsSuccessStatusCode;
             State = isSuccess;
         }
