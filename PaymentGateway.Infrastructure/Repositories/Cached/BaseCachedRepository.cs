@@ -57,8 +57,8 @@ public abstract class BaseCachedRepository<TEntity, TRepository>(TRepository rep
     {
         var result = await cache.GetOrCreateAsync(cacheKey, entry =>
         {
-            entry.SetSlidingExpiration(slidingExpiration ?? TimeSpan.FromMinutes(10));
-            entry.SetAbsoluteExpiration(absoluteExpiration ?? TimeSpan.FromHours(1));
+            entry.SetSlidingExpiration(slidingExpiration ?? TimeSpan.FromMinutes(1));
+            entry.SetAbsoluteExpiration(absoluteExpiration ?? TimeSpan.FromMinutes(5));
             return dataLoader();
         });
     

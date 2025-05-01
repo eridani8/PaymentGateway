@@ -94,7 +94,7 @@ try
     builder.Services.AddEndpointsApiExplorer();
     
     builder.Services.AddApiVersioningConfiguration();
-    builder.Services.AddSwaggerVersioningConfiguration();
+    builder.Services.AddSwaggerConfiguration();
 
     builder.Services.AddCore(builder.Configuration);
     builder.Services.AddInfrastructure(connectionString);

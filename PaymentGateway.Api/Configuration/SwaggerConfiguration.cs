@@ -5,6 +5,18 @@ using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace PaymentGateway.Api.Configuration;
 
+public static class SwaggerConfiguration
+{
+    public static IServiceCollection AddSwaggerConfiguration(this IServiceCollection services)
+    {
+        services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
+        
+        services.AddSwaggerGen();
+        
+        return services;
+    }
+} 
+
 public class ConfigureSwaggerOptions(IApiVersionDescriptionProvider provider) : IConfigureOptions<SwaggerGenOptions>
 {
     public void Configure(SwaggerGenOptions options)
@@ -53,15 +65,3 @@ public class ConfigureSwaggerOptions(IApiVersionDescriptionProvider provider) : 
         options.EnableAnnotations();
     }
 }
-
-public static class SwaggerConfiguration
-{
-    public static IServiceCollection AddSwaggerVersioningConfiguration(this IServiceCollection services)
-    {
-        services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
-        
-        services.AddSwaggerGen();
-        
-        return services;
-    }
-} 
