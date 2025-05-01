@@ -388,12 +388,12 @@
         {
             try
             {
+                _isLoading = true;
                 var deleteResult = await RequisiteService.DeleteRequisite(requisite.Id);
 
-                if (deleteResult is not null)
+                if (deleteResult.Code == HttpStatusCode.OK)
                 {
                     Snackbar.Add($"Реквизит {requisite.FullName} успешно удален", Severity.Success);
-                    await LoadRequisites();
                 }
                 else
                 {
@@ -404,6 +404,10 @@
             {
                 Logger.LogError(e, "Ошибка при удалении реквизита {RequisiteId}", requisite.Id);
                 Snackbar.Add(e.Message, Severity.Error);
+            }
+            finally
+            {
+                _isLoading = false;
             }
         }
     }

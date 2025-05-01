@@ -366,7 +366,6 @@
             {
                 _isLoading = true;
                 var apiResult = await PaymentService.CancelPayment(payment.Id);
-
                 if (apiResult.Code == HttpStatusCode.OK)
                 {
                     Snackbar.Add("Платеж успешно отменен", Severity.Success);

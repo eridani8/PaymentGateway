@@ -273,19 +273,19 @@
             ["ButtonText"] = "Удалить"
         };
 
-        var dialog = await DialogService.ShowAsync<ConfirmationDialog>("Подтверждение удаления", parameters);
+        var dialog = await DialogService.ShowAsync<ConfirmationDialog>(null, parameters);
         var result = await dialog.Result;
 
         if (result is { Canceled: false })
         {
             try
             {
+                _isLoading = true;
                 var deleteResult = await AdminService.DeleteUser(user.Id);
 
                 if (deleteResult.Code == HttpStatusCode.OK)
                 {
                     Snackbar.Add($"Пользователь {user.Username} успешно удален", Severity.Success);
-                    await LoadUsers();
                 }
                 else
                 {
@@ -296,6 +296,10 @@
             {
                 Logger.LogError(e, "Ошибка при удалении пользователя {UserId}", user.Id);
                 Snackbar.Add(e.Message, Severity.Error);
+            }
+            finally
+            {
+                _isLoading = false;
             }
         }
     }
