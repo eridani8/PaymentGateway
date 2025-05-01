@@ -34,19 +34,19 @@ public class RequisiteService(
         var user = await userManager.FindByIdAsync(userId.ToString());
         if (user == null)
         {
-            return Result.Failure<RequisiteDto>(Error.UserNotFound);
+            return Result.Failure<RequisiteDto>(UserErrors.UserNotFound);
         }
 
         var userRequisitesCount = await unit.RequisiteRepository.GetUserRequisitesCount(userId);
         if (userRequisitesCount >= user.MaxRequisitesCount)
         {
-            return Result.Failure<RequisiteDto>(Error.RequisiteLimitExceeded(user.MaxRequisitesCount));
+            return Result.Failure<RequisiteDto>(RequisiteErrors.RequisiteLimitExceeded(user.MaxRequisitesCount));
         }
         
         var containsRequisite = await unit.RequisiteRepository.HasSimilarRequisite(dto.PaymentData);
         if (containsRequisite is not null)
         {
-            return Result.Failure<RequisiteDto>(Error.DuplicateRequisite);
+            return Result.Failure<RequisiteDto>(RequisiteErrors.DuplicateRequisite);
         }
 
         var requisite = mapper.Map<RequisiteEntity>(dto, opts => 
@@ -88,7 +88,7 @@ public class RequisiteService(
     {
         var requisite = await unit.RequisiteRepository.GetRequisiteById(id);
         if (requisite is null) 
-            return Result.Failure<RequisiteDto>(Error.RequisiteNotFound);
+            return Result.Failure<RequisiteDto>(RequisiteErrors.RequisiteNotFound);
             
         var dto = mapper.Map<RequisiteDto>(requisite);
         return Result.Success(dto);
@@ -103,7 +103,7 @@ public class RequisiteService(
         }
 
         var requisite = await unit.RequisiteRepository.GetRequisiteById(id);
-        if (requisite is null) return Result.Failure<RequisiteDto>(Error.RequisiteNotFound);
+        if (requisite is null) return Result.Failure<RequisiteDto>(RequisiteErrors.RequisiteNotFound);
         
         var now = DateTime.UtcNow;
         var nowTimeOnly = TimeOnly.FromDateTime(now);
@@ -128,7 +128,7 @@ public class RequisiteService(
     public async Task<Result<RequisiteDto>> DeleteRequisite(Guid id)
     {
         var requisite = await unit.RequisiteRepository.GetRequisiteById(id);
-        if (requisite is null) return Result.Failure<RequisiteDto>(Error.RequisiteNotFound);
+        if (requisite is null) return Result.Failure<RequisiteDto>(RequisiteErrors.RequisiteNotFound);
 
         try
         {

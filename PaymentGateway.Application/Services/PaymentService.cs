@@ -37,7 +37,7 @@ public class PaymentService(
         var containsEntity = await unit.PaymentRepository.GetExistingPayment(dto.ExternalPaymentId);
         if (containsEntity is not null)
         {
-            return Result.Failure<PaymentDto>(Error.DuplicatePayment);
+            return Result.Failure<PaymentDto>(PaymentErrors.DuplicatePayment);
         }
 
         var entity = mapper.Map<PaymentEntity>(dto);
@@ -63,30 +63,30 @@ public class PaymentService(
         var payment = await unit.PaymentRepository.PaymentById(dto.PaymentId);
         if (payment is null)
         {
-            return Result.Failure<PaymentEntity>(Error.PaymentNotFound);
+            return Result.Failure<PaymentEntity>(PaymentErrors.PaymentNotFound);
         }
 
         if (payment.Status == PaymentStatus.Confirmed)
         {
-            return Result.Failure<PaymentEntity>(Error.PaymentAlreadyConfirmed);
+            return Result.Failure<PaymentEntity>(PaymentErrors.PaymentAlreadyConfirmed);
         }
 
         if (payment.Requisite is not { } requisite)
         {
-            return Result.Failure<PaymentEntity>(Error.RequisiteNotAttached);
+            return Result.Failure<PaymentEntity>(PaymentErrors.RequisiteNotAttached);
         }
 
         var user = await userManager.FindByIdAsync(currentUserId.ToString());
         if (user is null)
         {
-            return Result.Failure<PaymentEntity>(Error.InsufficientPermissions);
+            return Result.Failure<PaymentEntity>(UserErrors.InsufficientPermissions);
         }
 
         var userRoles = await userManager.GetRolesAsync(user);
 
         if (payment.Requisite.UserId != currentUserId && !userRoles.Contains("Admin") && !userRoles.Contains("Support"))
         {
-            return Result.Failure<PaymentEntity>(Error.InsufficientPermissionsForPayment);
+            return Result.Failure<PaymentEntity>(PaymentErrors.InsufficientPermissionsForPayment);
         }
 
         payment.ManualConfirm(user.Id);
@@ -112,19 +112,19 @@ public class PaymentService(
         var payment = await unit.PaymentRepository.PaymentById(dto.PaymentId);
         if (payment is null)
         {
-            return Result.Failure<PaymentEntity>(Error.PaymentNotFound);
+            return Result.Failure<PaymentEntity>(PaymentErrors.PaymentNotFound);
         }
 
         var user = await userManager.FindByIdAsync(currentUserId.ToString());
         if (user is null)
         {
-            return Result.Failure<PaymentEntity>(Error.InsufficientPermissions);
+            return Result.Failure<PaymentEntity>(UserErrors.InsufficientPermissions);
         }
 
         var userRoles = await userManager.GetRolesAsync(user);
         if (!userRoles.Contains("Admin") && !userRoles.Contains("Support"))
         {
-            return Result.Failure<PaymentEntity>(Error.InsufficientPermissions);
+            return Result.Failure<PaymentEntity>(UserErrors.InsufficientPermissions);
         }
 
         payment.Status = PaymentStatus.Canceled;
@@ -168,7 +168,7 @@ public class PaymentService(
         var entity = await unit.PaymentRepository.PaymentById(id);
         if (entity is null)
         {
-            return Result.Failure<PaymentDto>(Error.PaymentNotFound);
+            return Result.Failure<PaymentDto>(PaymentErrors.PaymentNotFound);
         }
         
         return Result.Success(mapper.Map<PaymentDto>(entity));
@@ -179,7 +179,7 @@ public class PaymentService(
         var entity = await unit.PaymentRepository.PaymentById(id);
         if (entity is null)
         {
-            return Result.Failure<PaymentDto>(Error.PaymentNotFound);
+            return Result.Failure<PaymentDto>(PaymentErrors.PaymentNotFound);
         }
 
         try

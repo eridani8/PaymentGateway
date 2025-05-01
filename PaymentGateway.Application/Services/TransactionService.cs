@@ -33,12 +33,12 @@ public class TransactionService(
 
         if (requisite?.Payment is not { } payment)
         {
-            return Result.Failure<TransactionDto>(Error.RequisiteNotFound);
+            return Result.Failure<TransactionDto>(RequisiteErrors.RequisiteNotFound);
         }
 
         if (payment.Amount != dto.ExtractedAmount)
         {
-            return Result.Failure<TransactionDto>(Error.WrongPaymentAmount(dto.ExtractedAmount, payment.Amount));
+            return Result.Failure<TransactionDto>(TransactionErrors.WrongPaymentAmount(dto.ExtractedAmount, payment.Amount));
         }
 
         var transactionEntity = mapper.Map<TransactionEntity>(dto);

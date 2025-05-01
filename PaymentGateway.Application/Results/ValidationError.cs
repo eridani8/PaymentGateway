@@ -1,3 +1,8 @@
 namespace PaymentGateway.Application.Results;
 
-public record ValidationError(IEnumerable<string> Details) : Error(ErrorCode.Validation, string.Join(", ", Details)); 
+public record ValidationError : Error
+{
+    public ValidationError(IEnumerable<string> details) : base(ErrorCode.Validation, string.Join(", ", details))
+    {
+    }
+}

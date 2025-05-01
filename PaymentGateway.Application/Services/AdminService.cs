@@ -35,7 +35,7 @@ public class AdminService(
         var existingUser = await userManager.FindByNameAsync(dto.Username);
         if (existingUser != null)
         {
-            return Result.Failure<UserDto>(Error.UserAlreadyExists);
+            return Result.Failure<UserDto>(UserErrors.UserAlreadyExists);
         }
     
         var user = mapper.Map<UserEntity>(dto);
@@ -43,7 +43,7 @@ public class AdminService(
         var result = await userManager.CreateAsync(user, dto.Password);
         if (!result.Succeeded)
         {
-            return Result.Failure<UserDto>(Error.UserCreationFailed(string.Join(", ", result.Errors.Select(e => e.Description))));
+            return Result.Failure<UserDto>(UserErrors.UserCreationFailed(string.Join(", ", result.Errors.Select(e => e.Description))));
         }
         
         foreach (var role in dto.Roles)
@@ -72,7 +72,7 @@ public class AdminService(
         var user = await userManager.FindByIdAsync(id.ToString());
         if (user is null)
         {
-            return Result.Failure<UserDto>(Error.UserNotFound);
+            return Result.Failure<UserDto>(UserErrors.UserNotFound);
         }
         return Result.Success(mapper.Map<UserDto>(user));
     }
@@ -82,17 +82,17 @@ public class AdminService(
         var user = await userManager.FindByIdAsync(id.ToString());
         if (user is null)
         {
-            return Result.Failure<UserEntity>(Error.UserNotFound);
+            return Result.Failure<UserEntity>(UserErrors.UserNotFound);
         }
 
         if (user.UserName == "root")
         {
-            return Result.Failure<UserEntity>(Error.DeleteRootUserForbidden);
+            return Result.Failure<UserEntity>(UserErrors.DeleteRootUserForbidden);
         }
 
         if (id.ToString() == currentUserId)
         {
-            return Result.Failure<UserEntity>(Error.SelfDeleteForbidden);
+            return Result.Failure<UserEntity>(UserErrors.SelfDeleteForbidden);
         }
 
         try
@@ -130,12 +130,12 @@ public class AdminService(
         var user = await userManager.FindByIdAsync(dto.Id.ToString());
         if (user is null)
         {
-            return Result.Failure<UserDto>(Error.UserNotFound);
+            return Result.Failure<UserDto>(UserErrors.UserNotFound);
         }
 
         if (user.UserName == "root")
         {
-            return Result.Failure<UserDto>(Error.ModifyRootUserForbidden);
+            return Result.Failure<UserDto>(UserErrors.ModifyRootUserForbidden);
         }
 
         mapper.Map(dto, user);
@@ -143,7 +143,7 @@ public class AdminService(
         
         if (!result.Succeeded)
         {
-            return Result.Failure<UserDto>(Error.UserUpdateFailed(
+            return Result.Failure<UserDto>(UserErrors.UserUpdateFailed(
                 string.Join(", ", result.Errors.Select(e => e.Description))));
         }
 
@@ -192,7 +192,7 @@ public class AdminService(
         var user = await userManager.FindByIdAsync(userId.ToString());
         if (user == null)
         {
-            return Result.Failure<bool>(Error.UserNotFound);
+            return Result.Failure<bool>(UserErrors.UserNotFound);
         }
         
         user.TwoFactorEnabled = false;
