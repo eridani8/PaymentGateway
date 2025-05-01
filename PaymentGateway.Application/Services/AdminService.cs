@@ -107,7 +107,7 @@ public class AdminService(
             await notificationService.NotifyUserDeleted(id);
             return Result.Success(user);
         }
-        catch (PostgresException ex) when (ex.SqlState == "23503")
+        catch (DbUpdateException e) when(e.InnerException is PostgresException { SqlState: "23503" })
         {
             logger.LogWarning("Невозможно удалить пользователя {UserId}, так как он связан с другими данными", id);
             return Result.Failure<UserEntity>(Error.OperationFailed("Невозможно удалить пользователя, так как у него есть связанные платежи или реквизиты"));

@@ -32,10 +32,9 @@ public sealed class UnitOfWork(
         {
             await Context.SaveChangesAsync(cancellationToken);
         }
-        catch (Exception ex)
+        catch (Exception e)
         {
-            logger.LogError(ex, "Ошибка при сохранении изменений");
-            throw;
+            logger.LogError(e, "Ошибка при сохранении изменений");
         }
     }
     

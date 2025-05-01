@@ -1,7 +1,9 @@
 ﻿using AutoMapper;
 using FluentValidation;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Npgsql;
 using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Application.Results;
 using PaymentGateway.Core.Entities;
@@ -130,21 +132,21 @@ public class RequisiteService(
 
         try
         {
-            requisite.User.RequisitesCount--;
-            await userManager.UpdateAsync(requisite.User);
-
             var userId = requisite.UserId;
             var requisiteDto = mapper.Map<RequisiteDto>(requisite);
 
             unit.RequisiteRepository.Delete(requisite);
             await unit.Commit();
 
+            requisite.User.RequisitesCount--;
+            await userManager.UpdateAsync(requisite.User);
+
             await notificationService.NotifyRequisiteDeleted(id, userId);
             await notificationService.NotifyUserUpdated(mapper.Map<UserDto>(requisite.User));
 
             return Result.Success(requisiteDto);
         }
-        catch (Npgsql.PostgresException ex) when (ex.SqlState == "23503")
+        catch (DbUpdateException e) when(e.InnerException is PostgresException { SqlState: "23503" })
         {
             logger.LogWarning("Невозможно удалить реквизит {RequisiteId}, так как он используется в других таблицах", id);
             return Result.Failure<RequisiteDto>(Error.OperationFailed("Невозможно удалить реквизит, так как он используется в платежах"));

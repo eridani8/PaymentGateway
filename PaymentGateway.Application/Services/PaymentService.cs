@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using FluentValidation;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Application.Results;
@@ -199,7 +200,7 @@ public class PaymentService(
 
             return Result.Success(paymentDto);
         }
-        catch (PostgresException ex) when (ex.SqlState == "23503")
+        catch (DbUpdateException e) when(e.InnerException is PostgresException { SqlState: "23503" })
         {
             logger.LogWarning("Невозможно удалить платеж {PaymentId}, так как он используется в других таблицах", id);
             return Result.Failure<PaymentDto>(Error.OperationFailed("Невозможно удалить платеж, так как он используется в других таблицах"));
