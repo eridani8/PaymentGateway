@@ -61,4 +61,9 @@ public class CachedRequisiteRepository(RequisiteRepository repository, IMemoryCa
     {
         return Repository.HasSimilarRequisite(paymentData);
     }
+
+    public Task<RequisiteEntity?> GetRequisiteByPaymentData(string paymentData)
+    {
+        return Repository.GetRequisiteByPaymentData(paymentData);
+    }
 }

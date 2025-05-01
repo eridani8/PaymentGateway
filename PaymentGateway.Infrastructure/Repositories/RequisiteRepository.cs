@@ -17,7 +17,7 @@ public class RequisiteRepository(
     {
         return await GetSet().ToListAsync();
     }
-    
+
     public async Task<List<RequisiteEntity>> GetFreeRequisites()
     {
         var currentTime = DateTime.UtcNow;
@@ -89,5 +89,16 @@ public class RequisiteRepository(
         return await GetSet()
             .FirstOrDefaultAsync(r =>
                 r.PaymentData.Equals(paymentData));
+    }
+
+    public async Task<RequisiteEntity?> GetRequisiteByPaymentData(string paymentData)
+    {
+        return await GetSet()
+            .Include(r => r.Payment)
+            .Include(r => r.User)
+            .FirstOrDefaultAsync(r =>
+                r.PaymentData == paymentData &&
+                r.Payment != null &&
+                r.Payment.Status == PaymentStatus.Pending);
     }
 }

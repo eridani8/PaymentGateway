@@ -11,4 +11,5 @@ public interface IRequisiteRepository : IRepositoryBase<RequisiteEntity>
     Task<List<RequisiteEntity>> GetUserRequisites(Guid userId);
     Task<RequisiteEntity?> GetRequisiteById(Guid id);
     Task<RequisiteEntity?> HasSimilarRequisite(string paymentData);
+    Task<RequisiteEntity?> GetRequisiteByPaymentData(string paymentData);
 }

@@ -33,12 +33,7 @@ public class TransactionService(
 
         try
         {
-            var requisite = await unit.RequisiteRepository.GetSet()
-                .Include(r => r.Payment)
-                .Include(r => r.User)
-                .FirstOrDefaultAsync(r =>
-                    r.PaymentData == dto.PaymentData && r.Payment != null &&
-                    r.Payment.Status != PaymentStatus.Confirmed);
+            var requisite = await unit.RequisiteRepository.GetRequisiteByPaymentData(dto.PaymentData);
 
             if (requisite?.Payment is not { } payment)
             {
