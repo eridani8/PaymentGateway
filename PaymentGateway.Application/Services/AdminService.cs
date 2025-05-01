@@ -2,6 +2,7 @@
 using FluentValidation;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Application.Results;
@@ -10,6 +11,7 @@ using PaymentGateway.Core.Entities;
 using PaymentGateway.Shared.DTOs.User;
 using PaymentGateway.Shared.Enums;
 using PaymentGateway.Shared.Interfaces;
+using Npgsql;
 
 namespace PaymentGateway.Application.Services;
 
@@ -19,7 +21,8 @@ public class AdminService(
     IValidator<CreateUserDto> createValidator,
     IValidator<UpdateUserDto> updateValidator,
     INotificationService notificationService,
-    IOptions<GatewaySettings> gatewaySettings) : IAdminService
+    IOptions<GatewaySettings> gatewaySettings,
+    ILogger<AdminService> logger) : IAdminService
 {
     public async Task<Result<UserDto>> CreateUser(CreateUserDto dto)
     {
@@ -92,14 +95,28 @@ public class AdminService(
             return Result.Failure<UserEntity>(Error.SelfDeleteForbidden);
         }
 
-        var result = await userManager.DeleteAsync(user);
-        if (!result.Succeeded)
+        try
         {
-            return Result.Failure<UserEntity>(Error.OperationFailed("удаление пользователя", 
-                string.Join(", ", result.Errors.Select(e => e.Description))));
+            var result = await userManager.DeleteAsync(user);
+            if (!result.Succeeded)
+            {
+                return Result.Failure<UserEntity>(Error.OperationFailed("удаление пользователя", 
+                    string.Join(", ", result.Errors.Select(e => e.Description))));
+            }
+            
+            await notificationService.NotifyUserDeleted(id);
+            return Result.Success(user);
         }
-        
-        return Result.Success(user);
+        catch (PostgresException ex) when (ex.SqlState == "23503")
+        {
+            logger.LogWarning("Невозможно удалить пользователя {UserId}, так как он связан с другими данными", id);
+            return Result.Failure<UserEntity>(Error.OperationFailed("Невозможно удалить пользователя, так как у него есть связанные платежи или реквизиты"));
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Ошибка при удалении пользователя {UserId}", id);
+            return Result.Failure<UserEntity>(Error.OperationFailed(ex.Message));
+        }
     }
 
     public async Task<Result<UserDto>> UpdateUser(UpdateUserDto dto)

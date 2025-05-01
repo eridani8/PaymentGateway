@@ -29,6 +29,9 @@ public record Error
     public static Error OperationFailed(string operation, string details) => 
         new(ErrorCode.OperationFailed, $"Операция {operation} не выполнена. {details}".TrimEnd());
     
+    public static Error OperationFailed(string details) => 
+        new(ErrorCode.OperationFailed, details.TrimEnd());
+    
     public static Error AccessDenied => 
         new(ErrorCode.AccessDenied, "Отказано в доступе");
     

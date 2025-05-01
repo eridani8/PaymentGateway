@@ -128,18 +128,31 @@ public class RequisiteService(
         var requisite = await unit.RequisiteRepository.GetRequisiteById(id);
         if (requisite is null) return Result.Failure<RequisiteDto>(Error.RequisiteNotFound);
 
-        requisite.User.RequisitesCount--;
-        await userManager.UpdateAsync(requisite.User);
+        try
+        {
+            requisite.User.RequisitesCount--;
+            await userManager.UpdateAsync(requisite.User);
 
-        var userId = requisite.UserId;
-        var requisiteDto = mapper.Map<RequisiteDto>(requisite);
+            var userId = requisite.UserId;
+            var requisiteDto = mapper.Map<RequisiteDto>(requisite);
 
-        unit.RequisiteRepository.Delete(requisite);
-        await unit.Commit();
+            unit.RequisiteRepository.Delete(requisite);
+            await unit.Commit();
 
-        await notificationService.NotifyRequisiteDeleted(id, userId);
-        await notificationService.NotifyUserUpdated(mapper.Map<UserDto>(requisite.User));
+            await notificationService.NotifyRequisiteDeleted(id, userId);
+            await notificationService.NotifyUserUpdated(mapper.Map<UserDto>(requisite.User));
 
-        return Result.Success(requisiteDto);
+            return Result.Success(requisiteDto);
+        }
+        catch (Npgsql.PostgresException ex) when (ex.SqlState == "23503")
+        {
+            logger.LogWarning("Невозможно удалить реквизит {RequisiteId}, так как он используется в других таблицах", id);
+            return Result.Failure<RequisiteDto>(Error.OperationFailed("Невозможно удалить реквизит, так как он используется в платежах"));
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Ошибка при удалении реквизита {RequisiteId}", id);
+            return Result.Failure<RequisiteDto>(Error.OperationFailed(ex.Message));
+        }
     }
 }
