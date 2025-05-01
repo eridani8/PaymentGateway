@@ -13,9 +13,9 @@ namespace PaymentGateway.Api.Controllers;
 [Route("api/v{version:apiVersion}/payments")]
 [Produces("application/json")]
 [SwaggerTag("Управление платежами")]
-public class PaymentController(
+public class PaymentsController(
     IPaymentService service,
-    ILogger<PaymentController> logger)
+    ILogger<PaymentsController> logger)
     : ControllerBase
 {
     [HttpPost]

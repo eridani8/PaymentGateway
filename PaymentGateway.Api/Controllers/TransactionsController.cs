@@ -13,7 +13,7 @@ namespace PaymentGateway.Api.Controllers;
 [Route("api/v{version:apiVersion}/transactions")]
 [Produces("application/json")]
 [SwaggerTag("Управление транзакциями")]
-public class TransactionController(ITransactionService service) : ControllerBase
+public class TransactionsController(ITransactionService service) : ControllerBase
 {
     [HttpPost]
     [SwaggerOperation(

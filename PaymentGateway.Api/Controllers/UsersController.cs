@@ -16,7 +16,7 @@ namespace PaymentGateway.Api.Controllers;
 [Route("api/v{version:apiVersion}/users")]
 [Produces("application/json")]
 [SwaggerTag("Пользовательские методы и аутентификация")]
-public class UserController(
+public class UsersController(
     UserManager<UserEntity> userManager,
     SignInManager<UserEntity> signInManager,
     ITokenService tokenService,

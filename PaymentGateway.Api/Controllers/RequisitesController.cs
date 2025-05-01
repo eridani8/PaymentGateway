@@ -14,7 +14,7 @@ namespace PaymentGateway.Api.Controllers;
 [Produces("application/json")]
 [Authorize]
 [SwaggerTag("Управление реквизитами")]
-public class RequisiteController(IRequisiteService service, ILogger<RequisiteController> logger)
+public class RequisitesController(IRequisiteService service, ILogger<RequisitesController> logger)
     : ControllerBase
 {
     [HttpPost]
