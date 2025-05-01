@@ -12,11 +12,11 @@ public class PaymentService(
     AuthenticationStateProvider authStateProvider,
     JsonSerializerOptions jsonOptions) : ServiceBase(factory, logger, jsonOptions), IPaymentService
 {
-    private const string apiEndpoint = "Payment";
+    private const string apiEndpoint = "api/v1/payments";
     
     public async Task<Guid?> CreatePayment(PaymentCreateDto dto)
     {
-        var response = await PostRequest($"{apiEndpoint}/Create", dto);
+        var response = await PostRequest(apiEndpoint, dto);
             
         if (response.Code == HttpStatusCode.OK && !string.IsNullOrEmpty(response.Content) && Guid.TryParse(response.Content, out var guid))
         {
@@ -28,7 +28,7 @@ public class PaymentService(
     
     public async Task<Response> ManualConfirmPayment(Guid id)
     {
-        return await PutRequest($"{apiEndpoint}/ManualConfirmPayment", new PaymentManualConfirmDto()
+        return await PutRequest($"{apiEndpoint}/confirm", new PaymentManualConfirmDto()
         {
             PaymentId = id
         });
@@ -36,7 +36,7 @@ public class PaymentService(
 
     public async Task<Response> CancelPayment(Guid id)
     {
-        return await PutRequest($"{apiEndpoint}/CancelPayment", new PaymentCancelDto()
+        return await PutRequest($"{apiEndpoint}/cancel", new PaymentCancelDto()
         {
             PaymentId = id
         });
@@ -52,7 +52,7 @@ public class PaymentService(
             return await GetUserPayments();
         }
         
-        var response = await GetRequest($"{apiEndpoint}/GetAll");
+        var response = await GetRequest(apiEndpoint);
         if (response.Code == HttpStatusCode.OK && !string.IsNullOrEmpty(response.Content))
         {
             return JsonSerializer.Deserialize<List<PaymentDto>>(response.Content, JsonOptions) ?? [];
@@ -63,7 +63,7 @@ public class PaymentService(
 
     public async Task<List<PaymentDto>> GetUserPayments()
     {
-        var response = await GetRequest($"{apiEndpoint}/GetUserPayments");
+        var response = await GetRequest($"{apiEndpoint}/user");
         if (response.Code == HttpStatusCode.OK && !string.IsNullOrEmpty(response.Content))
         {
             return JsonSerializer.Deserialize<List<PaymentDto>>(response.Content, JsonOptions) ?? [];
@@ -91,7 +91,7 @@ public class PaymentService(
     
     public async Task<PaymentDto?> GetPaymentById(Guid id)
     {
-        var response = await GetRequest($"{apiEndpoint}/GetById/{id}");
+        var response = await GetRequest($"{apiEndpoint}/{id}");
         
         if (response.Code == HttpStatusCode.OK && !string.IsNullOrEmpty(response.Content))
         {

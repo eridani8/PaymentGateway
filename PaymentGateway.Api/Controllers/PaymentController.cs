@@ -10,7 +10,7 @@ namespace PaymentGateway.Api.Controllers;
 
 [ApiController]
 [ApiVersion("1.0")]
-[Route("v{version:apiVersion}/[controller]/[action]")]
+[Route("api/v{version:apiVersion}/payments")]
 [Produces("application/json")]
 [SwaggerTag("Управление платежами")]
 public class PaymentController(
@@ -44,7 +44,7 @@ public class PaymentController(
         return Ok(result.Value.Id);
     }
 
-    [HttpPut]
+    [HttpPut("confirm")]
     [SwaggerOperation(
         Summary = "Ручное подтверждение платежа",
         Description = "Подтверждает платеж вручную",
@@ -74,7 +74,7 @@ public class PaymentController(
         return Ok();
     }
     
-    [HttpPut]
+    [HttpPut("cancel")]
     [Authorize(Roles = "Admin,Support")]
     [SwaggerOperation(
         Summary = "Отмена платежа",
@@ -128,7 +128,7 @@ public class PaymentController(
         return Ok(result.Value);
     }
 
-    [HttpGet]
+    [HttpGet("user")]
     [SwaggerOperation(
         Summary = "Получение платежей пользователя",
         Description = "Возвращает список платежей текущего пользователя",

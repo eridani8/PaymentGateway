@@ -10,7 +10,7 @@ namespace PaymentGateway.Api.Controllers;
 
 [ApiController]
 [ApiVersion("1.0")]
-[Route("v{version:apiVersion}/[controller]/[action]")]
+[Route("api/v{version:apiVersion}/requisites")]
 [Produces("application/json")]
 [Authorize]
 [SwaggerTag("Управление реквизитами")]
@@ -71,7 +71,7 @@ public class RequisiteController(IRequisiteService service, ILogger<RequisiteCon
         return Ok(result.Value);
     }
 
-    [HttpGet]
+    [HttpGet("user")]
     [SwaggerOperation(
         Summary = "Получение реквизитов пользователя",
         Description = "Возвращает список реквизитов текущего пользователя",

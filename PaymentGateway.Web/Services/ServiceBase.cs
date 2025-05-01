@@ -9,8 +9,6 @@ public class ServiceBase(IHttpClientFactory factory, ILogger<ServiceBase> logger
 {
     protected JsonSerializerOptions JsonOptions => jsonOptions;
     
-    private const string apiVersion = "v1";
-
     public async Task<Response> PostRequest(string url, object model)
     {
         return await SendRequest(HttpMethod.Post, url, model);
@@ -69,9 +67,6 @@ public class ServiceBase(IHttpClientFactory factory, ILogger<ServiceBase> logger
     {
         HttpResponseMessage? httpResponse = null;
         string? content = null;
-
-        url = $"{apiVersion}/{url}";
-        
         try
         {
             using var client = factory.CreateClient("API");

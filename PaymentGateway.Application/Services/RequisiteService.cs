@@ -113,7 +113,7 @@ public class RequisiteService(
             requisite.Status = status;
         }
 
-        mapper.Map(dto, requisite);
+        requisite = mapper.Map(dto, requisite);
         
         unit.RequisiteRepository.Update(requisite);
         await unit.Commit();

@@ -10,7 +10,7 @@ namespace PaymentGateway.Api.Controllers;
 
 [ApiController]
 [ApiVersion("1.0")]
-[Route("v{version:apiVersion}/[controller]/[action]")]
+[Route("api/v{version:apiVersion}/transactions")]
 [Produces("application/json")]
 [SwaggerTag("Управление транзакциями")]
 public class TransactionController(ITransactionService service) : ControllerBase
@@ -65,7 +65,7 @@ public class TransactionController(ITransactionService service) : ControllerBase
         return Ok(result.Value);
     }
     
-    [HttpGet]
+    [HttpGet("user")]
     [Authorize]
     [SwaggerOperation(
         Summary = "Получение транзакций пользователя",

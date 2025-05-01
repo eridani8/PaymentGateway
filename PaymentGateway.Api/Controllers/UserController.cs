@@ -13,7 +13,7 @@ namespace PaymentGateway.Api.Controllers;
 
 [ApiController]
 [ApiVersion("1.0")]
-[Route("v{version:apiVersion}/[controller]/[action]")]
+[Route("api/v{version:apiVersion}/users")]
 [Produces("application/json")]
 [SwaggerTag("Пользовательские методы и аутентификация")]
 public class UserController(
@@ -24,7 +24,7 @@ public class UserController(
     IValidator<ChangePasswordDto> changePasswordValidator,
     IValidator<TwoFactorVerifyDto> twoFactorVerifyValidator) : ControllerBase
 {
-    [HttpPost]
+    [HttpPost("login")]
     [SwaggerOperation(
         Summary = "Аутентификация пользователя",
         Description = "Выполняет вход пользователя в систему. При включенной двухфакторной аутентификации требует дополнительного кода.",
@@ -83,7 +83,7 @@ public class UserController(
         return Ok(token);
     }
     
-    [HttpPut]
+    [HttpPut("password")]
     [Authorize]
     [SwaggerOperation(
         Summary = "Изменение пароля",
@@ -123,7 +123,7 @@ public class UserController(
         return BadRequest(result.Errors.GetErrors());
     }
     
-    [HttpGet]
+    [HttpGet("two-factor/status")]
     [SwaggerOperation(
         Summary = "Статус двухфакторной аутентификации",
         Description = "Возвращает информацию о состоянии двухфакторной аутентификации пользователя",
@@ -151,7 +151,7 @@ public class UserController(
         return Ok(result);
     }
     
-    [HttpPut]
+    [HttpPost("two-factor/enable")]
     [SwaggerOperation(
         Summary = "Включение двухфакторной аутентификации",
         Description = "Генерирует QR-код и секретный ключ для настройки двухфакторной аутентификации",
@@ -184,7 +184,7 @@ public class UserController(
         });
     }
     
-    [HttpPut]
+    [HttpPost("two-factor/verify")]
     [SwaggerOperation(
         Summary = "Проверка кода двухфакторной аутентификации",
         Description = "Проверяет введенный код двухфакторной аутентификации",

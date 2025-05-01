@@ -187,7 +187,7 @@ public class AdminService(
         return Result.Success(roles);
     }
     
-    public async Task<Result<bool>> ResetTwoFactorAsync(Guid userId)
+    public async Task<Result<bool>> ResetTwoFactor(Guid userId)
     {
         var user = await userManager.FindByIdAsync(userId.ToString());
         if (user == null)

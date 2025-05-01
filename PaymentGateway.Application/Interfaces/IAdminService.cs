@@ -12,7 +12,7 @@ public interface IAdminService
     Task<Result<UserEntity>> DeleteUser(Guid id, string? currentUserId);
     Task<Result<UserDto>> UpdateUser(UpdateUserDto dto);
     Task<Result<Dictionary<Guid, string>>> GetUsersRoles(List<Guid> ids);
-    Task<Result<bool>> ResetTwoFactorAsync(Guid userId);
+    Task<Result<bool>> ResetTwoFactor(Guid userId);
     Result<int> GetCurrentRequisiteAssignmentAlgorithm();
     Result<bool> SetRequisiteAssignmentAlgorithm(int algorithm);
 }

@@ -10,7 +10,7 @@ public class UserService(
     ILogger<UserService> logger,
     JsonSerializerOptions jsonOptions) : ServiceBase(factory, logger, jsonOptions), IUserService
 {
-    private const string apiEndpoint = "user";
+    private const string apiEndpoint = "api/v1/users";
     
     public async Task<Response> Login(LoginDto dto)
     {
@@ -26,12 +26,12 @@ public class UserService(
 
     public Task<Response> ChangePassword(ChangePasswordDto dto)
     {
-        return PutRequest($"{apiEndpoint}/ChangePassword", dto);
+        return PutRequest($"{apiEndpoint}/password", dto);
     }
 
     public async Task<Response<TwoFactorStatusDto>> GetTwoFactorStatus()
     {
-        var response = await GetRequest($"{apiEndpoint}/TwoFactorStatus");
+        var response = await GetRequest($"{apiEndpoint}/two-factor/status");
         var result = new Response<TwoFactorStatusDto>
         {
             Code = response.Code,
@@ -52,7 +52,7 @@ public class UserService(
     
     public async Task<Response<TwoFactorDto>> EnableTwoFactor()
     {
-        var response = await PutRequest($"{apiEndpoint}/EnableTwoFactor");
+        var response = await PostRequest($"{apiEndpoint}/two-factor/enable");
         var result = new Response<TwoFactorDto>
         {
             Code = response.Code,
@@ -73,6 +73,6 @@ public class UserService(
 
     public async Task<Response> VerifyTwoFactor(TwoFactorVerifyDto dto)
     {
-        return await PutRequest($"{apiEndpoint}/VerifyTwoFactor", dto);
+        return await PostRequest($"{apiEndpoint}/two-factor/verify", dto);
     }
 }

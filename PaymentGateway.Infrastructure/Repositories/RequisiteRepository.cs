@@ -15,7 +15,10 @@ public class RequisiteRepository(
 {
     public async Task<List<RequisiteEntity>> GetAllTracked()
     {
-        return await GetSet().ToListAsync();
+        return await GetSet()
+            .Include(r => r.Payment)
+            .Include(r => r.User)
+            .ToListAsync();
     }
 
     public async Task<List<RequisiteEntity>> GetFreeRequisites()

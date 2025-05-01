@@ -13,7 +13,7 @@ namespace PaymentGateway.Api.Controllers;
 
 [ApiController]
 [ApiVersion("1.0")]
-[Route("v{version:apiVersion}/[controller]/[action]")]
+[Route("api/v{version:apiVersion}/admin")]
 [Produces("application/json")]
 [Authorize(Roles = "Admin")]
 [SwaggerTag("Административные методы управления пользователями и системой")]
@@ -22,7 +22,7 @@ public class AdminController(
     ILogger<AdminController> logger,
     INotificationService notificationService) : ControllerBase
 {
-    [HttpPost]
+    [HttpPost("users")]
     [SwaggerOperation(
         Summary = "Создание нового пользователя",
         Description = "Создает нового пользователя в системе",
@@ -53,7 +53,7 @@ public class AdminController(
         return Ok(result.Value.Id);
     }
 
-    [HttpGet]
+    [HttpGet("users")]
     [SwaggerOperation(
         Summary = "Получение списка всех пользователей",
         Description = "Возвращает список всех пользователей системы",
@@ -75,7 +75,7 @@ public class AdminController(
         return Ok(result.Value);
     }
 
-    [HttpGet("{id:guid}")]
+    [HttpGet("users/{id:guid}")]
     [SwaggerOperation(
         Summary = "Получение пользователя по ID",
         Description = "Возвращает информацию о пользователе по его идентификатору",
@@ -101,7 +101,7 @@ public class AdminController(
         return Ok(result.Value);
     }
 
-    [HttpDelete("{id:guid}")]
+    [HttpDelete("users/{id:guid}")]
     [SwaggerOperation(
         Summary = "Удаление пользователя",
         Description = "Удаляет пользователя из системы по его идентификатору",
@@ -131,7 +131,7 @@ public class AdminController(
         return Ok();
     }
 
-    [HttpPut]
+    [HttpPut("users")]
     [SwaggerOperation(
         Summary = "Обновление данных пользователя",
         Description = "Обновляет информацию о пользователе",
@@ -163,7 +163,7 @@ public class AdminController(
         return Ok();
     }
 
-    [HttpGet]
+    [HttpGet("users/roles")]
     [SwaggerOperation(
         Summary = "Получение ролей пользователей",
         Description = "Возвращает роли для списка пользователей по их идентификаторам",
@@ -189,7 +189,7 @@ public class AdminController(
         return Ok(result.Value);
     }
 
-    [HttpPut("{userId:guid}")]
+    [HttpPut("users/{userId:guid}/reset-2fa")]
     [SwaggerOperation(
         Summary = "Сброс двухфакторной аутентификации",
         Description = "Сбрасывает настройки двухфакторной аутентификации для указанного пользователя",
@@ -202,7 +202,7 @@ public class AdminController(
     [SwaggerResponse(404, "Пользователь не найден")]
     public async Task<ActionResult> ResetTwoFactor(Guid userId)
     {
-        var result = await service.ResetTwoFactorAsync(userId);
+        var result = await service.ResetTwoFactor(userId);
         
         if (result.IsFailure)
         {
@@ -215,11 +215,10 @@ public class AdminController(
         
         logger.LogInformation("Сброс двухфакторной аутентификации для пользователя {userId} [{User}]", userId,
             User.GetCurrentUsername());
-
         return Ok();
     }
-
-    [HttpGet]
+    
+    [HttpGet("requisite-assignment-algorithm")]
     [SwaggerOperation(
         Summary = "Получение текущего алгоритма назначения реквизитов",
         Description = "Возвращает текущий алгоритм, используемый для назначения реквизитов",
@@ -263,8 +262,7 @@ public class AdminController(
         var oldAlgorithm = (RequisiteAssignmentAlgorithm)service.GetCurrentRequisiteAssignmentAlgorithm().Value;
         notificationService.NotifyRequisiteAssignmentAlgorithmChanged((RequisiteAssignmentAlgorithm)algorithm);
         
-        logger.LogInformation("Изменение алгоритма подбора реквизитов. С {old} на {new} [{User}]", 
-            oldAlgorithm, (RequisiteAssignmentAlgorithm)algorithm, User.GetCurrentUsername());
+        logger.LogInformation("Изменение алгоритма подбора реквизитов. С {old} на {new} [{User}]", oldAlgorithm, (RequisiteAssignmentAlgorithm)algorithm, User.GetCurrentUsername());
 
         return Ok();
     }

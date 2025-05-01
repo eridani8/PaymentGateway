@@ -12,7 +12,7 @@ public class RequisiteService(
     AuthenticationStateProvider authStateProvider,
     JsonSerializerOptions jsonOptions) : ServiceBase(factory, logger, jsonOptions), IRequisiteService
 {
-    private const string apiEndpoint = "Requisite";
+    private const string apiEndpoint = "api/v1/requisites";
     
     public async Task<List<RequisiteDto>> GetRequisites()
     {
@@ -24,7 +24,7 @@ public class RequisiteService(
             return await GetUserRequisites();
         }
 
-        var response = await GetRequest($"{apiEndpoint}/GetAll");
+        var response = await GetRequest(apiEndpoint);
         if (response.Code == HttpStatusCode.OK && !string.IsNullOrEmpty(response.Content))
         {
             return JsonSerializer.Deserialize<List<RequisiteDto>>(response.Content, JsonOptions) ?? [];
@@ -35,7 +35,7 @@ public class RequisiteService(
     
     public async Task<List<RequisiteDto>> GetUserRequisites()
     {
-        var response = await GetRequest($"{apiEndpoint}/GetUserRequisites");
+        var response = await GetRequest($"{apiEndpoint}/user");
         if (response.Code == HttpStatusCode.OK && !string.IsNullOrEmpty(response.Content))
         {
             return JsonSerializer.Deserialize<List<RequisiteDto>>(response.Content, JsonOptions) ?? [];
@@ -48,7 +48,7 @@ public class RequisiteService(
     {
         try
         {
-            return await PostRequest($"{apiEndpoint}/Create", dto);
+            return await PostRequest(apiEndpoint, dto);
         }
         catch (Exception ex)
         {
@@ -59,7 +59,7 @@ public class RequisiteService(
     
     public async Task<Response> UpdateRequisite(Guid id, RequisiteUpdateDto dto)
     {
-        var response = await PutRequest($"{apiEndpoint}/Update/{id}", dto);
+        var response = await PutRequest($"{apiEndpoint}/{id}", dto);
         if (response.Code != HttpStatusCode.OK)
         {
             logger.LogWarning("Failed to update requisite {Id}. Status code: {StatusCode}", id, response.Code);
@@ -69,7 +69,7 @@ public class RequisiteService(
     
     public async Task<Response> DeleteRequisite(Guid id)
     {
-        return await DeleteRequest($"{apiEndpoint}/Delete/{id}");
+        return await DeleteRequest($"{apiEndpoint}/{id}");
     }
 
     public async Task<List<RequisiteDto>> GetRequisitesByUserId(Guid userId)

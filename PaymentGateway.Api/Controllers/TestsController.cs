@@ -11,12 +11,12 @@ namespace PaymentGateway.Api.Controllers;
 
 [ApiController]
 [ApiVersion("1.0")]
-[Route("v{version:apiVersion}/[controller]/[action]")]
+[Route("api/v{version:apiVersion}/tests")]
 [Authorize(Roles = "Admin")]
 public class TestsController(IRequisiteService requisiteService, IPaymentService paymentService)
     : ControllerBase
 {
-    [HttpGet]
+    [HttpPost("requisites/generate")]
     public async Task<IActionResult> CreateManyRequisites()
     {
         for (var i = 0; i < 10000; i++)
@@ -48,7 +48,7 @@ public class TestsController(IRequisiteService requisiteService, IPaymentService
         return Ok();
     }
 
-    [HttpGet]
+    [HttpPost("payments/generate")]
     public async Task<IActionResult> CreateManyPayments()
     {
         for (var i = 0; i < 100000; i++)
