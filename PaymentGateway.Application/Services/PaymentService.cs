@@ -2,8 +2,8 @@
 using FluentValidation;
 using Microsoft.AspNetCore.Identity;
 using PaymentGateway.Application.Interfaces;
+using PaymentGateway.Application.Results;
 using PaymentGateway.Core.Entities;
-using PaymentGateway.Core.Exceptions;
 using PaymentGateway.Infrastructure.Interfaces;
 using PaymentGateway.Shared.DTOs.Payment;
 using PaymentGateway.Shared.DTOs.Requisite;
@@ -22,18 +22,18 @@ public class PaymentService(
     INotificationService notificationService,
     IPaymentConfirmationService paymentConfirmationService) : IPaymentService
 {
-    public async Task<PaymentDto?> CreatePayment(PaymentCreateDto dto)
+    public async Task<Result<PaymentDto>> CreatePayment(PaymentCreateDto dto)
     {
         var validation = await createValidator.ValidateAsync(dto);
         if (!validation.IsValid)
         {
-            throw new ValidationException(validation.Errors);
+            return Result.Failure<PaymentDto>(new ValidationError(validation.Errors.Select(e => e.ErrorMessage)));
         }
 
         var containsEntity = await unit.PaymentRepository.GetExistingPayment(dto.ExternalPaymentId);
         if (containsEntity is not null)
         {
-            throw new DuplicatePaymentException();
+            return Result.Failure<PaymentDto>(Error.DuplicatePayment);
         }
 
         var entity = mapper.Map<PaymentEntity>(dto);
@@ -45,44 +45,44 @@ public class PaymentService(
 
         await notificationService.NotifyPaymentUpdated(paymentDto);
 
-        return paymentDto;
+        return Result.Success(paymentDto);
     }
 
-    public async Task<PaymentEntity> ManualConfirmPayment(PaymentManualConfirmDto dto, Guid currentUserId)
+    public async Task<Result<PaymentEntity>> ManualConfirmPayment(PaymentManualConfirmDto dto, Guid currentUserId)
     {
         var validation = await manualConfirmValidator.ValidateAsync(dto);
         if (!validation.IsValid)
         {
-            throw new ValidationException(validation.Errors);
+            return Result.Failure<PaymentEntity>(new ValidationError(validation.Errors.Select(e => e.ErrorMessage)));
         }
 
         var payment = await unit.PaymentRepository.PaymentById(dto.PaymentId);
         if (payment is null)
         {
-            throw new PaymentNotFound();
+            return Result.Failure<PaymentEntity>(Error.PaymentNotFound);
         }
 
         if (payment.Status == PaymentStatus.Confirmed)
         {
-            throw new ManualConfirmException("Платеж уже подтвержден");
+            return Result.Failure<PaymentEntity>(Error.PaymentAlreadyConfirmed);
         }
 
         if (payment.Requisite is not { } requisite)
         {
-            throw new ManualConfirmException("К платежу не привязан реквизит");
+            return Result.Failure<PaymentEntity>(Error.RequisiteNotAttached);
         }
 
         var user = await userManager.FindByIdAsync(currentUserId.ToString());
         if (user is null)
         {
-            throw new ManualConfirmException("Недостаточно прав");
+            return Result.Failure<PaymentEntity>(Error.InsufficientPermissions);
         }
 
         var userRoles = await userManager.GetRolesAsync(user);
 
         if (payment.Requisite.UserId != currentUserId && !userRoles.Contains("Admin") && !userRoles.Contains("Support"))
         {
-            throw new ManualConfirmException("Недостаточно прав для подтверждения платежа");
+            return Result.Failure<PaymentEntity>(Error.InsufficientPermissionsForPayment);
         }
 
         payment.ManualConfirm(user.Id);
@@ -94,33 +94,33 @@ public class PaymentService(
         var requisiteDto = mapper.Map<RequisiteDto>(requisite);
         await notificationService.NotifyRequisiteUpdated(requisiteDto);
 
-        return payment;
+        return Result.Success(payment);
     }
 
-    public async Task<PaymentEntity> CancelPayment(PaymentCancelDto dto, Guid currentUserId)
+    public async Task<Result<PaymentEntity>> CancelPayment(PaymentCancelDto dto, Guid currentUserId)
     {
         var validation = await cancelValidator.ValidateAsync(dto);
         if (!validation.IsValid)
         {
-            throw new ValidationException(validation.Errors);
+            return Result.Failure<PaymentEntity>(new ValidationError(validation.Errors.Select(e => e.ErrorMessage)));
         }
 
         var payment = await unit.PaymentRepository.PaymentById(dto.PaymentId);
         if (payment is null)
         {
-            throw new PaymentNotFound();
+            return Result.Failure<PaymentEntity>(Error.PaymentNotFound);
         }
 
         var user = await userManager.FindByIdAsync(currentUserId.ToString());
         if (user is null)
         {
-            throw new ManualConfirmException("Недостаточно прав");
+            return Result.Failure<PaymentEntity>(Error.InsufficientPermissions);
         }
 
         var userRoles = await userManager.GetRolesAsync(user);
         if (!userRoles.Contains("Admin") && !userRoles.Contains("Support"))
         {
-            throw new ManualConfirmException("Недостаточно прав для отмены платежа");
+            return Result.Failure<PaymentEntity>(Error.InsufficientPermissions);
         }
 
         payment.Status = PaymentStatus.Canceled;
@@ -144,31 +144,39 @@ public class PaymentService(
 
         await notificationService.NotifyPaymentUpdated(paymentDto);
 
-        return payment;
+        return Result.Success(payment);
     }
 
-    public async Task<IEnumerable<PaymentDto>> GetAllPayments()
+    public async Task<Result<IEnumerable<PaymentDto>>> GetAllPayments()
     {
         var entities = await unit.PaymentRepository.GetAllPayments();
-        return mapper.Map<IEnumerable<PaymentDto>>(entities);
+        return Result.Success(mapper.Map<IEnumerable<PaymentDto>>(entities));
     }
 
-    public async Task<IEnumerable<PaymentDto>> GetUserPayments(Guid userId)
+    public async Task<Result<IEnumerable<PaymentDto>>> GetUserPayments(Guid userId)
     {
         var entities = await unit.PaymentRepository.GetUserPayments(userId);
-        return mapper.Map<IEnumerable<PaymentDto>>(entities);
+        return Result.Success(mapper.Map<IEnumerable<PaymentDto>>(entities));
     }
 
-    public async Task<PaymentDto?> GetPaymentById(Guid id)
+    public async Task<Result<PaymentDto>> GetPaymentById(Guid id)
     {
         var entity = await unit.PaymentRepository.PaymentById(id);
-        return entity is not null ? mapper.Map<PaymentDto>(entity) : null;
+        if (entity is null)
+        {
+            return Result.Failure<PaymentDto>(Error.PaymentNotFound);
+        }
+        
+        return Result.Success(mapper.Map<PaymentDto>(entity));
     }
 
-    public async Task<PaymentEntity?> DeletePayment(Guid id)
+    public async Task<Result<PaymentDto>> DeletePayment(Guid id)
     {
         var entity = await unit.PaymentRepository.PaymentById(id);
-        if (entity is null) return null;
+        if (entity is null)
+        {
+            return Result.Failure<PaymentDto>(Error.PaymentNotFound);
+        }
 
         if (entity.Requisite != null && entity.Requisite.PaymentId == id)
         {
@@ -180,8 +188,9 @@ public class PaymentService(
         unit.PaymentRepository.Delete(entity);
         await unit.Commit();
 
-        await notificationService.NotifyPaymentUpdated(mapper.Map<PaymentDto>(entity));
+        var paymentDto = mapper.Map<PaymentDto>(entity);
+        await notificationService.NotifyPaymentUpdated(paymentDto);
 
-        return entity;
+        return Result.Success(paymentDto);
     }
 }

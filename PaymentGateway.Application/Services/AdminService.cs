@@ -26,7 +26,7 @@ public class AdminService(
         var validation = await createValidator.ValidateAsync(dto);
         if (!validation.IsValid)
         {
-            return Result.Failure<UserDto>(new ValidationError(validation.Errors.Select(e => e.ErrorMessage).ToList()));
+            return Result.Failure<UserDto>(new ValidationError(validation.Errors.Select(e => e.ErrorMessage)));
         }
     
         var existingUser = await userManager.FindByNameAsync(dto.Username);
@@ -107,7 +107,7 @@ public class AdminService(
         var validation = await updateValidator.ValidateAsync(dto);
         if (!validation.IsValid)
         {
-            return Result.Failure<UserDto>(new ValidationError(validation.Errors.Select(e => e.ErrorMessage).ToList()));
+            return Result.Failure<UserDto>(new ValidationError(validation.Errors.Select(e => e.ErrorMessage)));
         }
 
         var user = await userManager.FindByIdAsync(dto.Id.ToString());

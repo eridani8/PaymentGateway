@@ -40,4 +40,37 @@ public record Error
     
     public static Error ModifyRootUserForbidden => 
         new(ErrorCode.ModifyRootUserForbidden, "Нельзя изменить root пользователя");
+        
+    public static Error PaymentNotFound => 
+        new(ErrorCode.PaymentNotFound, "Платеж не найден");
+        
+    public static Error DuplicatePayment => 
+        new(ErrorCode.DuplicatePayment, "Платеж с таким внешним идентификатором уже существует");
+    
+    public static Error PaymentAlreadyConfirmed => 
+        new(ErrorCode.PaymentAlreadyConfirmed, "Платеж уже подтвержден");
+        
+    public static Error RequisiteNotAttached => 
+        new(ErrorCode.RequisiteNotAttached, "К платежу не привязан реквизит");
+        
+    public static Error InsufficientPermissions => 
+        new(ErrorCode.InsufficientPermissions, "Недостаточно прав");
+        
+    public static Error InsufficientPermissionsForPayment => 
+        new(ErrorCode.InsufficientPermissionsForPayment, "Недостаточно прав для подтверждения платежа");
+        
+    public static Error RequisiteNotFound => 
+        new(ErrorCode.RequisiteNotFound, "Реквизит не найден");
+        
+    public static Error DuplicateRequisite => 
+        new(ErrorCode.DuplicateRequisite, "Реквизит с такими платежными данными уже существует");
+    
+    public static Error RequisiteLimitExceeded(int maxCount) => 
+        new(ErrorCode.RequisiteLimitExceeded, $"Достигнут лимит реквизитов. Максимум: {maxCount}");
+    
+    public static Error TransactionError(string details) => 
+        new(ErrorCode.TransactionError, $"Ошибка при обработке транзакции. {details}".TrimEnd());
+    
+    public static Error WrongPaymentAmount(decimal actual, decimal expected) => 
+        new(ErrorCode.WrongPaymentAmount, $"Сумма платежа {actual}, ожидалось {expected}");
 } 

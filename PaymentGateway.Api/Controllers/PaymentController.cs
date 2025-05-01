@@ -1,9 +1,8 @@
-﻿using FluentValidation;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PaymentGateway.Application;
 using PaymentGateway.Application.Interfaces;
-using PaymentGateway.Core.Exceptions;
+using PaymentGateway.Application.Results;
 using PaymentGateway.Shared.DTOs.Payment;
 using Swashbuckle.AspNetCore.Annotations;
 
@@ -32,21 +31,17 @@ public class PaymentController(
     {
         if (dto is null) return BadRequest();
 
-        try
+        var result = await service.CreatePayment(dto);
+        
+        if (result.IsFailure)
         {
-            var payment = await service.CreatePayment(dto);
-            if (payment is null) return BadRequest();
-            logger.LogInformation("Создание платежа {paymentId} на сумму {amount}", payment.Id, payment.Amount);
-            return Ok(payment.Id);
+            if (result.Error.Code == ErrorCode.DuplicatePayment) return Conflict(result.Error.Message);
+                
+            return BadRequest(result.Error.Message);
         }
-        catch (DuplicatePaymentException)
-        {
-            return Conflict();
-        }
-        catch (ValidationException e)
-        {
-            return BadRequest(e.Errors.GetErrors());
-        }
+        
+        logger.LogInformation("Создание платежа {paymentId} на сумму {amount}", result.Value.Id, result.Value.Amount);
+        return Ok(result.Value.Id);
     }
 
     [HttpPut]
@@ -63,26 +58,20 @@ public class PaymentController(
     {
         if (dto is null) return BadRequest();
 
-        try
+        var userId = User.GetCurrentUserId();
+        if (userId == Guid.Empty) return Unauthorized();
+        
+        var result = await service.ManualConfirmPayment(dto, userId);
+        
+        if (result.IsFailure)
         {
-            var userId = User.GetCurrentUserId();
-            if (userId == Guid.Empty) return Unauthorized();
-            var payment = await service.ManualConfirmPayment(dto, userId);
-            logger.LogInformation("Ручное подтверждение платежа {paymentId} [{User}]", payment.Id, User.GetCurrentUsername());
-            return Ok();
+            if (result.Error.Code == ErrorCode.PaymentNotFound) return NotFound(result.Error.Message);
+                
+            return BadRequest(result.Error.Message);
         }
-        catch (PaymentNotFound)
-        {
-            return NotFound();
-        }
-        catch (ManualConfirmException e)
-        {
-            return BadRequest(e.Message);
-        }
-        catch (ValidationException e)
-        {
-            return BadRequest(e.Errors.GetErrors());
-        }
+        
+        logger.LogInformation("Ручное подтверждение платежа {paymentId} [{User}]", result.Value.Id, User.GetCurrentUsername());
+        return Ok();
     }
     
     [HttpPut]
@@ -101,26 +90,23 @@ public class PaymentController(
     {
         if (dto is null) return BadRequest();
 
-        try
+        var userId = User.GetCurrentUserId();
+        if (userId == Guid.Empty) return Unauthorized();
+        
+        var result = await service.CancelPayment(dto, userId);
+        
+        if (result.IsFailure)
         {
-            var userId = User.GetCurrentUserId();
-            if (userId == Guid.Empty) return Unauthorized();
-            var payment = await service.CancelPayment(dto, userId);
-            logger.LogInformation("Отмена платежа {paymentId} [{User}]", payment.Id, User.GetCurrentUsername());
-            return Ok();
+            return result.Error.Code switch
+            {
+                ErrorCode.PaymentNotFound => NotFound(result.Error.Message),
+                ErrorCode.InsufficientPermissions => Forbid(result.Error.Message),
+                _ => BadRequest(result.Error.Message)
+            };
         }
-        catch (PaymentNotFound)
-        {
-            return NotFound();
-        }
-        catch (ManualConfirmException e)
-        {
-            return BadRequest(e.Message);
-        }
-        catch (ValidationException e)
-        {
-            return BadRequest(e.Errors.GetErrors());
-        }
+        
+        logger.LogInformation("Отмена платежа {paymentId} [{User}]", result.Value.Id, User.GetCurrentUsername());
+        return Ok();
     }
     
     [HttpGet]
@@ -135,8 +121,11 @@ public class PaymentController(
     [SwaggerResponse(403, "Недостаточно прав")]
     public async Task<ActionResult<IEnumerable<PaymentDto>>> GetAll()
     {
-        var payments = await service.GetAllPayments();
-        return Ok(payments);
+        var result = await service.GetAllPayments();
+        
+        if (result.IsFailure) return BadRequest(result.Error.Message);
+            
+        return Ok(result.Value);
     }
 
     [HttpGet]
@@ -151,8 +140,12 @@ public class PaymentController(
     {
         var userId = User.GetCurrentUserId();
         if (userId == Guid.Empty) return Unauthorized();
-        var payments = await service.GetUserPayments(userId);
-        return Ok(payments);
+        
+        var result = await service.GetUserPayments(userId);
+        
+        if (result.IsFailure) return BadRequest(result.Error.Message);
+            
+        return Ok(result.Value);
     }
     
     [HttpGet("{id:guid}")]
@@ -165,9 +158,16 @@ public class PaymentController(
     [SwaggerResponse(404, "Платеж не найден")]
     public async Task<ActionResult<PaymentDto>> GetById(Guid id)
     {
-        var payment = await service.GetPaymentById(id);
-        if (payment is null) return NotFound();
-        return Ok(payment);
+        var result = await service.GetPaymentById(id);
+        
+        if (result.IsFailure)
+        {
+            if (result.Error.Code == ErrorCode.PaymentNotFound) return NotFound(result.Error.Message);
+                
+            return BadRequest(result.Error.Message);
+        }
+        
+        return Ok(result.Value);
     }
     
     [Authorize(Roles = "Admin,Support")]
@@ -183,9 +183,16 @@ public class PaymentController(
     [SwaggerResponse(404, "Платеж не найден")]
     public async Task<ActionResult<PaymentDto>> Delete(Guid id)
     {
-        var payment = await service.DeletePayment(id);
-        if (payment is null) return NotFound();
-        logger.LogInformation("Удаление платежа {paymentId} [{UserId}]", payment.Id, User.GetCurrentUserId());
-        return Ok(payment);
+        var result = await service.DeletePayment(id);
+        
+        if (result.IsFailure)
+        {
+            if (result.Error.Code == ErrorCode.PaymentNotFound) return NotFound(result.Error.Message);
+                
+            return BadRequest(result.Error.Message);
+        }
+        
+        logger.LogInformation("Удаление платежа {paymentId} [{UserId}]", result.Value.Id, User.GetCurrentUserId());
+        return Ok(result.Value);
     }
 }

@@ -1,9 +1,8 @@
-﻿using FluentValidation;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PaymentGateway.Application;
 using PaymentGateway.Application.Interfaces;
-using PaymentGateway.Core.Exceptions;
+using PaymentGateway.Application.Results;
 using PaymentGateway.Shared.DTOs.Requisite;
 using Swashbuckle.AspNetCore.Annotations;
 
@@ -27,31 +26,30 @@ public class RequisiteController(IRequisiteService service, ILogger<RequisiteCon
     [SwaggerResponse(200, "Реквизит успешно создан", typeof(RequisiteDto))]
     [SwaggerResponse(400, "Неверные входные данные")]
     [SwaggerResponse(401, "Пользователь не авторизован")]
+    [SwaggerResponse(409, "Реквизит с такими платежными данными уже существует")]
     public async Task<ActionResult<Guid>> Create([FromBody] RequisiteCreateDto? dto)
     {
         if (dto is null) return BadRequest();
 
-        try
+        var userId = User.GetCurrentUserId();
+        if (userId == Guid.Empty) return Unauthorized();
+        
+        var result = await service.CreateRequisite(dto, userId);
+        
+        if (result.IsFailure)
         {
-            var userId = User.GetCurrentUserId();
-            if (userId == Guid.Empty) return Unauthorized();
-            var requisite = await service.CreateRequisite(dto, userId);
-            if (requisite is null) return BadRequest();
-            logger.LogInformation("Создание реквизита {requisiteId} [{User}]", requisite.Id, User.GetCurrentUsername());
-            return Ok(requisite.Id);
+            return result.Error.Code switch
+            {
+                ErrorCode.DuplicateRequisite => Conflict(result.Error.Message),
+                ErrorCode.RequisiteLimitExceeded => BadRequest(result.Error.Message),
+                ErrorCode.Validation => BadRequest(result.Error.Message),
+                ErrorCode.UserNotFound => NotFound(result.Error.Message),
+                _ => BadRequest(result.Error.Message)
+            };
         }
-        catch (DuplicateRequisiteException e)
-        {
-            return BadRequest(e.Message);
-        }
-        catch (RequisiteLimitExceededException e)
-        {
-            return BadRequest(e.Message);
-        }
-        catch (ValidationException e)
-        {
-            return BadRequest(e.Errors.GetErrors());
-        }
+        
+        logger.LogInformation("Создание реквизита {requisiteId} [{User}]", result.Value.Id, User.GetCurrentUsername());
+        return Ok(result.Value.Id);
     }
     
     [HttpGet]
@@ -66,8 +64,11 @@ public class RequisiteController(IRequisiteService service, ILogger<RequisiteCon
     [SwaggerResponse(403, "Недостаточно прав")]
     public async Task<ActionResult<IEnumerable<RequisiteDto>>> GetAll()
     {
-        var requisites = await service.GetAllRequisites();
-        return Ok(requisites);
+        var result = await service.GetAllRequisites();
+        
+        if (result.IsFailure) return BadRequest(result.Error.Message);
+        
+        return Ok(result.Value);
     }
 
     [HttpGet]
@@ -82,8 +83,12 @@ public class RequisiteController(IRequisiteService service, ILogger<RequisiteCon
     {
         var userId = User.GetCurrentUserId();
         if (userId == Guid.Empty) return Unauthorized();
-        var requisites = await service.GetUserRequisites(userId);
-        return Ok(requisites);
+        
+        var result = await service.GetUserRequisites(userId);
+        
+        if (result.IsFailure) return BadRequest(result.Error.Message);
+        
+        return Ok(result.Value);
     }
     
     [HttpGet("{id:guid}")]
@@ -99,9 +104,17 @@ public class RequisiteController(IRequisiteService service, ILogger<RequisiteCon
     {
         var userId = User.GetCurrentUserId();
         if (userId == Guid.Empty) return Unauthorized();
-        var requisite = await service.GetRequisiteById(id);
-        if (requisite is null) return NotFound();
-        return Ok(requisite);
+        
+        var result = await service.GetRequisiteById(id);
+        
+        if (result.IsFailure)
+        {
+            if (result.Error.Code == ErrorCode.RequisiteNotFound) return NotFound(result.Error.Message);
+            
+            return BadRequest(result.Error.Message);
+        }
+        
+        return Ok(result.Value);
     }
     
     [HttpPut("{id:guid}")]
@@ -113,21 +126,24 @@ public class RequisiteController(IRequisiteService service, ILogger<RequisiteCon
     [SwaggerResponse(200, "Реквизит успешно обновлен", typeof(RequisiteDto))]
     [SwaggerResponse(400, "Неверные входные данные")]
     [SwaggerResponse(401, "Пользователь не авторизован")]
+    [SwaggerResponse(404, "Реквизит не найден")]
     public async Task<ActionResult> Update(Guid id, [FromBody] RequisiteUpdateDto? dto)
     {
         if (dto is null) return BadRequest();
-
-        try
+        
+        var result = await service.UpdateRequisite(id, dto);
+        
+        if (result.IsFailure)
         {
-            var requisite = await service.UpdateRequisite(id, dto);
-            if (requisite is null) return BadRequest();
-            logger.LogInformation("Обновление реквизита {requisiteId} [{User}]", requisite.Id, User.GetCurrentUsername());
-            return Ok();
+            return result.Error.Code switch
+            {
+                ErrorCode.RequisiteNotFound => NotFound(result.Error.Message),
+                _ => BadRequest(result.Error.Message)
+            };
         }
-        catch (ValidationException e)
-        {
-            return BadRequest(e.Errors.GetErrors());
-        }
+        
+        logger.LogInformation("Обновление реквизита {requisiteId} [{User}]", result.Value.Id, User.GetCurrentUsername());
+        return Ok();
     }
     
     [HttpDelete("{id:guid}")]
@@ -141,9 +157,16 @@ public class RequisiteController(IRequisiteService service, ILogger<RequisiteCon
     [SwaggerResponse(404, "Реквизит не найден")]
     public async Task<ActionResult> Delete(Guid id)
     {
-        var requisite = await service.DeleteRequisite(id);
-        if (requisite is null) return NotFound();
-        logger.LogInformation("Удаление реквизита {requisiteId} [{User}]", id, User.GetCurrentUsername());
-        return Ok(requisite);
+        var result = await service.DeleteRequisite(id);
+        
+        if (result.IsFailure)
+        {
+            if (result.Error.Code == ErrorCode.RequisiteNotFound) return NotFound(result.Error.Message);
+            
+            return BadRequest(result.Error.Message);
+        }
+        
+        logger.LogInformation("Удаление реквизита {requisiteId} [{User}]", result.Value.Id, User.GetCurrentUsername());
+        return Ok(result.Value);
     }
 }

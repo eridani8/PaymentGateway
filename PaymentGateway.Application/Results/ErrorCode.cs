@@ -19,5 +19,19 @@ public enum ErrorCode
     AccessDenied,
     DeleteRootUserForbidden,
     SelfDeleteForbidden,
-    ModifyRootUserForbidden
+    ModifyRootUserForbidden,
+    
+    PaymentNotFound,
+    DuplicatePayment,
+    PaymentAlreadyConfirmed,
+    RequisiteNotAttached,
+    InsufficientPermissions,
+    InsufficientPermissionsForPayment,
+    
+    RequisiteNotFound,
+    DuplicateRequisite,
+    RequisiteLimitExceeded,
+    
+    TransactionError,
+    WrongPaymentAmount
 } 

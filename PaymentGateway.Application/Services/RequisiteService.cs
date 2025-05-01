@@ -3,8 +3,8 @@ using FluentValidation;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using PaymentGateway.Application.Interfaces;
+using PaymentGateway.Application.Results;
 using PaymentGateway.Core.Entities;
-using PaymentGateway.Core.Exceptions;
 using PaymentGateway.Infrastructure.Interfaces;
 using PaymentGateway.Shared.DTOs.Requisite;
 using PaymentGateway.Shared.DTOs.User;
@@ -21,30 +21,30 @@ public class RequisiteService(
     UserManager<UserEntity> userManager,
     INotificationService notificationService) : IRequisiteService
 {
-    public async Task<RequisiteDto?> CreateRequisite(RequisiteCreateDto dto, Guid userId)
+    public async Task<Result<RequisiteDto>> CreateRequisite(RequisiteCreateDto dto, Guid userId)
     {
         var validation = await createValidator.ValidateAsync(dto);
         if (!validation.IsValid)
         {
-            throw new ValidationException(validation.Errors);
+            return Result.Failure<RequisiteDto>(new ValidationError(validation.Errors.Select(e => e.ErrorMessage)));
         }
         
         var user = await userManager.FindByIdAsync(userId.ToString());
         if (user == null)
         {
-            return null;
+            return Result.Failure<RequisiteDto>(Error.UserNotFound);
         }
 
         var userRequisitesCount = await unit.RequisiteRepository.GetUserRequisitesCount(userId);
         if (userRequisitesCount >= user.MaxRequisitesCount)
         {
-            throw new RequisiteLimitExceededException($"Достигнут лимит реквизитов. Максимум: {user.MaxRequisitesCount}");
+            return Result.Failure<RequisiteDto>(Error.RequisiteLimitExceeded(user.MaxRequisitesCount));
         }
         
         var containsRequisite = await unit.RequisiteRepository.HasSimilarRequisite(dto.PaymentData);
         if (containsRequisite is not null)
         {
-            throw new DuplicateRequisiteException("Реквизит с такими платежными данными уже существует");
+            return Result.Failure<RequisiteDto>(Error.DuplicateRequisite);
         }
 
         var requisite = mapper.Map<RequisiteEntity>(dto, opts => 
@@ -65,37 +65,43 @@ public class RequisiteService(
         await notificationService.NotifyRequisiteUpdated(requisiteDto);
         await notificationService.NotifyUserUpdated(mapper.Map<UserDto>(user));
 
-        return requisiteDto;
+        return Result.Success(requisiteDto);
     }
 
-    public async Task<IEnumerable<RequisiteDto>> GetAllRequisites()
+    public async Task<Result<IEnumerable<RequisiteDto>>> GetAllRequisites()
     {
         var entities = await unit.RequisiteRepository.GetAllRequisites();
-        return mapper.Map<IEnumerable<RequisiteDto>>(entities);
+        var dtos = mapper.Map<IEnumerable<RequisiteDto>>(entities);
+        return Result.Success(dtos);
     }
 
-    public async Task<IEnumerable<RequisiteDto>> GetUserRequisites(Guid userId)
+    public async Task<Result<IEnumerable<RequisiteDto>>> GetUserRequisites(Guid userId)
     {
         var entities = await unit.RequisiteRepository.GetUserRequisites(userId);
-        return mapper.Map<IEnumerable<RequisiteDto>>(entities);
+        var dtos = mapper.Map<IEnumerable<RequisiteDto>>(entities);
+        return Result.Success(dtos);
     }
 
-    public async Task<RequisiteDto?> GetRequisiteById(Guid id)
+    public async Task<Result<RequisiteDto>> GetRequisiteById(Guid id)
     {
         var requisite = await unit.RequisiteRepository.GetRequisiteById(id);
-        return requisite is null ? null : mapper.Map<RequisiteDto>(requisite);
+        if (requisite is null) 
+            return Result.Failure<RequisiteDto>(Error.RequisiteNotFound);
+            
+        var dto = mapper.Map<RequisiteDto>(requisite);
+        return Result.Success(dto);
     }
 
-    public async Task<RequisiteDto?> UpdateRequisite(Guid id, RequisiteUpdateDto dto)
+    public async Task<Result<RequisiteDto>> UpdateRequisite(Guid id, RequisiteUpdateDto dto)
     {
         var validation = await updateValidator.ValidateAsync(dto);
         if (!validation.IsValid)
         {
-            throw new ValidationException(validation.Errors);
+            return Result.Failure<RequisiteDto>(new ValidationError(validation.Errors.Select(e => e.ErrorMessage)));
         }
 
         var requisite = await unit.RequisiteRepository.GetRequisiteById(id);
-        if (requisite is null) return null;
+        if (requisite is null) return Result.Failure<RequisiteDto>(Error.RequisiteNotFound);
         
         var now = DateTime.UtcNow;
         var nowTimeOnly = TimeOnly.FromDateTime(now);
@@ -114,13 +120,13 @@ public class RequisiteService(
         
         await notificationService.NotifyRequisiteUpdated(requisiteDto);
 
-        return requisiteDto;
+        return Result.Success(requisiteDto);
     }
 
-    public async Task<RequisiteDto?> DeleteRequisite(Guid id)
+    public async Task<Result<RequisiteDto>> DeleteRequisite(Guid id)
     {
         var requisite = await unit.RequisiteRepository.GetRequisiteById(id);
-        if (requisite is null) return null;
+        if (requisite is null) return Result.Failure<RequisiteDto>(Error.RequisiteNotFound);
 
         requisite.User.RequisitesCount--;
         await userManager.UpdateAsync(requisite.User);
@@ -134,6 +140,6 @@ public class RequisiteService(
         await notificationService.NotifyRequisiteDeleted(id, userId);
         await notificationService.NotifyUserUpdated(mapper.Map<UserDto>(requisite.User));
 
-        return requisiteDto;
+        return Result.Success(requisiteDto);
     }
 }

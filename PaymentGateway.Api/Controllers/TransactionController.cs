@@ -1,9 +1,8 @@
-﻿using FluentValidation;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PaymentGateway.Application;
 using PaymentGateway.Application.Interfaces;
-using PaymentGateway.Core.Exceptions;
+using PaymentGateway.Application.Results;
 using PaymentGateway.Shared.DTOs.Transaction;
 using Swashbuckle.AspNetCore.Annotations;
 
@@ -29,24 +28,18 @@ public class TransactionController(ITransactionService service) : ControllerBase
     {
         if (dto is null) return BadRequest();
 
-        try
+        var result = await service.CreateTransaction(dto);
+        
+        if (result.IsFailure)
         {
-            var transaction = await service.CreateTransaction(dto);
-            if (transaction is null) throw new ApplicationException("Ошибка обработки транзакции");
-            return StatusCode(StatusCodes.Status201Created, transaction);
+            return result.Error.Code switch
+            {
+                ErrorCode.RequisiteNotFound => NotFound(result.Error.Message),
+                _ => BadRequest(result.Error.Message)
+            };
         }
-        catch (RequisiteNotFound)
-        {
-            return NotFound();
-        }
-        catch (WrongPaymentAmount e)
-        {
-            return BadRequest(e.Message);
-        }
-        catch (ValidationException e)
-        {
-            return BadRequest(e.Errors.GetErrors());
-        }
+        
+        return StatusCode(StatusCodes.Status201Created, result.Value);
     }
     
     [HttpGet]
@@ -62,15 +55,14 @@ public class TransactionController(ITransactionService service) : ControllerBase
     [SwaggerResponse(500, "Внутренняя ошибка сервера")]
     public async Task<ActionResult<List<TransactionDto>>> GetAll()
     {
-        try
+        var result = await service.GetAllTransactions();
+        
+        if (result.IsFailure)
         {
-            var transactions = await service.GetAllTransactions();
-            return Ok(transactions);
+            return StatusCode(500, result.Error.Message);
         }
-        catch (Exception ex)
-        {
-            return StatusCode(500, ex.Message);
-        }
+        
+        return Ok(result.Value);
     }
     
     [HttpGet]
@@ -85,16 +77,16 @@ public class TransactionController(ITransactionService service) : ControllerBase
     [SwaggerResponse(500, "Внутренняя ошибка сервера")]
     public async Task<ActionResult<List<TransactionDto>>> GetUserTransactions()
     {
-        try
+        var userId = User.GetCurrentUserId();
+        if (userId == Guid.Empty) return Unauthorized();
+        
+        var result = await service.GetUserTransactions(userId);
+        
+        if (result.IsFailure)
         {
-            var userId = User.GetCurrentUserId();
-            if (userId == Guid.Empty) return Unauthorized();
-            var transactions = await service.GetUserTransactions(userId);
-            return Ok(transactions);
+            return StatusCode(500, result.Error.Message);
         }
-        catch (Exception ex)
-        {
-            return StatusCode(500, ex.Message);
-        }
+        
+        return Ok(result.Value);
     }
 }

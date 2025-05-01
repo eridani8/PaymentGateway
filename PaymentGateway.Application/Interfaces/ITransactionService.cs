@@ -1,10 +1,11 @@
-﻿using PaymentGateway.Shared.DTOs.Transaction;
+﻿using PaymentGateway.Application.Results;
+using PaymentGateway.Shared.DTOs.Transaction;
 
 namespace PaymentGateway.Application.Interfaces;
 
 public interface ITransactionService
 {
-    Task<TransactionDto?> CreateTransaction(TransactionCreateDto dto);
-    Task<List<TransactionDto>> GetAllTransactions();
-    Task<List<TransactionDto>> GetUserTransactions(Guid userId);
+    Task<Result<TransactionDto>> CreateTransaction(TransactionCreateDto dto);
+    Task<Result<List<TransactionDto>>> GetAllTransactions();
+    Task<Result<List<TransactionDto>>> GetUserTransactions(Guid userId);
 }
