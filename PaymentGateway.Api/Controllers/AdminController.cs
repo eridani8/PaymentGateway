@@ -1,10 +1,9 @@
 ﻿using System.Security.Claims;
-using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PaymentGateway.Application;
 using PaymentGateway.Application.Interfaces;
-using PaymentGateway.Core.Exceptions;
+using PaymentGateway.Application.Results;
 using PaymentGateway.Shared.DTOs.User;
 using PaymentGateway.Shared.Enums;
 using PaymentGateway.Shared.Interfaces;
@@ -38,25 +37,20 @@ public class AdminController(
     {
         if (dto is null) return BadRequest();
 
-        try
+        var result = await service.CreateUser(dto);
+        
+        if (result.IsFailure)
         {
-            var user = await service.CreateUser(dto);
-            if (user is null) return BadRequest();
-            logger.LogInformation("Создание пользователя {username} [{User}]", dto.Username, User.GetCurrentUsername());
-            return Ok(user.Id);
+            return result.Error.Code switch
+            {
+                ErrorCode.Validation => BadRequest(result.Error.Message),
+                ErrorCode.UserAlreadyExists => Conflict(result.Error.Message),
+                _ => BadRequest(result.Error.Message)
+            };
         }
-        catch (DuplicateUserException)
-        {
-            return Conflict();
-        }
-        catch (CreateUserException e)
-        {
-            return BadRequest(e.Message);
-        }
-        catch (ValidationException e)
-        {
-            return BadRequest(e.Errors.GetErrors());
-        }
+        
+        logger.LogInformation("Создание пользователя {username} [{User}]", dto.Username, User.GetCurrentUsername());
+        return Ok(result.Value.Id);
     }
 
     [HttpGet]
@@ -66,12 +60,19 @@ public class AdminController(
         OperationId = "GetAllUsers"
     )]
     [SwaggerResponse(200, "Список пользователей успешно получен", typeof(List<UserDto>))]
+    [SwaggerResponse(400, "Ошибка при получении списка пользователей")]
     [SwaggerResponse(401, "Пользователь не авторизован")]
     [SwaggerResponse(403, "Недостаточно прав")]
     public async Task<ActionResult<List<UserDto>>> GetAllUsers()
     {
-        var users = await service.GetAllUsers();
-        return Ok(users);
+        var result = await service.GetAllUsers();
+        
+        if (result.IsFailure)
+        {
+            return BadRequest(result.Error.Message);
+        }
+        
+        return Ok(result.Value);
     }
 
     [HttpGet("{id:guid}")]
@@ -86,13 +87,18 @@ public class AdminController(
     [SwaggerResponse(404, "Пользователь не найден")]
     public async Task<ActionResult<UserDto>> GetUserById(Guid id)
     {
-        var user = await service.GetUserById(id);
-        if (user is null)
+        var result = await service.GetUserById(id);
+
+        if (result.IsFailure)
         {
-            return NotFound();
+            return result.Error.Code switch
+            {
+                ErrorCode.UserNotFound => NotFound(result.Error.Message),
+                _ => BadRequest(result.Error.Message)
+            };
         }
 
-        return Ok(user);
+        return Ok(result.Value);
     }
 
     [HttpDelete("{id:guid}")]
@@ -105,21 +111,24 @@ public class AdminController(
     [SwaggerResponse(400, "Неверные входные данные")]
     [SwaggerResponse(401, "Пользователь не авторизован")]
     [SwaggerResponse(403, "Недостаточно прав")]
+    [SwaggerResponse(404, "Пользователь не найден")]
     public async Task<ActionResult> DeleteUser(Guid id)
     {
-        try
+        var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var result = await service.DeleteUser(id, currentUserId);
+        
+        if (result.IsFailure)
         {
-            var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            var result = await service.DeleteUser(id, currentUserId);
-            if (result is null) return BadRequest();
-            logger.LogInformation("Удаление пользователя {username} [{User}]", result.UserName,
-                User.GetCurrentUsername());
-            return Ok();
+            return result.Error.Code switch
+            {
+                ErrorCode.UserNotFound => NotFound(result.Error.Message),
+                _ => BadRequest(result.Error.Message)
+            };
         }
-        catch (DeleteUserException e)
-        {
-            return BadRequest(e.Message);
-        }
+        
+        logger.LogInformation("Удаление пользователя {username} [{User}]", result.Value.UserName,
+            User.GetCurrentUsername());
+        return Ok();
     }
 
     [HttpPut]
@@ -137,18 +146,21 @@ public class AdminController(
     {
         if (dto is null) return BadRequest();
 
-        try
+        var result = await service.UpdateUser(dto);
+        
+        if (result.IsFailure)
         {
-            var user = await service.UpdateUser(dto);
-            if (user is null) return NotFound();
-            logger.LogInformation("Обновление пользователя {username} [{User}]", user.Username,
-                User.GetCurrentUsername());
-            return Ok();
+            return result.Error.Code switch
+            {
+                ErrorCode.Validation => BadRequest(result.Error.Message),
+                ErrorCode.UserNotFound => NotFound(result.Error.Message),
+                _ => BadRequest(result.Error.Message)
+            };
         }
-        catch (ValidationException e)
-        {
-            return BadRequest(e.Errors.GetErrors());
-        }
+        
+        logger.LogInformation("Обновление пользователя {username} [{User}]", result.Value.Username,
+            User.GetCurrentUsername());
+        return Ok();
     }
 
     [HttpGet]
@@ -158,6 +170,7 @@ public class AdminController(
         OperationId = "GetUsersRoles"
     )]
     [SwaggerResponse(200, "Роли пользователей успешно получены", typeof(Dictionary<Guid, string>))]
+    [SwaggerResponse(400, "Ошибка при получении ролей пользователей")]
     [SwaggerResponse(401, "Пользователь не авторизован")]
     [SwaggerResponse(403, "Недостаточно прав")]
     public async Task<ActionResult<Dictionary<Guid, string>>> GetUsersRoles([FromQuery] string userIds)
@@ -166,8 +179,14 @@ public class AdminController(
             .Select(Guid.Parse)
             .ToList();
 
-        var roles = await service.GetUsersRoles(ids);
-        return Ok(roles);
+        var result = await service.GetUsersRoles(ids);
+            
+        if (result.IsFailure)
+        {
+            return BadRequest(result.Error.Message);
+        }
+            
+        return Ok(result.Value);
     }
 
     [HttpPut("{userId:guid}")]
@@ -180,10 +199,20 @@ public class AdminController(
     [SwaggerResponse(400, "Неверные входные данные")]
     [SwaggerResponse(401, "Пользователь не авторизован")]
     [SwaggerResponse(403, "Недостаточно прав")]
+    [SwaggerResponse(404, "Пользователь не найден")]
     public async Task<ActionResult> ResetTwoFactor(Guid userId)
     {
         var result = await service.ResetTwoFactorAsync(userId);
-        if (!result) return BadRequest();
+        
+        if (result.IsFailure)
+        {
+            return result.Error.Code switch
+            {
+                ErrorCode.UserNotFound => NotFound(result.Error.Message),
+                _ => BadRequest(result.Error.Message)
+            };
+        }
+        
         logger.LogInformation("Сброс двухфакторной аутентификации для пользователя {userId} [{User}]", userId,
             User.GetCurrentUsername());
 
@@ -197,12 +226,19 @@ public class AdminController(
         OperationId = "GetCurrentRequisiteAssignmentAlgorithm"
     )]
     [SwaggerResponse(200, "Алгоритм успешно получен")]
+    [SwaggerResponse(400, "Ошибка при получении алгоритма")]
     [SwaggerResponse(401, "Пользователь не авторизован")]
     [SwaggerResponse(403, "Недостаточно прав")]
     public ActionResult<int> GetCurrentRequisiteAssignmentAlgorithm()
     {
-        var algorithm = service.GetCurrentRequisiteAssignmentAlgorithm();
-        return Ok(algorithm);
+        var result = service.GetCurrentRequisiteAssignmentAlgorithm();
+        
+        if (result.IsFailure)
+        {
+            return BadRequest(result.Error.Message);
+        }
+        
+        return Ok(result.Value);
     }
 
     [HttpPut]
@@ -217,18 +253,18 @@ public class AdminController(
     [SwaggerResponse(403, "Недостаточно прав")]
     public ActionResult SetRequisiteAssignmentAlgorithm([FromBody] int algorithm)
     {
-        if (!Enum.IsDefined(typeof(RequisiteAssignmentAlgorithm), algorithm))
+        var result = service.SetRequisiteAssignmentAlgorithm(algorithm);
+        
+        if (result.IsFailure)
         {
-            return BadRequest("Указан недопустимый алгоритм");
+            return BadRequest(result.Error.Message);
         }
 
-        var old = (RequisiteAssignmentAlgorithm)service.GetCurrentRequisiteAssignmentAlgorithm();
-
-        service.SetRequisiteAssignmentAlgorithm(algorithm);
-
+        var oldAlgorithm = (RequisiteAssignmentAlgorithm)service.GetCurrentRequisiteAssignmentAlgorithm().Value;
         notificationService.NotifyRequisiteAssignmentAlgorithmChanged((RequisiteAssignmentAlgorithm)algorithm);
-
-        logger.LogInformation("Изменение алгоритма подбора реквизитов. С {old} на {new} [{User}]", old, (RequisiteAssignmentAlgorithm)algorithm, User.GetCurrentUsername());
+        
+        logger.LogInformation("Изменение алгоритма подбора реквизитов. С {old} на {new} [{User}]", 
+            oldAlgorithm, (RequisiteAssignmentAlgorithm)algorithm, User.GetCurrentUsername());
 
         return Ok();
     }

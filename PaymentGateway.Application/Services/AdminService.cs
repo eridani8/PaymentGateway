@@ -4,9 +4,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using PaymentGateway.Application.Interfaces;
+using PaymentGateway.Application.Results;
 using PaymentGateway.Core;
 using PaymentGateway.Core.Entities;
-using PaymentGateway.Core.Exceptions;
 using PaymentGateway.Shared.DTOs.User;
 using PaymentGateway.Shared.Enums;
 using PaymentGateway.Shared.Interfaces;
@@ -21,18 +21,18 @@ public class AdminService(
     INotificationService notificationService,
     IOptions<GatewaySettings> gatewaySettings) : IAdminService
 {
-    public async Task<UserDto?> CreateUser(CreateUserDto dto)
+    public async Task<Result<UserDto>> CreateUser(CreateUserDto dto)
     {
         var validation = await createValidator.ValidateAsync(dto);
         if (!validation.IsValid)
         {
-            throw new ValidationException(validation.Errors);
+            return Result.Failure<UserDto>(new ValidationError(validation.Errors.Select(e => e.ErrorMessage).ToList()));
         }
     
         var existingUser = await userManager.FindByNameAsync(dto.Username);
         if (existingUser != null)
         {
-            throw new DuplicatePaymentException();
+            return Result.Failure<UserDto>(Error.UserAlreadyExists);
         }
     
         var user = mapper.Map<UserEntity>(dto);
@@ -40,7 +40,7 @@ public class AdminService(
         var result = await userManager.CreateAsync(user, dto.Password);
         if (!result.Succeeded)
         {
-            throw new CreateUserException(result.Errors.GetErrors());
+            return Result.Failure<UserDto>(Error.UserCreationFailed(string.Join(", ", result.Errors.Select(e => e.Description))));
         }
         
         foreach (var role in dto.Roles)
@@ -51,62 +51,74 @@ public class AdminService(
         var userDto = mapper.Map<UserDto>(user);
         await notificationService.NotifyUserUpdated(userDto);
         
-        return userDto;
+        return Result.Success(userDto);
     }
 
-    public async Task<List<UserDto>> GetAllUsers()
+    public async Task<Result<List<UserDto>>> GetAllUsers()
     {
         var users = await userManager.Users
             .AsNoTracking()
             .OrderByDescending(u => u.CreatedAt)
             .ToListAsync();
-        
-        return users.Select(mapper.Map<UserDto>).ToList();
+            
+        return Result.Success(users.Select(mapper.Map<UserDto>).ToList());
     }
 
-    public async Task<UserDto?> GetUserById(Guid id)
+    public async Task<Result<UserDto>> GetUserById(Guid id)
     {
         var user = await userManager.FindByIdAsync(id.ToString());
-        return user == null ? null : mapper.Map<UserDto>(user);
+        if (user is null)
+        {
+            return Result.Failure<UserDto>(Error.UserNotFound);
+        }
+        return Result.Success(mapper.Map<UserDto>(user));
     }
 
-    public async Task<UserEntity?> DeleteUser(Guid id, string? currentUserId)
+    public async Task<Result<UserEntity>> DeleteUser(Guid id, string? currentUserId)
     {
         var user = await userManager.FindByIdAsync(id.ToString());
-        if (user is null) return null;
+        if (user is null)
+        {
+            return Result.Failure<UserEntity>(Error.UserNotFound);
+        }
 
         if (user.UserName == "root")
         {
-            throw new DeleteUserException("Нельзя удалить root пользователя");
+            return Result.Failure<UserEntity>(Error.DeleteRootUserForbidden);
         }
 
         if (id.ToString() == currentUserId)
         {
-            throw new DeleteUserException("Нельзя удалить себя");
+            return Result.Failure<UserEntity>(Error.SelfDeleteForbidden);
         }
 
-        await userManager.DeleteAsync(user);
+        var result = await userManager.DeleteAsync(user);
+        if (!result.Succeeded)
+        {
+            return Result.Failure<UserEntity>(Error.OperationFailed("удаление пользователя", 
+                string.Join(", ", result.Errors.Select(e => e.Description))));
+        }
         
-        return user;
+        return Result.Success(user);
     }
 
-    public async Task<UserDto?> UpdateUser(UpdateUserDto dto)
+    public async Task<Result<UserDto>> UpdateUser(UpdateUserDto dto)
     {
         var validation = await updateValidator.ValidateAsync(dto);
         if (!validation.IsValid)
         {
-            throw new ValidationException(validation.Errors);
+            return Result.Failure<UserDto>(new ValidationError(validation.Errors.Select(e => e.ErrorMessage).ToList()));
         }
 
         var user = await userManager.FindByIdAsync(dto.Id.ToString());
         if (user is null)
         {
-            return null;
+            return Result.Failure<UserDto>(Error.UserNotFound);
         }
 
         if (user.UserName == "root")
         {
-            throw new InvalidOperationException("Root user cannot be modified");
+            return Result.Failure<UserDto>(Error.ModifyRootUserForbidden);
         }
 
         mapper.Map(dto, user);
@@ -114,64 +126,87 @@ public class AdminService(
         
         if (!result.Succeeded)
         {
-            return null;
+            return Result.Failure<UserDto>(Error.UserUpdateFailed(
+                string.Join(", ", result.Errors.Select(e => e.Description))));
         }
 
         var currentRoles = await userManager.GetRolesAsync(user);
-        await userManager.RemoveFromRolesAsync(user, currentRoles);
-        await userManager.AddToRolesAsync(user, dto.Roles);
+        
+        var removeRolesResult = await userManager.RemoveFromRolesAsync(user, currentRoles);
+        if (!removeRolesResult.Succeeded)
+        {
+            return Result.Failure<UserDto>(Error.OperationFailed("обновление ролей пользователя",
+                string.Join(", ", removeRolesResult.Errors.Select(e => e.Description))));
+        }
+        
+        var addRolesResult = await userManager.AddToRolesAsync(user, dto.Roles);
+        if (!addRolesResult.Succeeded)
+        {
+            return Result.Failure<UserDto>(Error.OperationFailed("обновление ролей пользователя",
+                string.Join(", ", addRolesResult.Errors.Select(e => e.Description))));
+        }
         
         var userDto = mapper.Map<UserDto>(user);
         await notificationService.NotifyUserUpdated(userDto);
         
-        return userDto;
+        return Result.Success(userDto);
     }
 
-    public async Task<Dictionary<Guid, string>> GetUsersRoles(List<Guid> userIds)
+    public async Task<Result<Dictionary<Guid, string>>> GetUsersRoles(List<Guid> userIds)
     {
         var users = await userManager.Users
             .AsNoTracking()
             .Where(u => userIds.Contains(u.Id))
             .ToListAsync();
-        
+            
         var roles = new Dictionary<Guid, string>();
-        
+            
         foreach (var user in users)
         {
             var userRoles = await userManager.GetRolesAsync(user);
             roles[user.Id] = string.Join(",", userRoles);
         }
-        
-        return roles;
+            
+        return Result.Success(roles);
     }
     
-    public async Task<bool> ResetTwoFactorAsync(Guid userId)
+    public async Task<Result<bool>> ResetTwoFactorAsync(Guid userId)
     {
         var user = await userManager.FindByIdAsync(userId.ToString());
         if (user == null)
         {
-            return false;
+            return Result.Failure<bool>(Error.UserNotFound);
         }
         
         user.TwoFactorEnabled = false;
         user.TwoFactorSecretKey = null;
         
         var result = await userManager.UpdateAsync(user);
-
-        if (!result.Succeeded) return false;
+        if (!result.Succeeded)
+        {
+            return Result.Failure<bool>(Error.OperationFailed("сброс двухфакторной аутентификации",
+                string.Join(", ", result.Errors.Select(e => e.Description))));
+        }
         
         var userDto = mapper.Map<UserDto>(user);
         await notificationService.NotifyUserUpdated(userDto);
-        return true;
+        return Result.Success(true);
     }
 
-    public int GetCurrentRequisiteAssignmentAlgorithm()
+    public Result<int> GetCurrentRequisiteAssignmentAlgorithm()
     {
-        return (int)gatewaySettings.Value.AppointmentAlgorithm;
+        return Result.Success((int)gatewaySettings.Value.AppointmentAlgorithm);
     }
 
-    public void SetRequisiteAssignmentAlgorithm(int algorithm)
+    public Result<bool> SetRequisiteAssignmentAlgorithm(int algorithm)
     {
+        if (!Enum.IsDefined(typeof(RequisiteAssignmentAlgorithm), algorithm))
+        {
+            return Result.Failure<bool>(
+                Error.OperationFailed("изменение алгоритма назначения реквизитов", "Указан недопустимый алгоритм"));
+        }
+            
         gatewaySettings.Value.AppointmentAlgorithm = (RequisiteAssignmentAlgorithm)algorithm;
+        return Result.Success(true);
     }
 }
