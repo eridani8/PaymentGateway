@@ -1,6 +1,6 @@
 namespace PaymentGateway.Application.Results;
 
-public class Error
+public record Error
 {
     public ErrorCode Code { get; }
     public string Message { get; }

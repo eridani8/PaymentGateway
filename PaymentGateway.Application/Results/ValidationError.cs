@@ -1,5 +1,5 @@
 namespace PaymentGateway.Application.Results;
 
-public class ValidationError(List<string> details) : Error(ErrorCode.Validation, string.Join(", ", details))
+public record ValidationError(List<string> Details) : Error(ErrorCode.Validation, string.Join(", ", Details))
 {
 } 
