@@ -289,7 +289,8 @@
                 }
                 else
                 {
-                    Snackbar.Add(deleteResult.Content ?? "Ошибка при удалении пользователя", Severity.Error);
+                    var error = !string.IsNullOrEmpty(deleteResult.Content) ? deleteResult.Content : "Ошибка при удалении пользователя";
+                    Snackbar.Add(error, Severity.Error);
                 }
             }
             catch (Exception e)

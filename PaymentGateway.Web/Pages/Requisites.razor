@@ -397,7 +397,8 @@
                 }
                 else
                 {
-                    Snackbar.Add("Ошибка при удалении реквизита", Severity.Error);
+                    var error = !string.IsNullOrEmpty(deleteResult.Content) ? deleteResult.Content : "Ошибка при удалении реквизита";
+                    Snackbar.Add(error, Severity.Error);
                 }
             }
             catch (Exception e)
