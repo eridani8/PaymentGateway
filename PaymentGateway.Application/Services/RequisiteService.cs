@@ -148,7 +148,6 @@ public class RequisiteService(
         }
         catch (DbUpdateException e) when(e.InnerException is PostgresException { SqlState: "23503" })
         {
-            logger.LogWarning("Невозможно удалить реквизит {RequisiteId}, так как он используется в других таблицах", id);
             return Result.Failure<RequisiteDto>(Error.OperationFailed("Невозможно удалить реквизит, так как он используется в платежах"));
         }
         catch (Exception ex)

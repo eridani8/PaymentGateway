@@ -202,7 +202,6 @@ public class PaymentService(
         }
         catch (DbUpdateException e) when(e.InnerException is PostgresException { SqlState: "23503" })
         {
-            logger.LogWarning("Невозможно удалить платеж {PaymentId}, так как он используется в других таблицах", id);
             return Result.Failure<PaymentDto>(Error.OperationFailed("Невозможно удалить платеж, так как он используется в других таблицах"));
         }
         catch (Exception ex)
