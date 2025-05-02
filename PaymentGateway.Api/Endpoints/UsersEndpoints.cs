@@ -6,13 +6,14 @@ using PaymentGateway.Core.Interfaces;
 using PaymentGateway.Shared;
 using PaymentGateway.Shared.DTOs.User;
 using System.Security.Claims;
+using Carter;
 using PaymentGateway.Application;
 
 namespace PaymentGateway.Api.Endpoints;
 
-public static class UsersEndpoints
+public class UsersEndpoints : ICarterModule
 {
-    public static void MapUsersEndpoints(IEndpointRouteBuilder app)
+    public void AddRoutes(IEndpointRouteBuilder app)
     {
         var group = app.MapGroup("api/v1/users")
             .WithTags("Пользовательские методы и аутентификация")

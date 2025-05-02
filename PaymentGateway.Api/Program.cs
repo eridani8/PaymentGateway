@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Asp.Versioning;
+using Carter;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
@@ -83,6 +84,8 @@ try
 
     builder.Services.AddOpenApi();
     builder.Services.AddEndpointsApiExplorer();
+
+    builder.Services.AddCarter();
     
     builder.Services.AddApiVersioning(options =>
     {
@@ -262,17 +265,11 @@ try
     // app.UseHttpsRedirection(); // TODO
     app.UseAuthentication();
     app.UseAuthorization();
-
     app.UseExceptionHandler();
 
     app.MapHub<NotificationHub>("/notificationHub");
-    
-    HealthEndpoints.MapHealthEndpoints(app);
-    UsersEndpoints.MapUsersEndpoints(app);
-    AdminEndpoints.MapAdminEndpoints(app);
-    RequisitesEndpoints.MapRequisitesEndpoints(app);
-    PaymentsEndpoints.MapPaymentsEndpoints(app);
-    TransactionsEndpoints.MapTransactionsEndpoints(app);
+
+    app.MapCarter();
     
     using (var scope = app.Services.CreateScope())
     {

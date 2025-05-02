@@ -4,12 +4,13 @@ using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Application.Results;
 using PaymentGateway.Shared.DTOs.Requisite;
 using System.Security.Claims;
+using Carter;
 
 namespace PaymentGateway.Api.Endpoints;
 
-public class RequisitesEndpoints
+public class RequisitesEndpoints : ICarterModule
 {
-    public static void MapRequisitesEndpoints(IEndpointRouteBuilder app)
+    public void AddRoutes(IEndpointRouteBuilder app)
     {
         var group = app.MapGroup("api/v1/requisites")
             .WithTags("Управление реквизитами")

@@ -6,12 +6,13 @@ using PaymentGateway.Shared.DTOs.User;
 using PaymentGateway.Shared.Enums;
 using PaymentGateway.Shared.Interfaces;
 using System.Security.Claims;
+using Carter;
 
 namespace PaymentGateway.Api.Endpoints;
 
-public class AdminEndpoints
+public class AdminEndpoints : ICarterModule
 {
-    public static void MapAdminEndpoints(IEndpointRouteBuilder app)
+    public void AddRoutes(IEndpointRouteBuilder app)
     {
         var group = app.MapGroup("api/v1/admin")
             .WithTags("Административные методы управления пользователями и системой")

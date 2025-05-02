@@ -4,13 +4,13 @@ using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Application.Results;
 using PaymentGateway.Shared.DTOs.Transaction;
 using System.Security.Claims;
+using Carter;
 
 namespace PaymentGateway.Api.Endpoints;
 
-public class TransactionsEndpoints
+public class TransactionsEndpoints : ICarterModule
 {
-    
-    public static void MapTransactionsEndpoints(IEndpointRouteBuilder app)
+    public void AddRoutes(IEndpointRouteBuilder app)
     {
         var group = app.MapGroup("api/v1/transactions")
             .WithTags("Управление транзакциями")

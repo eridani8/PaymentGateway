@@ -1,10 +1,11 @@
+using Carter;
 using PaymentGateway.Api.Filters;
 
 namespace PaymentGateway.Api.Endpoints;
 
-public static class HealthEndpoints
+public class HealthEndpoints : ICarterModule
 {
-    public static void MapHealthEndpoints(IEndpointRouteBuilder app)
+    public void AddRoutes(IEndpointRouteBuilder app)
     {
         var group = app.MapGroup("api/v1/health")
             .WithTags("Health")
