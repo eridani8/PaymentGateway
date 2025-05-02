@@ -13,7 +13,7 @@ public static class SwaggerConfiguration
         {
             options.SwaggerDoc("v1", new OpenApiInfo
             {
-                Title = "Payment Gateway API v1",
+                Title = "Payment Gateway API",
                 Version = "v1",
                 Description = "API для взаимодействия с платежным шлюзом",
                 Contact = new OpenApiContact
