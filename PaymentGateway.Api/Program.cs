@@ -90,11 +90,27 @@ try
         options.AssumeDefaultVersionWhenUnspecified = true;
         options.ReportApiVersions = true;
 
-        options.ApiVersionReader = new UrlSegmentApiVersionReader();
+        options.ApiVersionReader = ApiVersionReader.Combine(
+            new UrlSegmentApiVersionReader(),
+            new HeaderApiVersionReader("X-Api-Version"),
+            new QueryStringApiVersionReader("api-version")
+        );
     });
 
     builder.Services.AddSwaggerGen(options =>
     {
+        options.SwaggerDoc("v1", new OpenApiInfo
+        {
+            Title = "Payment Gateway API v1",
+            Version = "v1",
+            Description = "API для взаимодействия с платежным шлюзом - первая версия",
+            Contact = new OpenApiContact
+            {
+                Name = "Support",
+                Email = "support@example.com"
+            }
+        });
+
         options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
         {
             Description = "JWT Authorization",
