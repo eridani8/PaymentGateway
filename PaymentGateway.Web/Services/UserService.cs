@@ -14,14 +14,7 @@ public class UserService(
     
     public async Task<Response> Login(LoginDto dto)
     {
-        var response = await PostRequest($"{apiEndpoint}/login", dto);
-        var result = new Response
-        {
-            Code = response.Code,
-            Content = response.Content,
-        };
-
-        return result;
+        return await PostRequest($"{apiEndpoint}/login", dto);
     }
 
     public Task<Response> ChangePassword(ChangePasswordDto dto)
