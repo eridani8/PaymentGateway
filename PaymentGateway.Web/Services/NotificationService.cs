@@ -1,4 +1,5 @@
 ﻿using System.Security.Claims;
+using System.Text.Json.Serialization;
 using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.SignalR.Client;
 using PaymentGateway.Shared;
@@ -262,10 +263,8 @@ public class NotificationService(
                 .WithStatefulReconnect()
                 .AddJsonProtocol(options =>
                 {
-                    options.PayloadSerializerOptions.ReferenceHandler =
-                        System.Text.Json.Serialization.ReferenceHandler.Preserve;
+                    options.PayloadSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
                     options.PayloadSerializerOptions.PropertyNameCaseInsensitive = true;
-                    options.PayloadSerializerOptions.MaxDepth = 128;
                 })
                 .Build();
 

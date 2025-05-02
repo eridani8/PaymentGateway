@@ -1,40 +1,34 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using PaymentGateway.Core.Entities;
 
 namespace PaymentGateway.Api.Filters;
 
-// ReSharper disable once ClassNeverInstantiated.Global
-public class UserStatusFilter(UserManager<UserEntity> userManager) : IAsyncAuthorizationFilter
+public class UserStatusFilter(UserManager<UserEntity> userManager) : IEndpointFilter
 {
-    public async Task OnAuthorizationAsync(AuthorizationFilterContext context)
+    public async ValueTask<object?> InvokeAsync(EndpointFilterInvocationContext context, EndpointFilterDelegate next)
     {
-        if (context.HttpContext.Request.Path.Value?.Contains("/user/login", StringComparison.OrdinalIgnoreCase) == true)
+        var httpContext = context.HttpContext;
+        
+        if (httpContext.Request.Path.Value?.Contains("/user/login", StringComparison.OrdinalIgnoreCase) == true)
         {
-            return;
+            return await next(context);
         }
 
-        if (context.HttpContext.User.Identity?.IsAuthenticated == true)
+        if (httpContext.User.Identity?.IsAuthenticated == true)
         {
-            var username = context.HttpContext.User.Identity.Name;
+            var username = httpContext.User.Identity.Name;
             if (string.IsNullOrEmpty(username))
             {
-                context.Result = new UnauthorizedObjectResult("Пользователь не найден");
-                return;
+                return Results.Unauthorized();
             }
 
             var user = await userManager.FindByNameAsync(username);
-            if (user == null)
+            if (user is not { IsActive: true })
             {
-                context.Result = new UnauthorizedObjectResult("Пользователь не найден");
-                return;
-            }
-
-            if (!user.IsActive)
-            {
-                context.Result = new UnauthorizedObjectResult("Пользователь деактивирован");
+                return Results.Unauthorized();
             }
         }
+
+        return await next(context);
     }
-} 
+}

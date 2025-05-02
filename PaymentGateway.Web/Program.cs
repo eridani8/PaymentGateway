@@ -32,14 +32,12 @@ builder.Services.Configure<JsonSerializerOptions>(options =>
 {
     options.ReferenceHandler = ReferenceHandler.Preserve;
     options.PropertyNameCaseInsensitive = true;
-    options.MaxDepth = 128;
 });
 
 builder.Services.AddSingleton(new JsonSerializerOptions
 {
     ReferenceHandler = ReferenceHandler.Preserve,
-    PropertyNameCaseInsensitive = true,
-    MaxDepth = 128
+    PropertyNameCaseInsensitive = true
 });
 
 builder.Services.AddScoped<IValidator<LoginDto>, LoginModelValidator>();

@@ -2,13 +2,12 @@ using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Asp.Versioning;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.IdentityModel.Tokens;
 using NpgsqlTypes;
 using PaymentGateway.Api;
-using PaymentGateway.Api.Configuration;
 using PaymentGateway.Application;
 using PaymentGateway.Application.Hubs;
 using PaymentGateway.Application.Services;
@@ -20,9 +19,10 @@ using Serilog.Core;
 using Serilog.Events;
 using Serilog.Sinks.PostgreSQL;
 using Serilog.Sinks.PostgreSQL.ColumnWriters;
-using UserStatusFilter = PaymentGateway.Api.Filters.UserStatusFilter;
 using PaymentGateway.Shared.Interfaces;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.OpenApi.Models;
+using PaymentGateway.Api.Endpoints;
 
 try
 {
@@ -81,20 +81,47 @@ try
 
     builder.Host.UseSerilog(Log.Logger);
 
-    builder.Services.AddControllers(options =>
-    {
-        options.Filters.Add<UserStatusFilter>();
-    })
-    .AddJsonOptions(options =>
-    {
-        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
-        options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
-        options.JsonSerializerOptions.MaxDepth = 128;
-    });
+    builder.Services.AddOpenApi();
     builder.Services.AddEndpointsApiExplorer();
     
-    builder.Services.AddApiVersioningConfiguration();
-    builder.Services.AddSwaggerConfiguration();
+    builder.Services.AddApiVersioning(options =>
+    {
+        options.DefaultApiVersion = new ApiVersion(1, 0);
+        options.AssumeDefaultVersionWhenUnspecified = true;
+        options.ReportApiVersions = true;
+
+        options.ApiVersionReader = new UrlSegmentApiVersionReader();
+    });
+
+    builder.Services.AddSwaggerGen(options =>
+    {
+        options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+        {
+            Description = "JWT Authorization",
+            Type = SecuritySchemeType.Http,
+            Name = "Authorization",
+            In = ParameterLocation.Header,
+            Scheme = "Bearer",
+            BearerFormat = "JWT",
+        });
+
+        options.AddSecurityRequirement(new OpenApiSecurityRequirement
+        {
+            {
+                new OpenApiSecurityScheme
+                {
+                    Reference = new OpenApiReference
+                    {
+                        Type = ReferenceType.SecurityScheme,
+                        Id = "Bearer"
+                    }
+                },
+                []
+            }
+        });
+        
+        options.EnableAnnotations();
+    });
 
     builder.Services.AddCore(builder.Configuration);
     builder.Services.AddInfrastructure(connectionString);
@@ -103,11 +130,18 @@ try
     builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
     builder.Services.AddProblemDetails();
 
-    builder.Services.AddSingleton(new JsonSerializerOptions
+    var jsonOptions = new JsonSerializerOptions
     {
         ReferenceHandler = ReferenceHandler.Preserve,
-        PropertyNameCaseInsensitive = true,
-        MaxDepth = 128
+        PropertyNameCaseInsensitive = true
+    };
+    
+    builder.Services.AddSingleton(jsonOptions);
+
+    builder.Services.ConfigureHttpJsonOptions(options =>
+    {
+        options.SerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
+        options.SerializerOptions.PropertyNameCaseInsensitive = true;
     });
 
     builder.Services.AddSignalR(options =>
@@ -123,7 +157,6 @@ try
     {
         options.PayloadSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
         options.PayloadSerializerOptions.PropertyNameCaseInsensitive = true;
-        options.PayloadSerializerOptions.MaxDepth = 128;
     })
     .AddMessagePackProtocol();
     builder.Services.AddScoped<INotificationService, NotificationService>();
@@ -204,40 +237,32 @@ try
 
     var app = builder.Build();
 
-    var apiVersionDescriptionProvider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
-
-    // if (app.Environment.IsDevelopment()) // TODO
-    {
-        app.UseSwagger();
-        app.UseSwaggerUI(options =>
-        {
-            foreach (var description in apiVersionDescriptionProvider.ApiVersionDescriptions)
-            {
-                options.SwaggerEndpoint(
-                    $"/swagger/{description.GroupName}/swagger.json",
-                    description.GroupName.ToUpperInvariant());
-            }
-        });
-    }
+    app.MapOpenApi();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 
     app.UseCors("AllowAll"); // TODO
 
     // app.UseHttpsRedirection(); // TODO
     app.UseAuthentication();
     app.UseAuthorization();
-    app.MapControllers();
+
     app.UseExceptionHandler();
 
     app.MapHub<NotificationHub>("/notificationHub");
+    
+    HealthEndpoints.MapHealthEndpoints(app);
+    UsersEndpoints.MapUsersEndpoints(app);
+    AdminEndpoints.MapAdminEndpoints(app);
+    RequisitesEndpoints.MapRequisitesEndpoints(app);
+    PaymentsEndpoints.MapPaymentsEndpoints(app);
+    TransactionsEndpoints.MapTransactionsEndpoints(app);
     
     using (var scope = app.Services.CreateScope())
     {
         var hubContext = scope.ServiceProvider.GetRequiredService<IHubContext<NotificationHub, IHubClient>>();
         NotificationHub.Initialize(hubContext);
-    }
-
-    using (var scope = app.Services.CreateScope())
-    {
+        
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<UserEntity>>();
 

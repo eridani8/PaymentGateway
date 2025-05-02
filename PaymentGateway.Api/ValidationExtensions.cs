@@ -1,9 +1,9 @@
 ﻿using FluentValidation.Results;
 using Microsoft.AspNetCore.Identity;
 
-namespace PaymentGateway.Application;
+namespace PaymentGateway.Api;
 
-public static class ExceptionExtensions
+public static class ValidationExtensions
 {
     public static string GetErrors(this IEnumerable<ValidationFailure> errors)
     {
