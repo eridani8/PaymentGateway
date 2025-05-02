@@ -83,13 +83,13 @@ public class UsersEndpoints : ICarterModule
         var user = await userManager.FindByNameAsync(model.Username);
         if (user is not { IsActive: true })
         {
-            return Results.BadRequest(UserErrors.UserNotFound);
+            return Results.BadRequest(UserErrors.UserNotFound.ToString());
         }
 
         var result = await signInManager.CheckPasswordSignInAsync(user, model.Password, false);
         if (!result.Succeeded)
         {
-            return Results.BadRequest(UserErrors.InappropriateData);
+            return Results.BadRequest(UserErrors.InappropriateData.ToString());
         }
 
         switch (user.TwoFactorEnabled)
@@ -101,7 +101,7 @@ public class UsersEndpoints : ICarterModule
                 var isValid = TotpService.VerifyTotpCode(user.TwoFactorSecretKey ?? string.Empty, model.TwoFactorCode);
                 if (!isValid)
                 {
-                    return Results.BadRequest(UserErrors.InappropriateCode);
+                    return Results.BadRequest(UserErrors.InappropriateCode.ToString());
                 }
                 break;
             }
@@ -217,7 +217,7 @@ public class UsersEndpoints : ICarterModule
         var isValid = TotpService.VerifyTotpCode(userEntity.TwoFactorSecretKey ?? string.Empty, model.Code);
         if (!isValid)
         {
-            return Results.BadRequest(UserErrors.InappropriateCode);
+            return Results.BadRequest(UserErrors.InappropriateCode.ToString());
         }
         
         userEntity.TwoFactorEnabled = true;
