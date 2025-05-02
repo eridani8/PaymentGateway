@@ -10,4 +10,9 @@ public record Error(ErrorCode Code, string Message)
     
     public static Error OperationFailed(string details) => 
         new(ErrorCode.OperationFailed, details.Trim());
+
+    public override string ToString()
+    {
+        return Message;
+    }
 } 

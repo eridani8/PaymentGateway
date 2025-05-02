@@ -11,6 +11,8 @@ public enum ErrorCode
     OperationFailed,
     
     UserNotFound,
+    InappropriateData,
+    InappropriateCode,
     UserAlreadyExists,
     UserCreationFailed,
     UserUpdateFailed,

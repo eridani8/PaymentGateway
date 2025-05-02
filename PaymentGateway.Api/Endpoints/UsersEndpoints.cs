@@ -7,7 +7,7 @@ using PaymentGateway.Shared;
 using PaymentGateway.Shared.DTOs.User;
 using System.Security.Claims;
 using Carter;
-using PaymentGateway.Application;
+using PaymentGateway.Application.Results;
 
 namespace PaymentGateway.Api.Endpoints;
 
@@ -83,13 +83,13 @@ public class UsersEndpoints : ICarterModule
         var user = await userManager.FindByNameAsync(model.Username);
         if (user is not { IsActive: true })
         {
-            return Results.Unauthorized();
+            return Results.BadRequest(UserErrors.UserNotFound);
         }
 
         var result = await signInManager.CheckPasswordSignInAsync(user, model.Password, false);
         if (!result.Succeeded)
         {
-            return Results.Unauthorized();
+            return Results.BadRequest(UserErrors.InappropriateData);
         }
 
         switch (user.TwoFactorEnabled)
@@ -101,7 +101,7 @@ public class UsersEndpoints : ICarterModule
                 var isValid = TotpService.VerifyTotpCode(user.TwoFactorSecretKey ?? string.Empty, model.TwoFactorCode);
                 if (!isValid)
                 {
-                    return Results.Unauthorized();
+                    return Results.BadRequest(UserErrors.InappropriateCode);
                 }
                 break;
             }
@@ -164,7 +164,7 @@ public class UsersEndpoints : ICarterModule
             IsSetupRequired = roles.Contains("Admin") && !userEntity.TwoFactorEnabled
         };
         
-        return Results.Ok(result);
+        return Results.Json(result);
     }
     
     private static async Task<IResult> EnableTwoFactor(
@@ -187,7 +187,7 @@ public class UsersEndpoints : ICarterModule
         userEntity.TwoFactorSecretKey = secretKey;
         await userManager.UpdateAsync(userEntity);
         
-        return Results.Ok(new TwoFactorDto
+        return Results.Json(new TwoFactorDto
         {
             QrCodeUri = qrCodeImage,
             SharedKey = secretKey
@@ -217,7 +217,7 @@ public class UsersEndpoints : ICarterModule
         var isValid = TotpService.VerifyTotpCode(userEntity.TwoFactorSecretKey ?? string.Empty, model.Code);
         if (!isValid)
         {
-            return Results.BadRequest("Неверный код подтверждения");
+            return Results.BadRequest(UserErrors.InappropriateCode);
         }
         
         userEntity.TwoFactorEnabled = true;

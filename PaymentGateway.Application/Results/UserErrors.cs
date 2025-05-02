@@ -10,6 +10,12 @@ public static class UserErrors
     
     public static Error UserNotFound =>
         new(ErrorCode.UserNotFound, "Пользователь не найден");
+    
+    public static Error InappropriateData =>
+        new(ErrorCode.InappropriateData, "Неправильный логин или пароль");
+    
+    public static Error InappropriateCode =>
+        new(ErrorCode.InappropriateCode, "Неправильный код подтверждения");
 
     public static Error UserAlreadyExists =>
         new(ErrorCode.UserAlreadyExists, "Пользователь с таким именем уже существует");
