@@ -1,10 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using PaymentGateway.Api.Filters;
-using PaymentGateway.Application;
 using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Application.Results;
 using PaymentGateway.Shared.DTOs.Transaction;
-using PaymentGateway.Shared.Extensions;
 using System.Security.Claims;
 
 namespace PaymentGateway.Api.Endpoints;
