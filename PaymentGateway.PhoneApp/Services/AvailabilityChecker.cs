@@ -18,7 +18,7 @@ public class AvailabilityChecker(
         try
         {
             using var client = clientFactory.CreateClient("API");
-            var response = await client.GetAsync($"{client.BaseAddress}/{apiVersion}/Health/CheckAvailable", token);
+            var response = await client.GetAsync($"{client.BaseAddress}/api/{apiVersion}/health/check-available", token);
             var isSuccess = response.IsSuccessStatusCode;
             State = isSuccess;
         }

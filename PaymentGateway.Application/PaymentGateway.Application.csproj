@@ -1,5 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
     <ItemGroup>
         <ProjectReference Include="..\PaymentGateway.Core\PaymentGateway.Core.csproj"/>
         <ProjectReference Include="..\PaymentGateway.Infrastructure\PaymentGateway.Infrastructure.csproj"/>
@@ -8,11 +14,10 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="AutoMapper"/>
-        <PackageReference Include="FluentValidation"/>
-        <PackageReference Include="FluentValidation.AspNetCore"/>
-        <PackageReference Include="FluentValidation.DependencyInjectionExtensions"/>
-        <PackageReference Include="Microsoft.EntityFrameworkCore"/>
+        <PackageReference Include="AutoMapper" Version="14.0.0"/>
+        <PackageReference Include="FluentValidation" Version="11.11.0"/>
+        <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.11.0"/>
+        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.4"/>
     </ItemGroup>
 
 </Project>

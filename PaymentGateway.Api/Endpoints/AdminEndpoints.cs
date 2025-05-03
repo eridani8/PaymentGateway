@@ -6,6 +6,7 @@ using PaymentGateway.Shared.DTOs.User;
 using PaymentGateway.Shared.Enums;
 using PaymentGateway.Shared.Interfaces;
 using System.Security.Claims;
+using Asp.Versioning.Builder;
 using Carter;
 
 namespace PaymentGateway.Api.Endpoints;
