@@ -36,14 +36,16 @@ public class TransactionService(
             return Result.Failure<TransactionDto>(RequisiteErrors.RequisiteNotFound);
         }
 
-        if (payment.Amount != dto.ExtractedAmount)
-        {
-            return Result.Failure<TransactionDto>(TransactionErrors.WrongPaymentAmount(dto.ExtractedAmount, payment.Amount));
-        }
-
         var transactionEntity = mapper.Map<TransactionEntity>(dto);
 
         logger.LogInformation("Поступление платежа на сумму {amount}", transactionEntity.ExtractedAmount);
+        
+        if (payment.Amount != dto.ExtractedAmount)
+        {
+            await unit.TransactionRepository.Add(transactionEntity);
+            await unit.Commit();
+            return Result.Failure<TransactionDto>(TransactionErrors.WrongPaymentAmount(dto.ExtractedAmount, payment.Amount));
+        }
 
         payment.ConfirmTransaction(transactionEntity);
         await unit.TransactionRepository.Add(transactionEntity);
