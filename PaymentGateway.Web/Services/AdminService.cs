@@ -101,6 +101,6 @@ public class AdminService(
 
     public async Task<Response> SetRequisiteAssignmentAlgorithm(int algorithm)
     {
-        return await PutRequest($"{apiEndpoint}/requisite-assignment-algorithm", algorithm);
+        return await PutRequest($"{apiEndpoint}/requisite-assignment-algorithm?algorithm={algorithm}");
     }
 }
