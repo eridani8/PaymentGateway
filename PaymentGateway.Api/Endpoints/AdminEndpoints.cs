@@ -6,8 +6,8 @@ using PaymentGateway.Shared.DTOs.User;
 using PaymentGateway.Shared.Enums;
 using PaymentGateway.Shared.Interfaces;
 using System.Security.Claims;
-using Asp.Versioning.Builder;
 using Carter;
+using Asp.Versioning;
 
 namespace PaymentGateway.Api.Endpoints;
 
@@ -15,7 +15,13 @@ public class AdminEndpoints : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("api/v1/admin")
+        var versionSet = app.NewApiVersionSet()
+            .HasApiVersion(new ApiVersion(1))
+            .ReportApiVersions()
+            .Build();
+
+        var group = app.MapGroup("api/v{version:apiVersion}/admin")
+            .WithApiVersionSet(versionSet)
             .WithTags("Административные методы управления пользователями и системой")
             .AddEndpointFilter<UserStatusFilter>()
             .RequireAuthorization(new AuthorizeAttribute { Roles = "Admin" });

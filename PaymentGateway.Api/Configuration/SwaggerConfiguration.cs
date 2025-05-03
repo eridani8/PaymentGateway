@@ -1,3 +1,4 @@
+using Asp.Versioning.ApiExplorer;
 using Microsoft.OpenApi.Models;
 
 namespace PaymentGateway.Api.Configuration;
@@ -11,17 +12,24 @@ public static class SwaggerConfiguration
         
         builder.Services.AddSwaggerGen(options =>
         {
-            options.SwaggerDoc("v1", new OpenApiInfo
+            var provider = builder.Services.BuildServiceProvider().GetRequiredService<IApiVersionDescriptionProvider>();
+            
+            foreach (var description in provider.ApiVersionDescriptions)
             {
-                Title = "Payment Gateway API",
-                Version = "v1",
-                Description = "API для взаимодействия с платежным шлюзом",
-                Contact = new OpenApiContact
-                {
-                    Name = "Support",
-                    Email = "support@example.com"
-                }
-            });
+                options.SwaggerDoc(
+                    description.GroupName,
+                    new OpenApiInfo
+                    {
+                        Title = "Payment Gateway API",
+                        Version = description.ApiVersion.ToString(),
+                        Description = "API для взаимодействия с платежным шлюзом",
+                        Contact = new OpenApiContact
+                        {
+                            Name = "Support",
+                            Email = "support@example.com"
+                        }
+                    });
+            }
 
             options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {

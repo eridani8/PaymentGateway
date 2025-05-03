@@ -6,6 +6,7 @@ using PaymentGateway.Core.Interfaces;
 using PaymentGateway.Shared;
 using PaymentGateway.Shared.DTOs.User;
 using System.Security.Claims;
+using Asp.Versioning;
 using Carter;
 using PaymentGateway.Application.Results;
 
@@ -15,7 +16,13 @@ public class UsersEndpoints : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("api/v1/users")
+        var versionSet = app.NewApiVersionSet()
+            .HasApiVersion(new ApiVersion(1))
+            .ReportApiVersions()
+            .Build();
+        
+        var group = app.MapGroup("api/v{version:apiVersion}/users")
+            .WithApiVersionSet(versionSet)
             .WithTags("Пользовательские методы и аутентификация")
             .AddEndpointFilter<UserStatusFilter>();
 

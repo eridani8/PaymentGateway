@@ -6,6 +6,7 @@ using PaymentGateway.Application.Hubs;
 using PaymentGateway.Core;
 using PaymentGateway.Infrastructure;
 using Serilog;
+using Asp.Versioning.ApiExplorer;
 
 try
 {
@@ -49,7 +50,17 @@ try
 
     app.MapOpenApi();
     app.UseSwagger();
-    app.UseSwaggerUI();
+    
+    app.UseSwaggerUI(options =>
+    {
+        var provider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
+        foreach (var description in provider.ApiVersionDescriptions)
+        {
+            options.SwaggerEndpoint(
+                $"/swagger/{description.GroupName}/swagger.json",
+                description.GroupName.ToUpperInvariant());
+        }
+    });
 
     app.UseCors("AllowAll"); // TODO
 

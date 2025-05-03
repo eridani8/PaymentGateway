@@ -4,6 +4,7 @@ using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Application.Results;
 using PaymentGateway.Shared.DTOs.Payment;
 using System.Security.Claims;
+using Asp.Versioning;
 using Carter;
 
 namespace PaymentGateway.Api.Endpoints;
@@ -12,7 +13,13 @@ public class PaymentsEndpoints : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("api/v1/payments")
+        var versionSet = app.NewApiVersionSet()
+            .HasApiVersion(new ApiVersion(1))
+            .ReportApiVersions()
+            .Build();
+        
+        var group = app.MapGroup("api/v{version:apiVersion}/payments")
+            .WithApiVersionSet(versionSet)
             .WithTags("Управление платежами")
             .AddEndpointFilter<UserStatusFilter>();
 

@@ -1,3 +1,4 @@
+using Asp.Versioning;
 using Carter;
 using PaymentGateway.Api.Filters;
 
@@ -7,8 +8,14 @@ public class HealthEndpoints : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("api/v1/health")
-            .WithTags("Health")
+        var versionSet = app.NewApiVersionSet()
+            .HasApiVersion(new ApiVersion(1))
+            .ReportApiVersions()
+            .Build();
+        
+        var group = app.MapGroup("api/v{version:apiVersion}/health")
+            .WithApiVersionSet(versionSet)
+            .WithTags("Доступность")
             .AddEndpointFilter<UserStatusFilter>();
 
         group.MapGet("/check-available", CheckAvailable)

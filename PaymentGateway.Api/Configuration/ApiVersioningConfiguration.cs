@@ -1,4 +1,5 @@
 using Asp.Versioning;
+using Asp.Versioning.ApiExplorer;
 
 namespace PaymentGateway.Api.Configuration;
 
@@ -17,6 +18,10 @@ public static class ApiVersioningConfiguration
                 new HeaderApiVersionReader("X-Api-Version"),
                 new QueryStringApiVersionReader("api-version")
             );
+        }).AddApiExplorer(options =>
+        {
+            options.GroupNameFormat = "'v'VVV";
+            options.SubstituteApiVersionInUrl = true;
         });
     }
 } 

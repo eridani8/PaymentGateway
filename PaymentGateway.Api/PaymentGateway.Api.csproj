@@ -7,14 +7,15 @@
     </PropertyGroup>
     
     <ItemGroup>
-        <ProjectReference Include="..\PaymentGateway.Application\PaymentGateway.Application.csproj"/>
-        <ProjectReference Include="..\PaymentGateway.Core\PaymentGateway.Core.csproj"/>
-        <ProjectReference Include="..\PaymentGateway.Infrastructure\PaymentGateway.Infrastructure.csproj"/>
-        <ProjectReference Include="..\PaymentGateway.Shared\PaymentGateway.Shared.csproj"/>
+        <ProjectReference Include="..\PaymentGateway.Application\PaymentGateway.Application.csproj" />
+        <ProjectReference Include="..\PaymentGateway.Core\PaymentGateway.Core.csproj" />
+        <ProjectReference Include="..\PaymentGateway.Infrastructure\PaymentGateway.Infrastructure.csproj" />
+        <ProjectReference Include="..\PaymentGateway.Shared\PaymentGateway.Shared.csproj" />
     </ItemGroup>
 
     <ItemGroup>
         <PackageReference Include="Asp.Versioning.Http" Version="8.1.0" />
+        <PackageReference Include="Asp.Versioning.Mvc.ApiExplorer" Version="8.1.0" />
         <PackageReference Include="AutoMapper" Version="14.0.0" />
         <PackageReference Include="Carter" Version="9.0.0" />
         <PackageReference Include="FluentValidation" Version="11.11.0" />
