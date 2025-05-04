@@ -62,7 +62,7 @@ try
         }
     });
 
-    app.UseSerilogRequestLogging();
+    // app.UseSerilogRequestLogging();
 
     app.UseMiddleware<RequestLogContextMiddleware>();
 
