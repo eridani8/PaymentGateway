@@ -62,8 +62,12 @@ try
         }
     });
 
-    app.UseCors("AllowAll"); // TODO
+    app.UseSerilogRequestLogging();
 
+    app.UseMiddleware<RequestLogContextMiddleware>();
+
+    app.UseCors("AllowAll"); // TODO
+    
     // app.UseHttpsRedirection(); // TODO
     app.UseAuthentication();
     app.UseAuthorization();

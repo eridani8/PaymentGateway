@@ -2,14 +2,15 @@
 using System.Reflection;
 using CommunityToolkit.Maui;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Http.Resilience;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.Maui.LifecycleEvents;
 using PaymentGateway.PhoneApp.Interfaces;
 using PaymentGateway.PhoneApp.Pages;
 using PaymentGateway.PhoneApp.Services;
 using PaymentGateway.PhoneApp.Services.Logs;
 using PaymentGateway.PhoneApp.ViewModels;
+using Polly;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
@@ -37,20 +38,20 @@ public static class MauiProgram
 
         if (stream is null)
         {
-            throw new  ApplicationException("Необходим конфигурационный файл");
+            throw new ApplicationException("Необходим конфигурационный файл");
         }
 
         var config = new ConfigurationBuilder()
             .AddJsonStream(stream)
             .Build();
-        
+
         builder.Configuration.AddConfiguration(config);
         builder.Services.Configure<AppSettings>(config);
         var settings = builder.Configuration.Get<AppSettings>();
 
         var liteContext = new LiteContext(settings!);
         var sink = new InMemoryLogSink(liteContext);
-        
+
         var levelSwitch = new LoggingLevelSwitch(LogEventLevel.Debug);
         Log.Logger = new LoggerConfiguration()
             .MinimumLevel.ControlledBy(levelSwitch)
@@ -60,35 +61,36 @@ public static class MauiProgram
             .CreateLogger();
 
         builder.Services.AddHttpClient("API", (serviceProvider, client) =>
-        {
-            var appSettings = serviceProvider.GetRequiredService<IOptions<AppSettings>>().Value;
+            {
+                var appSettings = serviceProvider.GetRequiredService<IOptions<AppSettings>>().Value;
 
-            client.BaseAddress = new Uri(appSettings.ServiceUrl);
-            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-        });
+                client.BaseAddress = new Uri(appSettings.ServiceUrl);
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            })
+            .AddStandardResilienceHandler();
 
         builder.Services.AddSingleton(liteContext);
         builder.Services.AddSingleton(sink);
-        
+
         builder.Services.AddSingleton<IAlertService, AlertService>();
-        
+
         builder.Services.AddSingleton<MainViewModel>();
         builder.Services.AddSingleton<LogsViewModel>();
-        
+
         builder.Services.AddSingleton<MainPage>();
         builder.Services.AddSingleton<LogsPage>();
         builder.Services.AddSingleton<ServiceUnavailablePage>();
-        
+
         builder.Services.AddSingleton<IAvailabilityChecker, AvailabilityChecker>();
         builder.Services.AddSingleton<ServiceUnavailableViewModel>();
-        
+
         builder.Services.AddSingleton<ISmsProcessor, SmsProcessor>();
         builder.Services.AddSingleton<IBackgroundServiceManager, BackgroundServiceManager>();
         builder.Services.AddSingleton<INotificationProcessor, NotificationProcessor>();
-        
+
         builder.Logging.ClearProviders();
         builder.Logging.AddSerilog(dispose: true);
-        
+
         return builder.Build();
     }
 }

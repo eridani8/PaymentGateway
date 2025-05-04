@@ -18,9 +18,11 @@ using PaymentGateway.Shared.Validations.Validators.Requisite;
 using PaymentGateway.Shared.Validations.Validators.User;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Microsoft.Extensions.Http.Resilience;
 using PaymentGateway.Shared.DTOs.Payment;
 using PaymentGateway.Shared.Validations;
 using PaymentGateway.Shared.Validations.Validators.Payment;
+using Polly;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
@@ -42,7 +44,7 @@ builder.Services.AddSingleton(new JsonSerializerOptions
 });
 
 builder.Services.AddValidatorsFromAssembly(typeof(BaseValidator<>).Assembly);
-    
+
 builder.Services.AddScoped<CustomAuthStateProvider>();
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
 builder.Services.AddScoped<AuthMessageHandler>();
@@ -61,7 +63,8 @@ builder.Services.AddHttpClient("API", (serviceProvider, client) =>
         client.BaseAddress = new Uri(settings.BaseAddress);
         client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
     })
-    .AddHttpMessageHandler<AuthMessageHandler>();
+    .AddHttpMessageHandler<AuthMessageHandler>()
+    .AddStandardResilienceHandler();
 
 builder.Services.AddMudServices(c =>
 {
