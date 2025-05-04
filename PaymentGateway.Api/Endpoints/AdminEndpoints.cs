@@ -283,8 +283,6 @@ public class AdminEndpoints : ICarterModule
             return Results.BadRequest(result.Error.Message);
         }
         
-        notificationService.NotifyRequisiteAssignmentAlgorithmChanged((RequisiteAssignmentAlgorithm)algorithm);
-        
         logger.LogInformation("Изменение алгоритма подбора реквизитов. С {old} на {new} [{User}]", 
             oldAlgorithm, (RequisiteAssignmentAlgorithm)algorithm, user.GetCurrentUsername());
 

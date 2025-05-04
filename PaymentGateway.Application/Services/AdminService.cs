@@ -215,13 +215,14 @@ public class AdminService(
 
     public Result<bool> SetRequisiteAssignmentAlgorithm(int algorithm)
     {
-        if (!Enum.IsDefined(typeof(RequisiteAssignmentAlgorithm), algorithm))
+        if (!Enum.IsDefined(typeof(RequisiteAssignmentAlgorithm), algorithm) || !Enum.TryParse(algorithm.ToString(), out RequisiteAssignmentAlgorithm result))
         {
             return Result.Failure<bool>(
                 Error.OperationFailed("изменение алгоритма назначения реквизитов", "Указан недопустимый алгоритм"));
         }
             
-        gatewaySettings.Value.AppointmentAlgorithm = (RequisiteAssignmentAlgorithm)algorithm;
+        gatewaySettings.Value.AppointmentAlgorithm = result;
+        notificationService.NotifyRequisiteAssignmentAlgorithmChanged(result);
         return Result.Success(true);
     }
 }
