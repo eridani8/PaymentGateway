@@ -19,6 +19,7 @@ using PaymentGateway.Shared.Validations.Validators.User;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using PaymentGateway.Shared.DTOs.Payment;
+using PaymentGateway.Shared.Validations;
 using PaymentGateway.Shared.Validations.Validators.Payment;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
@@ -40,12 +41,7 @@ builder.Services.AddSingleton(new JsonSerializerOptions
     PropertyNameCaseInsensitive = true
 });
 
-builder.Services.AddScoped<IValidator<LoginDto>, LoginModelValidator>();
-builder.Services.AddScoped<IValidator<ChangePasswordDto>, ChangePasswordValidator>();
-builder.Services.AddScoped<IValidator<TwoFactorVerifyDto>, TwoFactorVerifyDtoValidator>();
-
-builder.Services.AddScoped<IValidator<RequisiteCreateDto>, RequisiteCreateDtoValidator>();
-builder.Services.AddScoped<IValidator<PaymentCreateDto>, PaymentCreateDtoValidator>();
+builder.Services.AddValidatorsFromAssembly(typeof(BaseValidator<>).Assembly);
     
 builder.Services.AddScoped<CustomAuthStateProvider>();
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();

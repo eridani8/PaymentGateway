@@ -1,10 +1,10 @@
+using PaymentGateway.Shared.DTOs.Chat;
 using PaymentGateway.Shared.DTOs.Payment;
 using PaymentGateway.Shared.DTOs.Requisite;
 using PaymentGateway.Shared.DTOs.User;
-using PaymentGateway.Shared.DTOs.Chat;
 using PaymentGateway.Shared.Enums;
 
-namespace PaymentGateway.Shared.Interfaces;
+namespace PaymentGateway.Application.Interfaces;
 
 public interface IHubClient
 {

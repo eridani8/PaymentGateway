@@ -8,6 +8,7 @@ using PaymentGateway.Shared.DTOs.Payment;
 using PaymentGateway.Shared.DTOs.Requisite;
 using PaymentGateway.Shared.DTOs.Transaction;
 using PaymentGateway.Shared.DTOs.User;
+using PaymentGateway.Shared.Validations;
 using PaymentGateway.Shared.Validations.Validators.Payment;
 using PaymentGateway.Shared.Validations.Validators.Requisite;
 using PaymentGateway.Shared.Validations.Validators.Transaction;
@@ -24,25 +25,15 @@ public static class ServiceExtensions
         services.AddAutoMapper(typeof(TransactionProfile));
         services.AddAutoMapper(typeof(UserProfile));
         services.AddAutoMapper(typeof(ChatMessageProfile));
+
+        services.AddValidatorsFromAssembly(typeof(BaseValidator<>).Assembly);
         
-        services.AddScoped<IValidator<RequisiteCreateDto>, RequisiteCreateDtoValidator>();
-        services.AddScoped<IValidator<RequisiteUpdateDto>, RequisiteUpdateDtoValidator>();
         services.AddScoped<IRequisiteService, RequisiteService>();
         
-        services.AddScoped<IValidator<PaymentCreateDto>, PaymentCreateDtoValidator>();
-        services.AddScoped<IValidator<PaymentManualConfirmDto>, PaymentManualConfirmDtoValidator>();
-        services.AddScoped<IValidator<PaymentCancelDto>, PaymentCancelDtoValidator>();
         services.AddScoped<IPaymentConfirmationService, PaymentConfirmationService>();
         services.AddScoped<IPaymentService, PaymentService>();
 
-        services.AddScoped<IValidator<TransactionCreateDto>, TransactionCreateDtoValidator>();
         services.AddScoped<ITransactionService, TransactionService>();
-
-        services.AddScoped<IValidator<LoginDto>, LoginModelValidator>();
-        services.AddScoped<IValidator<ChangePasswordDto>, ChangePasswordValidator>();
-        services.AddScoped<IValidator<CreateUserDto>, CreateUserValidator>();
-        services.AddScoped<IValidator<UpdateUserDto>, UpdateUserValidator>();
-        services.AddScoped<IValidator<TwoFactorVerifyDto>, TwoFactorVerifyDtoValidator>();
 
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IAdminService, AdminService>();

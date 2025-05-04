@@ -3,7 +3,7 @@ using PaymentGateway.Shared.DTOs.Requisite;
 using PaymentGateway.Shared.DTOs.User;
 using PaymentGateway.Shared.Enums;
 
-namespace PaymentGateway.Shared.Interfaces;
+namespace PaymentGateway.Application.Interfaces;
 
 public interface INotificationService
 {

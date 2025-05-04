@@ -2,10 +2,10 @@ using System.Collections.Concurrent;
 using System.Security.Claims;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
+using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Core.Interfaces;
 using PaymentGateway.Shared.DTOs.Chat;
 using PaymentGateway.Shared.DTOs.User;
-using PaymentGateway.Shared.Interfaces;
 
 namespace PaymentGateway.Application.Hubs;
 

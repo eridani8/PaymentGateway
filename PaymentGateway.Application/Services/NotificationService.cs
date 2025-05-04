@@ -1,11 +1,11 @@
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using PaymentGateway.Application.Hubs;
+using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Shared.DTOs.Payment;
 using PaymentGateway.Shared.DTOs.Requisite;
 using PaymentGateway.Shared.DTOs.User;
 using PaymentGateway.Shared.Enums;
-using PaymentGateway.Shared.Interfaces;
 
 namespace PaymentGateway.Application.Services;
 

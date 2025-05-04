@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
+using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Application.Services;
-using PaymentGateway.Shared.Interfaces;
 
 namespace PaymentGateway.Api.Configuration;
 

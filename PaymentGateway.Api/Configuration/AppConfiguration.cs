@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.SignalR;
 using PaymentGateway.Application.Hubs;
+using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Core.Entities;
-using PaymentGateway.Shared.Interfaces;
 
 namespace PaymentGateway.Api.Configuration;
 

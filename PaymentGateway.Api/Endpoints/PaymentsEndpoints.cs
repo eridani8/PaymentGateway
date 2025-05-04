@@ -6,6 +6,7 @@ using PaymentGateway.Shared.DTOs.Payment;
 using System.Security.Claims;
 using Asp.Versioning;
 using Carter;
+using FluentValidation;
 
 namespace PaymentGateway.Api.Endpoints;
 
@@ -114,7 +115,7 @@ public class PaymentsEndpoints : ICarterModule
         ClaimsPrincipal user)
     {
         if (dto is null) return Results.BadRequest();
-
+        
         var userId = user.GetCurrentUserId();
         if (userId == Guid.Empty) return Results.Unauthorized();
         

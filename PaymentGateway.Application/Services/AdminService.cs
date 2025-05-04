@@ -10,7 +10,6 @@ using PaymentGateway.Core;
 using PaymentGateway.Core.Entities;
 using PaymentGateway.Shared.DTOs.User;
 using PaymentGateway.Shared.Enums;
-using PaymentGateway.Shared.Interfaces;
 using Npgsql;
 
 namespace PaymentGateway.Application.Services;

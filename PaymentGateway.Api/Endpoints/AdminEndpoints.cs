@@ -4,7 +4,6 @@ using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Application.Results;
 using PaymentGateway.Shared.DTOs.User;
 using PaymentGateway.Shared.Enums;
-using PaymentGateway.Shared.Interfaces;
 using System.Security.Claims;
 using Carter;
 using Asp.Versioning;
@@ -275,14 +274,15 @@ public class AdminEndpoints : ICarterModule
         ILogger<AdminEndpoints> logger,
         ClaimsPrincipal user)
     {
+        var oldAlgorithm = (RequisiteAssignmentAlgorithm)service.GetCurrentRequisiteAssignmentAlgorithm().Value;
+        
         var result = service.SetRequisiteAssignmentAlgorithm(algorithm);
         
         if (result.IsFailure)
         {
             return Results.BadRequest(result.Error.Message);
         }
-
-        var oldAlgorithm = (RequisiteAssignmentAlgorithm)service.GetCurrentRequisiteAssignmentAlgorithm().Value;
+        
         notificationService.NotifyRequisiteAssignmentAlgorithmChanged((RequisiteAssignmentAlgorithm)algorithm);
         
         logger.LogInformation("Изменение алгоритма подбора реквизитов. С {old} на {new} [{User}]", 

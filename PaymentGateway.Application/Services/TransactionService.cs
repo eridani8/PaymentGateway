@@ -8,7 +8,6 @@ using PaymentGateway.Infrastructure.Interfaces;
 using PaymentGateway.Shared.DTOs.Payment;
 using PaymentGateway.Shared.DTOs.Requisite;
 using PaymentGateway.Shared.DTOs.Transaction;
-using PaymentGateway.Shared.Interfaces;
 
 namespace PaymentGateway.Application.Services;
 
