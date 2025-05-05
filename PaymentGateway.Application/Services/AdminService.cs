@@ -20,7 +20,7 @@ public class AdminService(
     IValidator<CreateUserDto> createValidator,
     IValidator<UpdateUserDto> updateValidator,
     INotificationService notificationService,
-    IOptions<GatewaySettings> gatewaySettings,
+    IOptions<GatewayConfig> gatewayConfig,
     ILogger<AdminService> logger) : IAdminService
 {
     public async Task<Result<UserDto>> CreateUser(CreateUserDto dto)
@@ -210,7 +210,7 @@ public class AdminService(
 
     public Result<int> GetCurrentRequisiteAssignmentAlgorithm()
     {
-        return Result.Success((int)gatewaySettings.Value.AppointmentAlgorithm);
+        return Result.Success((int)gatewayConfig.Value.AppointmentAlgorithm);
     }
 
     public Result<bool> SetRequisiteAssignmentAlgorithm(int algorithm)
@@ -221,7 +221,7 @@ public class AdminService(
                 Error.OperationFailed("изменение алгоритма назначения реквизитов", "Указан недопустимый алгоритм"));
         }
             
-        gatewaySettings.Value.AppointmentAlgorithm = result;
+        gatewayConfig.Value.AppointmentAlgorithm = result;
         notificationService.NotifyRequisiteAssignmentAlgorithmChanged(result);
         return Result.Success(true);
     }

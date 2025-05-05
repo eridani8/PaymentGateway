@@ -25,6 +25,8 @@ public class GatewayHandler(
         var now = DateTime.UtcNow;
         var nowTimeOnly = TimeOnly.FromDateTime(now);
 
+        var needToCommit = false;
+
         foreach (var requisite in requisites)
         {
             try
@@ -38,6 +40,7 @@ public class GatewayHandler(
                     requisite.Status = status;
                     unit.RequisiteRepository.Update(requisite);
                     await notificationService.NotifyRequisiteUpdated(mapper.Map<RequisiteDto>(requisite));
+                    needToCommit = true;
                 }
 
                 var todayDate = now.ToLocalTime().Date;
@@ -53,6 +56,7 @@ public class GatewayHandler(
                     unit.RequisiteRepository.Update(requisite);
                     cache.Set(resetCacheKey, TimeSpan.FromHours(25));
                     await notificationService.NotifyRequisiteUpdated(mapper.Map<RequisiteDto>(requisite));
+                    needToCommit = true;
                 }
 
                 var currentMonth = new DateTime(now.Year, now.Month, 1);
@@ -68,6 +72,7 @@ public class GatewayHandler(
                     unit.RequisiteRepository.Update(requisite);
                     cache.Set(monthlyResetCacheKey, TimeSpan.FromDays(32));
                     await notificationService.NotifyRequisiteUpdated(mapper.Map<RequisiteDto>(requisite));
+                    needToCommit = true;
                 }
             }
             catch (Exception e)
@@ -76,7 +81,10 @@ public class GatewayHandler(
             }
         }
 
-        await unit.Commit();
+        if (needToCommit)
+        {
+            await unit.Commit();
+        }
     }
 
     public async Task HandleUnprocessedPayments(IUnitOfWork unit)
@@ -99,6 +107,7 @@ public class GatewayHandler(
             return;
         }
 
+        var needToCommit = false;
         foreach (var payment in unprocessedPayments)
         {
             try
@@ -130,7 +139,8 @@ public class GatewayHandler(
                 freeRequisites.Remove(requisite);
                 requisite.AssignToPayment(payment);
                 payment.MarkAsPending(requisite);
-                await unit.Commit();
+                
+                needToCommit = true;
 
                 var paymentDto = mapper.Map<PaymentDto>(payment);
                 var requisiteDto = mapper.Map<RequisiteDto>(requisite);
@@ -145,6 +155,11 @@ public class GatewayHandler(
                 logger.LogError(e, "Ошибка при обработке платежа {PaymentId}", payment.Id);
             }
         }
+        
+        if (needToCommit)
+        {
+            await unit.Commit();
+        }
     }
 
     public async Task HandleExpiredPayments(IUnitOfWork unit)
@@ -152,6 +167,7 @@ public class GatewayHandler(
         var expiredPayments = await unit.PaymentRepository.GetExpiredPayments();
         if (expiredPayments.Count > 0)
         {
+            var needToCommit = false;
             foreach (var expiredPayment in expiredPayments)
             {
                 var requisiteUserId = Guid.Empty;
@@ -164,13 +180,16 @@ public class GatewayHandler(
                 }
 
                 unit.PaymentRepository.Delete(expiredPayment);
-                await notificationService.NotifyPaymentDeleted(expiredPayment.Id,
-                    requisiteUserId == Guid.Empty ? null : requisiteUserId);
+                await notificationService.NotifyPaymentDeleted(expiredPayment.Id, requisiteUserId == Guid.Empty ? null : requisiteUserId);
                 logger.LogInformation("Платеж {paymentId} на сумму {amount} отменен из-за истечения срока ожидания", expiredPayment.Id, expiredPayment.Amount);
+                needToCommit = true;
+            }
+
+            if (needToCommit)
+            {
+                await unit.Commit();
             }
         }
-
-        await unit.Commit();
     }
 
     public async Task HandleUserFundsReset(UserManager<UserEntity> userManager)

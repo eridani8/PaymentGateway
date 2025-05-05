@@ -7,6 +7,10 @@ using PaymentGateway.Core;
 using PaymentGateway.Infrastructure;
 using Serilog;
 using Asp.Versioning.ApiExplorer;
+using OpenTelemetry.Exporter;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 
 try
 {
@@ -23,11 +27,63 @@ try
     {
         throw new ApplicationException("Нужно указать настройки аутентификации");
     }
-
-    Log.Logger = LoggingConfiguration.ConfigureLogger(connectionString);
+    
+    var otlpConfig = builder.Configuration.GetSection(nameof(OpenTelemetryConfig)).Get<OpenTelemetryConfig>();
+    if (otlpConfig is null)
+    {
+        throw new ApplicationException("Нужно указать настройки OpenTelemetry");
+    }
+    
+    builder.Services.Configure<OpenTelemetryConfig>(builder.Configuration.GetSection(nameof(OpenTelemetryConfig)));
+    
+    Log.Logger = LoggingConfiguration.ConfigureLogger(connectionString, otlpConfig.Endpoint);
     builder.Host.UseSerilog(Log.Logger);
+    
+    var resourceBuilder = ResourceBuilder.CreateDefault()
+        .AddService(otlpConfig.ServiceName, serviceVersion: otlpConfig.ServiceVersion)
+        .AddEnvironmentVariableDetector()
+        .AddTelemetrySdk();
 
-    builder.Services.Configure<GatewaySettings>(builder.Configuration.GetSection(nameof(GatewaySettings)));
+    builder.Services.AddOpenTelemetry()
+        .WithTracing(tracing =>
+        {
+            tracing.SetResourceBuilder(resourceBuilder)
+                .AddAspNetCoreInstrumentation(options =>
+                {
+                    options.RecordException = true;
+                })
+                .AddHttpClientInstrumentation(options =>
+                {
+                    options.RecordException = true;
+                })
+                .AddEntityFrameworkCoreInstrumentation(options =>
+                {
+                    options.SetDbStatementForText = true;
+                })
+                .AddSource("PaymentGateway.Application")
+                .AddSource("PaymentGateway.Api")
+                .AddOtlpExporter(options =>
+                {
+                    options.Endpoint = new Uri($"{otlpConfig.Endpoint}/ingest/otlp/v1/traces");
+                    options.Protocol = OtlpExportProtocol.HttpProtobuf;
+                });
+        })
+        .WithMetrics(metrics =>
+        {
+            metrics.SetResourceBuilder(resourceBuilder)
+                .AddAspNetCoreInstrumentation()
+                .AddHttpClientInstrumentation()
+                .AddRuntimeInstrumentation()
+                .AddMeter("PaymentGateway.Application")
+                .AddMeter("PaymentGateway.Api")
+                .AddOtlpExporter(options =>
+                {
+                    options.Endpoint = new Uri($"{otlpConfig.Endpoint}/ingest/otlp/v1/metrics");
+                    options.Protocol = OtlpExportProtocol.HttpProtobuf;
+                });
+        });
+
+    builder.Services.Configure<GatewayConfig>(builder.Configuration.GetSection(nameof(GatewayConfig)));
 
     SwaggerConfiguration.ConfigureSwagger(builder);
     builder.Services.AddCarter();
@@ -62,9 +118,7 @@ try
         }
     });
 
-    // app.UseSerilogRequestLogging();
-
-    app.UseMiddleware<RequestLogContextMiddleware>();
+    app.UseSerilogRequestLogging();
 
     app.UseCors("AllowAll"); // TODO
     

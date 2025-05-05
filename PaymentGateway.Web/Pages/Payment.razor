@@ -269,6 +269,10 @@
                 if (_payment?.Status == PaymentStatus.Confirmed)
                 {
                     _showSuccessDialog = true;
+                    if (_refreshTimer != null)
+                    {
+                        await _refreshTimer.DisposeAsync();
+                    }
                 }
 
                 Snackbar.Add($"Платеж успешно выполнен через {GetTransactionSourceText(transaction.Source)}", Severity.Success);
