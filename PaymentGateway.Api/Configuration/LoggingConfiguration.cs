@@ -1,7 +1,9 @@
 using NpgsqlTypes;
+using PaymentGateway.Core;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
+using Serilog.Sinks.OpenTelemetry;
 using Serilog.Sinks.PostgreSQL;
 using Serilog.Sinks.PostgreSQL.ColumnWriters;
 
@@ -9,7 +11,7 @@ namespace PaymentGateway.Api.Configuration;
 
 public static class LoggingConfiguration
 {
-    public static Serilog.ILogger ConfigureLogger(string connectionString, string otlpEndpoint)
+    public static Serilog.ILogger ConfigureLogger(string connectionString, OpenTelemetryConfig otlpConfig)
     {
         const string logs = "Logs";
         var logsPath = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, logs));
@@ -44,7 +46,15 @@ public static class LoggingConfiguration
             .WriteTo.Console(outputTemplate: outputTemplate, levelSwitch: levelSwitch)
             .WriteTo.PostgreSQL(connectionString, logs, columnWriters, needAutoCreateTable: true, levelSwitch: levelSwitch)
             .WriteTo.File($"{logsPath}/.log", rollingInterval: RollingInterval.Day, outputTemplate: outputTemplate, levelSwitch: levelSwitch)
-            .WriteTo.Seq(otlpEndpoint, controlLevelSwitch: levelSwitch)
+            .WriteTo.OpenTelemetry(options =>
+            {
+                options.Endpoint = otlpConfig.Endpoint;
+                options.ResourceAttributes = new Dictionary<string, object>
+                {
+                    ["service.name"] = "PaymentGateway",
+                };
+                options.LevelSwitch = levelSwitch;
+            })
             .CreateLogger();
     }
 } 

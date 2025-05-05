@@ -1,4 +1,9 @@
+using Asp.Versioning.ApiExplorer;
 using Carter;
+using OpenTelemetry.Exporter;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 using PaymentGateway.Api;
 using PaymentGateway.Api.Configuration;
 using PaymentGateway.Application;
@@ -6,11 +11,6 @@ using PaymentGateway.Application.Hubs;
 using PaymentGateway.Core;
 using PaymentGateway.Infrastructure;
 using Serilog;
-using Asp.Versioning.ApiExplorer;
-using OpenTelemetry.Exporter;
-using OpenTelemetry.Metrics;
-using OpenTelemetry.Resources;
-using OpenTelemetry.Trace;
 
 try
 {
@@ -36,11 +36,11 @@ try
     
     builder.Services.Configure<OpenTelemetryConfig>(builder.Configuration.GetSection(nameof(OpenTelemetryConfig)));
     
-    Log.Logger = LoggingConfiguration.ConfigureLogger(connectionString, otlpConfig.Endpoint);
+    Log.Logger = LoggingConfiguration.ConfigureLogger(connectionString, otlpConfig);
     builder.Host.UseSerilog(Log.Logger);
     
     var resourceBuilder = ResourceBuilder.CreateDefault()
-        .AddService(otlpConfig.ServiceName, serviceVersion: otlpConfig.ServiceVersion)
+        .AddService(otlpConfig.ServiceName)
         .AddEnvironmentVariableDetector()
         .AddTelemetrySdk();
 
@@ -60,12 +60,9 @@ try
                 {
                     options.SetDbStatementForText = true;
                 })
-                .AddSource("PaymentGateway.Application")
-                .AddSource("PaymentGateway.Api")
                 .AddOtlpExporter(options =>
                 {
-                    options.Endpoint = new Uri($"{otlpConfig.Endpoint}/ingest/otlp/v1/traces");
-                    options.Protocol = OtlpExportProtocol.HttpProtobuf;
+                    options.Endpoint = new Uri(otlpConfig.Endpoint);
                 });
         })
         .WithMetrics(metrics =>
@@ -74,12 +71,9 @@ try
                 .AddAspNetCoreInstrumentation()
                 .AddHttpClientInstrumentation()
                 .AddRuntimeInstrumentation()
-                .AddMeter("PaymentGateway.Application")
-                .AddMeter("PaymentGateway.Api")
                 .AddOtlpExporter(options =>
                 {
-                    options.Endpoint = new Uri($"{otlpConfig.Endpoint}/ingest/otlp/v1/metrics");
-                    options.Protocol = OtlpExportProtocol.HttpProtobuf;
+                    options.Endpoint = new Uri(otlpConfig.Endpoint);
                 });
         });
 
