@@ -40,7 +40,7 @@ try
     builder.Host.UseSerilog(Log.Logger);
     
     var resourceBuilder = ResourceBuilder.CreateDefault()
-        .AddService(otlpConfig.ServiceName)
+        .AddService(builder.Environment.ApplicationName)
         .AddEnvironmentVariableDetector()
         .AddTelemetrySdk();
 
@@ -62,7 +62,8 @@ try
                 })
                 .AddOtlpExporter(options =>
                 {
-                    options.Endpoint = new Uri(otlpConfig.Endpoint);
+                    options.Endpoint = new Uri($"{otlpConfig.Endpoint}/ingest/otlp/v1/traces");
+                    options.Protocol = OtlpExportProtocol.HttpProtobuf;
                 });
         })
         .WithMetrics(metrics =>
@@ -73,7 +74,8 @@ try
                 .AddRuntimeInstrumentation()
                 .AddOtlpExporter(options =>
                 {
-                    options.Endpoint = new Uri(otlpConfig.Endpoint);
+                    options.Endpoint = new Uri($"{otlpConfig.Endpoint}/ingest/otlp/v1/metrics");
+                    options.Protocol = OtlpExportProtocol.HttpProtobuf;
                 });
         });
 
