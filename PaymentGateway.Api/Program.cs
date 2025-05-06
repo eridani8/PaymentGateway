@@ -38,11 +38,10 @@ try
     
     Log.Logger = LoggingConfiguration.ConfigureLogger(connectionString, otlpConfig);
     builder.Host.UseSerilog(Log.Logger);
-    
+
     var resourceBuilder = ResourceBuilder.CreateDefault()
         .AddService(builder.Environment.ApplicationName)
-        .AddEnvironmentVariableDetector()
-        .AddTelemetrySdk();
+        .AddEnvironmentVariableDetector();
 
     builder.Services.AddOpenTelemetry()
         .WithTracing(tracing =>
