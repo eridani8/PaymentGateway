@@ -63,6 +63,7 @@ try
                 {
                     options.Endpoint = new Uri($"{otlpConfig.Endpoint}/ingest/otlp/v1/traces");
                     options.Protocol = OtlpExportProtocol.HttpProtobuf;
+                    options.Headers = $"X-Seq-ApiKey={otlpConfig.Token}";
                 });
         })
         .WithMetrics(metrics =>
@@ -75,6 +76,7 @@ try
                 {
                     options.Endpoint = new Uri($"{otlpConfig.Endpoint}/ingest/otlp/v1/metrics");
                     options.Protocol = OtlpExportProtocol.HttpProtobuf;
+                    options.Headers = $"X-Seq-ApiKey={otlpConfig.Token}";
                 });
         });
 

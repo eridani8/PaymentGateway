@@ -55,7 +55,7 @@ public static class LoggingConfiguration
             //     };
             //     options.LevelSwitch = levelSwitch;
             // })
-            .WriteTo.Seq(otlpConfig.Endpoint)
+            .WriteTo.Seq(otlpConfig.Endpoint, apiKey: otlpConfig.Token)
             .CreateLogger();
     }
 } 

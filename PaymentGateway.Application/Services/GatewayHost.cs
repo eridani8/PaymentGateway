@@ -2,22 +2,26 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using PaymentGateway.Application.Interfaces;
+using PaymentGateway.Core;
 using PaymentGateway.Core.Entities;
 using PaymentGateway.Infrastructure.Interfaces;
 
 namespace PaymentGateway.Application.Services;
 
-public class GatewayHost(IServiceProvider serviceProvider, ILogger<GatewayHost> logger) : IHostedService
+public class GatewayHost(
+    IServiceProvider serviceProvider,
+    IOptions<GatewayConfig> gatewayConfig,
+    ILogger<GatewayHost> logger) : IHostedService
 {
     private readonly TimeSpan _startDelay = TimeSpan.FromSeconds(1);
-    private readonly TimeSpan _gatewayProcessDelay = TimeSpan.FromSeconds(7);
     private readonly TimeSpan _fundsResetDelay = TimeSpan.FromHours(12);
-    
+
     private Task _paymentProcessing = null!;
     private Task _fundsResetProcessing = null!;
     private CancellationTokenSource _cts = null!;
-    
+
     public Task StartAsync(CancellationToken cancellationToken)
     {
         _cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -31,21 +35,25 @@ public class GatewayHost(IServiceProvider serviceProvider, ILogger<GatewayHost> 
         try
         {
             logger.LogInformation("Сервис останавливается");
-            
+
             await _cts.CancelAsync();
-            
+
             try
             {
                 await _paymentProcessing;
             }
-            catch (TaskCanceledException) { }
-            
+            catch (TaskCanceledException)
+            {
+            }
+
             try
             {
                 await _fundsResetProcessing;
             }
-            catch (TaskCanceledException) { }
-            
+            catch (TaskCanceledException)
+            {
+            }
+
             using var scope = serviceProvider.CreateScope();
             var unit = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
             await unit.Commit(cancellationToken);
@@ -67,7 +75,7 @@ public class GatewayHost(IServiceProvider serviceProvider, ILogger<GatewayHost> 
     {
         await Task.Delay(_startDelay, _cts.Token);
         logger.LogInformation("Сервис запущен");
-        
+
         while (!_cts.IsCancellationRequested)
         {
             try
@@ -80,7 +88,9 @@ public class GatewayHost(IServiceProvider serviceProvider, ILogger<GatewayHost> 
                 await handler.HandleUnprocessedPayments(unit);
                 await handler.HandleExpiredPayments(unit);
             }
-            catch (OperationCanceledException) { }
+            catch (OperationCanceledException)
+            {
+            }
             catch (Exception e)
             {
                 logger.LogError(e, "Ошибка при обработке платежного цикла");
@@ -89,18 +99,20 @@ public class GatewayHost(IServiceProvider serviceProvider, ILogger<GatewayHost> 
             {
                 try
                 {
-                    await Task.Delay(_gatewayProcessDelay, _cts.Token);
+                    await Task.Delay(gatewayConfig.Value.GatewayProcessDelay, _cts.Token);
                 }
-                catch (OperationCanceledException) { }
+                catch (OperationCanceledException)
+                {
+                }
             }
         }
     }
-    
+
     private async Task UserFundsResetProcess()
     {
         await Task.Delay(_startDelay, _cts.Token);
         logger.LogInformation("Цикл сброса средств пользователей запущен");
-        
+
         while (!_cts.IsCancellationRequested)
         {
             try
@@ -111,7 +123,9 @@ public class GatewayHost(IServiceProvider serviceProvider, ILogger<GatewayHost> 
 
                 await handler.HandleUserFundsReset(userManager);
             }
-            catch (OperationCanceledException) { }
+            catch (OperationCanceledException)
+            {
+            }
             catch (Exception e)
             {
                 logger.LogError(e, "Ошибка при обработке цикла сброса средств пользователей");
@@ -122,7 +136,9 @@ public class GatewayHost(IServiceProvider serviceProvider, ILogger<GatewayHost> 
                 {
                     await Task.Delay(_fundsResetDelay, _cts.Token);
                 }
-                catch (OperationCanceledException) { }
+                catch (OperationCanceledException)
+                {
+                }
             }
         }
     }
