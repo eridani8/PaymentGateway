@@ -13,7 +13,7 @@ public class RequisiteRepository(
     IOptions<GatewayConfig> gatewayConfig)
     : RepositoryBase<RequisiteEntity>(context), IRequisiteRepository
 {
-    public async Task<List<RequisiteEntity>> GetAllTracked()
+    public async Task<List<RequisiteEntity>> GetAll()
     {
         return await GetSet()
             .Include(r => r.Payment)
@@ -21,7 +21,7 @@ public class RequisiteRepository(
             .ToListAsync();
     }
 
-    public async Task<List<RequisiteEntity>> GetFreeRequisites()
+    public async Task<List<RequisiteEntity>> GetActiveRequisites()
     {
         var currentTime = DateTime.UtcNow;
         var currentTimeOnly = TimeOnly.FromDateTime(currentTime);

@@ -27,14 +27,14 @@ public class CachedRequisiteRepository(RequisiteRepository repository, IMemoryCa
         Repository.Delete(entity);
     }
 
-    public Task<List<RequisiteEntity>> GetAllTracked()
+    public Task<List<RequisiteEntity>> GetAll()
     {
-        return Repository.GetAllTracked();
+        return Repository.GetAll();
     }
 
-    public Task<List<RequisiteEntity>> GetFreeRequisites()
+    public Task<List<RequisiteEntity>> GetActiveRequisites()
     {
-        return Repository.GetFreeRequisites();
+        return Repository.GetActiveRequisites();
     }
 
     public Task<int> GetUserRequisitesCount(Guid userId)

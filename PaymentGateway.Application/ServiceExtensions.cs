@@ -4,15 +4,7 @@ using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Application.Mappings;
 using PaymentGateway.Application.Services;
 using PaymentGateway.Core.Interfaces;
-using PaymentGateway.Shared.DTOs.Payment;
-using PaymentGateway.Shared.DTOs.Requisite;
-using PaymentGateway.Shared.DTOs.Transaction;
-using PaymentGateway.Shared.DTOs.User;
 using PaymentGateway.Shared.Validations;
-using PaymentGateway.Shared.Validations.Validators.Payment;
-using PaymentGateway.Shared.Validations.Validators.Requisite;
-using PaymentGateway.Shared.Validations.Validators.Transaction;
-using PaymentGateway.Shared.Validations.Validators.User;
 
 namespace PaymentGateway.Application;
 
@@ -35,7 +27,8 @@ public static class ServiceExtensions
 
         services.AddScoped<ITransactionService, TransactionService>();
 
-        services.AddScoped<ITokenService, TokenService>();
+        services.AddSingleton<ITokenService, TokenService>();
+        
         services.AddScoped<IAdminService, AdminService>();
         services.AddScoped<IChatMessageService, ChatMessageService>();
         

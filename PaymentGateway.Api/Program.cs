@@ -115,7 +115,7 @@ try
         }
     });
 
-    app.UseSerilogRequestLogging();
+    // app.UseSerilogRequestLogging();
 
     app.UseCors("AllowAll"); // TODO
     

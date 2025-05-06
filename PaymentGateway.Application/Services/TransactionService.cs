@@ -37,7 +37,7 @@ public class TransactionService(
 
         var transactionEntity = mapper.Map<TransactionEntity>(dto);
 
-        logger.LogInformation("Поступление платежа на сумму {amount}", transactionEntity.ExtractedAmount);
+        logger.LogInformation("Поступление платежа на сумму {Amount}", transactionEntity.ExtractedAmount);
         
         if (payment.Amount != dto.ExtractedAmount)
         {

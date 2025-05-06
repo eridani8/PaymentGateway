@@ -21,7 +21,7 @@ public class GatewayHandler(
 {
     public async Task HandleRequisites(IUnitOfWork unit)
     {
-        var requisites = await unit.RequisiteRepository.GetAllTracked();
+        var requisites = await unit.RequisiteRepository.GetAll();
         var now = DateTime.UtcNow;
         var nowTimeOnly = TimeOnly.FromDateTime(now);
 
@@ -35,7 +35,7 @@ public class GatewayHandler(
 
                 if (requisite.Status != status)
                 {
-                    logger.LogInformation("Статус реквизита {requisiteId} изменен с {oldStatus} на {newStatus}",
+                    logger.LogInformation("Статус реквизита {RequisiteId} изменен с {OldStatus} на {NewStatus}",
                         requisite.Id, requisite.Status.ToString(), status.ToString());
                     requisite.Status = status;
                     unit.RequisiteRepository.Update(requisite);
@@ -49,7 +49,7 @@ public class GatewayHandler(
 
                 if (lastResetDate < todayDate && cache.Get(resetCacheKey) is null)
                 {
-                    logger.LogInformation("Сброс полученных средств с реквизита {requisiteId}", requisite.Id);
+                    logger.LogInformation("Сброс полученных средств с реквизита {RequisiteId}", requisite.Id);
                     requisite.DayReceivedFunds = 0;
                     requisite.DayOperationsCount = 0;
                     requisite.LastDayFundsResetAt = now;
@@ -66,7 +66,7 @@ public class GatewayHandler(
 
                 if (lastMonthlyResetDate < currentMonth && cache.Get(monthlyResetCacheKey) is null)
                 {
-                    logger.LogInformation("Сброс полученных средств за месяц с реквизита {requisiteId}", requisite.Id);
+                    logger.LogInformation("Сброс полученных средств за месяц с реквизита {RequisiteId}", requisite.Id);
                     requisite.MonthReceivedFunds = 0;
                     requisite.LastMonthlyFundsResetAt = now;
                     unit.RequisiteRepository.Update(requisite);
@@ -77,7 +77,7 @@ public class GatewayHandler(
             }
             catch (Exception e)
             {
-                logger.LogError(e, "Ошибка при обработке реквизита {requisiteId}", requisite.Id);
+                logger.LogError(e, "Ошибка при обработке реквизита {RequisiteId}", requisite.Id);
             }
         }
 
@@ -93,11 +93,11 @@ public class GatewayHandler(
 
         if (unprocessedPayments.Count == 0) return;
 
-        var freeRequisites = await unit.RequisiteRepository.GetFreeRequisites();
+        var activeRequisites = await unit.RequisiteRepository.GetActiveRequisites();
 
-        if (freeRequisites.Count == 0)
+        if (activeRequisites.Count == 0)
         {
-            var noRequisitesCacheKey = "no_requisites_warning";
+            const string noRequisitesCacheKey = "no_requisites_warning";
             if (cache.Get(noRequisitesCacheKey) is null)
             {
                 logger.LogWarning("Нет свободных реквизитов для обработки платежей");
@@ -112,7 +112,7 @@ public class GatewayHandler(
         {
             try
             {
-                var requisite = freeRequisites.FirstOrDefault(r =>
+                var requisite = activeRequisites.FirstOrDefault(r =>
                     r.DayLimit >= payment.Amount &&
                     (r.DayLimit - r.DayReceivedFunds) >= payment.Amount &&
                     (r.MonthLimit == 0 || r.MonthLimit >= payment.Amount) &&
@@ -123,7 +123,7 @@ public class GatewayHandler(
                     var noSuitableRequisiteCacheKey = $"no_suitable_requisite_warning:{payment.Id}";
                     if (cache.Get(noSuitableRequisiteCacheKey) is null)
                     {
-                        logger.LogWarning("Нет подходящего реквизита для платежа {paymentId} с суммой {amount}",
+                        logger.LogWarning("Нет подходящего реквизита для платежа {PaymentId} с суммой {Amount}",
                             payment.Id,
                             payment.Amount);
                         cache.Set(noSuitableRequisiteCacheKey, 0, TimeSpan.FromMinutes(1));
@@ -131,12 +131,12 @@ public class GatewayHandler(
                     continue;
                 }
 
-                if (!freeRequisites.Contains(requisite))
+                if (!activeRequisites.Contains(requisite))
                 {
                     continue;
                 }
 
-                freeRequisites.Remove(requisite);
+                activeRequisites.Remove(requisite);
                 requisite.AssignToPayment(payment);
                 payment.MarkAsPending(requisite);
                 
@@ -148,7 +148,7 @@ public class GatewayHandler(
                 await notificationService.NotifyPaymentUpdated(paymentDto);
                 await notificationService.NotifyRequisiteUpdated(requisiteDto);
 
-                logger.LogInformation("Платеж {payment} назначен реквизиту {requisite}", payment.Id, requisite.Id);
+                logger.LogInformation("Платеж {Payment} назначен реквизиту {Requisite}", payment.Id, requisite.Id);
             }
             catch (Exception e)
             {
@@ -181,7 +181,7 @@ public class GatewayHandler(
 
                 unit.PaymentRepository.Delete(expiredPayment);
                 await notificationService.NotifyPaymentDeleted(expiredPayment.Id, requisiteUserId == Guid.Empty ? null : requisiteUserId);
-                logger.LogInformation("Платеж {paymentId} на сумму {amount} отменен из-за истечения срока ожидания", expiredPayment.Id, expiredPayment.Amount);
+                logger.LogInformation("Платеж {PaymentId} на сумму {Amount} отменен из-за истечения срока ожидания", expiredPayment.Id, expiredPayment.Amount);
                 needToCommit = true;
             }
 
@@ -214,7 +214,7 @@ public class GatewayHandler(
                 var lastResetDate = user.LastFundsResetAt.ToLocalTime().Date;
                 if (lastResetDate < todayDate)
                 {
-                    logger.LogInformation("Сброс полученных средств пользователя {userId}", user.Id);
+                    logger.LogInformation("Сброс полученных средств пользователя {UserId}", user.Id);
                     user.ReceivedDailyFunds = 0;
                     user.LastFundsResetAt = now;
                     await userManager.UpdateAsync(user);
@@ -224,7 +224,7 @@ public class GatewayHandler(
             }
             catch (Exception e)
             {
-                logger.LogError(e, "Ошибка при обработке пользователя {userId}", user.Id);
+                logger.LogError(e, "Ошибка при обработке пользователя {UserId}", user.Id);
             }
         }
 

@@ -108,7 +108,7 @@ public class RequisiteService(
         var nowTimeOnly = TimeOnly.FromDateTime(now);
         if (requisite.ProcessStatus(now, nowTimeOnly, out var status))
         {
-            logger.LogInformation("Статус реквизита {requisiteId} изменен с {oldStatus} на {newStatus}", requisite.Id, requisite.Status.ToString(), status.ToString());
+            logger.LogInformation("Статус реквизита {RequisiteId} изменен с {OldStatus} на {NewStatus}", requisite.Id, requisite.Status.ToString(), status.ToString());
             requisite.Status = status;
         }
 

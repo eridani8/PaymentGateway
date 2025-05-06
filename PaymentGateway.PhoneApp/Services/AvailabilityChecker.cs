@@ -36,7 +36,7 @@ public class AvailabilityChecker(
         try
         {
             await CheckAvailable(token);
-            logger.LogDebug("Проверка доступности: {state}", State);
+            logger.LogDebug("Проверка доступности: {State}", State);
             await ShowOrHideUnavailableModal(token);
         }
         catch (Exception ex)
