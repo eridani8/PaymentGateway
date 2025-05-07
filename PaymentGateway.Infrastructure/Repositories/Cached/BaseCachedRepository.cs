@@ -16,7 +16,9 @@ public abstract class BaseCachedRepository<TEntity, TRepository>(TRepository rep
         string.IsNullOrEmpty(suffix) ? CacheKeyPrefix : $"{CacheKeyPrefix}:{suffix}";
     
     protected string GetUserKey(Guid userId) => GetCacheKey($"User:{userId}");
-    
+
+    protected string SystemKey => GetCacheKey("System");
+
     public DbSet<TEntity> GetSet()
     {
         return Repository.GetSet();
