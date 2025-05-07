@@ -32,6 +32,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICryptographyS
             entity.HasIndex(e => e.CreatedAt);
             entity.HasIndex(e => e.LastOperationTime);
             
+            entity.Property(e => e.RowVersion).IsConcurrencyToken();
+            
             entity.HasOne(e => e.Payment)
                 .WithOne()
                 .HasForeignKey<RequisiteEntity>(e => e.PaymentId)
@@ -51,6 +53,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICryptographyS
             entity.HasIndex(e => e.ProcessedAt);
             entity.HasIndex(e => e.ManualConfirmUserId);
             entity.HasIndex(e => e.CanceledByUserId);
+            
+            entity.Property(e => e.RowVersion).IsConcurrencyToken();
 
             entity
                 .HasOne(e => e.Transaction)
@@ -66,6 +70,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICryptographyS
             entity.HasIndex(e => e.RequisiteId);
             entity.HasIndex(e => e.Source);
             entity.HasIndex(e => e.ReceivedAt);
+            
+            entity.Property(e => e.RowVersion).IsConcurrencyToken();
             
             entity
                 .HasOne(e => e.Payment)
@@ -85,6 +91,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICryptographyS
             entity.HasIndex(e => e.Id).IsUnique();
             entity.HasIndex(e => e.UserId);
             entity.HasIndex(e => e.Timestamp);
+            
+            entity.Property(e => e.RowVersion).IsConcurrencyToken();
             
             entity.HasOne(e => e.User)
                 .WithMany()
