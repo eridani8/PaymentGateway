@@ -44,7 +44,7 @@ public class CachedRequisiteRepository(RequisiteRepository repository, IMemoryCa
 
     public Task<List<RequisiteEntity>> GetAllRequisites()
     {
-        return GetCachedData(GetFullCacheKey(), Repository.GetAllRequisites);
+        return GetCachedData(GetCacheKey(), Repository.GetAllRequisites);
     }
 
     public Task<List<RequisiteEntity>> GetUserRequisites(Guid userId)

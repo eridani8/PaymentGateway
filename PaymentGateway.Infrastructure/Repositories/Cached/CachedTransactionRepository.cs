@@ -30,7 +30,7 @@ public class CachedTransactionRepository(TransactionRepository repository, IMemo
 
     public Task<List<TransactionEntity>> GetAllTransactions()
     {
-        return GetCachedData(GetFullCacheKey(), Repository.GetAllTransactions);
+        return GetCachedData(GetCacheKey(), Repository.GetAllTransactions);
     }
 
     public Task<List<TransactionEntity>> GetUserTransactions(Guid userId)

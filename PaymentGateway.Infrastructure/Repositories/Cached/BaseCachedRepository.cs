@@ -12,10 +12,10 @@ public abstract class BaseCachedRepository<TEntity, TRepository>(TRepository rep
     protected readonly TRepository Repository = repository;
     protected abstract string CacheKeyPrefix { get; }
     
-    protected string GetFullCacheKey(string suffix = "") => 
+    protected string GetCacheKey(string suffix = "") => 
         string.IsNullOrEmpty(suffix) ? CacheKeyPrefix : $"{CacheKeyPrefix}:{suffix}";
     
-    protected string GetUserKey(Guid userId) => GetFullCacheKey($"User:{userId}");
+    protected string GetUserKey(Guid userId) => GetCacheKey($"User:{userId}");
     
     public DbSet<TEntity> GetSet()
     {
@@ -39,14 +39,24 @@ public abstract class BaseCachedRepository<TEntity, TRepository>(TRepository rep
         InvalidateCache();
         Repository.Delete(entity);
     }
-    
-    protected void InvalidateCache(Guid? userId = null)
+
+    public void InvalidateCache(Guid? id = null)
     {
-        cache.Remove(GetFullCacheKey());
-        if (userId.HasValue)
+        InvalidateKeyCache();
+        if (id.HasValue)
         {
-            cache.Remove(GetUserKey(userId.Value));
+            InvalidateUserCache(id.Value);
         }
+    }
+    
+    private void InvalidateKeyCache()
+    {
+        cache.Remove(GetCacheKey());
+    }
+    
+    private void InvalidateUserCache(Guid userId)
+    {
+        cache.Remove(GetUserKey(userId));
     }
     
     protected async Task<List<TResult>> GetCachedData<TResult>(

@@ -6,6 +6,8 @@ using Microsoft.Extensions.Logging;
 using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Core.Entities;
 using PaymentGateway.Infrastructure.Interfaces;
+using PaymentGateway.Infrastructure.Repositories;
+using PaymentGateway.Infrastructure.Repositories.Cached;
 using PaymentGateway.Shared.DTOs.Payment;
 using PaymentGateway.Shared.DTOs.Requisite;
 using PaymentGateway.Shared.DTOs.User;
@@ -147,6 +149,16 @@ public class GatewayHandler(
 
                 await notificationService.NotifyPaymentUpdated(paymentDto);
                 await notificationService.NotifyRequisiteUpdated(requisiteDto);
+
+                if (unit.RequisiteRepository is CachedRequisiteRepository cachedRequisiteRepository)
+                {
+                    cachedRequisiteRepository.InvalidateCache(requisite.UserId);
+                }
+
+                if (unit.PaymentRepository is CachedPaymentRepository cachedPaymentRepository)
+                {
+                    cachedPaymentRepository.InvalidateCache(requisite.UserId);
+                }
 
                 logger.LogInformation("Платеж {Payment} назначен реквизиту {Requisite}", payment.Id, requisite.Id);
             }

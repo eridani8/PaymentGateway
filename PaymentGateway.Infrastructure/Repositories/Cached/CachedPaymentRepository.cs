@@ -49,7 +49,7 @@ public class CachedPaymentRepository(PaymentRepository repository, IMemoryCache 
 
     public Task<List<PaymentEntity>> GetAllPayments()
     {
-        return GetCachedData(GetFullCacheKey(), Repository.GetAllPayments);
+        return GetCachedData(GetCacheKey(), Repository.GetAllPayments);
     }
 
     public Task<List<PaymentEntity>> GetUserPayments(Guid userId)
