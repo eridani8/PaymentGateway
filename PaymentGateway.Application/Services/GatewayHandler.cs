@@ -55,7 +55,6 @@ public class GatewayHandler(
                     requisite.DayReceivedFunds = 0;
                     requisite.DayOperationsCount = 0;
                     requisite.LastDayFundsResetAt = now;
-                    unit.RequisiteRepository.Update(requisite);
                     cache.Set(resetCacheKey, TimeSpan.FromHours(25));
                     await notificationService.NotifyRequisiteUpdated(mapper.Map<RequisiteDto>(requisite));
                     needToCommit = true;
@@ -71,10 +70,14 @@ public class GatewayHandler(
                     logger.LogInformation("Сброс полученных средств за месяц с реквизита {RequisiteId}", requisite.Id);
                     requisite.MonthReceivedFunds = 0;
                     requisite.LastMonthlyFundsResetAt = now;
-                    unit.RequisiteRepository.Update(requisite);
                     cache.Set(monthlyResetCacheKey, TimeSpan.FromDays(32));
                     await notificationService.NotifyRequisiteUpdated(mapper.Map<RequisiteDto>(requisite));
                     needToCommit = true;
+                }
+
+                if (needToCommit)
+                {
+                    unit.RequisiteRepository.Update(requisite);
                 }
             }
             catch (Exception e)
@@ -143,22 +146,15 @@ public class GatewayHandler(
                 payment.MarkAsPending(requisite);
                 
                 needToCommit = true;
+                
+                unit.RequisiteRepository.Update(requisite);
+                unit.PaymentRepository.Update(payment);
 
                 var paymentDto = mapper.Map<PaymentDto>(payment);
                 var requisiteDto = mapper.Map<RequisiteDto>(requisite);
 
                 await notificationService.NotifyPaymentUpdated(paymentDto);
                 await notificationService.NotifyRequisiteUpdated(requisiteDto);
-
-                if (unit.RequisiteRepository is CachedRequisiteRepository cachedRequisiteRepository)
-                {
-                    cachedRequisiteRepository.InvalidateCache(requisite.UserId);
-                }
-
-                if (unit.PaymentRepository is CachedPaymentRepository cachedPaymentRepository)
-                {
-                    cachedPaymentRepository.InvalidateCache(requisite.UserId);
-                }
 
                 logger.LogInformation("Платеж {Payment} назначен реквизиту {Requisite}", payment.Id, requisite.Id);
             }
