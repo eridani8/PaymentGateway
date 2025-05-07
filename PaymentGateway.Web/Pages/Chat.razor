@@ -98,7 +98,7 @@
     {
         try
         {
-            if (_users.Any(u => u.Username.Equals(state.Username, StringComparison.Ordinal))) return;
+            if (_users.Any(u => u.Id == state.Id)) return;
             _users.Add(state);
             await InvokeAsync(StateHasChanged);
         }

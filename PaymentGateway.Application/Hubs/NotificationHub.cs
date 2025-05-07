@@ -117,7 +117,10 @@ public class NotificationHub(
 
     public Task<List<UserState>> GetAllUsers()
     {
-        var result = ConnectedUsers.Values.ToList();
+        var result = ConnectedUsers
+            .Values
+            .DistinctBy(u => u.Id)
+            .ToList();
         return Task.FromResult(result);
     }
     
