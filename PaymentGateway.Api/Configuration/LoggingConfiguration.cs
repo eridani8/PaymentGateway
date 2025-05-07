@@ -1,5 +1,6 @@
 using NpgsqlTypes;
 using PaymentGateway.Core;
+using PaymentGateway.Core.Configs;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;

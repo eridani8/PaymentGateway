@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using PaymentGateway.Core.Entities;
-using PaymentGateway.Core.Interfaces.Repositories;
+using PaymentGateway.Core.Interfaces;
 using PaymentGateway.Infrastructure.Data;
 using PaymentGateway.Infrastructure.Interfaces;
 using PaymentGateway.Infrastructure.Repositories;

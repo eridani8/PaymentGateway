@@ -11,6 +11,7 @@ using PaymentGateway.Core.Entities;
 using PaymentGateway.Shared.DTOs.User;
 using PaymentGateway.Shared.Enums;
 using Npgsql;
+using PaymentGateway.Core.Configs;
 
 namespace PaymentGateway.Application.Services;
 

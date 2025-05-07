@@ -9,6 +9,7 @@ using PaymentGateway.Api.Configuration;
 using PaymentGateway.Application;
 using PaymentGateway.Application.Hubs;
 using PaymentGateway.Core;
+using PaymentGateway.Core.Configs;
 using PaymentGateway.Infrastructure;
 using Serilog;
 

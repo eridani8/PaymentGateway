@@ -1,11 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using PaymentGateway.Core.Interfaces;
 using PaymentGateway.Shared.Enums;
 
 namespace PaymentGateway.Core.Entities;
 
-public sealed class PaymentEntity : BaseEntity, IPaymentEntity
+public sealed class PaymentEntity : BaseEntity
 {
     // ReSharper disable once EmptyConstructor
     public PaymentEntity() { }

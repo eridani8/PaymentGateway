@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using PaymentGateway.Core.Interfaces;
 
-namespace PaymentGateway.Core;
+namespace PaymentGateway.Core.Encryption;
 
 public static class ModelBuilderExtensions
 {

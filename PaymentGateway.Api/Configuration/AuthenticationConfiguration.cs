@@ -3,13 +3,14 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
+using PaymentGateway.Core.Configs;
 using PaymentGateway.Core.Entities;
 
 namespace PaymentGateway.Api.Configuration;
 
 public static class AuthenticationConfiguration
 {
-    public static void ConfigureAuthentication(WebApplicationBuilder builder, Core.AuthConfig authConfig)
+    public static void ConfigureAuthentication(WebApplicationBuilder builder, AuthConfig authConfig)
     {
         var secretKey = authConfig.SecretKey;
         var key = Encoding.ASCII.GetBytes(secretKey);

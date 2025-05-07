@@ -1,6 +1,6 @@
 using PaymentGateway.Shared.DTOs.Chat;
 
-namespace PaymentGateway.Core.Interfaces;
+namespace PaymentGateway.Application.Interfaces;
 
 public interface IChatMessageService
 {

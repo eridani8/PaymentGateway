@@ -1,11 +1,11 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using PaymentGateway.Core.Interfaces;
+using PaymentGateway.Core.Encryption;
 using PaymentGateway.Shared.Enums;
 
 namespace PaymentGateway.Core.Entities;
 
-public class RequisiteEntity : BaseEntity, IRequisiteEntity
+public class RequisiteEntity : BaseEntity
 {
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
     // ReSharper disable once EmptyConstructor
@@ -143,9 +143,9 @@ public class RequisiteEntity : BaseEntity, IRequisiteEntity
 
     public void ReleaseWithoutPayment()
     {
-        Status = RequisiteStatus.Active;
         Payment = null;
         PaymentId = null;
+        Status = RequisiteStatus.Active;
     }
 
     public void ReleaseAfterPayment(decimal amount, out RequisiteStatus status)

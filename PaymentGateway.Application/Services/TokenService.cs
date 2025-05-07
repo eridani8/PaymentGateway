@@ -4,6 +4,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using PaymentGateway.Core;
+using PaymentGateway.Core.Configs;
 using PaymentGateway.Core.Entities;
 using PaymentGateway.Core.Interfaces;
 

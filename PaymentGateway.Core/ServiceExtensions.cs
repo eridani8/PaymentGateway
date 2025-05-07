@@ -1,5 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using PaymentGateway.Core.Configs;
+using PaymentGateway.Core.Encryption;
 using PaymentGateway.Core.Interfaces;
 
 namespace PaymentGateway.Core;

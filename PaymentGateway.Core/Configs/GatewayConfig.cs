@@ -1,6 +1,6 @@
 using PaymentGateway.Shared.Enums;
 
-namespace PaymentGateway.Core;
+namespace PaymentGateway.Core.Configs;
 
 public class GatewayConfig
 {

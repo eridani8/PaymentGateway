@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using PaymentGateway.Core;
+using PaymentGateway.Core.Encryption;
 using PaymentGateway.Core.Entities;
 using PaymentGateway.Core.Interfaces;
 

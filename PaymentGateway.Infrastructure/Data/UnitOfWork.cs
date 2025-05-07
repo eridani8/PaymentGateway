@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
-using PaymentGateway.Core.Interfaces.Repositories;
+using PaymentGateway.Core.Interfaces;
 using PaymentGateway.Infrastructure.Interfaces;
 
 namespace PaymentGateway.Infrastructure.Data;

@@ -1,6 +1,6 @@
 using PaymentGateway.Core.Entities;
 
-namespace PaymentGateway.Core.Interfaces.Repositories;
+namespace PaymentGateway.Infrastructure.Interfaces;
 
 public interface IChatRepository
 {

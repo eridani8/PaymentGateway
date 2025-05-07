@@ -1,9 +1,10 @@
 ﻿using System.Security.Cryptography;
 using System.Text;
 using Microsoft.Extensions.Options;
+using PaymentGateway.Core.Configs;
 using PaymentGateway.Core.Interfaces;
 
-namespace PaymentGateway.Core;
+namespace PaymentGateway.Core.Encryption;
 
 public class CryptographyService(IOptions<CryptographyConfig> config) : ICryptographyService
 {

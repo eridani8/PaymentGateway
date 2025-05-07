@@ -1,4 +1,5 @@
 using AutoMapper;
+using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Core.Entities;
 using PaymentGateway.Core.Interfaces;
 using PaymentGateway.Infrastructure.Interfaces;

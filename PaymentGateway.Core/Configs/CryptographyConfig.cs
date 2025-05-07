@@ -1,4 +1,4 @@
-﻿namespace PaymentGateway.Core;
+﻿namespace PaymentGateway.Core.Configs;
 
 public class CryptographyConfig
 {
