@@ -17,7 +17,7 @@ public class GatewayHost(
     ILogger<GatewayHost> logger) : IHostedService
 {
     private readonly TimeSpan _startDelay = TimeSpan.FromSeconds(1);
-    private readonly TimeSpan _fundsResetDelay = TimeSpan.FromHours(12);
+    private readonly TimeSpan _fundsResetDelay = TimeSpan.FromHours(1);
 
     private Task _paymentProcessing = null!;
     private Task _fundsResetProcessing = null!;

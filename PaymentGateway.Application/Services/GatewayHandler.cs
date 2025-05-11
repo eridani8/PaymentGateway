@@ -55,7 +55,7 @@ public class GatewayHandler(
                     requisite.DayReceivedFunds = 0;
                     requisite.DayOperationsCount = 0;
                     requisite.LastDayFundsResetAt = now;
-                    cache.Set(resetCacheKey, TimeSpan.FromHours(25));
+                    cache.Set(resetCacheKey, TimeSpan.FromHours(1));
                     await notificationService.NotifyRequisiteUpdated(mapper.Map<RequisiteDto>(requisite));
                     needToCommit = true;
                 }
@@ -70,7 +70,7 @@ public class GatewayHandler(
                     logger.LogInformation("Сброс полученных средств за месяц с реквизита {RequisiteId}", requisite.Id);
                     requisite.MonthReceivedFunds = 0;
                     requisite.LastMonthlyFundsResetAt = now;
-                    cache.Set(monthlyResetCacheKey, TimeSpan.FromDays(32));
+                    cache.Set(monthlyResetCacheKey, TimeSpan.FromHours(1));
                     await notificationService.NotifyRequisiteUpdated(mapper.Map<RequisiteDto>(requisite));
                     needToCommit = true;
                 }
