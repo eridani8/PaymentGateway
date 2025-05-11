@@ -33,7 +33,6 @@ public static class OpenTelemetryConfiguration
                     {
                         options.SetDbStatementForText = true;
                     })
-                    .AddNpgsql()
                     .AddOtlpExporter(options =>
                     {
                         options.Endpoint = new Uri($"{otlpConfig.Endpoint}/ingest/otlp/v1/traces");
