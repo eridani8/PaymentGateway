@@ -8,21 +8,13 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Extensions.Options;
 using MudBlazor;
 using MudBlazor.Services;
-using PaymentGateway.Shared.DTOs.User;
 using PaymentGateway.Web.Interfaces;
 using PaymentGateway.Web.Services;
 using Microsoft.Extensions.Localization;
 using System.Globalization;
-using PaymentGateway.Shared.DTOs.Requisite;
-using PaymentGateway.Shared.Validations.Validators.Requisite;
-using PaymentGateway.Shared.Validations.Validators.User;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Microsoft.Extensions.Http.Resilience;
-using PaymentGateway.Shared.DTOs.Payment;
 using PaymentGateway.Shared.Validations;
-using PaymentGateway.Shared.Validations.Validators.Payment;
-using Polly;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
