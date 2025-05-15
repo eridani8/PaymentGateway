@@ -2,7 +2,7 @@
 using LiteDB;
 using Serilog.Events;
 
-namespace PaymentGateway.PhoneApp.Services.Logs;
+namespace PaymentGateway.PhoneApp.Types;
 
 public class LogEntry()
 {

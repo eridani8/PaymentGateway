@@ -4,9 +4,9 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="PaymentGateway.PhoneApp.Pages.LogsPage"
              xmlns:converters="clr-namespace:PaymentGateway.PhoneApp.Converters"
-             xmlns:logs="clr-namespace:PaymentGateway.PhoneApp.Services.Logs"
              xmlns:viewModels="clr-namespace:PaymentGateway.PhoneApp.ViewModels"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:logs="clr-namespace:PaymentGateway.PhoneApp.Types"
              x:DataType="viewModels:LogsViewModel">
 
     <ContentPage.Resources>

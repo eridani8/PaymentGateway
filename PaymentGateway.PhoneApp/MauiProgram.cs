@@ -2,15 +2,13 @@
 using System.Reflection;
 using CommunityToolkit.Maui;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Http.Resilience;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using PaymentGateway.PhoneApp.Interfaces;
 using PaymentGateway.PhoneApp.Pages;
 using PaymentGateway.PhoneApp.Services;
-using PaymentGateway.PhoneApp.Services.Logs;
+using PaymentGateway.PhoneApp.Types;
 using PaymentGateway.PhoneApp.ViewModels;
-using Polly;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
@@ -76,10 +74,12 @@ public static class MauiProgram
 
         builder.Services.AddSingleton<MainViewModel>();
         builder.Services.AddSingleton<LogsViewModel>();
+        builder.Services.AddSingleton<DeviceIdViewModel>();
 
         builder.Services.AddSingleton<MainPage>();
         builder.Services.AddSingleton<LogsPage>();
         builder.Services.AddSingleton<ServiceUnavailablePage>();
+        builder.Services.AddSingleton<DeviceIdPage>();
 
         builder.Services.AddSingleton<IAvailabilityChecker, AvailabilityChecker>();
         builder.Services.AddSingleton<ServiceUnavailableViewModel>();

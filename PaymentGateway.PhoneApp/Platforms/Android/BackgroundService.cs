@@ -12,11 +12,11 @@ namespace PaymentGateway.PhoneApp;
 [Service(ForegroundServiceType = ForegroundService.TypeDataSync)]
 public class BackgroundService : Service
 {
-    private const int NotificationId = 99999;
-    private const string ChannelId = "PaymentGatewayChannel";
-    private const string ChannelName = "PaymentGatewayForegroundService";
-    private const string ActionStop = "com.eridani8.paymentgateway.STOP_SERVICE";
-    private const string ActionStart = "com.eridani8.paymentgateway.START_SERVICE";
+    private const int notificationId = 99999;
+    private const string channelId = "PaymentGatewayChannel";
+    private const string channelName = "PaymentGatewayForegroundService";
+    private const string actionStop = "com.eridani8.paymentgateway.STOP_SERVICE";
+    private const string actionStart = "com.eridani8.paymentgateway.START_SERVICE";
 
     private IAvailabilityChecker? _availabilityChecker;
     private ILogger<BackgroundService>? _logger;
@@ -54,8 +54,8 @@ public class BackgroundService : Service
         
         _actionReceiver = new ActionReceiver();
         var filter = new IntentFilter();
-        filter.AddAction(ActionStop);
-        filter.AddAction(ActionStart);
+        filter.AddAction(actionStop);
+        filter.AddAction(actionStart);
         
         RegisterReceiver(_actionReceiver, filter, ReceiverFlags.NotExported);
     }
@@ -85,13 +85,16 @@ public class BackgroundService : Service
 
     public override StartCommandResult OnStartCommand(Intent? intent, StartCommandFlags flags, int startId)
     {
-        if (intent?.Action == ActionStop)
+        var initialNotification = BuildNotification("Инициализация сервиса...");
+        StartForeground(notificationId, initialNotification, ForegroundService.TypeDataSync);
+        
+        if (intent?.Action == actionStop)
         {
             StopBackgroundProcess();
             return StartCommandResult.Sticky;
         }
         
-        if (!_isRunning || intent?.Action == ActionStart)
+        if (!_isRunning || intent?.Action == actionStart)
         {
             StartBackgroundProcess();
         }
@@ -107,7 +110,7 @@ public class BackgroundService : Service
         
         var notification = BuildNotification(GetStatusText());
         
-        StartForeground(NotificationId, notification, ForegroundService.TypeDataSync);
+        _notificationManager?.Notify(notificationId, notification);
 
         AcquireWakeLock();
         StartBackgroundTimer();
@@ -122,7 +125,7 @@ public class BackgroundService : Service
         StopBackgroundTimer();
         
         var notification = BuildNotification(GetStatusText());
-        _notificationManager?.Notify(NotificationId, notification);
+        _notificationManager?.Notify(notificationId, notification);
         
         ReleaseWakeLock();
     }
@@ -178,7 +181,7 @@ public class BackgroundService : Service
         if (_notificationManager == null || _availabilityChecker == null) return;
         var statusText = GetStatusText();
         var notification = BuildNotification(statusText);
-        _notificationManager.Notify(NotificationId, notification);
+        _notificationManager.Notify(notificationId, notification);
     }
 
     private string GetStatusText()
@@ -210,8 +213,8 @@ public class BackgroundService : Service
     private void CreateNotificationChannel()
     {
         var channel = new NotificationChannel(
-            ChannelId, 
-            ChannelName, 
+            channelId, 
+            channelName, 
             NotificationImportance.High)
         {
             LockscreenVisibility = NotificationVisibility.Public,
@@ -235,19 +238,19 @@ public class BackgroundService : Service
             this, 0, contentIntent, 
             PendingIntentFlags.Immutable | PendingIntentFlags.UpdateCurrent);
         
-        var stopIntent = new Intent(ActionStop);
+        var stopIntent = new Intent(actionStop);
         stopIntent.SetPackage(PackageName);
         var stopPendingIntent = PendingIntent.GetBroadcast(
             this, 1, stopIntent,
             PendingIntentFlags.Immutable | PendingIntentFlags.UpdateCurrent);
             
-        var startIntent = new Intent(ActionStart);
+        var startIntent = new Intent(actionStart);
         startIntent.SetPackage(PackageName);
         var startPendingIntent = PendingIntent.GetBroadcast(
             this, 2, startIntent,
             PendingIntentFlags.Immutable | PendingIntentFlags.UpdateCurrent);
         
-        var compatBuilder = new NotificationCompat.Builder(this, ChannelId)
+        var compatBuilder = new NotificationCompat.Builder(this, channelId)
             .SetContentTitle("PaymentGateway")
             .SetContentText(statusText)
             .SetSmallIcon(ResourceConstant.Mipmap.appicon)

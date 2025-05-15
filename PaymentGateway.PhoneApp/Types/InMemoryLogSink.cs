@@ -1,9 +1,10 @@
 ﻿using System.Collections.ObjectModel;
 using LiteDB;
+using PaymentGateway.PhoneApp.Services;
 using Serilog.Core;
 using Serilog.Events;
 
-namespace PaymentGateway.PhoneApp.Services.Logs;
+namespace PaymentGateway.PhoneApp.Types;
 
 public class InMemoryLogSink : ILogEventSink
 {

@@ -2,10 +2,10 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using PaymentGateway.PhoneApp.Services;
-using PaymentGateway.PhoneApp.Services.Logs;
 using System.Text;
 using CommunityToolkit.Maui.Storage;
 using PaymentGateway.PhoneApp.Interfaces;
+using PaymentGateway.PhoneApp.Types;
 
 namespace PaymentGateway.PhoneApp.ViewModels;
 

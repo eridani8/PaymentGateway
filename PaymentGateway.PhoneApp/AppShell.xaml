@@ -9,8 +9,8 @@
     Title="PaymentGateway">
 
     <ShellContent
-        Title="Home"
-        ContentTemplate="{DataTemplate pages:MainPage}" />
+        Title="Устройство"
+        ContentTemplate="{DataTemplate pages:DeviceIdPage}" />
 
     <ShellContent
         Title="Логи"

@@ -1,5 +1,5 @@
 using System.Collections.Specialized;
-using PaymentGateway.PhoneApp.Services.Logs;
+using PaymentGateway.PhoneApp.Types;
 using PaymentGateway.PhoneApp.ViewModels;
 
 namespace PaymentGateway.PhoneApp.Pages;
