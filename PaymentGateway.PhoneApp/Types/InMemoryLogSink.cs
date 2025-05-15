@@ -34,12 +34,21 @@ public class InMemoryLogSink : ILogEventSink
     {
         var exception = logEvent.Exception != null ? Environment.NewLine + logEvent.Exception : "";
         var message = $"{logEvent.RenderMessage()}{exception}";
+        
+        string? sourceContext = null;
+        if (logEvent.Properties.TryGetValue("SourceContext", out var sourceContextProperty) && 
+            sourceContextProperty is ScalarValue { Value: string sourceContextValue })
+        {
+            sourceContext = sourceContextValue;
+        }
+        
         var logEntry = new LogEntry()
         {
             Id = ObjectId.NewObjectId(),
             Timestamp = logEvent.Timestamp.LocalDateTime,
             Level = logEvent.Level,
-            Message = message
+            Message = message,
+            Context = sourceContext
         };
         _context.Logs.Insert(logEntry);
         Logs.Add(logEntry);

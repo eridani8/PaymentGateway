@@ -51,8 +51,7 @@ public partial class LogsViewModel(
             var sb = new StringBuilder();
             foreach (var log in Sink.Logs)
             {
-                sb.AppendLine(log.AsString);
-                sb.AppendLine();
+                sb.AppendLine(log.ExportString);
             }
 
             var content = sb.ToString();
