@@ -6,5 +6,5 @@ public class KeyValue
 {
     [BsonId] public required ObjectId Id { get; init; }
     public required string Key { get; init; }
-    public object? Value { get; init; }
+    public required object Value { get; init; }
 }

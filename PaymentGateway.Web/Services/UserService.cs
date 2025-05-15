@@ -2,6 +2,7 @@
 using PaymentGateway.Web.Interfaces;
 using System.Text.Json;
 using System.Net;
+using PaymentGateway.Shared.Types;
 
 namespace PaymentGateway.Web.Services;
 

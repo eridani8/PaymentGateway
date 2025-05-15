@@ -1,5 +1,6 @@
 ﻿using PaymentGateway.Shared.DTOs.User;
 using PaymentGateway.Shared.Enums;
+using PaymentGateway.Shared.Types;
 using PaymentGateway.Web.Services;
 
 namespace PaymentGateway.Web.Interfaces;

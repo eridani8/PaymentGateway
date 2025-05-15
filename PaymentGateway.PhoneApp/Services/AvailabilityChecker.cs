@@ -1,87 +1,68 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System.Net;
+using System.Text.Json;
+using Microsoft.Extensions.Logging;
 using PaymentGateway.PhoneApp.Interfaces;
-using PaymentGateway.PhoneApp.Pages;
-using PaymentGateway.PhoneApp.ViewModels;
+using PaymentGateway.Shared.Types;
 
 namespace PaymentGateway.PhoneApp.Services;
 
 public class AvailabilityChecker(
     IHttpClientFactory clientFactory,
     ILogger<AvailabilityChecker> logger,
-    IServiceProvider serviceProvider) : IAvailabilityChecker
+    JsonSerializerOptions jsonOptions) : ServiceBase(clientFactory, logger, jsonOptions), IAvailabilityChecker
 {
-    private const string apiVersion = "v1";
+    private const string apiEndpoint = "api/v1/health";
     public bool State { get; private set; }
 
-    public async Task CheckAvailable(CancellationToken token = default)
+    public async Task CheckAvailable()
     {
         try
         {
-            using var client = clientFactory.CreateClient("API");
-            var response = await client.GetAsync($"{client.BaseAddress}/api/{apiVersion}/health/check-available", token);
-            var isSuccess = response.IsSuccessStatusCode;
-            State = isSuccess;
-        }
-        catch (OperationCanceledException)
-        {
-        }
-        catch
-        {
-            // ignore
-        }
-    }
-
-    public async Task BackgroundCheckAsync(CancellationToken token = default)
-    {
-        try
-        {
-            await CheckAvailable(token);
-            logger.LogDebug("Проверка доступности: {State}", State);
-            await ShowOrHideUnavailableModal(token);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Ошибка при проверке доступности");
-        }
-    }
-
-    public Task ShowOrHideUnavailableModal(CancellationToken token = default)
-    {
-        try
-        {
-            if (Shell.Current == null) return Task.CompletedTask;
-
-            if (Shell.Current.Navigation is { } navigation)
-            {
-                // var serviceUnavailablePageShown = navigation.ModalStack.Any(p => p is ServiceUnavailablePage);
-                // if (!State)
-                // {
-                //     if (!serviceUnavailablePageShown)
-                //     {
-                //         var viewModel = serviceProvider.GetRequiredService<ServiceUnavailableViewModel>();
-                //         MainThread.BeginInvokeOnMainThread(async void () =>
-                //         {
-                //             await navigation.PushModalAsync(new ServiceUnavailablePage(viewModel), true);
-                //         });
-                //     }
-                // }
-                // else
-                // {
-                //     if (serviceUnavailablePageShown)
-                //     {
-                //         MainThread.BeginInvokeOnMainThread(async void () =>
-                //         {
-                //             await navigation.PopModalAsync(true);
-                //         });
-                //     }
-                // } // TODO
-            }
+            var response = await GetRequest($"{apiEndpoint}/check-available");
+            State = response.Code == HttpStatusCode.OK;
         }
         catch (Exception e)
         {
-            logger.LogError(e, e.Message);
+            logger.LogError(e, "Ошибка проверки доступности");
         }
+    }
 
+    public async Task BackgroundCheckAsync()
+    {
+        await CheckAvailable();
+        logger.LogDebug("Проверка доступности: {State}", State);
+        await ShowOrHideUnavailableModal();
+    }
+
+    public Task ShowOrHideUnavailableModal()
+    {
+        if (Shell.Current == null) return Task.CompletedTask;
+
+        if (Shell.Current.Navigation is { } navigation)
+        {
+            // var serviceUnavailablePageShown = navigation.ModalStack.Any(p => p is ServiceUnavailablePage);
+            // if (!State)
+            // {
+            //     if (!serviceUnavailablePageShown)
+            //     {
+            //         var viewModel = serviceProvider.GetRequiredService<ServiceUnavailableViewModel>();
+            //         MainThread.BeginInvokeOnMainThread(async void () =>
+            //         {
+            //             await navigation.PushModalAsync(new ServiceUnavailablePage(viewModel), true);
+            //         });
+            //     }
+            // }
+            // else
+            // {
+            //     if (serviceUnavailablePageShown)
+            //     {
+            //         MainThread.BeginInvokeOnMainThread(async void () =>
+            //         {
+            //             await navigation.PopModalAsync(true);
+            //         });
+            //     }
+            // } // TODO
+        }
         return Task.CompletedTask;
     }
 }

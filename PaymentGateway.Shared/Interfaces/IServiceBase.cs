@@ -1,6 +1,6 @@
-﻿using PaymentGateway.Web.Services;
+﻿using PaymentGateway.Shared.Types;
 
-namespace PaymentGateway.Web.Interfaces;
+namespace PaymentGateway.Shared.Interfaces;
 
 public interface IServiceBase
 {

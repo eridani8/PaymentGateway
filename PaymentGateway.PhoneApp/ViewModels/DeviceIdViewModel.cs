@@ -1,7 +1,9 @@
+using System.Globalization;
 using CommunityToolkit.Maui.Alerts;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using LiteDB;
+using PaymentGateway.PhoneApp.Interfaces;
 using PaymentGateway.PhoneApp.Services;
 using PaymentGateway.PhoneApp.Types;
 
@@ -11,7 +13,7 @@ public partial class DeviceIdViewModel : BaseViewModel
 {
     [ObservableProperty] private string _deviceId;
 
-    public DeviceIdViewModel(LiteContext context)
+    public DeviceIdViewModel(LiteContext context, IDeviceService deviceService)
     {
         if (context.KeyValues.FindOne(k => k.Key == "DeviceId") is not { } keyValue)
         {
@@ -19,12 +21,20 @@ public partial class DeviceIdViewModel : BaseViewModel
             {
                 Id = ObjectId.NewObjectId(),
                 Key = "DeviceId",
-                Value = Guid.CreateVersion7().ToString()
+                Value = Guid.CreateVersion7()
             };
             context.KeyValues.Insert(keyValue);
         }
 
-        _deviceId = keyValue.Value!.ToString()!;
+        if (keyValue.Value is Guid guid)
+        {
+            _deviceId = guid.ToString();
+            _ = deviceService.SendDeviceId(guid);
+        }
+        else
+        {
+            _deviceId = "NULL";
+        }
     }
     
     [RelayCommand]

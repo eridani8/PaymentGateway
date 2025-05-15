@@ -1,5 +1,7 @@
 ﻿using System.Net.Http.Headers;
 using System.Reflection;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using CommunityToolkit.Maui;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -55,6 +57,7 @@ public static class MauiProgram
             .MinimumLevel.ControlledBy(levelSwitch)
             .Enrich.FromLogContext()
             .MinimumLevel.Override("System.Net.Http.HttpClient", LogEventLevel.Warning)
+            .MinimumLevel.Override("Polly", LogEventLevel.Warning)
             .WriteTo.Sink(sink)
             .CreateLogger();
 
@@ -66,11 +69,24 @@ public static class MauiProgram
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             })
             .AddStandardResilienceHandler();
+        
+        builder.Services.Configure<JsonSerializerOptions>(options =>
+        {
+            options.ReferenceHandler = ReferenceHandler.Preserve;
+            options.PropertyNameCaseInsensitive = true;
+        });
+
+        builder.Services.AddSingleton(new JsonSerializerOptions
+        {
+            ReferenceHandler = ReferenceHandler.Preserve,
+            PropertyNameCaseInsensitive = true
+        });
 
         builder.Services.AddSingleton(liteContext);
         builder.Services.AddSingleton(sink);
 
         builder.Services.AddSingleton<IAlertService, AlertService>();
+        builder.Services.AddSingleton<IDeviceService, DeviceService>();
 
         builder.Services.AddSingleton<MainViewModel>();
         builder.Services.AddSingleton<LogsViewModel>();

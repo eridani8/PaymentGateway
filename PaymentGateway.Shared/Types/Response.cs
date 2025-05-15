@@ -1,6 +1,6 @@
 ﻿using System.Net;
 
-namespace PaymentGateway.Web.Services;
+namespace PaymentGateway.Shared.Types;
 
 public class Response
 {

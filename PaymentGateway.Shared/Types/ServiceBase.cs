@@ -1,9 +1,10 @@
 ﻿using System.Net;
 using System.Text;
 using System.Text.Json;
-using PaymentGateway.Web.Interfaces;
+using Microsoft.Extensions.Logging;
+using PaymentGateway.Shared.Interfaces;
 
-namespace PaymentGateway.Web.Services;
+namespace PaymentGateway.Shared.Types;
 
 public class ServiceBase(IHttpClientFactory factory, ILogger<ServiceBase> logger, JsonSerializerOptions jsonOptions) : IServiceBase
 {

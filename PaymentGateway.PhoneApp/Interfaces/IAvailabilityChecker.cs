@@ -3,7 +3,7 @@
 public interface IAvailabilityChecker
 {
     bool State { get; }
-    Task CheckAvailable(CancellationToken token = default);
-    Task ShowOrHideUnavailableModal(CancellationToken token = default);
-    Task BackgroundCheckAsync(CancellationToken token = default);
+    Task CheckAvailable();
+    Task ShowOrHideUnavailableModal();
+    Task BackgroundCheckAsync();
 }
