@@ -1,10 +1,5 @@
 using Asp.Versioning.ApiExplorer;
 using Carter;
-using Npgsql;
-using OpenTelemetry.Exporter;
-using OpenTelemetry.Metrics;
-using OpenTelemetry.Resources;
-using OpenTelemetry.Trace;
 using PaymentGateway.Api;
 using PaymentGateway.Api.Configuration;
 using PaymentGateway.Application;
