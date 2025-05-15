@@ -53,28 +53,28 @@ public class AvailabilityChecker(
 
             if (Shell.Current.Navigation is { } navigation)
             {
-                var serviceUnavailablePageShown = navigation.ModalStack.Any(p => p is ServiceUnavailablePage);
-                if (!State)
-                {
-                    if (!serviceUnavailablePageShown)
-                    {
-                        var viewModel = serviceProvider.GetRequiredService<ServiceUnavailableViewModel>();
-                        MainThread.BeginInvokeOnMainThread(async void () =>
-                        {
-                            await navigation.PushModalAsync(new ServiceUnavailablePage(viewModel), true);
-                        });
-                    }
-                }
-                else
-                {
-                    if (serviceUnavailablePageShown)
-                    {
-                        MainThread.BeginInvokeOnMainThread(async void () =>
-                        {
-                            await navigation.PopModalAsync(true);
-                        });
-                    }
-                }
+                // var serviceUnavailablePageShown = navigation.ModalStack.Any(p => p is ServiceUnavailablePage);
+                // if (!State)
+                // {
+                //     if (!serviceUnavailablePageShown)
+                //     {
+                //         var viewModel = serviceProvider.GetRequiredService<ServiceUnavailableViewModel>();
+                //         MainThread.BeginInvokeOnMainThread(async void () =>
+                //         {
+                //             await navigation.PushModalAsync(new ServiceUnavailablePage(viewModel), true);
+                //         });
+                //     }
+                // }
+                // else
+                // {
+                //     if (serviceUnavailablePageShown)
+                //     {
+                //         MainThread.BeginInvokeOnMainThread(async void () =>
+                //         {
+                //             await navigation.PopModalAsync(true);
+                //         });
+                //     }
+                // } // TODO
             }
         }
         catch (Exception e)
