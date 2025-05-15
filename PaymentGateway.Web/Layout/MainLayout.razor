@@ -59,6 +59,11 @@
                         </MudNavLink>
                     </AuthorizeView>
                     <AuthorizeView Context="anyContext" Roles="User,Admin,Support">
+                        <MudNavLink Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.PhonelinkRing"
+                                    Href="devices">Устройства
+                        </MudNavLink>
+                    </AuthorizeView>
+                    <AuthorizeView Context="anyContext" Roles="User,Admin,Support">
                         <MudNavLink Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.RequestPage"
                                     Href="requisites">Реквизиты
                         </MudNavLink>

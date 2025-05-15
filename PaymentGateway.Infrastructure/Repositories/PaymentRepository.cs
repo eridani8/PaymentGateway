@@ -12,18 +12,17 @@ public class PaymentRepository(
 {
     public async Task<List<PaymentEntity>> GetUnprocessedPayments()
     {
-        var payments = await GetSet()
+        return await GetSet()
             .Include(p => p.Requisite)
             .Where(p => p.Requisite == null && p.Status == PaymentStatus.Created)
             .OrderBy(p => p.CreatedAt)
             .ToListAsync();
-        return payments;
     }
 
     public async Task<List<PaymentEntity>> GetExpiredPayments()
     {
         var now = DateTime.UtcNow;
-        var payments = await GetSet()
+        return await GetSet()
             .Include(p => p.Requisite)
             .Where(p =>
                 p.ExpiresAt.HasValue &&
@@ -31,44 +30,40 @@ public class PaymentRepository(
                 p.Status != PaymentStatus.Confirmed &&
                 p.Status != PaymentStatus.ManualConfirm)
             .ToListAsync();
-        return payments;
     }
 
     public async Task<PaymentEntity?> GetExistingPayment(Guid externalPaymentId)
     {
-        var payment = await GetSet()
+        return await GetSet()
             .AsNoTracking()
             .FirstOrDefaultAsync(p => p.ExternalPaymentId == externalPaymentId);
-        return payment;
     }
 
     public async Task<PaymentEntity?> PaymentById(Guid id)
     {
-        var payment = await GetSet()
+        return await GetSet()
             .Include(p => p.Requisite)
             .ThenInclude(r => r.User)
             .Include(p => p.Transaction)
             .Include(p => p.ManualConfirmUser)
             .Include(p => p.CanceledByUser)
             .FirstOrDefaultAsync(p => p.Id == id);
-        return payment;
     }
 
     public async Task<List<PaymentEntity>> GetAllPayments()
     {
-        var payments = await GetSet()
+        return await GetSet()
             .Include(p => p.Requisite)
             .ThenInclude(p => p.User)
             .Include(p => p.Transaction)
             .AsNoTracking()
             .OrderByDescending(p => p.CreatedAt)
             .ToListAsync();
-        return payments;
     }
 
     public async Task<List<PaymentEntity>> GetUserPayments(Guid userId)
     {
-        var payments = await GetSet()
+        return await GetSet()
             .Include(p => p.Requisite)
             .ThenInclude(p => p.User)
             .Include(p => p.Transaction)
@@ -76,6 +71,5 @@ public class PaymentRepository(
             .AsNoTracking()
             .OrderByDescending(p => p.CreatedAt)
             .ToListAsync();
-        return payments;
     }
 }

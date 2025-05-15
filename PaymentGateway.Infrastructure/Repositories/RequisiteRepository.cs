@@ -41,13 +41,12 @@ public class RequisiteRepository(
                         (r.User.MaxDailyMoneyReceptionLimit == 0 ||
                          r.User.ReceivedDailyFunds < r.User.MaxDailyMoneyReceptionLimit));
 
-        var requisites = gatewayConfig.Value.AppointmentAlgorithm switch
+        return gatewayConfig.Value.AppointmentAlgorithm switch
         {
             RequisiteAssignmentAlgorithm.Priority => await query.OrderByDescending(r => r.Priority).ToListAsync(),
             RequisiteAssignmentAlgorithm.Distribution => await query.OrderBy(r => r.DayOperationsCount).ToListAsync(),
             _ => []
         };
-        return requisites;
     }
 
     public async Task<int> GetUserRequisitesCount(Guid userId)
@@ -58,34 +57,31 @@ public class RequisiteRepository(
 
     public async Task<List<RequisiteEntity>> GetAllRequisites()
     {
-        var requisites = await GetSet()
+        return await GetSet()
             .Include(r => r.Payment)
             .Include(r => r.User)
             .AsNoTracking()
             .OrderByDescending(r => r.CreatedAt)
             .ToListAsync();
-        return requisites;
     }
 
     public async Task<List<RequisiteEntity>> GetUserRequisites(Guid userId)
     {
-        var requisites = await GetSet()
+        return await GetSet()
             .Include(r => r.Payment)
             .Include(r => r.User)
             .AsNoTracking()
             .Where(r => r.UserId == userId)
             .OrderByDescending(r => r.CreatedAt)
             .ToListAsync();
-        return requisites;
     }
 
     public async Task<RequisiteEntity?> GetRequisiteById(Guid id)
     {
-        var requisite = await GetSet()
+        return await GetSet()
             .Include(r => r.Payment)
             .Include(r => r.User)
             .FirstOrDefaultAsync(r => r.Id == id);
-        return requisite;
     }
 
     public async Task<RequisiteEntity?> HasSimilarRequisite(string paymentData)

@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using PaymentGateway.Core.Entities;
-using PaymentGateway.Core.Interfaces;
 using PaymentGateway.Infrastructure.Data;
 using PaymentGateway.Infrastructure.Interfaces;
 
