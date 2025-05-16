@@ -1,4 +1,4 @@
-﻿namespace PaymentGateway.PhoneApp.Services;
+﻿namespace PaymentGateway.PhoneApp.Types;
 
 public class AppSettings
 {
