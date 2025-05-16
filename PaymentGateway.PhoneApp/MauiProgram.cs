@@ -57,18 +57,16 @@ public static class MauiProgram
             .MinimumLevel.ControlledBy(levelSwitch)
             .Enrich.FromLogContext()
             .MinimumLevel.Override("System.Net.Http.HttpClient", LogEventLevel.Warning)
-            .MinimumLevel.Override("Polly", LogEventLevel.Warning)
             .WriteTo.Sink(sink)
             .CreateLogger();
 
         builder.Services.AddHttpClient("API", (serviceProvider, client) =>
-            {
-                var appSettings = serviceProvider.GetRequiredService<IOptions<AppSettings>>().Value;
+        {
+            var appSettings = serviceProvider.GetRequiredService<IOptions<AppSettings>>().Value;
 
-                client.BaseAddress = new Uri(appSettings.ServiceUrl);
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            })
-            .AddStandardResilienceHandler();
+            client.BaseAddress = new Uri(appSettings.ServiceUrl);
+            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        });
         
         builder.Services.Configure<JsonSerializerOptions>(options =>
         {

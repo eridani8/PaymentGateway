@@ -253,7 +253,7 @@ public class GatewayHandler(
                 if (state.Timestamp > inactivityThreshold) continue;
                 if (devices.TryRemove(id, out _))
                 {
-                    logger.LogInformation("Устройсво {DeviceId} оффлайн. Последнее обновление: {Timestamp}", id, state.Timestamp);
+                    logger.LogInformation("Устройсво оффлайн {DeviceId}. Последнее обновление: {Timestamp}", id, state.Timestamp);
                 }
             }
             catch (Exception e)
