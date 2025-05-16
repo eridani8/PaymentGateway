@@ -1,6 +1,8 @@
-﻿namespace PaymentGateway.Application.Interfaces;
+﻿using PaymentGateway.Shared.DTOs.Device;
+
+namespace PaymentGateway.Application.Interfaces;
 
 public interface IDeviceService
 {
-    Task Pong(Guid code);
+    Task Pong(PingDto dto);
 }

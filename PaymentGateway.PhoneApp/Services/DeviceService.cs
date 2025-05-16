@@ -2,6 +2,7 @@
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using PaymentGateway.PhoneApp.Interfaces;
+using PaymentGateway.Shared.DTOs.Device;
 using PaymentGateway.Shared.Types;
 
 namespace PaymentGateway.PhoneApp.Services;
@@ -21,7 +22,10 @@ public class DeviceService(
         try
         {
             if (context.DeviceId == Guid.Empty) return;
-            var response = await PostRequest($"{apiEndpoint}/pong?code={context.DeviceId}");
+            var response = await PostRequest($"{apiEndpoint}/pong", new PingDto()
+            {
+                DeviceId = context.DeviceId
+            });
             State = response.Code == HttpStatusCode.OK;
         }
         catch (Exception e)

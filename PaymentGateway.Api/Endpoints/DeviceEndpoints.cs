@@ -2,6 +2,7 @@
 using Carter;
 using PaymentGateway.Api.Filters;
 using PaymentGateway.Application.Interfaces;
+using PaymentGateway.Shared.DTOs.Device;
 
 namespace PaymentGateway.Api.Endpoints;
 
@@ -35,11 +36,9 @@ public class DeviceEndpoints() : ICarterModule
             .Produces(StatusCodes.Status400BadRequest);
     }
 
-    private static async Task<IResult> Pong(Guid code, IDeviceService deviceService)
+    private static async Task<IResult> Pong(PingDto dto, IDeviceService deviceService)
     {
-        if (code == Guid.Empty) return Results.BadRequest();
-
-        await deviceService.Pong(code);
+        await deviceService.Pong(dto);
         
         return Results.Ok();
     }
