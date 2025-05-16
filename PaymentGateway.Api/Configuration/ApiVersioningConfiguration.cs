@@ -13,15 +13,10 @@ public static class ApiVersioningConfiguration
             options.AssumeDefaultVersionWhenUnspecified = true;
             options.ReportApiVersions = true;
 
-            options.ApiVersionReader = ApiVersionReader.Combine(
-                new UrlSegmentApiVersionReader(),
-                new HeaderApiVersionReader("X-Api-Version"),
-                new QueryStringApiVersionReader("api-version")
-            );
+            options.ApiVersionReader = new HeaderApiVersionReader("X-Api-Version");
         }).AddApiExplorer(options =>
         {
             options.GroupNameFormat = "'v'VVV";
-            options.SubstituteApiVersionInUrl = true;
         });
     }
 } 

@@ -13,7 +13,7 @@ public class DeviceService(
     LiteContext context)
     : ServiceBase(clientFactory, logger, jsonSerializerOptions), IDeviceService
 {
-    private const string apiEndpoint = "api/v1/device";
+    private const string apiEndpoint = "api/device";
     public bool State { get; private set; }
 
     public async Task SendPing()

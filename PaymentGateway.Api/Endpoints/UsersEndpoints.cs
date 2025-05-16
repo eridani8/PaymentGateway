@@ -21,7 +21,7 @@ public class UsersEndpoints : ICarterModule
             .ReportApiVersions()
             .Build();
         
-        var group = app.MapGroup("api/v{version:apiVersion}/users")
+        var group = app.MapGroup("api/users")
             .WithApiVersionSet(versionSet)
             .WithTags("Пользовательские методы и аутентификация")
             .AddEndpointFilter<UserStatusFilter>();

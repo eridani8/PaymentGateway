@@ -13,7 +13,7 @@ public class HealthEndpoints : ICarterModule
             .ReportApiVersions()
             .Build();
         
-        var group = app.MapGroup("api/v{version:apiVersion}/health")
+        var group = app.MapGroup("api/health")
             .WithApiVersionSet(versionSet)
             .WithTags("Доступность")
             .AddEndpointFilter<UserStatusFilter>();

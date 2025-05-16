@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Application.Mappings;
 using PaymentGateway.Application.Services;
+using PaymentGateway.Application.Types;
 using PaymentGateway.Core.Interfaces;
 using PaymentGateway.Shared.Validations;
 

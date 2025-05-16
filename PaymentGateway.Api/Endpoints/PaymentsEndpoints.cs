@@ -19,7 +19,7 @@ public class PaymentsEndpoints : ICarterModule
             .ReportApiVersions()
             .Build();
         
-        var group = app.MapGroup("api/v{version:apiVersion}/payments")
+        var group = app.MapGroup("api/payments")
             .WithApiVersionSet(versionSet)
             .WithTags("Управление платежами")
             .AddEndpointFilter<UserStatusFilter>();

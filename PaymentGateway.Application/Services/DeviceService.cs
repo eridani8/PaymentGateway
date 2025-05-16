@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
 using PaymentGateway.Application.Interfaces;
+using PaymentGateway.Application.Types;
 
 namespace PaymentGateway.Application.Services;
 
@@ -13,7 +14,6 @@ public class DeviceService(ConcurrentDictionary<Guid, DeviceState> deviceStates,
         if (deviceStates.TryGetValue(code, out var deviceState))
         {
             deviceState.Timestamp = now;
-            logger.LogInformation("Updated device state: {DeviceId}", code);
         }
         else
         {
@@ -21,14 +21,9 @@ public class DeviceService(ConcurrentDictionary<Guid, DeviceState> deviceStates,
             {
                 Timestamp = now
             });
-            logger.LogInformation("Added device state: {DeviceId}", code);
+            logger.LogInformation("added device state: {DeviceId}", code);
         }
 
         return Task.CompletedTask;
     }
-}
-
-public class DeviceState
-{
-    public DateTime Timestamp { get; set; }
 }

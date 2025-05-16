@@ -169,7 +169,7 @@ public class BackgroundService : Service
             if (_isRunning && (previousState != currentState || _previousServiceState != currentState))
             {
                 _previousServiceState = currentState;
-                _logger?.LogInformation("Состояние сервиса изменилось на {State}", currentState);
+                _logger?.LogDebug("Состояние сервиса изменилось на {State}", currentState);
                 UpdateNotification();
             }
         }

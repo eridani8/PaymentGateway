@@ -13,7 +13,7 @@ public class RequisiteService(
     AuthenticationStateProvider authStateProvider,
     JsonSerializerOptions jsonOptions) : ServiceBase(factory, logger, jsonOptions), IRequisiteService
 {
-    private const string apiEndpoint = "api/v1/requisites";
+    private const string apiEndpoint = "api/requisites";
     
     public async Task<List<RequisiteDto>> GetRequisites()
     {

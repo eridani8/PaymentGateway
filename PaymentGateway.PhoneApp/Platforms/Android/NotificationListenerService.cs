@@ -120,7 +120,7 @@ public class NotificationListenerService : Android.Service.Notification.Notifica
     public override void OnListenerConnected()
     {
         base.OnListenerConnected();
-        _logger?.LogInformation("NotificationListenerService подключен");
+        _logger?.LogDebug("NotificationListenerService подключен");
     }
     
     public override void OnListenerDisconnected()

@@ -19,7 +19,7 @@ public class AdminEndpoints : ICarterModule
             .ReportApiVersions()
             .Build();
 
-        var group = app.MapGroup("api/v{version:apiVersion}/admin")
+        var group = app.MapGroup("api/admin")
             .WithApiVersionSet(versionSet)
             .WithTags("Административные методы управления пользователями и системой")
             .AddEndpointFilter<UserStatusFilter>()

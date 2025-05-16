@@ -18,7 +18,7 @@ public class TransactionsEndpoints : ICarterModule
             .ReportApiVersions()
             .Build();
         
-        var group = app.MapGroup("api/v{version:apiVersion}/transactions")
+        var group = app.MapGroup("api/transactions")
             .WithApiVersionSet(versionSet)
             .WithTags("Управление транзакциями")
             .AddEndpointFilter<UserStatusFilter>();
@@ -70,7 +70,7 @@ public class TransactionsEndpoints : ICarterModule
         }
         
         logger.LogInformation("Создание транзакции {transactionId} на сумму {amount}", result.Value.Id, result.Value.ExtractedAmount);
-        return Results.Created($"/api/v1/transactions/{result.Value.Id}", result.Value);
+        return Results.Created($"/api/transactions/{result.Value.Id}", result.Value);
     }
     
     private static async Task<IResult> GetAllTransactions(

@@ -14,7 +14,7 @@ public class AdminService(
     JsonSerializerOptions jsonOptions,
     AuthenticationStateProvider authStateProvider) : ServiceBase(factory, logger, jsonOptions), IAdminService
 {
-    private const string apiEndpoint = "api/v1/admin";
+    private const string apiEndpoint = "api/admin";
 
     public async Task<List<UserDto>> GetAllUsers()
     {

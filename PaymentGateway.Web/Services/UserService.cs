@@ -11,7 +11,7 @@ public class UserService(
     ILogger<UserService> logger,
     JsonSerializerOptions jsonOptions) : ServiceBase(factory, logger, jsonOptions), IUserService
 {
-    private const string apiEndpoint = "api/v1/users";
+    private const string apiEndpoint = "api/users";
     
     public async Task<Response> Login(LoginDto dto)
     {

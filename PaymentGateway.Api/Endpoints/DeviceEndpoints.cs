@@ -1,6 +1,5 @@
 ﻿using Asp.Versioning;
 using Carter;
-using Microsoft.Extensions.Caching.Memory;
 using PaymentGateway.Api.Filters;
 using PaymentGateway.Application.Interfaces;
 
@@ -15,7 +14,7 @@ public class DeviceEndpoints() : ICarterModule
             .ReportApiVersions()
             .Build();
 
-        var group = app.MapGroup("api/v{version:apiVersion}/device")
+        var group = app.MapGroup("api/device")
             .WithApiVersionSet(versionSet)
             .WithTags("Взаимодействие с мобильным приложением")
             .AddEndpointFilter<UserStatusFilter>();
@@ -25,12 +24,12 @@ public class DeviceEndpoints() : ICarterModule
             .Produces(StatusCodes.Status404NotFound)
             .Produces(StatusCodes.Status400BadRequest);
 
-        group.MapPost("/add", Add)
+        group.MapPost("/bind", Bind)
             .Produces(StatusCodes.Status201Created)
             .Produces(StatusCodes.Status409Conflict)
             .Produces(StatusCodes.Status400BadRequest);
 
-        group.MapPost("/remove", Remove)
+        group.MapPost("/unbind", Unbind)
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound)
             .Produces(StatusCodes.Status400BadRequest);
@@ -45,12 +44,12 @@ public class DeviceEndpoints() : ICarterModule
         return Results.Ok();
     }
 
-    private static IResult Add()
+    private static IResult Bind()
     {
         return Results.Ok();
     }
 
-    private static IResult Remove()
+    private static IResult Unbind()
     {
         return Results.Ok();
     }

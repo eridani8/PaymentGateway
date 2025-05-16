@@ -13,7 +13,7 @@ public class PaymentService(
     AuthenticationStateProvider authStateProvider,
     JsonSerializerOptions jsonOptions) : ServiceBase(factory, logger, jsonOptions), IPaymentService
 {
-    private const string apiEndpoint = "api/v1/payments";
+    private const string apiEndpoint = "api/payments";
     
     public async Task<Guid?> CreatePayment(PaymentCreateDto dto)
     {

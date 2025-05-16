@@ -18,7 +18,7 @@ public class RequisitesEndpoints : ICarterModule
             .ReportApiVersions()
             .Build();
         
-        var group = app.MapGroup("api/v{version:apiVersion}/requisites")
+        var group = app.MapGroup("api/requisites")
             .WithApiVersionSet(versionSet)
             .WithTags("Управление реквизитами")
             .AddEndpointFilter<UserStatusFilter>()

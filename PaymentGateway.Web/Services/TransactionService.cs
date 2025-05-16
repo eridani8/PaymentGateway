@@ -14,7 +14,7 @@ public class TransactionService(
     AuthenticationStateProvider authStateProvider,
     JsonSerializerOptions jsonOptions) : ServiceBase(factory, logger, jsonOptions), ITransactionService
 {
-    private const string apiEndpoint = "api/v1/transactions";
+    private const string apiEndpoint = "api/transactions";
     
     public async Task<List<TransactionDto>> GetTransactions()
     {
