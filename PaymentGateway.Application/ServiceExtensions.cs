@@ -1,4 +1,5 @@
-﻿using FluentValidation;
+﻿using System.Collections.Concurrent;
+using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Application.Mappings;
@@ -31,6 +32,9 @@ public static class ServiceExtensions
         
         services.AddScoped<IAdminService, AdminService>();
         services.AddScoped<IChatMessageService, ChatMessageService>();
+
+        services.AddSingleton<ConcurrentDictionary<Guid, DeviceState>>();
+        services.AddScoped<IDeviceService, DeviceService>();
         
         services.AddScoped<IGatewayHandler, GatewayHandler>();
 

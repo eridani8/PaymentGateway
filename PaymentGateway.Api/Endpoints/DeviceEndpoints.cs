@@ -1,10 +1,12 @@
 ﻿using Asp.Versioning;
 using Carter;
+using Microsoft.Extensions.Caching.Memory;
 using PaymentGateway.Api.Filters;
+using PaymentGateway.Application.Interfaces;
 
 namespace PaymentGateway.Api.Endpoints;
 
-public class DeviceEndpoints : ICarterModule
+public class DeviceEndpoints() : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
@@ -34,11 +36,11 @@ public class DeviceEndpoints : ICarterModule
             .Produces(StatusCodes.Status400BadRequest);
     }
 
-    private static IResult Pong(Guid code, ILogger<DeviceEndpoints> logger)
+    private static async Task<IResult> Pong(Guid code, IDeviceService deviceService)
     {
-        logger.LogInformation("Pong: {Code}", code);
-        
         if (code == Guid.Empty) return Results.BadRequest();
+
+        await deviceService.Pong(code);
         
         return Results.Ok();
     }
