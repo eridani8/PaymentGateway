@@ -6,6 +6,7 @@ using Android.OS;
 using AndroidX.Core.App;
 using Microsoft.Extensions.Logging;
 using PaymentGateway.PhoneApp.Interfaces;
+using PaymentGateway.PhoneApp.Services;
 
 namespace PaymentGateway.PhoneApp;
 
@@ -18,7 +19,7 @@ public class BackgroundService : Service
     private const string actionStop = "com.eridani8.paymentgateway.STOP_SERVICE";
     private const string actionStart = "com.eridani8.paymentgateway.START_SERVICE";
 
-    private IAvailabilityChecker? _availabilityChecker;
+    private IDeviceService? _deviceService;
     private ILogger<BackgroundService>? _logger;
     private IBackgroundServiceManager? _backgroundServiceManager;
     private PowerManager.WakeLock? _wakeLock;
@@ -44,11 +45,11 @@ public class BackgroundService : Service
         if (services != null)
         {
             _logger = services.GetRequiredService<ILogger<BackgroundService>>();
-            _availabilityChecker = services.GetRequiredService<IAvailabilityChecker>();
+            _deviceService = services.GetRequiredService<IDeviceService>();
             _backgroundServiceManager = services.GetRequiredService<IBackgroundServiceManager>();
-            if (_availabilityChecker != null)
+            if (_deviceService != null)
             {
-                _previousServiceState = _availabilityChecker.State;
+                _previousServiceState = _deviceService.State;
             }
         }
         
@@ -134,6 +135,8 @@ public class BackgroundService : Service
     {
         StopBackgroundTimer();
         
+        
+        
         _backgroundTimer = new Timer(async void (_) =>
         {
             try
@@ -158,11 +161,11 @@ public class BackgroundService : Service
     {
         try
         {
-            var previousState = _availabilityChecker?.State ?? false;
+            var previousState = _deviceService?.State ?? false;
+
+            await _deviceService!.SendPing();
             
-            await _availabilityChecker!.BackgroundCheckAsync();
-            
-            var currentState = _availabilityChecker.State;
+            var currentState = _deviceService.State;
             if (_isRunning && (previousState != currentState || _previousServiceState != currentState))
             {
                 _previousServiceState = currentState;
@@ -178,7 +181,7 @@ public class BackgroundService : Service
 
     private void UpdateNotification()
     {
-        if (_notificationManager == null || _availabilityChecker == null) return;
+        if (_notificationManager == null || _deviceService == null) return;
         var statusText = GetStatusText();
         var notification = BuildNotification(statusText);
         _notificationManager.Notify(notificationId, notification);
@@ -188,10 +191,10 @@ public class BackgroundService : Service
     {
         var processStatus = _isRunning ? "Фоновой процесс активен" : "Фоновой процесс остановлен";
         
-        if (_availabilityChecker == null)
+        if (_deviceService == null)
             return processStatus;
         
-        var serviceStatus = _availabilityChecker.State ? "Сервис доступен" : "Сервис недоступен";
+        var serviceStatus = _deviceService.State ? "Сервис доступен" : "Сервис недоступен";
         
         return $"{processStatus}\n{serviceStatus}";
     }

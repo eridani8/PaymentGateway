@@ -9,34 +9,10 @@ using PaymentGateway.PhoneApp.Types;
 
 namespace PaymentGateway.PhoneApp.ViewModels;
 
-public partial class DeviceIdViewModel : BaseViewModel
+public partial class DeviceIdViewModel(LiteContext context) : BaseViewModel
 {
-    [ObservableProperty] private string _deviceId;
+    [ObservableProperty] private string _deviceId = context.DeviceId.ToString();
 
-    public DeviceIdViewModel(LiteContext context, IDeviceService deviceService)
-    {
-        if (context.KeyValues.FindOne(k => k.Key == "DeviceId") is not { } keyValue)
-        {
-            keyValue = new KeyValue()
-            {
-                Id = ObjectId.NewObjectId(),
-                Key = "DeviceId",
-                Value = Guid.CreateVersion7()
-            };
-            context.KeyValues.Insert(keyValue);
-        }
-
-        if (keyValue.Value is Guid guid)
-        {
-            _deviceId = guid.ToString();
-            _ = deviceService.SendDeviceId(guid);
-        }
-        else
-        {
-            _deviceId = "NULL";
-        }
-    }
-    
     [RelayCommand]
     private async Task CopyToClipboard()
     {

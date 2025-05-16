@@ -90,15 +90,13 @@ public static class MauiProgram
 
         builder.Services.AddSingleton<MainViewModel>();
         builder.Services.AddSingleton<LogsViewModel>();
+        builder.Services.AddSingleton<ServiceUnavailableViewModel>();
         builder.Services.AddSingleton<DeviceIdViewModel>();
 
         builder.Services.AddSingleton<MainPage>();
         builder.Services.AddSingleton<LogsPage>();
         builder.Services.AddSingleton<ServiceUnavailablePage>();
         builder.Services.AddSingleton<DeviceIdPage>();
-
-        builder.Services.AddSingleton<IAvailabilityChecker, AvailabilityChecker>();
-        builder.Services.AddSingleton<ServiceUnavailableViewModel>();
 
         builder.Services.AddSingleton<ISmsProcessor, SmsProcessor>();
         builder.Services.AddSingleton<IBackgroundServiceManager, BackgroundServiceManager>();

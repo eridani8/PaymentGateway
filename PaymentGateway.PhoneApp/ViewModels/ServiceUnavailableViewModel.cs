@@ -5,7 +5,7 @@ using PaymentGateway.PhoneApp.Interfaces;
 namespace PaymentGateway.PhoneApp.ViewModels;
 
 public partial class ServiceUnavailableViewModel(
-    IAvailabilityChecker checker,
+    IDeviceService deviceService,
     ILogger<ServiceUnavailableViewModel> logger) : BaseViewModel
 {
     [RelayCommand]
@@ -16,8 +16,8 @@ public partial class ServiceUnavailableViewModel(
         IsBusy = true;
         try
         {
-            await checker.CheckAvailable();
-            await checker.ShowOrHideUnavailableModal();
+            await deviceService.SendPing();
+            // await deviceService.ShowOrHideUnavailableModal(); // TODO
         }
         catch (Exception e)
         {

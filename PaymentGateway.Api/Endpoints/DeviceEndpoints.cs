@@ -1,7 +1,6 @@
 ﻿using Asp.Versioning;
 using Carter;
 using PaymentGateway.Api.Filters;
-using PaymentGateway.Shared.DTOs.Device;
 
 namespace PaymentGateway.Api.Endpoints;
 
@@ -19,11 +18,7 @@ public class DeviceEndpoints : ICarterModule
             .WithTags("Взаимодействие с мобильным приложением")
             .AddEndpointFilter<UserStatusFilter>();
 
-        group.MapPost("/reception-code", ReceptionCode)
-            .Produces(StatusCodes.Status200OK)
-            .Produces(StatusCodes.Status400BadRequest);
-        
-        group.MapPost("/ping", Ping)
+        group.MapPost("/pong", Pong)
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound)
             .Produces(StatusCodes.Status400BadRequest);
@@ -39,14 +34,12 @@ public class DeviceEndpoints : ICarterModule
             .Produces(StatusCodes.Status400BadRequest);
     }
 
-    private static IResult ReceptionCode(ReceptionCodeDto dto, ILogger<DeviceEndpoints> logger)
+    private static IResult Pong(Guid code, ILogger<DeviceEndpoints> logger)
     {
-        logger.LogInformation("ReceptionCode: {Code}", dto.DeviceCode);
-        return Results.Ok();
-    }
-
-    private static IResult Ping()
-    {
+        logger.LogInformation("Pong: {Code}", code);
+        
+        if (code == Guid.Empty) return Results.BadRequest();
+        
         return Results.Ok();
     }
 
