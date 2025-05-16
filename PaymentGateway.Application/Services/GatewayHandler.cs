@@ -19,7 +19,7 @@ public class GatewayHandler(
     IMemoryCache cache,
     INotificationService notificationService,
     IMapper mapper,
-    ConcurrentDictionary<Guid, DeviceState> devices)
+    AvailableDevices devices)
     : IGatewayHandler
 {
     public async Task HandleRequisites(IUnitOfWork unit)
@@ -246,14 +246,14 @@ public class GatewayHandler(
     {
         var now = DateTime.Now;
         var inactivityThreshold = now.AddSeconds(-maxSeconds);
-        foreach (var (id, state) in devices.ToList())
+        foreach (var (id, state) in devices.Devices.ToList())
         {
             try
             {
                 if (state.Timestamp > inactivityThreshold) continue;
-                if (devices.TryRemove(id, out _))
+                if (devices.Devices.TryRemove(id, out _))
                 {
-                    logger.LogInformation("Устройсво оффлайн {DeviceId}. Последнее обновление: {Timestamp}", id, state.Timestamp);
+                    logger.LogInformation("Устройство оффлайн {DeviceId}. Последнее обновление: {Timestamp}", id, state.Timestamp);
                 }
             }
             catch (Exception e)

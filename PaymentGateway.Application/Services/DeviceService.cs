@@ -8,20 +8,20 @@ using PaymentGateway.Shared.DTOs.Device;
 namespace PaymentGateway.Application.Services;
 
 public class DeviceService(
-    ConcurrentDictionary<Guid, DeviceState> deviceStates,
+    AvailableDevices devices,
     ILogger<DeviceService> logger)
     : IDeviceService
 {
     public Task Pong(PingDto dto)
     {
         var now = DateTime.Now;
-        if (deviceStates.TryGetValue(dto.DeviceId, out var deviceState))
+        if (devices.Devices.TryGetValue(dto.DeviceId, out var deviceState))
         {
             deviceState.Timestamp = now;
         }
         else
         {
-            deviceStates.TryAdd(dto.DeviceId, new DeviceState()
+            devices.Devices.TryAdd(dto.DeviceId, new DeviceState()
             {
                 Timestamp = now
             });
