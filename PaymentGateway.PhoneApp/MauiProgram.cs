@@ -85,6 +85,7 @@ public static class MauiProgram
 
         builder.Services.AddSingleton<IAlertService, AlertService>();
         builder.Services.AddSingleton<IDeviceService, DeviceService>();
+        builder.Services.AddSingleton<IDeviceInfoService, DeviceInfoService>();
 
         builder.Services.AddSingleton<MainViewModel>();
         builder.Services.AddSingleton<LogsViewModel>();

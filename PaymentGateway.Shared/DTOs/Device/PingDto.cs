@@ -2,5 +2,6 @@
 
 public class PingDto
 {
-    public Guid DeviceId { get; init; }
+    public Guid Id { get; init; }
+    public string? Model { get; set; }
 }

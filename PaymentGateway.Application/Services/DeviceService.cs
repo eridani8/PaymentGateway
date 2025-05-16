@@ -1,33 +1,46 @@
-﻿using System.Collections.Concurrent;
-using FluentValidation;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using PaymentGateway.Application.Interfaces;
+using PaymentGateway.Application.Results;
 using PaymentGateway.Application.Types;
 using PaymentGateway.Shared.DTOs.Device;
 
 namespace PaymentGateway.Application.Services;
 
 public class DeviceService(
-    AvailableDevices devices,
+    OnlineDevices devices,
     ILogger<DeviceService> logger)
     : IDeviceService
 {
-    public Task Pong(PingDto dto)
+    public Result Pong(PingDto dto)
     {
+        if (string.IsNullOrEmpty(dto.Model)) return Result.Failure(DeviceErrors.ModelIsEmpty);
+
         var now = DateTime.Now;
-        if (devices.Devices.TryGetValue(dto.DeviceId, out var deviceState))
+        if (devices.All.TryGetValue(dto.Id, out var deviceState))
         {
             deviceState.Timestamp = now;
         }
         else
         {
-            devices.Devices.TryAdd(dto.DeviceId, new DeviceState()
+            devices.All.TryAdd(dto.Id, new DeviceState()
             {
-                Timestamp = now
+                Timestamp = now,
+                Model = dto.Model
             });
-            logger.LogInformation("Устройство онлайн {DeviceId}", dto.DeviceId);
+            logger.LogInformation("Устройство онлайн {DeviceId}", dto.Id);
         }
 
-        return Task.CompletedTask;
+        return Result.Success();
+    }
+
+    public List<DeviceDto> GetAvailableDevices()
+    {
+        return devices.All.Select(d => new DeviceDto()
+            {
+                Id = d.Key,
+                Timestamp = d.Value.Timestamp,
+                Model = d.Value.Model
+            })
+            .ToList();
     }
 }

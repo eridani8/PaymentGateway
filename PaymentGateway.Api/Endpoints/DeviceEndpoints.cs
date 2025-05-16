@@ -1,7 +1,9 @@
 ﻿using Asp.Versioning;
 using Carter;
+using Microsoft.AspNetCore.Authorization;
 using PaymentGateway.Api.Filters;
 using PaymentGateway.Application.Interfaces;
+using PaymentGateway.Application.Types;
 using PaymentGateway.Shared.DTOs.Device;
 
 namespace PaymentGateway.Api.Endpoints;
@@ -19,7 +21,7 @@ public class DeviceEndpoints() : ICarterModule
             .WithApiVersionSet(versionSet)
             .WithTags("Взаимодействие с мобильным приложением")
             .AddEndpointFilter<UserStatusFilter>();
-
+        
         group.MapPost("/pong", Pong)
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound)
@@ -34,11 +36,23 @@ public class DeviceEndpoints() : ICarterModule
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound)
             .Produces(StatusCodes.Status400BadRequest);
+        
+        group.MapGet("/", GetAllDevices)
+            .Produces<List<DeviceDto>>()
+            .Produces(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status400BadRequest)
+            .AddEndpointFilter<UserStatusFilter>()
+            .RequireAuthorization(new AuthorizeAttribute { Roles = "Admin" });
     }
 
-    private static async Task<IResult> Pong(PingDto dto, IDeviceService deviceService)
+    private static IResult Pong(PingDto dto, IDeviceService deviceService)
     {
-        await deviceService.Pong(dto);
+        var result = deviceService.Pong(dto);
+
+        if (result.IsFailure)
+        {
+            return Results.BadRequest(result.Error.Message);
+        }
         
         return Results.Ok();
     }
@@ -51,5 +65,10 @@ public class DeviceEndpoints() : ICarterModule
     private static IResult Unbind()
     {
         return Results.Ok();
+    }
+
+    private static IResult GetAllDevices(IDeviceService deviceService)
+    {
+        return Results.Json(deviceService.GetAvailableDevices());
     }
 }

@@ -1,8 +1,10 @@
-﻿using PaymentGateway.Shared.DTOs.Device;
+﻿using PaymentGateway.Application.Results;
+using PaymentGateway.Shared.DTOs.Device;
 
 namespace PaymentGateway.Application.Interfaces;
 
 public interface IDeviceService
 {
-    Task Pong(PingDto dto);
+    Result Pong(PingDto dto);
+    List<DeviceDto> GetAvailableDevices();
 }

@@ -35,5 +35,7 @@ public enum ErrorCode
     RequisiteLimitExceeded,
     
     TransactionError,
-    WrongPaymentAmount
+    WrongPaymentAmount,
+    
+    DeviceModelIsEmpty,
 } 
