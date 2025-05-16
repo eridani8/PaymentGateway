@@ -2,7 +2,6 @@
 
 public interface IDeviceService
 {
-    Guid DeviceId { get; }
     bool State { get; }
     Task SendPing();
 }

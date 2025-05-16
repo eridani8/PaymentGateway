@@ -4,6 +4,7 @@ using LiteDB;
 using Microsoft.Extensions.Logging;
 using PaymentGateway.PhoneApp.Interfaces;
 using PaymentGateway.PhoneApp.Types;
+using PaymentGateway.PhoneApp.ViewModels;
 using PaymentGateway.Shared.DTOs.Device;
 using PaymentGateway.Shared.Types;
 
@@ -19,44 +20,16 @@ public class DeviceService(
 {
     private const string apiEndpoint = "api/device";
     public bool State { get; private set; }
-    public Guid DeviceId { get; private set; } = Guid.Empty;
 
     public async Task SendPing()
     {
         try
         {
-            if (DeviceId == Guid.Empty)
-            {
-                if (context.KeyValues.FindOne(k => k.Key == "DeviceId") is not { } keyValue)
-                {
-                    keyValue = new KeyValue()
-                    {
-                        Id = ObjectId.NewObjectId(),
-                        Key = "DeviceId",
-                        Value = Guid.CreateVersion7()
-                    };
-                    context.KeyValues.Insert(keyValue);
-                }
-            
-                if (keyValue.Value is Guid guid)
-                {
-                    DeviceId = guid;
-                }
-                else
-                {
-                    DeviceId = Guid.Empty;
-                }
-            }
-            
-            if (DeviceId == Guid.Empty)
-            {
-                logger.LogError("Ошибка назначения DeviceId");
-                return;
-            }
+            if (context.DeviceId == Guid.Empty) return;
             
             var response = await PostRequest($"{apiEndpoint}/pong", new PingDto()
             {
-                Id = DeviceId,
+                Id = context.DeviceId,
                 Model = deviceInfoService.GetDeviceModel()
             });
             State = response.Code == HttpStatusCode.OK;
