@@ -85,12 +85,6 @@ public class ServiceBase(IHttpClientFactory factory, ILogger<ServiceBase> logger
             {
                 content = await httpResponse.Content.ReadAsStringAsync(cancellationToken);
             }
-
-            if (!httpResponse.IsSuccessStatusCode)
-            {
-                logger.LogWarning("Request to {Url} failed with status {StatusCode}: {Content}", 
-                    url, httpResponse.StatusCode, content);
-            }
         }
         catch (OperationCanceledException)
         {
