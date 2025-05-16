@@ -85,6 +85,7 @@ public class GatewayHost(
                 var unit = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
                 var handler = scope.ServiceProvider.GetRequiredService<IGatewayHandler>();
 
+                await handler.HandleDevicesState((int)gatewayConfig.Value.GatewayProcessDelay.TotalSeconds * 3);
                 await handler.HandleRequisites(unit);
                 await handler.HandleUnprocessedPayments(unit);
                 await handler.HandleExpiredPayments(unit);

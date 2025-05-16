@@ -1,13 +1,13 @@
-﻿using AutoMapper;
+﻿using System.Collections.Concurrent;
+using AutoMapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using PaymentGateway.Application.Interfaces;
+using PaymentGateway.Application.Types;
 using PaymentGateway.Core.Entities;
 using PaymentGateway.Infrastructure.Interfaces;
-using PaymentGateway.Infrastructure.Repositories;
-using PaymentGateway.Infrastructure.Repositories.Cached;
 using PaymentGateway.Shared.DTOs.Payment;
 using PaymentGateway.Shared.DTOs.Requisite;
 using PaymentGateway.Shared.DTOs.User;
@@ -18,7 +18,8 @@ public class GatewayHandler(
     ILogger<GatewayHandler> logger,
     IMemoryCache cache,
     INotificationService notificationService,
-    IMapper mapper)
+    IMapper mapper,
+    ConcurrentDictionary<Guid, DeviceState> devices)
     : IGatewayHandler
 {
     public async Task HandleRequisites(IUnitOfWork unit)
@@ -239,5 +240,27 @@ public class GatewayHandler(
         cache.Set(globalResetKey, TimeSpan.FromHours(25));
         logger.LogInformation(
             "Завершен процесс ежедневного сброса средств пользователей. Обработано: {count} пользователей", resetCount);
+    }
+
+    public Task HandleDevicesState(int maxSeconds)
+    {
+        var now = DateTime.Now;
+        var inactivityThreshold = now.AddSeconds(-maxSeconds);
+        foreach (var (id, state) in devices.ToList())
+        {
+            try
+            {
+                if (state.Timestamp > inactivityThreshold) continue;
+                if (devices.TryRemove(id, out _))
+                {
+                    logger.LogInformation("Устройсво {DeviceId} оффлайн. Последнее обновление: {Timestamp}", id, state.Timestamp);
+                }
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e, "Ошибка при обработке устройства {DeviceId} {@State}", id, state);
+            }
+        }
+        return Task.CompletedTask;
     }
 }

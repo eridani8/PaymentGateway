@@ -25,7 +25,7 @@ public class DeviceService(
             {
                 Timestamp = now
             });
-            logger.LogInformation("added device state: {DeviceId}", dto.DeviceId);
+            logger.LogInformation("Устройство онлайн {DeviceId}", dto.DeviceId);
         }
 
         return Task.CompletedTask;

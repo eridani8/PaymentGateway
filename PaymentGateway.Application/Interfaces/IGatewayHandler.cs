@@ -10,4 +10,5 @@ public interface IGatewayHandler
     Task HandleUnprocessedPayments(IUnitOfWork unit);
     Task HandleExpiredPayments(IUnitOfWork unit);
     Task HandleUserFundsReset(UserManager<UserEntity> userManager);
+    Task HandleDevicesState(int maxSeconds);
 }
