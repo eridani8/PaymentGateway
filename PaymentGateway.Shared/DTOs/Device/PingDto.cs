@@ -3,5 +3,5 @@
 public class PingDto
 {
     public Guid Id { get; init; }
-    public string? Model { get; set; }
+    public string? Model { get; init; }
 }

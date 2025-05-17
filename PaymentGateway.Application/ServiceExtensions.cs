@@ -18,6 +18,7 @@ public static class ServiceExtensions
         services.AddAutoMapper(typeof(TransactionProfile));
         services.AddAutoMapper(typeof(UserProfile));
         services.AddAutoMapper(typeof(ChatMessageProfile));
+        services.AddAutoMapper(typeof(DeviceProfile));
 
         services.AddValidatorsFromAssembly(typeof(BaseValidator<>).Assembly);
         

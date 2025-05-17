@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using AutoMapper;
 using Microsoft.Extensions.Logging;
 using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Application.Results;
@@ -8,7 +9,8 @@ namespace PaymentGateway.Application.Services;
 
 public class DeviceService(
     OnlineDevices devices,
-    ILogger<DeviceService> logger)
+    ILogger<DeviceService> logger,
+    IMapper mapper)
     : IDeviceService
 {
     public Result Pong(PingDto dto)
@@ -22,12 +24,8 @@ public class DeviceService(
         }
         else
         {
-            devices.All.TryAdd(dto.Id, new DeviceDto()
-            {
-                Id = dto.Id,
-                Timestamp = now,
-                Model = dto.Model
-            });
+            var deviceDto = mapper.Map<DeviceDto>(dto);
+            devices.All.TryAdd(dto.Id, deviceDto);
             logger.LogInformation("Устройство онлайн {DeviceId}", dto.Id);
         }
 
