@@ -163,9 +163,9 @@ public class BackgroundService : Service
         {
             var previousState = _deviceService?.State ?? false;
 
-            await _deviceService!.SendPing();
+            // await _deviceService!.SendPing(); // TODO
             
-            var currentState = _deviceService.State;
+            var currentState = _deviceService?.State ?? false;
             if (_isRunning && (previousState != currentState || _previousServiceState != currentState))
             {
                 _previousServiceState = currentState;

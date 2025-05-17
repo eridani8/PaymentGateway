@@ -22,17 +22,6 @@ public class DeviceEndpoints : ICarterModule
             .WithApiVersionSet(versionSet)
             .WithTags("Взаимодействие с мобильным приложением")
             .AddEndpointFilter<UserStatusFilter>();
-        
-        group.MapPost("/pong", Pong)
-            .Produces<Result>()
-            .Produces(StatusCodes.Status404NotFound)
-            .Produces(StatusCodes.Status400BadRequest);
-        
-        group.MapPost("/{deviceId:guid}", SetStatus)
-            .Produces(StatusCodes.Status200OK)
-            .Produces(StatusCodes.Status404NotFound)
-            .AddEndpointFilter<UserStatusFilter>()
-            .RequireAuthorization(new AuthorizeAttribute { Roles = "Admin" });
 
         group.MapPost("/bind", Bind)
             .Produces(StatusCodes.Status201Created)
@@ -51,26 +40,6 @@ public class DeviceEndpoints : ICarterModule
             .Produces(StatusCodes.Status400BadRequest)
             .AddEndpointFilter<UserStatusFilter>()
             .RequireAuthorization(new AuthorizeAttribute { Roles = "Admin" });
-    }
-
-    private static IResult Pong(PingDto dto, IDeviceService deviceService)
-    {
-        var pong = deviceService.Pong(dto);
-
-        if (pong.IsFailure)
-        {
-            return Results.BadRequest(pong.Error.Message);
-        }
-        
-        return Results.Json(pong.Value);
-    }
-
-    private static IResult SetStatus(Guid deviceId, DeviceAction action, OnlineDevices devices)
-    {
-        if (!devices.All.TryGetValue(deviceId, out var device)) return Results.NotFound();
-        
-        device.Action = action;
-        return Results.Ok();
     }
 
     private static IResult Bind()

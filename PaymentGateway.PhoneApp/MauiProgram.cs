@@ -11,6 +11,7 @@ using PaymentGateway.PhoneApp.Pages;
 using PaymentGateway.PhoneApp.Services;
 using PaymentGateway.PhoneApp.Types;
 using PaymentGateway.PhoneApp.ViewModels;
+using PaymentGateway.Shared.Types;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
@@ -46,7 +47,8 @@ public static class MauiProgram
             .Build();
 
         builder.Configuration.AddConfiguration(config);
-        builder.Services.Configure<AppSettings>(config);
+        builder.Services.Configure<AppSettings>(config.GetSection(nameof(AppSettings)));
+        builder.Services.Configure<ApiSettings>(config.GetSection(nameof(ApiSettings)));
         var settings = builder.Configuration.Get<AppSettings>();
 
         var liteContext = new LiteContext(settings!);
@@ -62,9 +64,9 @@ public static class MauiProgram
 
         builder.Services.AddHttpClient("API", (serviceProvider, client) =>
         {
-            var appSettings = serviceProvider.GetRequiredService<IOptions<AppSettings>>().Value;
+            var apiSettings = serviceProvider.GetRequiredService<IOptions<ApiSettings>>().Value;
 
-            client.BaseAddress = new Uri(appSettings.ServiceUrl);
+            client.BaseAddress = new Uri(apiSettings.BaseAddress);
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         });
         

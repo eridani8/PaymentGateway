@@ -1,4 +1,4 @@
-﻿namespace PaymentGateway.Web;
+﻿namespace PaymentGateway.Shared.Types;
 
 public class ApiSettings
 {

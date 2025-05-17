@@ -5,6 +5,5 @@ namespace PaymentGateway.Application.Interfaces;
 
 public interface IDeviceService
 {
-    Result<PongDto> Pong(PingDto dto);
     List<DeviceDto> GetOnlineDevices();
 }

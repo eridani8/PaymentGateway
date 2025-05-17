@@ -3,5 +3,4 @@
 public interface IDeviceService
 {
     bool State { get; }
-    Task SendPing();
 }

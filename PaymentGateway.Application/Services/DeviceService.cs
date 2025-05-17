@@ -13,30 +13,6 @@ public class DeviceService(
     IMapper mapper)
     : IDeviceService
 {
-    public Result<PongDto> Pong(PingDto dto)
-    {
-        if (string.IsNullOrEmpty(dto.Model)) return Result.Failure<PongDto>(DeviceErrors.ModelIsEmpty);
-
-        if (devices.All.TryGetValue(dto.Id, out var device))
-        {
-            device.Timestamp = DateTime.Now;
-        }
-        else
-        {
-            device = mapper.Map<DeviceDto>(dto);
-            devices.All.TryAdd(dto.Id, device);
-            logger.LogInformation("Устройство онлайн {DeviceId}", dto.Id);
-        }
-
-        var pong = mapper.Map<PongDto>(device);
-
-        if (device.Action != DeviceAction.None)
-        {
-            device.Action = DeviceAction.None;
-        }
-        
-        return Result.Success(pong);
-    }
 
     public List<DeviceDto> GetOnlineDevices()
     {

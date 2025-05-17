@@ -16,7 +16,7 @@ public partial class ServiceUnavailableViewModel(
         IsBusy = true;
         try
         {
-            await deviceService.SendPing();
+            // await deviceService.SendPing(); // TODO
             // await deviceService.ShowOrHideUnavailableModal(); // TODO
         }
         catch (Exception e)

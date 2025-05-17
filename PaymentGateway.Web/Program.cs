@@ -14,6 +14,7 @@ using Microsoft.Extensions.Localization;
 using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using PaymentGateway.Shared.Types;
 using PaymentGateway.Shared.Validations;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);

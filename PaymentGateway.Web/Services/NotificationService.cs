@@ -10,6 +10,7 @@ using PaymentGateway.Shared.DTOs.User;
 using Polly;
 using Polly.Retry;
 using PaymentGateway.Shared.DTOs.Chat;
+using PaymentGateway.Shared.Types;
 
 namespace PaymentGateway.Web.Services;
 
