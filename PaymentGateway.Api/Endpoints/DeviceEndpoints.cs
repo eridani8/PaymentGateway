@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using PaymentGateway.Api.Filters;
 using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Application.Results;
+using PaymentGateway.Application.Services;
 using PaymentGateway.Shared.DTOs.Device;
 
 namespace PaymentGateway.Api.Endpoints;
@@ -26,6 +27,12 @@ public class DeviceEndpoints : ICarterModule
             .Produces<Result>()
             .Produces(StatusCodes.Status404NotFound)
             .Produces(StatusCodes.Status400BadRequest);
+        
+        group.MapPost("/{deviceId:guid}", SetStatus)
+            .Produces(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status404NotFound)
+            .AddEndpointFilter<UserStatusFilter>()
+            .RequireAuthorization(new AuthorizeAttribute { Roles = "Admin" });
 
         group.MapPost("/bind", Bind)
             .Produces(StatusCodes.Status201Created)
@@ -36,6 +43,7 @@ public class DeviceEndpoints : ICarterModule
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound)
             .Produces(StatusCodes.Status400BadRequest);
+        
         
         group.MapGet("/", GetAllDevices)
             .Produces<List<DeviceDto>>()
@@ -55,6 +63,14 @@ public class DeviceEndpoints : ICarterModule
         }
         
         return Results.Json(pong.Value);
+    }
+
+    private static IResult SetStatus(Guid deviceId, DeviceAction action, OnlineDevices devices)
+    {
+        if (!devices.All.TryGetValue(deviceId, out var device)) return Results.NotFound();
+        
+        device.Action = action;
+        return Results.Ok();
     }
 
     private static IResult Bind()
