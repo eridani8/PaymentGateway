@@ -36,13 +36,7 @@ public class DeviceService(
 
     public List<DeviceDto> GetAvailableDevices()
     {
-        return devices.All.Select(d => new DeviceDto()
-            {
-                Id = d.Key,
-                Timestamp = d.Value.Timestamp,
-                Model = d.Value.Model
-            })
-            .ToList();
+        return devices.All.Values.ToList();
     }
 }
 
