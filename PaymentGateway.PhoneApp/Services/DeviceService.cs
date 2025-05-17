@@ -31,21 +31,31 @@ public class DeviceService(
                 Model = deviceInfoService.GetDeviceModel()
             });
 
-            if (response is { } pong)
+            if (response != null)
             {
                 State = true;
                 
-                switch (pong.Action)
+                switch (response.Action)
                 {
                     case DeviceAction.ConfirmBinding:
-                        await Toast.Make("test").Show();
+                        MainThread.BeginInvokeOnMainThread(async void () =>
+                        {
+                            try
+                            {
+                                await Toast.Make("test").Show();
+                            }
+                            catch
+                            {
+                                // ignored
+                            }
+                        });
                         break;
                     case DeviceAction.None:
                     default:
                         break;
                 }
                 
-                logger.LogInformation("pong {Action}", pong.Action.ToString());
+                logger.LogInformation("pong {Action}", response.Action.ToString());
             }
             else
             {
