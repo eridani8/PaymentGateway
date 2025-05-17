@@ -4,7 +4,7 @@ using PaymentGateway.Shared.Enums;
 
 namespace PaymentGateway.Shared.DTOs.Requisite;
 
-public class RequisiteDto
+public class RequisiteDto // TODO CanActivate
 {
     public Guid Id { get; set; }
     public Guid UserId { get; set; }

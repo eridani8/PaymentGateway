@@ -3,6 +3,7 @@ using Carter;
 using Microsoft.AspNetCore.Authorization;
 using PaymentGateway.Api.Filters;
 using PaymentGateway.Application.Interfaces;
+using PaymentGateway.Application.Results;
 using PaymentGateway.Shared.DTOs.Device;
 
 namespace PaymentGateway.Api.Endpoints;
@@ -22,7 +23,7 @@ public class DeviceEndpoints : ICarterModule
             .AddEndpointFilter<UserStatusFilter>();
         
         group.MapPost("/pong", Pong)
-            .Produces(StatusCodes.Status200OK)
+            .Produces<Result>()
             .Produces(StatusCodes.Status404NotFound)
             .Produces(StatusCodes.Status400BadRequest);
 
@@ -46,14 +47,14 @@ public class DeviceEndpoints : ICarterModule
 
     private static IResult Pong(PingDto dto, IDeviceService deviceService)
     {
-        var result = deviceService.Pong(dto);
+        var pong = deviceService.Pong(dto);
 
-        if (result.IsFailure)
+        if (pong.IsFailure)
         {
-            return Results.BadRequest(result.Error.Message);
+            return Results.BadRequest(pong.Error.Message);
         }
         
-        return Results.Ok();
+        return Results.Json(pong.Value);
     }
 
     private static IResult Bind()
@@ -68,6 +69,6 @@ public class DeviceEndpoints : ICarterModule
 
     private static IResult GetAllDevices(IDeviceService deviceService)
     {
-        return Results.Json(deviceService.GetAvailableDevices());
+        return Results.Json(deviceService.GetOnlineDevices());
     }
 }

@@ -2,7 +2,7 @@
 
 namespace PaymentGateway.Shared.DTOs.Requisite;
 
-public class RequisiteUpdateDto
+public class RequisiteUpdateDto // TODO CanActivate
 {
     public string FullName { get; set; } = string.Empty;
     public PaymentType PaymentType { get; set; }

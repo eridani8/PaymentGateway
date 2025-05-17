@@ -11,5 +11,8 @@ public class DeviceProfile : Profile
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
             .ForMember(dest => dest.Model, opt => opt.MapFrom(src => src.Model))
             .ForMember(dest => dest.Timestamp, opt => opt.MapFrom(src => DateTime.Now));
+
+        CreateMap<DeviceDto, PongDto>()
+            .ForMember(dest => dest.Action, opt => opt.MapFrom(src => src.Action));
     }
 }

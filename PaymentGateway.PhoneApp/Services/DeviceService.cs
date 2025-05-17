@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using System.Text.Json;
+using CommunityToolkit.Maui.Alerts;
 using Microsoft.Extensions.Logging;
 using PaymentGateway.PhoneApp.Interfaces;
 using PaymentGateway.Shared.DTOs.Device;
@@ -23,13 +24,33 @@ public class DeviceService(
         try
         {
             if (context.DeviceId == Guid.Empty) return;
-            
-            var response = await PostRequest($"{apiEndpoint}/pong", new PingDto()
+
+            var response = await PostRequest<PongDto>($"{apiEndpoint}/pong", new PingDto()
             {
                 Id = context.DeviceId,
                 Model = deviceInfoService.GetDeviceModel()
             });
-            State = response.Code == HttpStatusCode.OK;
+
+            if (response is { } pong)
+            {
+                State = true;
+                
+                switch (pong.Action)
+                {
+                    case DeviceAction.ConfirmBinding:
+                        await Toast.Make("test").Show();
+                        break;
+                    case DeviceAction.None:
+                    default:
+                        break;
+                }
+                
+                logger.LogInformation("pong {Action}", pong.Action.ToString());
+            }
+            else
+            {
+                State = false;
+            }
         }
         catch (Exception e)
         {

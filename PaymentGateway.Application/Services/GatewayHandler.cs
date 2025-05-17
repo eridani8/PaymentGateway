@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Core.Entities;
 using PaymentGateway.Infrastructure.Interfaces;
+using PaymentGateway.Shared.DTOs.Device;
 using PaymentGateway.Shared.DTOs.Payment;
 using PaymentGateway.Shared.DTOs.Requisite;
 using PaymentGateway.Shared.DTOs.User;
@@ -248,10 +249,12 @@ public class GatewayHandler(
         {
             try
             {
-                if (state.Timestamp > inactivityThreshold) continue;
-                if (devices.All.TryRemove(id, out _))
+                if (state.Timestamp <= inactivityThreshold)
                 {
-                    logger.LogInformation("Устройство оффлайн {DeviceId}", id);
+                    if (devices.All.TryRemove(id, out _))
+                    {
+                        logger.LogInformation("Устройство оффлайн {DeviceId}", id);
+                    }
                 }
             }
             catch (Exception e)

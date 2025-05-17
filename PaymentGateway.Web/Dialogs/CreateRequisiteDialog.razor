@@ -56,53 +56,57 @@
                                   Margin="Margin.Normal"/>
                 </MudItem>
 
-                <MudItem xs="12" sm="4">
-                    <MudNumericField T="decimal"
-                                     Label="Суточная сумма"
-                                     @bind-Value="_createRequisiteDto.MaxAmount"
-                                     For="@(() => _createRequisiteDto.MaxAmount)"
-                                     Format="N0"
-                                     Adornment="Adornment.Start"
-                                     AdornmentIcon="@Icons.Material.Filled.AttachMoney"
-                                     Min="0"
-                                     Step="1000"
-                                     Immediate="true"
-                                     Margin="Margin.Normal"/>
-                </MudItem>
+                <AuthorizeView Roles="Admin, Support">
+                    <Authorized>
+                        <MudItem xs="12" sm="4">
+                            <MudNumericField T="decimal"
+                                             Label="Суточная сумма"
+                                             @bind-Value="_createRequisiteDto.MaxAmount"
+                                             For="@(() => _createRequisiteDto.MaxAmount)"
+                                             Format="N0"
+                                             Adornment="Adornment.Start"
+                                             AdornmentIcon="@Icons.Material.Filled.AttachMoney"
+                                             Min="0"
+                                             Step="1000"
+                                             Immediate="true"
+                                             Margin="Margin.Normal"/>
+                        </MudItem>
 
-                <MudItem xs="12" sm="4">
-                    <MudNumericField T="decimal"
-                                     Label="Месячный лимит"
-                                     @bind-Value="_createRequisiteDto.MonthLimit"
-                                     For="@(() => _createRequisiteDto.MonthLimit)"
-                                     Format="N0"
-                                     Adornment="Adornment.Start"
-                                     AdornmentIcon="@Icons.Material.Filled.AttachMoney"
-                                     Min="0"
-                                     Step="10000"
-                                     Immediate="true"
-                                     Margin="Margin.Normal"/>
-                </MudItem>
+                        <MudItem xs="12" sm="4">
+                            <MudNumericField T="decimal"
+                                             Label="Месячный лимит"
+                                             @bind-Value="_createRequisiteDto.MonthLimit"
+                                             For="@(() => _createRequisiteDto.MonthLimit)"
+                                             Format="N0"
+                                             Adornment="Adornment.Start"
+                                             AdornmentIcon="@Icons.Material.Filled.AttachMoney"
+                                             Min="0"
+                                             Step="10000"
+                                             Immediate="true"
+                                             Margin="Margin.Normal"/>
+                        </MudItem>
 
-                <MudItem xs="12" sm="2">
-                    <MudNumericField T="int"
-                                     Label="Приоритет"
-                                     @bind-Value="_createRequisiteDto.Priority"
-                                     For="@(() => _createRequisiteDto.Priority)"
-                                     Min="1"
-                                     Max="100"
-                                     Immediate="true"
-                                     Margin="Margin.Normal"/>
-                </MudItem>
+                        <MudItem xs="12" sm="2">
+                            <MudNumericField T="int"
+                                             Label="Приоритет"
+                                             @bind-Value="_createRequisiteDto.Priority"
+                                             For="@(() => _createRequisiteDto.Priority)"
+                                             Min="1"
+                                             Max="100"
+                                             Immediate="true"
+                                             Margin="Margin.Normal"/>
+                        </MudItem>
 
-                <MudItem xs="12" sm="2">
-                    <MudTextField T="TimeSpan"
-                                  Label="Задержка"
-                                  @bind-Value="_createRequisiteDto.Cooldown"
-                                  For="@(() => _createRequisiteDto.Cooldown)"
-                                  Immediate="true"
-                                  Margin="Margin.Normal"/>
-                </MudItem>
+                        <MudItem xs="12" sm="2">
+                            <MudTextField T="TimeSpan"
+                                          Label="Задержка"
+                                          @bind-Value="_createRequisiteDto.Cooldown"
+                                          For="@(() => _createRequisiteDto.Cooldown)"
+                                          Immediate="true"
+                                          Margin="Margin.Normal"/>
+                        </MudItem>
+                    </Authorized>
+                </AuthorizeView>
 
                 <MudItem xs="12">
                     <MudSwitch T="bool"
@@ -119,22 +123,22 @@
                            Color="Color.Primary"
                            Label="Использовать рабочее время"
                            Class="mr-4"/>
-                           
+
                 @if (_useWorkingHours)
                 {
                     <MudText Typo="Typo.subtitle1">Часы работы</MudText>
                     <MudGrid>
                         <MudItem xs="6">
-                            <MudTimePicker Label="С" 
-                                          @bind-Time="_workFromTime"
-                                          TimeEditMode="TimeEditMode.Normal"
-                                          Margin="Margin.Normal" />
+                            <MudTimePicker Label="С"
+                                           @bind-Time="_workFromTime"
+                                           TimeEditMode="TimeEditMode.Normal"
+                                           Margin="Margin.Normal"/>
                         </MudItem>
                         <MudItem xs="6">
-                            <MudTimePicker Label="До" 
-                                          @bind-Time="_workToTime"
-                                          TimeEditMode="TimeEditMode.Normal"
-                                          Margin="Margin.Normal" />
+                            <MudTimePicker Label="До"
+                                           @bind-Time="_workToTime"
+                                           TimeEditMode="TimeEditMode.Normal"
+                                           Margin="Margin.Normal"/>
                         </MudItem>
                     </MudGrid>
                 }
@@ -209,7 +213,7 @@
                     _createRequisiteDto.WorkFrom = TimeOnly.MinValue;
                     _createRequisiteDto.WorkTo = TimeOnly.MinValue;
                 }
-                
+
                 var result = await RequisiteService.CreateRequisite(_createRequisiteDto);
 
                 if (result.Code == HttpStatusCode.OK)
