@@ -1,7 +1,7 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System.Collections.Concurrent;
+using Microsoft.Extensions.Logging;
 using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Application.Results;
-using PaymentGateway.Application.Types;
 using PaymentGateway.Shared.DTOs.Device;
 
 namespace PaymentGateway.Application.Services;
@@ -22,8 +22,9 @@ public class DeviceService(
         }
         else
         {
-            devices.All.TryAdd(dto.Id, new DeviceState()
+            devices.All.TryAdd(dto.Id, new DeviceDto()
             {
+                Id = dto.Id,
                 Timestamp = now,
                 Model = dto.Model
             });
@@ -43,4 +44,9 @@ public class DeviceService(
             })
             .ToList();
     }
+}
+
+public class OnlineDevices
+{
+    public ConcurrentDictionary<Guid, DeviceDto> All { get; } = new();
 }

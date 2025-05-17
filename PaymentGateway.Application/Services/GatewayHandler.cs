@@ -1,11 +1,9 @@
-﻿using System.Collections.Concurrent;
-using AutoMapper;
+﻿using AutoMapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using PaymentGateway.Application.Interfaces;
-using PaymentGateway.Application.Types;
 using PaymentGateway.Core.Entities;
 using PaymentGateway.Infrastructure.Interfaces;
 using PaymentGateway.Shared.DTOs.Payment;

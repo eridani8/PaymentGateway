@@ -2,5 +2,5 @@
 
 public interface IDeviceInfoService
 {
-    string? GetDeviceModel();
+    string GetDeviceModel();
 }

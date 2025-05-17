@@ -2,7 +2,7 @@
 
 public class DeviceDto
 {
-    public Guid Id { get; set; }
+    public Guid Id { get; init; }
     public DateTime Timestamp { get; set; }
-    public string? Model { get; set; }
+    public string? Model { get; init; }
 }

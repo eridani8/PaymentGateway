@@ -3,12 +3,11 @@ using Carter;
 using Microsoft.AspNetCore.Authorization;
 using PaymentGateway.Api.Filters;
 using PaymentGateway.Application.Interfaces;
-using PaymentGateway.Application.Types;
 using PaymentGateway.Shared.DTOs.Device;
 
 namespace PaymentGateway.Api.Endpoints;
 
-public class DeviceEndpoints() : ICarterModule
+public class DeviceEndpoints : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {

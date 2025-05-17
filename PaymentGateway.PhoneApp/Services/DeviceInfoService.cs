@@ -5,8 +5,8 @@ namespace PaymentGateway.PhoneApp.Services;
 
 public class DeviceInfoService : IDeviceInfoService
 {
-    public string? GetDeviceModel()
+    public string GetDeviceModel()
     {
-        return Build.Model;
+        return Build.Model ?? "";
     }
 }

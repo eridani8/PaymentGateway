@@ -1,10 +1,7 @@
 ﻿using System.Net;
 using System.Text.Json;
-using LiteDB;
 using Microsoft.Extensions.Logging;
 using PaymentGateway.PhoneApp.Interfaces;
-using PaymentGateway.PhoneApp.Types;
-using PaymentGateway.PhoneApp.ViewModels;
 using PaymentGateway.Shared.DTOs.Device;
 using PaymentGateway.Shared.Types;
 
