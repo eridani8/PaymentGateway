@@ -18,14 +18,11 @@ public class NotificationService(
     IServiceProvider serviceProvider,
     ILogger<NotificationService> logger) : IAsyncDisposable
 {
-    private readonly string _instanceId = Guid.NewGuid().ToString("N")[..8];
     private HubConnection? _hubConnection;
     private readonly string _hubUrl = $"{settings.Value.BaseAddress}/notificationHub";
     private Timer? _pingTimer;
     private const int pingInterval = 10000;
     private bool _isDisposed;
-    
-    public bool IsConnected => _hubConnection?.State == HubConnectionState.Connected;
 
     private readonly AsyncRetryPolicy _reconnectionPolicy = Policy
         .Handle<Exception>()
@@ -34,7 +31,7 @@ public class NotificationService(
             retryAttempt => TimeSpan.FromSeconds(Math.Min(30, Math.Pow(1.5, retryAttempt))),
             (exception, timeSpan, retryCount, _) =>
             {
-                logger.LogWarning(exception,
+                logger.LogDebug(exception,
                     "Попытка {RetryCount} подключения к SignalR не удалась. Следующая попытка через {RetryTimeSpan} секунд",
                     retryCount, timeSpan.TotalSeconds);
             }
@@ -44,17 +41,17 @@ public class NotificationService(
     {
         try
         {
-            logger.LogInformation("Подписка на событие: {EventName}", eventName);
+            logger.LogDebug("Подписка на событие: {EventName}", eventName);
             
             if (_hubConnection == null)
             {
-                logger.LogWarning("Подписка на событие {EventName} не выполнена - соединение SignalR не инициализировано", eventName);
+                logger.LogDebug("Подписка на событие {EventName} не выполнена - соединение SignalR не инициализировано", eventName);
                 return;
             }
             
             if (_hubConnection.State != HubConnectionState.Connected)
             {
-                logger.LogWarning("Подписка на событие {EventName} не выполнена - соединение SignalR не подключено (Текущее состояние: {State})", 
+                logger.LogDebug("Подписка на событие {EventName} не выполнена - соединение SignalR не подключено (Текущее состояние: {State})", 
                     eventName, _hubConnection.State);
                 return;
             }
@@ -65,7 +62,7 @@ public class NotificationService(
             {
                 try
                 {
-                    logger.LogInformation("Получено событие: {EventName}", eventName);
+                    logger.LogDebug("Получено событие: {EventName}", eventName);
                     handler(data);
                 }
                 catch (Exception ex)
@@ -76,7 +73,7 @@ public class NotificationService(
                 return Task.CompletedTask;
             });
             
-            logger.LogInformation("Успешная подписка на событие: {EventName}", eventName);
+            logger.LogDebug("Успешная подписка на событие: {EventName}", eventName);
         }
         catch (Exception ex)
         {
@@ -103,7 +100,7 @@ public class NotificationService(
         try
         {
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-            if (_hubConnection != null && _hubConnection.State == HubConnectionState.Connected) 
+            if (_hubConnection is { State: HubConnectionState.Connected }) 
             {
                 await _hubConnection.InvokeAsync("Ping", cts.Token);
                 logger.LogDebug("Ping отправлен успешно");
@@ -131,7 +128,7 @@ public class NotificationService(
     {
         if (_isDisposed) return;
         
-        logger.LogInformation("Начало попытки подключения SignalR с политикой переподключения");
+        logger.LogDebug("Начало попытки подключения SignalR с политикой переподключения");
         
         await _reconnectionPolicy.ExecuteAsync(async () =>
         {
@@ -149,9 +146,9 @@ public class NotificationService(
 
             try
             {
-                logger.LogInformation("Попытка подключения к SignalR хабу: {HubUrl}", _hubUrl);
+                logger.LogDebug("Попытка подключения к SignalR хабу: {HubUrl}", _hubUrl);
                 await _hubConnection.StartAsync();
-                logger.LogInformation("SignalR соединение установлено успешно");
+                logger.LogDebug("SignalR соединение установлено успешно");
 
                 if (_pingTimer != null)
                 {
@@ -170,7 +167,7 @@ public class NotificationService(
                     }
                 }, null, pingInterval, pingInterval);
                 
-                logger.LogInformation("Таймер ping успешно настроен");
+                logger.LogDebug("Таймер ping успешно настроен");
             }
             catch (Exception ex)
             {
@@ -189,11 +186,11 @@ public class NotificationService(
         
         try
         {
-            logger.LogInformation("[{InstanceId}] Начало инициализации NotificationService", _instanceId);
+            logger.LogDebug("Начало инициализации NotificationService");
             
-            if (_hubConnection != null && _hubConnection.State == HubConnectionState.Connected)
+            if (_hubConnection is { State: HubConnectionState.Connected })
             {
-                logger.LogDebug("[{InstanceId}] SignalR соединение уже установлено", _instanceId);
+                logger.LogDebug("SignalR соединение уже установлено");
                 return;
             }
 
@@ -201,7 +198,7 @@ public class NotificationService(
 
             if (string.IsNullOrEmpty(token))
             {
-                logger.LogWarning("Токен не найден в localStorage");
+                logger.LogDebug("Токен не найден в localStorage");
                 return;
             }
 
@@ -214,7 +211,7 @@ public class NotificationService(
 
             var username = authState.User.FindFirst(ClaimTypes.Name)?.Value;
 
-            logger.LogInformation("Инициализация SignalR для пользователя: {Username}", username);
+            logger.LogDebug("Инициализация SignalR для пользователя: {Username}", username);
 
             if (_hubConnection != null)
             {
@@ -272,13 +269,13 @@ public class NotificationService(
 
             _hubConnection.Reconnecting += error =>
             {
-                logger.LogWarning("Попытка переподключения SignalR: {Error}", error?.Message);
+                logger.LogDebug("Попытка переподключения SignalR: {Error}", error?.Message);
                 return Task.CompletedTask;
             };
 
             _hubConnection.Reconnected += connectionId =>
             {
-                logger.LogInformation("SignalR успешно переподключен: {ConnectionId}", connectionId);
+                logger.LogDebug("SignalR успешно переподключен: {ConnectionId}", connectionId);
                 return Task.CompletedTask;
             };
 
@@ -307,7 +304,7 @@ public class NotificationService(
                         error.Message.Contains("message channel closed") ||
                         error.Message.Contains("A listener indicated an asynchronous response"))
                     {
-                        logger.LogWarning("Обнаружена ошибка chrome runtime, инициируем полное переподключение");
+                        logger.LogDebug("Обнаружена ошибка chrome runtime, инициируем полное переподключение");
                         
                         if (_hubConnection != null)
                         {
@@ -327,7 +324,7 @@ public class NotificationService(
 
             await StartConnectionWithRetryAsync();
             
-            logger.LogInformation("[{InstanceId}] Глобальное состояние инициализации SignalR установлено", _instanceId);
+            logger.LogDebug("Глобальное состояние инициализации SignalR установлено");
         }
         catch (Exception ex)
         {
@@ -346,7 +343,7 @@ public class NotificationService(
         try
         {
             _isDisposed = true;
-            logger.LogInformation("[{InstanceId}] Начало утилизации NotificationService", _instanceId);
+            logger.LogDebug("Начало утилизации NotificationService");
             
             Unsubscribe(SignalREvents.UserUpdated);
             Unsubscribe(SignalREvents.UserDeleted);
@@ -370,10 +367,10 @@ public class NotificationService(
                 await _hubConnection.DisposeAsync();
                 _hubConnection = null!;
                 
-                logger.LogInformation("[{InstanceId}] Глобальное состояние инициализации SignalR сброшено", _instanceId);
+                logger.LogDebug("Глобальное состояние инициализации SignalR сброшено");
             }
             
-            logger.LogInformation("[{InstanceId}] Соединение SignalR успешно закрыто", _instanceId);
+            logger.LogDebug("Соединение SignalR успешно закрыто");
         }
         catch (Exception ex)
         {

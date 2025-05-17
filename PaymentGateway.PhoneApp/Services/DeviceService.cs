@@ -13,7 +13,8 @@ public class DeviceService(
     ILogger<DeviceService> logger,
     JsonSerializerOptions jsonSerializerOptions,
     LiteContext context,
-    IDeviceInfoService deviceInfoService)
+    IDeviceInfoService deviceInfoService,
+    IAlertService alertService)
     : ServiceBase(clientFactory, logger, jsonSerializerOptions), IDeviceService
 {
     private const string apiEndpoint = "api/device";
@@ -42,7 +43,14 @@ public class DeviceService(
                         {
                             try
                             {
-                                await Toast.Make("test").Show();
+                                var confirm = await alertService.ShowConfirmationAsync(
+                                    "Привязка устройства",
+                                    "Вы уверены, что хотите привязать устройство?",
+                                    "Да", "Отмена");
+                                if (confirm)
+                                {
+                                    
+                                }
                             }
                             catch
                             {
