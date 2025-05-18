@@ -19,7 +19,7 @@ public class DeviceHub(ILogger<DeviceHub> logger) : Hub<IDeviceClientHub>
             var context = Context;
             var connectionId = Context.ConnectionId;
             
-            await Clients.Caller.GetDeviceInfoAsync();
+            await Clients.Caller.RequestDeviceRegistration();
             
             _ = Task.Delay(RegistrationTimeout).ContinueWith(_ =>
             {

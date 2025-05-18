@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using PaymentGateway.PhoneApp.Interfaces;
 using PaymentGateway.Shared.Services;
@@ -13,14 +14,18 @@ public class DeviceService(
     IDeviceInfoService infoService,
     LiteContext context) : BaseSignalRService(settings, logger)
 {
-    public Task<DeviceDto>? GetDeviceInfoAsync()
+    protected override async Task ConfigureHubConnectionAsync()
     {
-        if (HubConnection == null) return null;
+        await base.ConfigureHubConnectionAsync();
 
-        return Task.FromResult(new DeviceDto()
+        HubConnection?.On("RequestDeviceRegistration", async () =>
         {
-            Id = context.DeviceId,
-            DeviceData = infoService.GetDeviceData()
+            var deviceInfo = new DeviceDto()
+            {
+                Id = context.DeviceId,
+                DeviceData = infoService.GetDeviceData()
+            };
+            await HubConnection.InvokeAsync("RegisterDevice", deviceInfo);
         });
     }
 }
