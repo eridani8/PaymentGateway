@@ -10,6 +10,7 @@ using PaymentGateway.Shared.DTOs.User;
 using Polly;
 using Polly.Retry;
 using PaymentGateway.Shared.DTOs.Chat;
+using PaymentGateway.Shared.Services;
 using PaymentGateway.Shared.Types;
 
 namespace PaymentGateway.Web.Services;
@@ -17,179 +18,18 @@ namespace PaymentGateway.Web.Services;
 public class NotificationService(
     IOptions<ApiSettings> settings,
     IServiceProvider serviceProvider,
-    ILogger<NotificationService> logger) : IAsyncDisposable
+    ILogger<NotificationService> logger) : BaseSignalRService(settings, logger)
 {
-    private HubConnection? _hubConnection;
-    private readonly string _hubUrl = $"{settings.Value.BaseAddress}/notificationHub";
-    private Timer? _pingTimer;
-    private const int pingInterval = 10000;
-    private bool _isDisposed;
-
-    private readonly AsyncRetryPolicy _reconnectionPolicy = Policy
-        .Handle<Exception>()
-        .WaitAndRetryAsync(
-            20,
-            retryAttempt => TimeSpan.FromSeconds(Math.Min(30, Math.Pow(1.5, retryAttempt))),
-            (exception, timeSpan, retryCount, _) =>
-            {
-                logger.LogDebug(exception,
-                    "Попытка {RetryCount} подключения к SignalR не удалась. Следующая попытка через {RetryTimeSpan} секунд",
-                    retryCount, timeSpan.TotalSeconds);
-            }
-        );
-
-    private void Subscribe<T>(string eventName, Action<T> handler)
+    public override async Task InitializeAsync()
     {
-        try
-        {
-            logger.LogDebug("Подписка на событие: {EventName}", eventName);
-            
-            if (_hubConnection == null)
-            {
-                logger.LogDebug("Подписка на событие {EventName} не выполнена - соединение SignalR не инициализировано", eventName);
-                return;
-            }
-            
-            if (_hubConnection.State != HubConnectionState.Connected)
-            {
-                logger.LogDebug("Подписка на событие {EventName} не выполнена - соединение SignalR не подключено (Текущее состояние: {State})", 
-                    eventName, _hubConnection.State);
-                return;
-            }
-            
-            _hubConnection.Remove(eventName);
-
-            _hubConnection.On<T>(eventName, (data) =>
-            {
-                try
-                {
-                    logger.LogDebug("Получено событие: {EventName}", eventName);
-                    handler(data);
-                }
-                catch (Exception ex)
-                {
-                    logger.LogError(ex, "Ошибка при обработке события SignalR {EventName}", eventName);
-                }
-
-                return Task.CompletedTask;
-            });
-            
-            logger.LogDebug("Успешная подписка на событие: {EventName}", eventName);
-        }
-        catch (Exception ex)
-        {
-            logger.LogWarning(ex, "Не удалось подписаться на событие {EventName}", eventName);
-        }
-    }
-
-    private void Unsubscribe(string eventName)
-    {
-        try
-        {
-            _hubConnection?.Remove(eventName);
-        }
-        catch (Exception ex)
-        {
-            logger.LogWarning(ex, "Не удалось отписаться от события {EventName}", eventName);
-        }
-    }
-
-    private async Task SendPingAsync(object? state)
-    {
-        if (_isDisposed) return;
-        
-        try
-        {
-            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-            if (_hubConnection is { State: HubConnectionState.Connected }) 
-            {
-                await _hubConnection.InvokeAsync("Ping", cts.Token);
-                logger.LogDebug("Ping отправлен успешно");
-            }
-        }
-        catch (OperationCanceledException)
-        {
-            logger.LogDebug("Ping был отменен из-за таймаута");
-        }
-        catch (Exception ex)
-        {
-            if (ex.Message.Contains("Connection was stopped before invocation result was received") ||
-                ex.Message.Contains("Connection not active") ||
-                ex.Message.Contains("The connection was stopped during invocation"))
-            {
-                logger.LogDebug("Соединение было закрыто во время ping");
-                return;
-            }
-
-            logger.LogDebug(ex, "Ошибка отправки ping");
-        }
-    }
-
-    private async Task StartConnectionWithRetryAsync()
-    {
-        if (_isDisposed) return;
-        
-        logger.LogDebug("Начало попытки подключения SignalR с политикой переподключения");
-        
-        await _reconnectionPolicy.ExecuteAsync(async () =>
-        {
-            if (_hubConnection == null)
-            {
-                logger.LogError("Соединение с SignalR не инициализировано");
-                throw new InvalidOperationException("Соединение с SignalR не инициализировано");
-            }
-
-            if (_hubConnection.State == HubConnectionState.Connected)
-            {
-                logger.LogDebug("SignalR уже подключен");
-                return;
-            }
-
-            try
-            {
-                logger.LogDebug("Попытка подключения к SignalR хабу: {HubUrl}", _hubUrl);
-                await _hubConnection.StartAsync();
-                logger.LogDebug("SignalR соединение установлено успешно");
-
-                if (_pingTimer != null)
-                {
-                    await _pingTimer.DisposeAsync();
-                }
-
-                _pingTimer = new Timer(async void (_) =>
-                {
-                    try
-                    {
-                        await SendPingAsync(null);
-                    }
-                    catch (Exception e)
-                    {
-                        logger.LogError(e, "Ошибка при отправке ping");
-                    }
-                }, null, pingInterval, pingInterval);
-                
-                logger.LogDebug("Таймер ping успешно настроен");
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Ошибка при подключении SignalR");
-                throw;
-            }
-        });
-    }
-
-    public async Task InitializeAsync()
-    {
-        if (_isDisposed) return;
+        if (IsDisposed) return;
         
         using var scope = serviceProvider.CreateScope();
         var authStateProvider = scope.ServiceProvider.GetRequiredService<CustomAuthStateProvider>();
         
         try
         {
-            logger.LogDebug("Начало инициализации NotificationService");
-            
-            if (_hubConnection is { State: HubConnectionState.Connected })
+            if (HubConnection is { State: HubConnectionState.Connected })
             {
                 logger.LogDebug("SignalR соединение уже установлено");
                 return;
@@ -214,20 +54,20 @@ public class NotificationService(
 
             logger.LogDebug("Инициализация SignalR для пользователя: {Username}", username);
 
-            if (_hubConnection != null)
+            if (HubConnection != null)
             {
-                await _hubConnection.DisposeAsync();
+                await HubConnection.DisposeAsync();
             }
             
-            if (_pingTimer != null)
+            if (PingTimer != null)
             {
-                await _pingTimer.DisposeAsync();
+                await PingTimer.DisposeAsync();
             }
 
-            _pingTimer = null;
+            PingTimer = null;
 
-            _hubConnection = new HubConnectionBuilder()
-                .WithUrl(_hubUrl, options =>
+            HubConnection = new HubConnectionBuilder()
+                .WithUrl(HubUrl, options =>
                 {
                     options.AccessTokenProvider = async () => 
                     {
@@ -266,30 +106,30 @@ public class NotificationService(
                 })
                 .Build();
 
-            _hubConnection.On("KeepAlive", () => Task.CompletedTask);
+            HubConnection.On("KeepAlive", () => Task.CompletedTask);
 
-            _hubConnection.Reconnecting += error =>
+            HubConnection.Reconnecting += error =>
             {
                 logger.LogDebug("Попытка переподключения SignalR: {Error}", error?.Message);
                 return Task.CompletedTask;
             };
 
-            _hubConnection.Reconnected += connectionId =>
+            HubConnection.Reconnected += connectionId =>
             {
                 logger.LogDebug("SignalR успешно переподключен: {ConnectionId}", connectionId);
                 return Task.CompletedTask;
             };
 
-            _hubConnection.Closed += async (error) =>
+            HubConnection.Closed += async (error) =>
             {
-                if (_isDisposed) return;
+                if (IsDisposed) return;
                 
-                if (_pingTimer != null)
+                if (PingTimer != null)
                 {
-                    await _pingTimer.DisposeAsync();
+                    await PingTimer.DisposeAsync();
                 }
 
-                _pingTimer = null;
+                PingTimer = null;
 
                 if (error != null)
                 {
@@ -307,10 +147,10 @@ public class NotificationService(
                     {
                         logger.LogDebug("Обнаружена ошибка chrome runtime, инициируем полное переподключение");
                         
-                        if (_hubConnection != null)
+                        if (HubConnection != null)
                         {
-                            await _hubConnection.DisposeAsync();
-                            _hubConnection = null;
+                            await HubConnection.DisposeAsync();
+                            HubConnection = null;
                         }
                         
                         await Task.Delay(1000);
@@ -336,73 +176,49 @@ public class NotificationService(
             }
         }
     }
-    
-    public async ValueTask DisposeAsync()
+
+    public override ValueTask DisposeAsync()
     {
-        if (_isDisposed) return;
+        if (IsDisposed) return ValueTask.CompletedTask;
         
-        try
-        {
-            _isDisposed = true;
-            logger.LogDebug("Начало утилизации NotificationService");
-            
-            Unsubscribe(SignalREvents.UserUpdated);
-            Unsubscribe(SignalREvents.UserDeleted);
-            Unsubscribe(SignalREvents.RequisiteUpdated);
-            Unsubscribe(SignalREvents.RequisiteDeleted);
-            Unsubscribe(SignalREvents.PaymentUpdated);
-            Unsubscribe(SignalREvents.PaymentDeleted);
-            Unsubscribe(SignalREvents.ChatMessageReceived);
-            Unsubscribe(SignalREvents.UserConnected);
-            Unsubscribe(SignalREvents.UserDisconnected);
-            Unsubscribe(SignalREvents.ChangeRequisiteAssignmentAlgorithm);
-            
-            if (_pingTimer != null)
-            {
-                await _pingTimer.DisposeAsync();
-                _pingTimer = null;
-            }
-            
-            if (_hubConnection != null)
-            {
-                await _hubConnection.DisposeAsync();
-                _hubConnection = null!;
-                
-                logger.LogDebug("Глобальное состояние инициализации SignalR сброшено");
-            }
-            
-            logger.LogDebug("Соединение SignalR успешно закрыто");
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Ошибка при утилизации SignalR соединения");
-        }
+        Unsubscribe(SignalREvents.Web.UserUpdated);
+        Unsubscribe(SignalREvents.Web.UserDeleted);
+        Unsubscribe(SignalREvents.Web.RequisiteUpdated);
+        Unsubscribe(SignalREvents.Web.RequisiteDeleted);
+        Unsubscribe(SignalREvents.Web.PaymentUpdated);
+        Unsubscribe(SignalREvents.Web.PaymentDeleted);
+        Unsubscribe(SignalREvents.Web.ChatMessageReceived);
+        Unsubscribe(SignalREvents.Web.UserConnected);
+        Unsubscribe(SignalREvents.Web.UserDisconnected);
+        Unsubscribe(SignalREvents.Web.ChangeRequisiteAssignmentAlgorithm);
+        
+        return base.DisposeAsync();
     }
-    
+
     #region User
 
     public void SubscribeToUserUpdates(Action<UserDto> handler)
     {
         logger.LogInformation("Подписка на обновления пользователей");
-        Subscribe(SignalREvents.UserUpdated, handler);
+        Subscribe(SignalREvents.Web.UserUpdated, handler);
     }
     
     public void UnsubscribeFromUserUpdates()
     {
         logger.LogInformation("Отписка от обновлений пользователей");
-        Unsubscribe(SignalREvents.UserUpdated);
+        Unsubscribe(SignalREvents.Web.UserUpdated);
     }
 
     public void SubscribeToUserDeletions(Action<Guid> handler)
     {
         logger.LogInformation("Подписка на удаление пользователей");
-        Subscribe(SignalREvents.UserDeleted, handler);
+        Subscribe(SignalREvents.Web.UserDeleted, handler);
     }
     
     public void UnsubscribeFromUserDeletions()
     {
         logger.LogInformation("Отписка от удаления пользователей");
-        Unsubscribe(SignalREvents.UserDeleted);
+        Unsubscribe(SignalREvents.Web.UserDeleted);
     }
 
     #endregion
@@ -411,12 +227,12 @@ public class NotificationService(
 
     public void SubscribeToTransactionUpdates(Action<TransactionDto> handler)
     {
-        Subscribe(SignalREvents.TransactionUpdated, handler);
+        Subscribe(SignalREvents.Web.TransactionUpdated, handler);
     }
 
     public void UnsubscribeFromTransactionUpdates()
     {
-        Unsubscribe(SignalREvents.TransactionUpdated);
+        Unsubscribe(SignalREvents.Web.TransactionUpdated);
     }
 
     #endregion
@@ -425,22 +241,22 @@ public class NotificationService(
 
     public void SubscribeToPaymentUpdates(Action<PaymentDto> handler)
     {
-        Subscribe(SignalREvents.PaymentUpdated, handler);
+        Subscribe(SignalREvents.Web.PaymentUpdated, handler);
     }
 
     public void UnsubscribeFromPaymentUpdates()
     {
-        Unsubscribe(SignalREvents.PaymentUpdated);
+        Unsubscribe(SignalREvents.Web.PaymentUpdated);
     }
 
     public void SubscribeToPaymentDeletions(Action<Guid> handler)
     {
-        Subscribe(SignalREvents.PaymentDeleted, handler);
+        Subscribe(SignalREvents.Web.PaymentDeleted, handler);
     }
 
     public void UnsubscribeFromPaymentDeletions()
     {
-        Unsubscribe(SignalREvents.PaymentDeleted);
+        Unsubscribe(SignalREvents.Web.PaymentDeleted);
     }
 
     #endregion
@@ -449,32 +265,32 @@ public class NotificationService(
 
     public void SubscribeToRequisiteUpdates(Action<RequisiteDto> handler)
     {
-        Subscribe(SignalREvents.RequisiteUpdated, handler);
+        Subscribe(SignalREvents.Web.RequisiteUpdated, handler);
     }
     
     public void UnsubscribeFromRequisiteUpdates()
     {
-        Unsubscribe(SignalREvents.RequisiteUpdated);
+        Unsubscribe(SignalREvents.Web.RequisiteUpdated);
     }
 
     public void SubscribeToRequisiteDeletions(Action<Guid> handler)
     {
-        Subscribe(SignalREvents.RequisiteDeleted, handler);
+        Subscribe(SignalREvents.Web.RequisiteDeleted, handler);
     }
     
     public void UnsubscribeFromRequisiteDeletions()
     {
-        Unsubscribe(SignalREvents.RequisiteDeleted);
+        Unsubscribe(SignalREvents.Web.RequisiteDeleted);
     }
 
     public void SubscribeToChangeRequisiteAssignmentAlgorithm(Action<int> handler)
     {
-        Subscribe(SignalREvents.ChangeRequisiteAssignmentAlgorithm, handler);
+        Subscribe(SignalREvents.Web.ChangeRequisiteAssignmentAlgorithm, handler);
     }
 
     public void UnsubscribeFromChangeRequisiteAssignmentAlgorithm()
     {
-        Unsubscribe(SignalREvents.ChangeRequisiteAssignmentAlgorithm);
+        Unsubscribe(SignalREvents.Web.ChangeRequisiteAssignmentAlgorithm);
     }
 
     #endregion
@@ -485,7 +301,7 @@ public class NotificationService(
     {
         try
         {
-            return await _hubConnection!.InvokeAsync<List<UserState>>(SignalREvents.GetAllUsers);
+            return await HubConnection!.InvokeAsync<List<UserState>>(SignalREvents.Web.GetAllUsers);
         }
         catch (Exception e)
         {
@@ -496,39 +312,39 @@ public class NotificationService(
 
     public void SubscribeToUserConnected(Action<UserState> handler)
     {
-        Subscribe(SignalREvents.UserConnected, handler);
+        Subscribe(SignalREvents.Web.UserConnected, handler);
     }
 
     public void UnsubscribeFromUserConnected()
     {
-        Unsubscribe(SignalREvents.UserConnected);
+        Unsubscribe(SignalREvents.Web.UserConnected);
     }
 
     public void SubscribeToUserDisconnected(Action<UserState> handler)
     {
-        Subscribe(SignalREvents.UserDisconnected, handler);
+        Subscribe(SignalREvents.Web.UserDisconnected, handler);
     }
 
     public void UnsubscribeFromUserDisconnected()
     {
-        Unsubscribe(SignalREvents.UserDisconnected);
+        Unsubscribe(SignalREvents.Web.UserDisconnected);
     }
     
     public void SubscribeToChatMessages(Action<ChatMessageDto> handler)
     {
-        Subscribe(SignalREvents.ChatMessageReceived, handler);
+        Subscribe(SignalREvents.Web.ChatMessageReceived, handler);
     }
 
     public void UnsubscribeFromChatMessages()
     {
-        Unsubscribe(SignalREvents.ChatMessageReceived);
+        Unsubscribe(SignalREvents.Web.ChatMessageReceived);
     }
     
     public async Task SendChatMessage(string message)
     {
         try
         {
-            await _hubConnection!.InvokeAsync(SignalREvents.SendChatMessage, message);
+            await HubConnection!.InvokeAsync(SignalREvents.Web.SendChatMessage, message);
         }
         catch (Exception ex)
         {
@@ -540,7 +356,7 @@ public class NotificationService(
     {
         try
         {
-            return await _hubConnection!.InvokeAsync<List<ChatMessageDto>>(SignalREvents.GetChatMessages);
+            return await HubConnection!.InvokeAsync<List<ChatMessageDto>>(SignalREvents.Web.GetChatMessages);
         }
         catch (Exception e)
         {

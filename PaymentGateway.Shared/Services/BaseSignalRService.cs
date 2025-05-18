@@ -1,49 +1,64 @@
+﻿using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.SignalR.Client;
-using Microsoft.Extensions.Logging;
-using System.Text.Json.Serialization;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using PaymentGateway.Shared.Types;
+using Polly;
+using Polly.Retry;
 
 namespace PaymentGateway.Shared.Services;
 
-public abstract class BaseSignalRService(string hubUrl, ILogger logger) : IAsyncDisposable
+public class BaseSignalRService(
+    IOptions<ApiSettings> settings,
+    ILogger<BaseSignalRService> logger) : IAsyncDisposable
 {
-    private HubConnection? _hubConnection;
-    private Timer? _pingTimer;
+    protected HubConnection? HubConnection;
+    protected readonly string HubUrl = $"{settings.Value.BaseAddress}/{settings.Value.HubName}";
+    protected Timer? PingTimer;
     private const int pingInterval = 10000;
-    private bool _isDisposed;
+    protected bool IsDisposed;
 
-    protected virtual async Task InitializeConnectionAsync(string? token = null)
+    private readonly AsyncRetryPolicy _reconnectionPolicy = Policy
+        .Handle<Exception>()
+        .WaitAndRetryAsync(
+            99,
+            retryAttempt => TimeSpan.FromSeconds(Math.Min(30, Math.Pow(1.5, retryAttempt))),
+            (exception, timeSpan, retryCount, _) =>
+            {
+                logger.LogDebug(exception,
+                    "Попытка {RetryCount} подключения к SignalR не удалась. Следующая попытка через {RetryTimeSpan} секунд",
+                    retryCount, timeSpan.TotalSeconds);
+            }
+        );
+    
+    public virtual async Task InitializeAsync()
     {
-        if (_isDisposed) return;
-
+        if (IsDisposed) return;
+        
         try
         {
-            if (_hubConnection is { State: HubConnectionState.Connected })
+            if (HubConnection is { State: HubConnectionState.Connected })
             {
                 logger.LogDebug("SignalR соединение уже установлено");
                 return;
             }
 
-            if (_hubConnection != null)
+            if (HubConnection != null)
             {
-                await _hubConnection.DisposeAsync();
+                await HubConnection.DisposeAsync();
+            }
+            
+            if (PingTimer != null)
+            {
+                await PingTimer.DisposeAsync();
             }
 
-            if (_pingTimer != null)
-            {
-                await _pingTimer.DisposeAsync();
-            }
+            PingTimer = null;
 
-            _pingTimer = null;
-
-            _hubConnection = new HubConnectionBuilder()
-                .WithUrl(hubUrl, options =>
+            HubConnection = new HubConnectionBuilder()
+                .WithUrl(HubUrl, options =>
                 {
-                    if (!string.IsNullOrEmpty(token))
-                    {
-                        options.AccessTokenProvider = () => Task.FromResult(token);
-                    }
-                    
                     options.CloseTimeout = TimeSpan.FromMinutes(1);
                     options.SkipNegotiation = false;
                     options.Transports = Microsoft.AspNetCore.Http.Connections.HttpTransportType.WebSockets;
@@ -67,35 +82,52 @@ public abstract class BaseSignalRService(string hubUrl, ILogger logger) : IAsync
                 })
                 .Build();
 
-            _hubConnection.On("KeepAlive", () => Task.CompletedTask);
+            HubConnection.On("KeepAlive", () => Task.CompletedTask);
 
-            _hubConnection.Reconnecting += error =>
+            HubConnection.Reconnecting += error =>
             {
                 logger.LogDebug("Попытка переподключения SignalR: {Error}", error?.Message);
                 return Task.CompletedTask;
             };
 
-            _hubConnection.Reconnected += connectionId =>
+            HubConnection.Reconnected += connectionId =>
             {
                 logger.LogDebug("SignalR успешно переподключен: {ConnectionId}", connectionId);
                 return Task.CompletedTask;
             };
 
-            _hubConnection.Closed += async (error) =>
+            HubConnection.Closed += async (error) =>
             {
-                if (_isDisposed) return;
-
-                if (_pingTimer != null)
+                if (IsDisposed) return;
+                
+                if (PingTimer != null)
                 {
-                    await _pingTimer.DisposeAsync();
+                    await PingTimer.DisposeAsync();
                 }
 
-                _pingTimer = null;
+                PingTimer = null;
 
                 if (error != null)
                 {
                     logger.LogWarning("Соединение с SignalR закрыто с ошибкой: {Error}", error.Message);
-                    await HandleConnectionError(error);
+
+                    if (error.Message.Contains("runtime.lastError") ||
+                        error.Message.Contains("message channel closed") ||
+                        error.Message.Contains("A listener indicated an asynchronous response"))
+                    {
+                        logger.LogDebug("Обнаружена ошибка chrome runtime, инициируем полное переподключение");
+                        
+                        if (HubConnection != null)
+                        {
+                            await HubConnection.DisposeAsync();
+                            HubConnection = null;
+                        }
+                        
+                        await Task.Delay(1000);
+                        
+                        await InitializeAsync();
+                        return;
+                    }
                 }
 
                 await StartConnectionWithRetryAsync();
@@ -106,72 +138,72 @@ public abstract class BaseSignalRService(string hubUrl, ILogger logger) : IAsync
         catch (Exception ex)
         {
             logger.LogError(ex, "Ошибка при инициализации SignalR соединения");
-            await HandleInitializationError(ex);
         }
     }
-
-    protected virtual async Task HandleConnectionError(Exception error)
+    
+    protected async Task StartConnectionWithRetryAsync()
     {
-        await Task.CompletedTask;
-    }
-
-    protected virtual async Task HandleInitializationError(Exception error)
-    {
-        await Task.CompletedTask;
-    }
-
-    protected virtual async Task StartConnectionWithRetryAsync()
-    {
-        if (_isDisposed) return;
-
-        try
+        if (IsDisposed) return;
+        
+        logger.LogDebug("Начало попытки подключения SignalR с политикой переподключения");
+        
+        await _reconnectionPolicy.ExecuteAsync(async () =>
         {
-            if (_hubConnection == null)
+            if (HubConnection == null)
             {
+                logger.LogError("Соединение с SignalR не инициализировано");
                 throw new InvalidOperationException("Соединение с SignalR не инициализировано");
             }
 
-            if (_hubConnection.State == HubConnectionState.Connected)
+            if (HubConnection.State == HubConnectionState.Connected)
             {
+                logger.LogDebug("SignalR уже подключен");
                 return;
             }
 
-            await _hubConnection.StartAsync();
-
-            if (_pingTimer != null)
+            try
             {
-                await _pingTimer.DisposeAsync();
+                logger.LogDebug("Попытка подключения к SignalR хабу: {HubUrl}", HubUrl);
+                await HubConnection.StartAsync();
+                logger.LogDebug("SignalR соединение установлено успешно");
+
+                if (PingTimer != null)
+                {
+                    await PingTimer.DisposeAsync();
+                }
+
+                PingTimer = new Timer(async void (_) =>
+                {
+                    try
+                    {
+                        await SendPingAsync(null);
+                    }
+                    catch (Exception e)
+                    {
+                        logger.LogError(e, "Ошибка при отправке ping");
+                    }
+                }, null, pingInterval, pingInterval);
+                
+                logger.LogDebug("Таймер ping успешно настроен");
             }
-
-            _pingTimer = new Timer(async void (_) =>
+            catch (Exception ex)
             {
-                try
-                {
-                    await SendPingAsync();
-                }
-                catch (Exception e)
-                {
-                    logger.LogError(e, "Ошибка при отправке ping");
-                }
-            }, null, pingInterval, pingInterval);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Ошибка при подключении SignalR");
-            throw;
-        }
+                logger.LogError(ex, "Ошибка при подключении SignalR");
+                throw;
+            }
+        });
     }
-
-    protected virtual async Task SendPingAsync()
+    
+    protected async Task SendPingAsync(object? state)
     {
-        if (_isDisposed) return;
-
+        if (IsDisposed) return;
+        
         try
         {
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-            if (_hubConnection is { State: HubConnectionState.Connected })
+            if (HubConnection is { State: HubConnectionState.Connected }) 
             {
-                await _hubConnection.InvokeAsync("Ping", cts.Token);
+                await HubConnection.InvokeAsync("Ping", cts.Token);
                 logger.LogDebug("Ping отправлен успешно");
             }
         }
@@ -197,18 +229,28 @@ public abstract class BaseSignalRService(string hubUrl, ILogger logger) : IAsync
     {
         try
         {
-            if (_hubConnection == null || _hubConnection.State != HubConnectionState.Connected)
+            logger.LogDebug("Подписка на событие: {EventName}", eventName);
+            
+            if (HubConnection == null)
             {
-                logger.LogDebug("Подписка на событие {EventName} не выполнена - соединение не активно", eventName);
+                logger.LogDebug("Подписка на событие {EventName} не выполнена - соединение SignalR не инициализировано", eventName);
                 return;
             }
+            
+            if (HubConnection.State != HubConnectionState.Connected)
+            {
+                logger.LogDebug("Подписка на событие {EventName} не выполнена - соединение SignalR не подключено (Текущее состояние: {State})", 
+                    eventName, HubConnection.State);
+                return;
+            }
+            
+            HubConnection.Remove(eventName);
 
-            _hubConnection.Remove(eventName);
-
-            _hubConnection.On<T>(eventName, data =>
+            HubConnection.On<T>(eventName, (data) =>
             {
                 try
                 {
+                    logger.LogDebug("Получено событие: {EventName}", eventName);
                     handler(data);
                 }
                 catch (Exception ex)
@@ -218,48 +260,54 @@ public abstract class BaseSignalRService(string hubUrl, ILogger logger) : IAsync
 
                 return Task.CompletedTask;
             });
+            
+            logger.LogDebug("Успешная подписка на событие: {EventName}", eventName);
         }
         catch (Exception ex)
         {
             logger.LogWarning(ex, "Не удалось подписаться на событие {EventName}", eventName);
         }
     }
-
+    
     protected void Unsubscribe(string eventName)
     {
         try
         {
-            _hubConnection?.Remove(eventName);
+            HubConnection?.Remove(eventName);
         }
         catch (Exception ex)
         {
             logger.LogWarning(ex, "Не удалось отписаться от события {EventName}", eventName);
         }
     }
-
+    
     public virtual async ValueTask DisposeAsync()
     {
-        if (_isDisposed) return;
-
+        if (IsDisposed) return;
+        
         try
         {
-            _isDisposed = true;
-
-            if (_pingTimer != null)
+            if (PingTimer != null)
             {
-                await _pingTimer.DisposeAsync();
-                _pingTimer = null;
+                await PingTimer.DisposeAsync();
+                PingTimer = null;
             }
-
-            if (_hubConnection != null)
+            
+            if (HubConnection != null)
             {
-                await _hubConnection.DisposeAsync();
-                _hubConnection = null;
+                await HubConnection.DisposeAsync();
+                HubConnection = null!;
+                
+                logger.LogDebug("Глобальное состояние инициализации SignalR сброшено");
             }
+            
+            IsDisposed = true;
+            
+            logger.LogDebug("Соединение SignalR успешно закрыто");
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Ошибка при утилизации SignalR соединения");
         }
     }
-} 
+}
