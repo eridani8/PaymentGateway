@@ -21,8 +21,7 @@ public static class SignalRConfiguration
         {
             options.PayloadSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
             options.PayloadSerializerOptions.PropertyNameCaseInsensitive = true;
-        })
-        .AddMessagePackProtocol();
+        });
         
         builder.Services.AddScoped<INotificationService, NotificationService>();
     }

@@ -13,28 +13,29 @@ public class DeviceHub(ILogger<DeviceHub> logger) : Hub<IDeviceClientHub>
 
     public override async Task OnConnectedAsync()
     {
+        
         try
         {
             await base.OnConnectedAsync();
-            
+            var context = Context;
+            var connectionId = Context.ConnectionId;
             _ = Task.Delay(RegistrationTimeout).ContinueWith(_ =>
             {
-                if (ConnectedDevices.ContainsKey(Context.ConnectionId)) return;
+                if (ConnectedDevices.ContainsKey(connectionId)) return;
                 logger.LogWarning("Устройство не зарегистрировалось в течение {Timeout} секунд. Отключение клиента: {ConnectionId}", 
-                    RegistrationTimeout.TotalSeconds, Context.ConnectionId);
-                Context.Abort();
+                    RegistrationTimeout.TotalSeconds, connectionId);
+                context.Abort();
             });
         }
         catch (Exception e)
         {
-            logger.LogError(e, "Ошибка при подключении устройства: {ConnectionId}", Context.ConnectionId);
-            Context.Abort();
+            logger.LogError(e, "Ошибка при подключении устройства");
         }
     }
 
     public Task RegisterDevice(DeviceDto? device)
     {
-        if (device == null)
+        if (device == null || string.IsNullOrEmpty(device.DeviceData) || device.Id == Guid.Empty)
         {
             logger.LogWarning("Устройство не предоставило информацию о себе. Отключение клиента: {ConnectionId}", Context.ConnectionId);
             Context.Abort();

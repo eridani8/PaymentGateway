@@ -75,14 +75,15 @@ try
     app.UseCors("AllowAll"); // TODO
     
     // app.UseHttpsRedirection(); // TODO
-    app.UseAuthentication();
-    app.UseAuthorization();
-    app.UseExceptionHandler();
-
+    
     app.UseWebSockets(new WebSocketOptions
     {
         KeepAliveInterval = TimeSpan.FromSeconds(10)
     });
+
+    app.UseAuthentication();
+    app.UseAuthorization();
+    app.UseExceptionHandler();
 
     app.MapHub<NotificationHub>("/notificationHub");
     app.MapHub<DeviceHub>("/deviceHub");
