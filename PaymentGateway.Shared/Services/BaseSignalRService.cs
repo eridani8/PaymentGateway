@@ -54,7 +54,9 @@ public class BaseSignalRService(
                 {
                     options.CloseTimeout = TimeSpan.FromMinutes(1);
                     options.SkipNegotiation = false;
-                    options.Transports = Microsoft.AspNetCore.Http.Connections.HttpTransportType.WebSockets;
+                    options.Transports = Microsoft.AspNetCore.Http.Connections.HttpTransportType.WebSockets | 
+                                       Microsoft.AspNetCore.Http.Connections.HttpTransportType.ServerSentEvents |
+                                       Microsoft.AspNetCore.Http.Connections.HttpTransportType.LongPolling;
                 })
                 .WithAutomaticReconnect([
                     TimeSpan.FromSeconds(0),

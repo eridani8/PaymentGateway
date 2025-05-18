@@ -79,6 +79,11 @@ try
     app.UseAuthorization();
     app.UseExceptionHandler();
 
+    app.UseWebSockets(new WebSocketOptions
+    {
+        KeepAliveInterval = TimeSpan.FromMinutes(10)
+    });
+
     app.MapHub<NotificationHub>("/notificationHub");
     app.MapHub<DeviceHub>("/deviceHub");
 
