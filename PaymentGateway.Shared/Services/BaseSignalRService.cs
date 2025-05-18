@@ -24,7 +24,7 @@ public class BaseSignalRService(
         .Handle<Exception>()
         .WaitAndRetryAsync(
             99,
-            retryAttempt => TimeSpan.FromSeconds(Math.Min(30, Math.Pow(1.5, retryAttempt))),
+            retryAttempt => TimeSpan.FromSeconds(Math.Min(5, Math.Pow(1.2, retryAttempt))),
             (exception, timeSpan, retryCount, _) =>
             {
                 logger.LogDebug(exception,
@@ -53,21 +53,28 @@ public class BaseSignalRService(
             HubConnection = new HubConnectionBuilder()
                 .WithUrl(HubUrl, options =>
                 {
-                    options.CloseTimeout = TimeSpan.FromMinutes(1);
+                    options.CloseTimeout = TimeSpan.FromMinutes(2);
                     options.SkipNegotiation = false;
                     options.Transports = HttpTransportType.WebSockets | HttpTransportType.ServerSentEvents | HttpTransportType.LongPolling;
+                    options.Headers = new Dictionary<string, string>
+                    {
+                        { "Connection", "keep-alive" }
+                    };
                 })
-                .WithAutomaticReconnect([
-                    TimeSpan.FromSeconds(0),
+                .WithAutomaticReconnect(new[]
+                {
+                    TimeSpan.Zero,
+                    TimeSpan.FromSeconds(1),
                     TimeSpan.FromSeconds(2),
                     TimeSpan.FromSeconds(5),
                     TimeSpan.FromSeconds(10),
                     TimeSpan.FromSeconds(15),
                     TimeSpan.FromSeconds(30),
-                    TimeSpan.FromMinutes(1)
-                ])
-                .WithKeepAliveInterval(TimeSpan.FromSeconds(10))
-                .WithServerTimeout(TimeSpan.FromMinutes(60))
+                    TimeSpan.FromMinutes(1),
+                    TimeSpan.FromMinutes(2)
+                })
+                .WithKeepAliveInterval(TimeSpan.FromSeconds(30))
+                .WithServerTimeout(TimeSpan.FromMinutes(2))
                 .WithStatefulReconnect()
                 .AddJsonProtocol(options =>
                 {
