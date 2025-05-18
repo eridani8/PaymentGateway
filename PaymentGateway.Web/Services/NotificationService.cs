@@ -20,6 +20,22 @@ public class NotificationService(
     IServiceProvider serviceProvider,
     ILogger<NotificationService> logger) : BaseSignalRService(settings, logger)
 {
+    protected override Func<Task<string?>> AccessTokenProvider => async () => 
+    {
+        using var scope = serviceProvider.CreateScope();
+        var authStateProvider = scope.ServiceProvider.GetRequiredService<CustomAuthStateProvider>();
+        var currentToken = await authStateProvider.GetTokenFromLocalStorageAsync();
+        
+        if (string.IsNullOrEmpty(currentToken))
+        {
+            logger.LogWarning("Токен отсутствует при запросе AccessTokenProvider");
+            await authStateProvider.MarkUserAsLoggedOut();
+            throw new InvalidOperationException("Токен не найден");
+        }
+        
+        return currentToken;
+    };
+
     public override async Task InitializeAsync()
     {
         if (IsDisposed) return;
@@ -29,12 +45,6 @@ public class NotificationService(
         
         try
         {
-            if (HubConnection is { State: HubConnectionState.Connected })
-            {
-                logger.LogDebug("SignalR соединение уже установлено");
-                return;
-            }
-
             var token = await authStateProvider.GetTokenFromLocalStorageAsync();
 
             if (string.IsNullOrEmpty(token))
@@ -51,109 +61,9 @@ public class NotificationService(
             }
 
             var username = authState.User.FindFirst(ClaimTypes.Name)?.Value;
-
             logger.LogDebug("Инициализация SignalR для пользователя: {Username}", username);
 
-            if (HubConnection != null)
-            {
-                await HubConnection.DisposeAsync();
-            }
-
-            HubConnection = new HubConnectionBuilder()
-                .WithUrl(HubUrl, options =>
-                {
-                    options.AccessTokenProvider = async () => 
-                    {
-                        var currentToken = await authStateProvider.GetTokenFromLocalStorageAsync();
-                        
-                        if (string.IsNullOrEmpty(currentToken))
-                        {
-                            logger.LogWarning("Токен отсутствует при запросе AccessTokenProvider");
-                            await authStateProvider.MarkUserAsLoggedOut();
-                            throw new InvalidOperationException("Токен не найден");
-                        }
-                        
-                        return currentToken;
-                    };
-                    
-                    options.CloseTimeout = TimeSpan.FromMinutes(1);
-                    options.SkipNegotiation = false;
-                    options.Transports = Microsoft.AspNetCore.Http.Connections.HttpTransportType.WebSockets | 
-                                       Microsoft.AspNetCore.Http.Connections.HttpTransportType.ServerSentEvents |
-                                       Microsoft.AspNetCore.Http.Connections.HttpTransportType.LongPolling;
-                })
-                .WithAutomaticReconnect([
-                    TimeSpan.FromSeconds(0),
-                    TimeSpan.FromSeconds(2),
-                    TimeSpan.FromSeconds(5),
-                    TimeSpan.FromSeconds(10),
-                    TimeSpan.FromSeconds(20),
-                    TimeSpan.FromSeconds(30)
-                ])
-                .WithKeepAliveInterval(TimeSpan.FromSeconds(10))
-                .WithServerTimeout(TimeSpan.FromSeconds(30))
-                .WithStatefulReconnect()
-                .AddJsonProtocol(options =>
-                {
-                    options.PayloadSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
-                    options.PayloadSerializerOptions.PropertyNameCaseInsensitive = true;
-                })
-                .Build();
-
-            HubConnection.Reconnecting += error =>
-            {
-                logger.LogDebug("Попытка переподключения SignalR: {Error}", error?.Message);
-                return Task.CompletedTask;
-            };
-
-            HubConnection.Reconnected += connectionId =>
-            {
-                logger.LogDebug("SignalR успешно переподключен: {ConnectionId}", connectionId);
-                StartPingTimer();
-                return Task.CompletedTask;
-            };
-
-            HubConnection.Closed += async (error) =>
-            {
-                StopPingTimer();
-                if (IsDisposed) return;
-
-                if (error != null)
-                {
-                    logger.LogWarning("Соединение с SignalR закрыто с ошибкой: {Error}", error.Message);
-
-                    if (error.Message.Contains("Unauthorized") || error.Message.Contains("401"))
-                    {
-                        await authStateProvider.MarkUserAsLoggedOut();
-                        return;
-                    }
-
-                    if (error.Message.Contains("runtime.lastError") ||
-                        error.Message.Contains("message channel closed") ||
-                        error.Message.Contains("A listener indicated an asynchronous response"))
-                    {
-                        logger.LogDebug("Обнаружена ошибка chrome runtime, инициируем полное переподключение");
-                        
-                        if (HubConnection != null)
-                        {
-                            await HubConnection.DisposeAsync();
-                            HubConnection = null;
-                        }
-                        
-                        await Task.Delay(1000);
-                        
-                        await InitializeAsync();
-                        return;
-                    }
-                }
-
-                await StartConnectionWithRetryAsync();
-            };
-
-            await StartConnectionWithRetryAsync();
-            StartPingTimer();
-            
-            logger.LogDebug("Глобальное состояние инициализации SignalR установлено");
+            await base.InitializeAsync();
         }
         catch (Exception ex)
         {
@@ -355,5 +265,4 @@ public class NotificationService(
     }
 
     #endregion
-    
 }

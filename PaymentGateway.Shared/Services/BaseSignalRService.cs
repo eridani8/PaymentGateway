@@ -17,11 +17,40 @@ public class BaseSignalRService(
     public bool IsConnected => HubConnection is { State: HubConnectionState.Connected };
     
     protected HubConnection? HubConnection;
-    protected readonly string HubUrl = $"{settings.Value.BaseAddress}/{settings.Value.HubName}";
+    private readonly string _hubUrl = $"{settings.Value.BaseAddress}/{settings.Value.HubName}";
     protected bool IsDisposed;
 
     private Timer? _pingTimer;
     private const int pingIntervalSeconds = 5;
+
+    private static TimeSpan CloseTimeout => TimeSpan.FromMinutes(1);
+    private static TimeSpan KeepAliveInterval => TimeSpan.FromSeconds(10);
+    private static TimeSpan ServerTimeout => TimeSpan.FromSeconds(30);
+    private static HttpTransportType TransportTypes => HttpTransportType.WebSockets | HttpTransportType.ServerSentEvents | HttpTransportType.LongPolling;
+    private static bool SkipNegotiation => false;
+    protected virtual Func<Task<string?>>? AccessTokenProvider => null;
+    private static Dictionary<string, string>? AdditionalHeaders => new() { { "Connection", "keep-alive" } };
+
+    private static TimeSpan[] ReconnectionDelays =>
+    [
+        TimeSpan.Zero,
+        TimeSpan.FromSeconds(1),
+        TimeSpan.FromSeconds(2),
+        TimeSpan.FromSeconds(5),
+        TimeSpan.FromSeconds(10),
+        TimeSpan.FromSeconds(15),
+        TimeSpan.FromSeconds(30),
+        TimeSpan.FromMinutes(1),
+        TimeSpan.FromMinutes(2),
+        TimeSpan.FromMinutes(3),
+        TimeSpan.FromMinutes(4),
+        TimeSpan.FromMinutes(5),
+        TimeSpan.FromMinutes(6),
+        TimeSpan.FromMinutes(7),
+        TimeSpan.FromMinutes(8),
+        TimeSpan.FromMinutes(9),
+        TimeSpan.FromMinutes(10),
+    ];
 
     private readonly AsyncRetryPolicy _reconnectionPolicy = Policy
         .Handle<Exception>()
@@ -45,6 +74,95 @@ public class BaseSignalRService(
             }
         );
 
+    protected virtual async Task ConfigureHubConnectionAsync()
+    {
+        if (HubConnection != null)
+        {
+            await HubConnection.DisposeAsync();
+        }
+            
+        HubConnection = new HubConnectionBuilder()
+            .WithUrl(_hubUrl, options =>
+            {
+                options.CloseTimeout = CloseTimeout;
+                options.SkipNegotiation = SkipNegotiation;
+                options.Transports = TransportTypes;
+                
+                if (AdditionalHeaders != null)
+                {
+                    foreach (var header in AdditionalHeaders)
+                    {
+                        options.Headers[header.Key] = header.Value;
+                    }
+                }
+
+                if (AccessTokenProvider != null)
+                {
+                    options.AccessTokenProvider = AccessTokenProvider;
+                }
+            })
+            .WithAutomaticReconnect(ReconnectionDelays)
+            .WithKeepAliveInterval(KeepAliveInterval)
+            .WithServerTimeout(ServerTimeout)
+            .WithStatefulReconnect()
+            .AddJsonProtocol(options =>
+            {
+                options.PayloadSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
+                options.PayloadSerializerOptions.PropertyNameCaseInsensitive = true;
+            })
+            .Build();
+
+        ConfigureHubEvents();
+    }
+
+    private void ConfigureHubEvents()
+    {
+        HubConnection!.Reconnecting += error =>
+        {
+            logger.LogDebug("Попытка переподключения SignalR: {Error}", error?.Message);
+            return Task.CompletedTask;
+        };
+
+        HubConnection.Reconnected += connectionId =>
+        {
+            logger.LogDebug("SignalR успешно переподключен: {ConnectionId}", connectionId);
+            StartPingTimer();
+            return Task.CompletedTask;
+        };
+
+        HubConnection.Closed += async (error) =>
+        {
+            StopPingTimer();
+            if (IsDisposed) return;
+
+            if (error != null)
+            {
+                logger.LogWarning("Соединение с SignalR закрыто с ошибкой: {Error}", error.Message);
+
+                if (error is IOException || 
+                    error.Message.Contains("runtime.lastError") ||
+                    error.Message.Contains("message channel closed") ||
+                    error.Message.Contains("A listener indicated an asynchronous response"))
+                {
+                    logger.LogDebug("Обнаружена сетевая ошибка, инициируем полное переподключение");
+                    
+                    if (HubConnection != null)
+                    {
+                        await HubConnection.DisposeAsync();
+                        HubConnection = null;
+                    }
+                    
+                    await Task.Delay(1000);
+                    
+                    await InitializeAsync();
+                    return;
+                }
+            }
+
+            await StartConnectionWithRetryAsync();
+        };
+    }
+
     public virtual async Task InitializeAsync()
     {
         if (IsDisposed) return;
@@ -57,88 +175,7 @@ public class BaseSignalRService(
                 return;
             }
 
-            if (HubConnection != null)
-            {
-                await HubConnection.DisposeAsync();
-            }
-            
-            HubConnection = new HubConnectionBuilder()
-                .WithUrl(HubUrl, options =>
-                {
-                    options.CloseTimeout = TimeSpan.FromMinutes(5);
-                    options.SkipNegotiation = false;
-                    options.Transports = HttpTransportType.WebSockets | HttpTransportType.ServerSentEvents | HttpTransportType.LongPolling;
-                    options.Headers = new Dictionary<string, string>
-                    {
-                        { "Connection", "keep-alive" }
-                    };
-                })
-                .WithAutomaticReconnect([
-                    TimeSpan.Zero,
-                    TimeSpan.FromSeconds(1),
-                    TimeSpan.FromSeconds(2),
-                    TimeSpan.FromSeconds(5),
-                    TimeSpan.FromSeconds(10),
-                    TimeSpan.FromSeconds(15),
-                    TimeSpan.FromSeconds(30),
-                    TimeSpan.FromMinutes(1),
-                    TimeSpan.FromMinutes(2)
-                ])
-                .WithKeepAliveInterval(TimeSpan.FromSeconds(5))
-                .WithServerTimeout(TimeSpan.FromMinutes(5))
-                .WithStatefulReconnect()
-                .AddJsonProtocol(options =>
-                {
-                    options.PayloadSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
-                    options.PayloadSerializerOptions.PropertyNameCaseInsensitive = true;
-                })
-                .Build();
-
-            HubConnection.Reconnecting += error =>
-            {
-                logger.LogDebug("Попытка переподключения SignalR: {Error}", error?.Message);
-                return Task.CompletedTask;
-            };
-
-            HubConnection.Reconnected += connectionId =>
-            {
-                logger.LogDebug("SignalR успешно переподключен: {ConnectionId}", connectionId);
-                StartPingTimer();
-                return Task.CompletedTask;
-            };
-
-            HubConnection.Closed += async (error) =>
-            {
-                StopPingTimer();
-                if (IsDisposed) return;
-
-                if (error != null)
-                {
-                    logger.LogWarning("Соединение с SignalR закрыто с ошибкой: {Error}", error.Message);
-
-                    if (error is IOException || 
-                        error.Message.Contains("runtime.lastError") ||
-                        error.Message.Contains("message channel closed") ||
-                        error.Message.Contains("A listener indicated an asynchronous response"))
-                    {
-                        logger.LogDebug("Обнаружена сетевая ошибка, инициируем полное переподключение");
-                        
-                        if (HubConnection != null)
-                        {
-                            await HubConnection.DisposeAsync();
-                            HubConnection = null;
-                        }
-                        
-                        await Task.Delay(1000);
-                        
-                        await InitializeAsync();
-                        return;
-                    }
-                }
-
-                await StartConnectionWithRetryAsync();
-            };
-
+            await ConfigureHubConnectionAsync();
             await StartConnectionWithRetryAsync();
             StartPingTimer();
         }
@@ -147,8 +184,8 @@ public class BaseSignalRService(
             logger.LogError(ex, "Ошибка при инициализации SignalR соединения");
         }
     }
-    
-    protected async Task StartConnectionWithRetryAsync()
+
+    private async Task StartConnectionWithRetryAsync()
     {
         if (IsDisposed) return;
         
@@ -170,7 +207,7 @@ public class BaseSignalRService(
 
             try
             {
-                logger.LogDebug("Попытка подключения к SignalR хабу: {HubUrl}", HubUrl);
+                logger.LogDebug("Попытка подключения к SignalR хабу: {HubUrl}", _hubUrl);
                 await HubConnection.StartAsync();
                 logger.LogDebug("SignalR соединение установлено успешно");
             }
