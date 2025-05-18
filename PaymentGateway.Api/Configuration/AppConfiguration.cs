@@ -13,8 +13,6 @@ public static class AppConfiguration
     public static async Task InitializeApplication(WebApplication app)
     {
         using var scope = app.Services.CreateScope();
-        var hubContext = scope.ServiceProvider.GetRequiredService<IHubContext<NotificationHub, IHubClient>>();
-        NotificationHub.Initialize(hubContext);
 
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<UserEntity>>();

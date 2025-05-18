@@ -11,37 +11,9 @@ namespace PaymentGateway.Application.Hubs;
 
 public class NotificationHub(
     ILogger<NotificationHub> logger,
-    IChatMessageService chatMessageService) : Hub<IHubClient>
+    IChatMessageService chatMessageService) : Hub<IWebClientHub>
 {
-    private static IHubContext<NotificationHub, IHubClient>? _hubContext;
     private static readonly ConcurrentDictionary<string, UserState> ConnectedUsers = new();
-    private static readonly Timer? KeepAliveTimer;
-    private const int keepAliveInterval = 15000;
-
-    static NotificationHub()
-    {
-        KeepAliveTimer = new Timer(SendKeepAlive, null, keepAliveInterval, keepAliveInterval);
-    }
-
-    private static async void SendKeepAlive(object? state)
-    {
-        try
-        {
-            if (_hubContext != null)
-            {
-                await _hubContext.Clients.All.KeepAlive();
-            }
-        }
-        catch
-        {
-            // ignore
-        }
-    }
-
-    public static void Initialize(IHubContext<NotificationHub, IHubClient> hubContext)
-    {
-        _hubContext = hubContext;
-    }
 
     public override async Task OnConnectedAsync()
     {
@@ -162,15 +134,5 @@ public class NotificationHub(
                 logger.LogError(ex, "Ошибка при сохранении сообщения в базу данных");
             }
         }
-    }
-
-    protected override void Dispose(bool disposing)
-    {
-        if (disposing)
-        {
-            KeepAliveTimer?.Dispose();
-        }
-
-        base.Dispose(disposing);
     }
 }

@@ -10,7 +10,7 @@ using PaymentGateway.Shared.Enums;
 namespace PaymentGateway.Application.Services;
 
 public class NotificationService(
-    IHubContext<NotificationHub, IHubClient> hubContext,
+    IHubContext<NotificationHub, IWebClientHub> hubContext,
     ILogger<NotificationService> logger)
     : INotificationService
 {

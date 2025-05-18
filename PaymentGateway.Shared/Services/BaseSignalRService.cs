@@ -10,7 +10,7 @@ using Polly.Retry;
 namespace PaymentGateway.Shared.Services;
 
 public class BaseSignalRService(
-    IOptions<ApiSettings> settings,
+    IOptions<WebSocketSettings> settings,
     ILogger<BaseSignalRService> logger) : IAsyncDisposable
 {
     protected HubConnection? HubConnection;
@@ -81,8 +81,6 @@ public class BaseSignalRService(
                     options.PayloadSerializerOptions.PropertyNameCaseInsensitive = true;
                 })
                 .Build();
-
-            HubConnection.On("KeepAlive", () => Task.CompletedTask);
 
             HubConnection.Reconnecting += error =>
             {

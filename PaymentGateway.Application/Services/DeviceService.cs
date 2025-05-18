@@ -7,13 +7,8 @@ using PaymentGateway.Shared.DTOs.Device;
 
 namespace PaymentGateway.Application.Services;
 
-public class DeviceService(
-    OnlineDevices devices,
-    ILogger<DeviceService> logger,
-    IMapper mapper)
-    : IDeviceService
+public class DeviceService(OnlineDevices devices) : IDeviceService
 {
-
     public List<DeviceDto> GetOnlineDevices()
     {
         return devices.All.Values.ToList();

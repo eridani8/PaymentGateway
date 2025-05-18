@@ -48,7 +48,7 @@ public static class MauiProgram
 
         builder.Configuration.AddConfiguration(config);
         builder.Services.Configure<AppSettings>(config.GetSection(nameof(AppSettings)));
-        builder.Services.Configure<ApiSettings>(config.GetSection(nameof(ApiSettings)));
+        builder.Services.Configure<WebSocketSettings>(config.GetSection(nameof(WebSocketSettings)));
         var settings = builder.Configuration.Get<AppSettings>();
 
         var liteContext = new LiteContext(settings!);
@@ -64,7 +64,7 @@ public static class MauiProgram
 
         builder.Services.AddHttpClient("API", (serviceProvider, client) =>
         {
-            var apiSettings = serviceProvider.GetRequiredService<IOptions<ApiSettings>>().Value;
+            var apiSettings = serviceProvider.GetRequiredService<IOptions<WebSocketSettings>>().Value;
 
             client.BaseAddress = new Uri(apiSettings.BaseAddress);
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));

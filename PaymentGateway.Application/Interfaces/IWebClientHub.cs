@@ -6,7 +6,7 @@ using PaymentGateway.Shared.Enums;
 
 namespace PaymentGateway.Application.Interfaces;
 
-public interface IHubClient
+public interface IWebClientHub
 {
     Task RequisiteUpdated(RequisiteDto requisite);
     Task RequisiteDeleted(Guid requisiteId);
@@ -14,7 +14,6 @@ public interface IHubClient
     Task UserDeleted(Guid userId);
     Task PaymentUpdated(PaymentDto payment);
     Task PaymentDeleted(Guid paymentId);
-    Task KeepAlive();
     Task ChatMessageReceived(ChatMessageDto message);
     Task UserConnected(UserState state);
     Task UserDisconnected(UserState state);

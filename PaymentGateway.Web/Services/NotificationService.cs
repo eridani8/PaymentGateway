@@ -16,7 +16,7 @@ using PaymentGateway.Shared.Types;
 namespace PaymentGateway.Web.Services;
 
 public class NotificationService(
-    IOptions<ApiSettings> settings,
+    IOptions<WebSocketSettings> settings,
     IServiceProvider serviceProvider,
     ILogger<NotificationService> logger) : BaseSignalRService(settings, logger)
 {
@@ -105,8 +105,6 @@ public class NotificationService(
                     options.PayloadSerializerOptions.PropertyNameCaseInsensitive = true;
                 })
                 .Build();
-
-            HubConnection.On("KeepAlive", () => Task.CompletedTask);
 
             HubConnection.Reconnecting += error =>
             {
