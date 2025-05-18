@@ -81,7 +81,7 @@ try
 
     app.UseWebSockets(new WebSocketOptions
     {
-        KeepAliveInterval = TimeSpan.FromMinutes(10)
+        KeepAliveInterval = TimeSpan.FromSeconds(10)
     });
 
     app.MapHub<NotificationHub>("/notificationHub");
