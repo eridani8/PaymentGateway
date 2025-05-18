@@ -14,11 +14,6 @@ public class NotificationHub(
     IChatMessageService chatMessageService) : Hub<IWebClientHub>
 {
     private static readonly ConcurrentDictionary<string, UserState> ConnectedUsers = new();
-
-    // public Task Ping()
-    // {
-    //     return Task.CompletedTask;
-    // }
     
     public override async Task OnConnectedAsync()
     {

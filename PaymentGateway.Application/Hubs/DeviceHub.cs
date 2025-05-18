@@ -19,12 +19,10 @@ public class DeviceHub(ILogger<DeviceHub> logger) : Hub<IDeviceClientHub>
             
             _ = Task.Delay(RegistrationTimeout).ContinueWith(_ =>
             {
-                if (!ConnectedDevices.ContainsKey(Context.ConnectionId))
-                {
-                    logger.LogWarning("Устройство не зарегистрировалось в течение {Timeout} секунд. Отключение клиента: {ConnectionId}", 
-                        RegistrationTimeout.TotalSeconds, Context.ConnectionId);
-                    Context.Abort();
-                }
+                if (ConnectedDevices.ContainsKey(Context.ConnectionId)) return;
+                logger.LogWarning("Устройство не зарегистрировалось в течение {Timeout} секунд. Отключение клиента: {ConnectionId}", 
+                    RegistrationTimeout.TotalSeconds, Context.ConnectionId);
+                Context.Abort();
             });
         }
         catch (Exception e)
@@ -43,15 +41,10 @@ public class DeviceHub(ILogger<DeviceHub> logger) : Hub<IDeviceClientHub>
             return Task.CompletedTask;
         }
 
-        logger.LogInformation("Устройство онлайн: {@Device}", device);
+        logger.LogInformation("Устройство онлайн: {Device}", device.DeviceData);
         ConnectedDevices[Context.ConnectionId] = device;
         return Task.CompletedTask;
     }
-
-    // public Task Ping()
-    // {
-    //     return Task.CompletedTask;
-    // }
 
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
@@ -59,7 +52,7 @@ public class DeviceHub(ILogger<DeviceHub> logger) : Hub<IDeviceClientHub>
         {
             if (ConnectedDevices.TryRemove(Context.ConnectionId, out var device))
             {
-                logger.LogInformation("Устройство оффлайн: {@Device}", device);
+                logger.LogInformation("Устройство оффлайн: {Device}", device.DeviceData);
             }
             
             await base.OnDisconnectedAsync(exception);

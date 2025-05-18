@@ -1,6 +1,7 @@
 ﻿using Asp.Versioning;
 using Carter;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Logging;
 using PaymentGateway.Api.Filters;
 using PaymentGateway.Application.Hubs;
 using PaymentGateway.Shared.DTOs.Device;
@@ -29,8 +30,10 @@ public class DeviceEndpoints : ICarterModule
             .RequireAuthorization(new AuthorizeAttribute { Roles = "Admin" });
     }
 
-    private static IResult GetAllDevices()
+    private IResult GetAllDevices()
     {
-        return Results.Json(DeviceHub.ConnectedDevices.Values.ToList());
+        var devices = DeviceHub.ConnectedDevices.Values.ToList();
+        
+        return Results.Json(devices);
     }
 }
