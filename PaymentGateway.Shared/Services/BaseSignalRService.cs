@@ -20,6 +20,9 @@ public class BaseSignalRService(
     protected readonly string HubUrl = $"{settings.Value.BaseAddress}/{settings.Value.HubName}";
     protected bool IsDisposed;
 
+    private Timer? _pingTimer;
+    private const int pingIntervalSeconds = 5;
+
     private readonly AsyncRetryPolicy _reconnectionPolicy = Policy
         .Handle<Exception>()
         .WaitAndRetryAsync(
@@ -41,9 +44,6 @@ public class BaseSignalRService(
                     retryCount, timeSpan.TotalSeconds);
             }
         );
-    
-    private Timer? _pingTimer;
-    private const int PingIntervalSeconds = 5;
 
     public virtual async Task InitializeAsync()
     {
@@ -238,7 +238,7 @@ public class BaseSignalRService(
         }
     }
     
-    private void StartPingTimer()
+    protected void StartPingTimer()
     {
         StopPingTimer();
         _pingTimer = new Timer(async void (_) =>
@@ -253,10 +253,10 @@ public class BaseSignalRService(
             {
                 logger.LogError(ex, "Ошибка при отправке ping");
             }
-        }, null, TimeSpan.Zero, TimeSpan.FromSeconds(PingIntervalSeconds));
+        }, null, TimeSpan.Zero, TimeSpan.FromSeconds(pingIntervalSeconds));
     }
 
-    private void StopPingTimer()
+    protected void StopPingTimer()
     {
         if (_pingTimer == null) return;
         _pingTimer.Dispose();

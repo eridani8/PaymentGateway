@@ -78,19 +78,20 @@ public class NotificationService(
                     
                     options.CloseTimeout = TimeSpan.FromMinutes(1);
                     options.SkipNegotiation = false;
-                    options.Transports = Microsoft.AspNetCore.Http.Connections.HttpTransportType.WebSockets;
+                    options.Transports = Microsoft.AspNetCore.Http.Connections.HttpTransportType.WebSockets | 
+                                       Microsoft.AspNetCore.Http.Connections.HttpTransportType.ServerSentEvents |
+                                       Microsoft.AspNetCore.Http.Connections.HttpTransportType.LongPolling;
                 })
                 .WithAutomaticReconnect([
                     TimeSpan.FromSeconds(0),
                     TimeSpan.FromSeconds(2),
                     TimeSpan.FromSeconds(5),
                     TimeSpan.FromSeconds(10),
-                    TimeSpan.FromSeconds(15),
-                    TimeSpan.FromSeconds(30),
-                    TimeSpan.FromMinutes(1)
+                    TimeSpan.FromSeconds(20),
+                    TimeSpan.FromSeconds(30)
                 ])
-                .WithKeepAliveInterval(TimeSpan.FromSeconds(15))
-                .WithServerTimeout(TimeSpan.FromMinutes(60))
+                .WithKeepAliveInterval(TimeSpan.FromSeconds(10))
+                .WithServerTimeout(TimeSpan.FromSeconds(30))
                 .WithStatefulReconnect()
                 .AddJsonProtocol(options =>
                 {
@@ -108,11 +109,13 @@ public class NotificationService(
             HubConnection.Reconnected += connectionId =>
             {
                 logger.LogDebug("SignalR успешно переподключен: {ConnectionId}", connectionId);
+                StartPingTimer();
                 return Task.CompletedTask;
             };
 
             HubConnection.Closed += async (error) =>
             {
+                StopPingTimer();
                 if (IsDisposed) return;
 
                 if (error != null)
@@ -148,6 +151,7 @@ public class NotificationService(
             };
 
             await StartConnectionWithRetryAsync();
+            StartPingTimer();
             
             logger.LogDebug("Глобальное состояние инициализации SignalR установлено");
         }
@@ -163,6 +167,7 @@ public class NotificationService(
 
     public override ValueTask DisposeAsync()
     {
+        StopPingTimer();
         if (IsDisposed) return ValueTask.CompletedTask;
         
         Unsubscribe(SignalREvents.Web.UserUpdated);

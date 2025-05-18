@@ -10,12 +10,12 @@ public static class SignalRConfiguration
     {
         builder.Services.AddSignalR(options =>
         {
-            options.ClientTimeoutInterval = TimeSpan.FromMinutes(60);
-            options.KeepAliveInterval = TimeSpan.FromMinutes(1);
-            options.HandshakeTimeout = TimeSpan.FromMinutes(1);
+            options.ClientTimeoutInterval = TimeSpan.FromMinutes(2);
+            options.KeepAliveInterval = TimeSpan.FromSeconds(10);
+            options.HandshakeTimeout = TimeSpan.FromSeconds(15);
             options.MaximumReceiveMessageSize = 1024 * 1024;
             options.EnableDetailedErrors = true;
-            options.StreamBufferCapacity = 20;
+            options.StreamBufferCapacity = 10;
         })
         .AddJsonProtocol(options =>
         {
