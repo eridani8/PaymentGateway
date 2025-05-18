@@ -8,6 +8,7 @@ namespace PaymentGateway.Application.Interfaces;
 
 public interface IWebClientHub
 {
+    Task Ping();
     Task RequisiteUpdated(RequisiteDto requisite);
     Task RequisiteDeleted(Guid requisiteId);
     Task UserUpdated(UserDto user);

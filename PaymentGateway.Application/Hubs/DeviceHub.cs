@@ -24,6 +24,11 @@ public class DeviceHub(ILogger<DeviceHub> logger) : Hub<IDeviceClientHub>
         }
     }
 
+    public Task Ping()
+    {
+        return Task.CompletedTask;
+    }
+
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
         try

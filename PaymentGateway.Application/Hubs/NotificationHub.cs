@@ -15,6 +15,11 @@ public class NotificationHub(
 {
     private static readonly ConcurrentDictionary<string, UserState> ConnectedUsers = new();
 
+    public Task Ping()
+    {
+        return Task.CompletedTask;
+    }
+    
     public override async Task OnConnectedAsync()
     {
         try

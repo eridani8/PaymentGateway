@@ -2,5 +2,5 @@
 
 public interface IDeviceClientHub
 {
-    
+    Task Ping();
 }

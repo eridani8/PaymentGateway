@@ -24,7 +24,16 @@ public class BaseSignalRService(
         .Handle<Exception>()
         .WaitAndRetryAsync(
             99,
-            retryAttempt => TimeSpan.FromSeconds(Math.Min(5, Math.Pow(1.2, retryAttempt))),
+            retryAttempt => 
+            {
+                return retryAttempt switch
+                {
+                    <= 3 => TimeSpan.FromSeconds(1),
+                    <= 6 => TimeSpan.FromSeconds(2),
+                    <= 9 => TimeSpan.FromSeconds(5),
+                    _ => TimeSpan.FromSeconds(10)
+                };
+            },
             (exception, timeSpan, retryCount, _) =>
             {
                 logger.LogDebug(exception,
@@ -33,6 +42,9 @@ public class BaseSignalRService(
             }
         );
     
+    private Timer? _pingTimer;
+    private const int PingIntervalSeconds = 5;
+
     public virtual async Task InitializeAsync()
     {
         if (IsDisposed) return;
@@ -53,7 +65,7 @@ public class BaseSignalRService(
             HubConnection = new HubConnectionBuilder()
                 .WithUrl(HubUrl, options =>
                 {
-                    options.CloseTimeout = TimeSpan.FromMinutes(2);
+                    options.CloseTimeout = TimeSpan.FromMinutes(5);
                     options.SkipNegotiation = false;
                     options.Transports = HttpTransportType.WebSockets | HttpTransportType.ServerSentEvents | HttpTransportType.LongPolling;
                     options.Headers = new Dictionary<string, string>
@@ -61,8 +73,7 @@ public class BaseSignalRService(
                         { "Connection", "keep-alive" }
                     };
                 })
-                .WithAutomaticReconnect(new[]
-                {
+                .WithAutomaticReconnect([
                     TimeSpan.Zero,
                     TimeSpan.FromSeconds(1),
                     TimeSpan.FromSeconds(2),
@@ -72,9 +83,9 @@ public class BaseSignalRService(
                     TimeSpan.FromSeconds(30),
                     TimeSpan.FromMinutes(1),
                     TimeSpan.FromMinutes(2)
-                })
-                .WithKeepAliveInterval(TimeSpan.FromSeconds(30))
-                .WithServerTimeout(TimeSpan.FromMinutes(2))
+                ])
+                .WithKeepAliveInterval(TimeSpan.FromSeconds(5))
+                .WithServerTimeout(TimeSpan.FromMinutes(5))
                 .WithStatefulReconnect()
                 .AddJsonProtocol(options =>
                 {
@@ -92,22 +103,25 @@ public class BaseSignalRService(
             HubConnection.Reconnected += connectionId =>
             {
                 logger.LogDebug("SignalR успешно переподключен: {ConnectionId}", connectionId);
+                StartPingTimer();
                 return Task.CompletedTask;
             };
 
             HubConnection.Closed += async (error) =>
             {
+                StopPingTimer();
                 if (IsDisposed) return;
 
                 if (error != null)
                 {
                     logger.LogWarning("Соединение с SignalR закрыто с ошибкой: {Error}", error.Message);
 
-                    if (error.Message.Contains("runtime.lastError") ||
+                    if (error is IOException || 
+                        error.Message.Contains("runtime.lastError") ||
                         error.Message.Contains("message channel closed") ||
                         error.Message.Contains("A listener indicated an asynchronous response"))
                     {
-                        logger.LogDebug("Обнаружена ошибка chrome runtime, инициируем полное переподключение");
+                        logger.LogDebug("Обнаружена сетевая ошибка, инициируем полное переподключение");
                         
                         if (HubConnection != null)
                         {
@@ -126,6 +140,7 @@ public class BaseSignalRService(
             };
 
             await StartConnectionWithRetryAsync();
+            StartPingTimer();
         }
         catch (Exception ex)
         {
@@ -223,8 +238,34 @@ public class BaseSignalRService(
         }
     }
     
+    private void StartPingTimer()
+    {
+        StopPingTimer();
+        _pingTimer = new Timer(async void (_) =>
+        {
+            try
+            {
+                if (HubConnection?.State != HubConnectionState.Connected) return;
+                await HubConnection.InvokeAsync("Ping");
+                logger.LogDebug("Ping отправлен");
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Ошибка при отправке ping");
+            }
+        }, null, TimeSpan.Zero, TimeSpan.FromSeconds(PingIntervalSeconds));
+    }
+
+    private void StopPingTimer()
+    {
+        if (_pingTimer == null) return;
+        _pingTimer.Dispose();
+        _pingTimer = null;
+    }
+
     public virtual async ValueTask DisposeAsync()
     {
+        StopPingTimer();
         if (IsDisposed) return;
         
         try
