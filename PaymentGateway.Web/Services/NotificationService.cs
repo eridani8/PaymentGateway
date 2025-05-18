@@ -58,13 +58,6 @@ public class NotificationService(
             {
                 await HubConnection.DisposeAsync();
             }
-            
-            if (PingTimer != null)
-            {
-                await PingTimer.DisposeAsync();
-            }
-
-            PingTimer = null;
 
             HubConnection = new HubConnectionBuilder()
                 .WithUrl(HubUrl, options =>
@@ -121,13 +114,6 @@ public class NotificationService(
             HubConnection.Closed += async (error) =>
             {
                 if (IsDisposed) return;
-                
-                if (PingTimer != null)
-                {
-                    await PingTimer.DisposeAsync();
-                }
-
-                PingTimer = null;
 
                 if (error != null)
                 {

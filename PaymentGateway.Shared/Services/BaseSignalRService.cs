@@ -15,8 +15,6 @@ public class BaseSignalRService(
 {
     protected HubConnection? HubConnection;
     protected readonly string HubUrl = $"{settings.Value.BaseAddress}/{settings.Value.HubName}";
-    protected Timer? PingTimer;
-    private const int pingInterval = 10000;
     protected bool IsDisposed;
 
     private readonly AsyncRetryPolicy _reconnectionPolicy = Policy
@@ -49,13 +47,6 @@ public class BaseSignalRService(
                 await HubConnection.DisposeAsync();
             }
             
-            if (PingTimer != null)
-            {
-                await PingTimer.DisposeAsync();
-            }
-
-            PingTimer = null;
-
             HubConnection = new HubConnectionBuilder()
                 .WithUrl(HubUrl, options =>
                 {
@@ -72,7 +63,7 @@ public class BaseSignalRService(
                     TimeSpan.FromSeconds(30),
                     TimeSpan.FromMinutes(1)
                 ])
-                .WithKeepAliveInterval(TimeSpan.FromSeconds(15))
+                .WithKeepAliveInterval(TimeSpan.FromSeconds(10))
                 .WithServerTimeout(TimeSpan.FromMinutes(60))
                 .WithStatefulReconnect()
                 .AddJsonProtocol(options =>
@@ -97,13 +88,6 @@ public class BaseSignalRService(
             HubConnection.Closed += async (error) =>
             {
                 if (IsDisposed) return;
-                
-                if (PingTimer != null)
-                {
-                    await PingTimer.DisposeAsync();
-                }
-
-                PingTimer = null;
 
                 if (error != null)
                 {
@@ -164,25 +148,6 @@ public class BaseSignalRService(
                 logger.LogDebug("Попытка подключения к SignalR хабу: {HubUrl}", HubUrl);
                 await HubConnection.StartAsync();
                 logger.LogDebug("SignalR соединение установлено успешно");
-
-                if (PingTimer != null)
-                {
-                    await PingTimer.DisposeAsync();
-                }
-
-                PingTimer = new Timer(async void (_) =>
-                {
-                    try
-                    {
-                        await SendPingAsync(null);
-                    }
-                    catch (Exception e)
-                    {
-                        logger.LogError(e, "Ошибка при отправке ping");
-                    }
-                }, null, pingInterval, pingInterval);
-                
-                logger.LogDebug("Таймер ping успешно настроен");
             }
             catch (Exception ex)
             {
@@ -192,37 +157,6 @@ public class BaseSignalRService(
         });
     }
     
-    protected async Task SendPingAsync(object? state)
-    {
-        if (IsDisposed) return;
-        
-        try
-        {
-            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-            if (HubConnection is { State: HubConnectionState.Connected }) 
-            {
-                await HubConnection.InvokeAsync("Ping", cts.Token);
-                logger.LogDebug("Ping отправлен успешно");
-            }
-        }
-        catch (OperationCanceledException)
-        {
-            logger.LogDebug("Ping был отменен из-за таймаута");
-        }
-        catch (Exception ex)
-        {
-            if (ex.Message.Contains("Connection was stopped before invocation result was received") ||
-                ex.Message.Contains("Connection not active") ||
-                ex.Message.Contains("The connection was stopped during invocation"))
-            {
-                logger.LogDebug("Соединение было закрыто во время ping");
-                return;
-            }
-
-            logger.LogDebug(ex, "Ошибка отправки ping");
-        }
-    }
-
     protected void Subscribe<T>(string eventName, Action<T> handler)
     {
         try
@@ -285,12 +219,6 @@ public class BaseSignalRService(
         
         try
         {
-            if (PingTimer != null)
-            {
-                await PingTimer.DisposeAsync();
-                PingTimer = null;
-            }
-            
             if (HubConnection != null)
             {
                 await HubConnection.DisposeAsync();
