@@ -20,7 +20,7 @@ public class BackgroundService : Service
     private const string actionStop = "com.eridani8.paymentgateway.STOP_SERVICE";
     private const string actionStart = "com.eridani8.paymentgateway.START_SERVICE";
 
-    private BaseSignalRService? _signalRService;
+    private DeviceService? _signalRService;
     private ILogger<BackgroundService>? _logger;
     private IBackgroundServiceManager? _backgroundServiceManager;
     private PowerManager.WakeLock? _wakeLock;
@@ -46,7 +46,7 @@ public class BackgroundService : Service
         if (services != null)
         {
             _logger = services.GetRequiredService<ILogger<BackgroundService>>();
-            _signalRService = services.GetRequiredService<BaseSignalRService>();
+            _signalRService = services.GetRequiredService<DeviceService>();
             _backgroundServiceManager = services.GetRequiredService<IBackgroundServiceManager>();
             if (_signalRService != null)
             {

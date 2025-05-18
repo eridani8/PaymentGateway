@@ -47,15 +47,6 @@ public static class LoggingConfiguration
             .WriteTo.Console(outputTemplate: outputTemplate, levelSwitch: levelSwitch)
             .WriteTo.PostgreSQL(connectionString, logs, columnWriters, needAutoCreateTable: true, levelSwitch: levelSwitch)
             .WriteTo.File($"{logsPath}/.log", rollingInterval: RollingInterval.Day, outputTemplate: outputTemplate, levelSwitch: levelSwitch)
-            // .WriteTo.OpenTelemetry(options =>
-            // {
-            //     options.Endpoint = otlpConfig.Endpoint;
-            //     options.ResourceAttributes = new Dictionary<string, object>
-            //     {
-            //         ["service.name"] = "PaymentGateway",
-            //     };
-            //     options.LevelSwitch = levelSwitch;
-            // })
             .WriteTo.Seq(otlpConfig.Endpoint, apiKey: otlpConfig.Token)
             .CreateLogger();
     }

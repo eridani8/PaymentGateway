@@ -3,9 +3,6 @@ using Carter;
 using Microsoft.AspNetCore.Authorization;
 using PaymentGateway.Api.Filters;
 using PaymentGateway.Application.Hubs;
-using PaymentGateway.Application.Interfaces;
-using PaymentGateway.Application.Results;
-using PaymentGateway.Application.Services;
 using PaymentGateway.Shared.DTOs.Device;
 
 namespace PaymentGateway.Api.Endpoints;

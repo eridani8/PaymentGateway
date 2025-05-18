@@ -3,6 +3,5 @@
 public class DeviceDto
 {
     public Guid Id { get; init; }
-    public DateTime Timestamp { get; set; }
-    public string? Model { get; init; }
+    public string? DeviceData { get; init; }
 }

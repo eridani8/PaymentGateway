@@ -54,7 +54,7 @@ public class NotificationService(
             }
 
             var authState = await authStateProvider.GetAuthenticationStateAsync();
-            if (!authState.User.Identity?.IsAuthenticated ?? true)
+            if (authState.User.Identity is not { IsAuthenticated: true })
             {
                 logger.LogWarning("Пользователь не аутентифицирован");
                 return;
