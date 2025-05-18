@@ -77,7 +77,7 @@ public class NotificationService(
 
     public override ValueTask DisposeAsync()
     {
-        StopPingTimer();
+        // StopPingTimer();
         if (IsDisposed) return ValueTask.CompletedTask;
         
         Unsubscribe(SignalREvents.Web.UserUpdated);

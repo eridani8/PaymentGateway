@@ -34,7 +34,7 @@ public class DeviceHub(ILogger<DeviceHub> logger) : Hub<IDeviceClientHub>
         }
     }
 
-    public Task RegisterDevice(DeviceDto device)
+    public Task RegisterDevice(DeviceDto? device)
     {
         if (device == null)
         {
@@ -48,10 +48,10 @@ public class DeviceHub(ILogger<DeviceHub> logger) : Hub<IDeviceClientHub>
         return Task.CompletedTask;
     }
 
-    public Task Ping()
-    {
-        return Task.CompletedTask;
-    }
+    // public Task Ping()
+    // {
+    //     return Task.CompletedTask;
+    // }
 
     public override async Task OnDisconnectedAsync(Exception? exception)
     {

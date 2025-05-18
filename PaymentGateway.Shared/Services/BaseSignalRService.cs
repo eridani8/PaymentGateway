@@ -20,8 +20,8 @@ public class BaseSignalRService(
     private readonly string _hubUrl = $"{settings.Value.BaseAddress}/{settings.Value.HubName}";
     protected bool IsDisposed;
 
-    private Timer? _pingTimer;
-    private const int pingIntervalSeconds = 5;
+    // private Timer? _pingTimer;
+    // private const int pingIntervalSeconds = 5;
 
     private static TimeSpan CloseTimeout => TimeSpan.FromMinutes(1);
     private static TimeSpan KeepAliveInterval => TimeSpan.FromSeconds(10);
@@ -126,13 +126,13 @@ public class BaseSignalRService(
         HubConnection.Reconnected += connectionId =>
         {
             logger.LogDebug("SignalR успешно переподключен: {ConnectionId}", connectionId);
-            StartPingTimer();
+            // StartPingTimer();
             return Task.CompletedTask;
         };
 
         HubConnection.Closed += async (error) =>
         {
-            StopPingTimer();
+            // StopPingTimer();
             if (IsDisposed) return;
 
             if (error != null)
@@ -177,7 +177,7 @@ public class BaseSignalRService(
 
             await ConfigureHubConnectionAsync();
             await StartConnectionWithRetryAsync();
-            StartPingTimer();
+            // StartPingTimer();
         }
         catch (Exception ex)
         {
@@ -275,34 +275,34 @@ public class BaseSignalRService(
         }
     }
     
-    protected void StartPingTimer()
-    {
-        StopPingTimer();
-        _pingTimer = new Timer(async void (_) =>
-        {
-            try
-            {
-                if (HubConnection?.State != HubConnectionState.Connected) return;
-                await HubConnection.InvokeAsync("Ping");
-                logger.LogDebug("Ping отправлен");
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Ошибка при отправке ping");
-            }
-        }, null, TimeSpan.Zero, TimeSpan.FromSeconds(pingIntervalSeconds));
-    }
-
-    protected void StopPingTimer()
-    {
-        if (_pingTimer == null) return;
-        _pingTimer.Dispose();
-        _pingTimer = null;
-    }
+    // protected void StartPingTimer()
+    // {
+    //     StopPingTimer();
+    //     _pingTimer = new Timer(async void (_) =>
+    //     {
+    //         try
+    //         {
+    //             if (HubConnection?.State != HubConnectionState.Connected) return;
+    //             await HubConnection.InvokeAsync("Ping");
+    //             logger.LogDebug("Ping отправлен");
+    //         }
+    //         catch (Exception ex)
+    //         {
+    //             logger.LogError(ex, "Ошибка при отправке ping");
+    //         }
+    //     }, null, TimeSpan.Zero, TimeSpan.FromSeconds(pingIntervalSeconds));
+    // }
+    //
+    // protected void StopPingTimer()
+    // {
+    //     if (_pingTimer == null) return;
+    //     _pingTimer.Dispose();
+    //     _pingTimer = null;
+    // }
 
     public virtual async ValueTask DisposeAsync()
     {
-        StopPingTimer();
+        // StopPingTimer();
         if (IsDisposed) return;
         
         try

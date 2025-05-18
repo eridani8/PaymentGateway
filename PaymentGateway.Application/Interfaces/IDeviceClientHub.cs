@@ -4,6 +4,6 @@ namespace PaymentGateway.Application.Interfaces;
 
 public interface IDeviceClientHub
 {
-    Task Ping();
+    // Task Ping();
     Task<DeviceDto?> GetDeviceInfoAsync();
 }
