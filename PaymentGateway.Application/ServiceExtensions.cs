@@ -33,9 +33,6 @@ public static class ServiceExtensions
         
         services.AddScoped<IAdminService, AdminService>();
         services.AddScoped<IChatMessageService, ChatMessageService>();
-
-        services.AddSingleton<OnlineDevices>();
-        services.AddScoped<IDeviceService, DeviceService>();
         
         services.AddScoped<IGatewayHandler, GatewayHandler>();
 

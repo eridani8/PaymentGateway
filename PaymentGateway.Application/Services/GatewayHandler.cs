@@ -6,7 +6,6 @@ using Microsoft.Extensions.Logging;
 using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Core.Entities;
 using PaymentGateway.Infrastructure.Interfaces;
-using PaymentGateway.Shared.DTOs.Device;
 using PaymentGateway.Shared.DTOs.Payment;
 using PaymentGateway.Shared.DTOs.Requisite;
 using PaymentGateway.Shared.DTOs.User;
@@ -17,8 +16,7 @@ public class GatewayHandler(
     ILogger<GatewayHandler> logger,
     IMemoryCache cache,
     INotificationService notificationService,
-    IMapper mapper,
-    OnlineDevices devices)
+    IMapper mapper)
     : IGatewayHandler
 {
     public async Task HandleRequisites(IUnitOfWork unit)
@@ -239,29 +237,5 @@ public class GatewayHandler(
         cache.Set(globalResetKey, TimeSpan.FromHours(25));
         logger.LogInformation(
             "Завершен процесс ежедневного сброса средств пользователей. Обработано: {count} пользователей", resetCount);
-    }
-
-    public Task HandleDevicesState(int maxSeconds)
-    {
-        var now = DateTime.Now;
-        var inactivityThreshold = now.AddSeconds(-maxSeconds);
-        foreach (var (id, state) in devices.All.ToList())
-        {
-            try
-            {
-                if (state.Timestamp <= inactivityThreshold)
-                {
-                    if (devices.All.TryRemove(id, out _))
-                    {
-                        logger.LogInformation("Устройство оффлайн {DeviceId}", id);
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                logger.LogError(e, "Ошибка при обработке устройства {DeviceId} {@State}", id, state);
-            }
-        }
-        return Task.CompletedTask;
     }
 }

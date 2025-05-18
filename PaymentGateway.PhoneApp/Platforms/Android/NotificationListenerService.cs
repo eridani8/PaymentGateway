@@ -4,6 +4,7 @@ using Android.Service.Notification;
 using Android.OS;
 using Microsoft.Extensions.Logging;
 using PaymentGateway.PhoneApp.Interfaces;
+using PaymentGateway.Shared.Services;
 
 namespace PaymentGateway.PhoneApp;
 
@@ -16,7 +17,7 @@ public class NotificationListenerService : Android.Service.Notification.Notifica
 {
     private readonly ILogger<NotificationListenerService>? _logger;
     private readonly IBackgroundServiceManager? _backgroundServiceManager;
-    private readonly IDeviceService? _deviceService;
+    private readonly BaseSignalRService? _signalRService;
     private readonly INotificationProcessor? _notificationProcessor;
     
     private readonly HashSet<string> _ignoredPackages =
@@ -32,7 +33,7 @@ public class NotificationListenerService : Android.Service.Notification.Notifica
         
         _logger = app.Services.GetRequiredService<ILogger<NotificationListenerService>>();
         _backgroundServiceManager = app.Services.GetRequiredService<IBackgroundServiceManager>();
-        _deviceService = app.Services.GetRequiredService<IDeviceService>();
+        _signalRService = app.Services.GetRequiredService<BaseSignalRService>();
         _notificationProcessor = app.Services.GetRequiredService<INotificationProcessor>();
     }
     
@@ -44,7 +45,7 @@ public class NotificationListenerService : Android.Service.Notification.Notifica
         {
             if (_notificationProcessor == null) return;
             if (_backgroundServiceManager is not { IsRunning: true }) return;
-            if (_deviceService is not { State: true }) return;
+            if (_signalRService is not { IsConnected: true }) return;
             
             var packageName = sbn.PackageName;
             var notification = sbn.Notification;

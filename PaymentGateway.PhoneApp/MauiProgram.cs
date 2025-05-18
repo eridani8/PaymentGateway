@@ -11,6 +11,7 @@ using PaymentGateway.PhoneApp.Pages;
 using PaymentGateway.PhoneApp.Services;
 using PaymentGateway.PhoneApp.Types;
 using PaymentGateway.PhoneApp.ViewModels;
+using PaymentGateway.Shared.Services;
 using PaymentGateway.Shared.Types;
 using Serilog;
 using Serilog.Core;
@@ -48,8 +49,8 @@ public static class MauiProgram
 
         builder.Configuration.AddConfiguration(config);
         builder.Services.Configure<AppSettings>(config.GetSection(nameof(AppSettings)));
-        builder.Services.Configure<WebSocketSettings>(config.GetSection(nameof(WebSocketSettings)));
-        var settings = builder.Configuration.Get<AppSettings>();
+        builder.Services.Configure<ApiSettings>(config.GetSection(nameof(ApiSettings)));
+        var settings = builder.Configuration.GetSection(nameof(AppSettings)).Get<AppSettings>();
 
         var liteContext = new LiteContext(settings!);
         var sink = new InMemoryLogSink(liteContext);
@@ -64,7 +65,7 @@ public static class MauiProgram
 
         builder.Services.AddHttpClient("API", (serviceProvider, client) =>
         {
-            var apiSettings = serviceProvider.GetRequiredService<IOptions<WebSocketSettings>>().Value;
+            var apiSettings = serviceProvider.GetRequiredService<IOptions<ApiSettings>>().Value;
 
             client.BaseAddress = new Uri(apiSettings.BaseAddress);
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
@@ -86,7 +87,6 @@ public static class MauiProgram
         builder.Services.AddSingleton(sink);
 
         builder.Services.AddSingleton<IAlertService, AlertService>();
-        builder.Services.AddSingleton<IDeviceService, DeviceService>();
         builder.Services.AddSingleton<IDeviceInfoService, DeviceInfoService>();
 
         builder.Services.AddSingleton<MainViewModel>();
@@ -102,6 +102,8 @@ public static class MauiProgram
         builder.Services.AddSingleton<ISmsProcessor, SmsProcessor>();
         builder.Services.AddSingleton<IBackgroundServiceManager, BackgroundServiceManager>();
         builder.Services.AddSingleton<INotificationProcessor, NotificationProcessor>();
+
+        builder.Services.AddSingleton<BaseSignalRService>();
 
         builder.Logging.ClearProviders();
         builder.Logging.AddSerilog(dispose: true);

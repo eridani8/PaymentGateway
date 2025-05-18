@@ -10,9 +10,11 @@ using Polly.Retry;
 namespace PaymentGateway.Shared.Services;
 
 public class BaseSignalRService(
-    IOptions<WebSocketSettings> settings,
+    IOptions<ApiSettings> settings,
     ILogger<BaseSignalRService> logger) : IAsyncDisposable
 {
+    public bool IsConnected => HubConnection is { State: HubConnectionState.Connected };
+    
     protected HubConnection? HubConnection;
     protected readonly string HubUrl = $"{settings.Value.BaseAddress}/{settings.Value.HubName}";
     protected bool IsDisposed;

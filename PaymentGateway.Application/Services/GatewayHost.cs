@@ -77,8 +77,6 @@ public class GatewayHost(
         await Task.Delay(_startDelay, _cts.Token);
         logger.LogInformation("Сервис запущен");
 
-        var handleDeviceStateSeconds = (int)gatewayConfig.Value.GatewayProcessDelay.TotalSeconds * 4;
-
         while (!_cts.IsCancellationRequested)
         {
             try
@@ -87,7 +85,6 @@ public class GatewayHost(
                 var unit = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
                 var handler = scope.ServiceProvider.GetRequiredService<IGatewayHandler>();
 
-                await handler.HandleDevicesState(handleDeviceStateSeconds);
                 await handler.HandleRequisites(unit);
                 await handler.HandleUnprocessedPayments(unit);
                 await handler.HandleExpiredPayments(unit);

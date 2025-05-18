@@ -142,13 +142,13 @@
 
             if (authState.User.Identity?.IsAuthenticated == true)
             {
-                Logger.LogInformation("Инициализация SignalR в MainLayout");
+                Logger.LogDebug("Инициализация SignalR в MainLayout");
 
                 try
                 {
                     await NotificationService.InitializeAsync();
 
-                    Logger.LogInformation("SignalR соединение инициализировано в MainLayout");
+                    Logger.LogDebug("SignalR соединение инициализировано");
                 }
                 catch (Exception ex)
                 {
@@ -157,12 +157,12 @@
             }
             else
             {
-                Logger.LogInformation("Пользователь не авторизован, SignalR не инициализирован");
+                Logger.LogDebug("Пользователь не авторизован, SignalR не инициализирован");
             }
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Ошибка при инициализации SignalR соединения в MainLayout");
+            Logger.LogError(ex, "Ошибка при инициализации SignalR соединения");
         }
     }
 

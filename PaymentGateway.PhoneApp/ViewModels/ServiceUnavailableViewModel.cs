@@ -1,11 +1,12 @@
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using PaymentGateway.PhoneApp.Interfaces;
+using PaymentGateway.Shared.Services;
 
 namespace PaymentGateway.PhoneApp.ViewModels;
 
 public partial class ServiceUnavailableViewModel(
-    IDeviceService deviceService,
+    BaseSignalRService signalRService,
     ILogger<ServiceUnavailableViewModel> logger) : BaseViewModel
 {
     [RelayCommand]

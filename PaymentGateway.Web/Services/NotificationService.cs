@@ -16,7 +16,7 @@ using PaymentGateway.Shared.Types;
 namespace PaymentGateway.Web.Services;
 
 public class NotificationService(
-    IOptions<WebSocketSettings> settings,
+    IOptions<ApiSettings> settings,
     IServiceProvider serviceProvider,
     ILogger<NotificationService> logger) : BaseSignalRService(settings, logger)
 {

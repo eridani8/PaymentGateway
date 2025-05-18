@@ -7,6 +7,7 @@ using AndroidX.Core.App;
 using Microsoft.Extensions.Logging;
 using PaymentGateway.PhoneApp.Interfaces;
 using PaymentGateway.PhoneApp.Services;
+using PaymentGateway.Shared.Services;
 
 namespace PaymentGateway.PhoneApp;
 
@@ -19,7 +20,7 @@ public class BackgroundService : Service
     private const string actionStop = "com.eridani8.paymentgateway.STOP_SERVICE";
     private const string actionStart = "com.eridani8.paymentgateway.START_SERVICE";
 
-    private IDeviceService? _deviceService;
+    private BaseSignalRService? _signalRService;
     private ILogger<BackgroundService>? _logger;
     private IBackgroundServiceManager? _backgroundServiceManager;
     private PowerManager.WakeLock? _wakeLock;
@@ -45,11 +46,11 @@ public class BackgroundService : Service
         if (services != null)
         {
             _logger = services.GetRequiredService<ILogger<BackgroundService>>();
-            _deviceService = services.GetRequiredService<IDeviceService>();
+            _signalRService = services.GetRequiredService<BaseSignalRService>();
             _backgroundServiceManager = services.GetRequiredService<IBackgroundServiceManager>();
-            if (_deviceService != null)
+            if (_signalRService != null)
             {
-                _previousServiceState = _deviceService.State;
+                _previousServiceState = _signalRService.IsConnected;
             }
         }
         
@@ -131,11 +132,18 @@ public class BackgroundService : Service
         ReleaseWakeLock();
     }
     
-    private void StartBackgroundTimer()
+    private async void StartBackgroundTimer()
     {
         StopBackgroundTimer();
-        
-        
+
+        try
+        {
+            await _signalRService?.InitializeAsync()!;
+        }
+        catch (Exception e)
+        {
+            _logger?.LogError(e, "Ошибка подключения к сервису");
+        }
         
         _backgroundTimer = new Timer(async void (_) =>
         {
@@ -161,11 +169,11 @@ public class BackgroundService : Service
     {
         try
         {
-            var previousState = _deviceService?.State ?? false;
+            var previousState = _signalRService?.IsConnected ?? false;
 
             // await _deviceService!.SendPing(); // TODO
             
-            var currentState = _deviceService?.State ?? false;
+            var currentState = _signalRService?.IsConnected ?? false;
             if (_isRunning && (previousState != currentState || _previousServiceState != currentState))
             {
                 _previousServiceState = currentState;
@@ -181,7 +189,7 @@ public class BackgroundService : Service
 
     private void UpdateNotification()
     {
-        if (_notificationManager == null || _deviceService == null) return;
+        if (_notificationManager == null || _signalRService == null) return;
         var statusText = GetStatusText();
         var notification = BuildNotification(statusText);
         _notificationManager.Notify(notificationId, notification);
@@ -191,10 +199,10 @@ public class BackgroundService : Service
     {
         var processStatus = _isRunning ? "Фоновой процесс активен" : "Фоновой процесс остановлен";
         
-        if (_deviceService == null)
+        if (_signalRService == null)
             return processStatus;
         
-        var serviceStatus = _deviceService.State ? "Сервис доступен" : "Сервис недоступен";
+        var serviceStatus = _signalRService.IsConnected ? "Сервис доступен" : "Сервис недоступен";
         
         return $"{processStatus}\n{serviceStatus}";
     }

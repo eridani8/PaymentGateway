@@ -44,7 +44,6 @@ public class NotificationHub(
         catch (Exception ex)
         {
             logger.LogError(ex, "Ошибка при подключении клиента: {ConnectionId}", Context.ConnectionId);
-            throw;
         }
     }
 
@@ -65,7 +64,6 @@ public class NotificationHub(
         catch (Exception ex)
         {
             logger.LogError(ex, "Ошибка при отключении клиента: {ConnectionId}", Context.ConnectionId);
-            throw;
         }
     }
 

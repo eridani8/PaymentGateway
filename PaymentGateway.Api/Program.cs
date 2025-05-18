@@ -80,6 +80,7 @@ try
     app.UseExceptionHandler();
 
     app.MapHub<NotificationHub>("/notificationHub");
+    app.MapHub<DeviceHub>("/deviceHub");
 
     app.MapCarter();
     

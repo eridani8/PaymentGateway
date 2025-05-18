@@ -3,6 +3,7 @@ using Android.Content;
 using Android.Provider;
 using Microsoft.Extensions.Logging;
 using PaymentGateway.PhoneApp.Interfaces;
+using PaymentGateway.Shared.Services;
 
 namespace PaymentGateway.PhoneApp;
 
@@ -13,7 +14,7 @@ public class SmsReceiver : BroadcastReceiver
     private readonly ILogger<SmsReceiver>? _logger;
     private readonly ISmsProcessor? _smsProcessor;
     private readonly IBackgroundServiceManager? _backgroundServiceManager;
-    private readonly IDeviceService? _deviceService;
+    private readonly BaseSignalRService? _signalRService;
 
     public SmsReceiver()
     {
@@ -22,7 +23,7 @@ public class SmsReceiver : BroadcastReceiver
         
         _logger = app.Services.GetRequiredService<ILogger<SmsReceiver>>();
         _smsProcessor = app.Services.GetRequiredService<ISmsProcessor>();
-        _deviceService = app.Services.GetRequiredService<IDeviceService>();
+        _signalRService = app.Services.GetRequiredService<BaseSignalRService>();
         _backgroundServiceManager = app.Services.GetRequiredService<IBackgroundServiceManager>();
     }
 
@@ -34,7 +35,7 @@ public class SmsReceiver : BroadcastReceiver
         {
             if (_smsProcessor == null) return;
             if (_backgroundServiceManager is not { IsRunning: true }) return;
-            if (_deviceService is not { State: true }) return;
+            if (_signalRService is not { IsConnected: true }) return;
 
             var messages = Telephony.Sms.Intents.GetMessagesFromIntent(intent);
             if (messages == null || messages.Length == 0) return;

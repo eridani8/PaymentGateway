@@ -19,7 +19,7 @@ using PaymentGateway.Shared.Validations;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
-builder.Services.Configure<WebSocketSettings>(builder.Configuration.GetSection(nameof(WebSocketSettings)));
+builder.Services.Configure<ApiSettings>(builder.Configuration.GetSection(nameof(ApiSettings)));
 
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
@@ -51,7 +51,7 @@ builder.Services.AddScoped<ITransactionService, TransactionService>();
 
 builder.Services.AddHttpClient("API", (serviceProvider, client) =>
     {
-        var settings = serviceProvider.GetRequiredService<IOptions<WebSocketSettings>>().Value;
+        var settings = serviceProvider.GetRequiredService<IOptions<ApiSettings>>().Value;
 
         client.BaseAddress = new Uri(settings.BaseAddress);
         client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
