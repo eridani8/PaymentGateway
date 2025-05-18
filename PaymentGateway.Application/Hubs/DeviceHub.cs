@@ -13,12 +13,14 @@ public class DeviceHub(ILogger<DeviceHub> logger) : Hub<IDeviceClientHub>
 
     public override async Task OnConnectedAsync()
     {
-        
         try
         {
             await base.OnConnectedAsync();
             var context = Context;
             var connectionId = Context.ConnectionId;
+            
+            await Clients.Caller.GetDeviceInfoAsync();
+            
             _ = Task.Delay(RegistrationTimeout).ContinueWith(_ =>
             {
                 if (ConnectedDevices.ContainsKey(connectionId)) return;
