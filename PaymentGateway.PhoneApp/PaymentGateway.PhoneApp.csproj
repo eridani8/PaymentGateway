@@ -78,6 +78,8 @@
         <PackageReference Include="Serilog.Extensions.Logging" Version="9.0.1" />
         <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
         <PackageReference Include="CommunityToolkit.Maui" Version="11.2.0" />
+        <PackageReference Include="ZXing.Net.Maui" Version="0.4.0" />
+        <PackageReference Include="ZXing.Net.Maui.Controls" Version="0.4.0" />
     </ItemGroup>
 
     <ItemGroup>

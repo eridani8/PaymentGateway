@@ -11,11 +11,12 @@ using PaymentGateway.PhoneApp.Pages;
 using PaymentGateway.PhoneApp.Services;
 using PaymentGateway.PhoneApp.Types;
 using PaymentGateway.PhoneApp.ViewModels;
-using PaymentGateway.Shared.Services;
 using PaymentGateway.Shared.Types;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
+using ZXing.Net.Maui;
+using ZXing.Net.Maui.Controls;
 
 namespace PaymentGateway.PhoneApp;
 
@@ -27,7 +28,11 @@ public static class MauiProgram
         builder
             .UseMauiApp<App>()
             .UseMauiCommunityToolkit()
-            .ConfigureMauiHandlers(_ => { })
+            .UseBarcodeReader()
+            .ConfigureMauiHandlers(handlers =>
+            {
+                handlers.AddHandler<CameraBarcodeReaderView, CameraBarcodeReaderViewHandler>();
+            })
             .ConfigureFonts(fonts =>
             {
                 fonts.AddFont("JetBrainsMono-Regular.ttf", "JetBrainsMono");
@@ -93,11 +98,13 @@ public static class MauiProgram
         builder.Services.AddSingleton<LogsViewModel>();
         builder.Services.AddSingleton<ServiceUnavailableViewModel>();
         builder.Services.AddSingleton<DeviceIdViewModel>();
+        builder.Services.AddSingleton<AuthorizationViewModel>();
 
         builder.Services.AddSingleton<MainPage>();
         builder.Services.AddSingleton<LogsPage>();
         builder.Services.AddSingleton<ServiceUnavailablePage>();
         builder.Services.AddSingleton<DeviceIdPage>();
+        builder.Services.AddSingleton<AuthorizationPage>();
 
         builder.Services.AddSingleton<ISmsProcessor, SmsProcessor>();
         builder.Services.AddSingleton<IBackgroundServiceManager, BackgroundServiceManager>();

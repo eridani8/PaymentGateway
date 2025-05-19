@@ -6,7 +6,9 @@ namespace PaymentGateway.PhoneApp.Services;
 
 public class LiteContext
 {
-    public Guid DeviceId { get; } = Guid.Empty;
+    private const string deviceIdKey = "DeviceId";
+    public const string tokenKey = "Token";
+    
     public ILiteCollection<KeyValue> KeyValues { get; }
     public ILiteCollection<LogEntry> Logs { get; }
 
@@ -17,28 +19,36 @@ public class LiteContext
         var db = new LiteDatabase(connectionString);
         Logs = db.GetCollection<LogEntry>("logs");
         KeyValues = db.GetCollection<KeyValue>("key_values");
+    }
 
-        if (DeviceId == Guid.Empty)
+    public Guid GetDeviceId()
+    {
+        if (KeyValues.FindOne(k => k.Key == deviceIdKey) is not { } deviceIdValue)
         {
-            if (KeyValues.FindOne(k => k.Key == "DeviceId") is not { } keyValue)
+            deviceIdValue = new KeyValue()
             {
-                keyValue = new KeyValue()
-                {
-                    Id = ObjectId.NewObjectId(),
-                    Key = "DeviceId",
-                    Value = Guid.CreateVersion7()
-                };
-                KeyValues.Insert(keyValue);
-            }
-
-            if (keyValue.Value is Guid guid)
-            {
-                DeviceId = guid;
-            }
-            else
-            {
-                DeviceId = Guid.Empty;
-            }
+                Id = ObjectId.NewObjectId(),
+                Key = "DeviceId",
+                Value = Guid.CreateVersion7()
+            };
+            KeyValues.Insert(deviceIdValue);
         }
+
+        if (deviceIdValue.Value is Guid guid)
+        {
+            return guid;
+        }
+
+        return Guid.Empty;
+    }
+
+    public string GetToken()
+    {
+        if (KeyValues.FindOne(k => k.Key == tokenKey) is { Value: string token })
+        {
+            return token;
+        }
+        
+        return string.Empty;
     }
 }

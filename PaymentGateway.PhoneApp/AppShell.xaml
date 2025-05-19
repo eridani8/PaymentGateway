@@ -9,6 +9,10 @@
     Title="PaymentGateway">
 
     <ShellContent
+        Title="Авторизация"
+        ContentTemplate="{DataTemplate pages:AuthorizationPage}" />
+
+    <ShellContent
         Title="Устройство"
         ContentTemplate="{DataTemplate pages:DeviceIdPage}" />
 

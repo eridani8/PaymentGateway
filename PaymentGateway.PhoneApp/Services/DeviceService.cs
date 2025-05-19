@@ -11,9 +11,28 @@ namespace PaymentGateway.PhoneApp.Services;
 public class DeviceService(
     IOptions<ApiSettings> settings,
     ILogger<DeviceService> logger,
-    IDeviceInfoService infoService,
-    LiteContext context) : BaseSignalRService(settings, logger)
+    IDeviceInfoService infoService) : BaseSignalRService(settings, logger)
 {
+    public Action? UpdateDelegate;
+
+    public async Task Stop()
+    {
+        try
+        {
+            await StopAsync();
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, "Ошибка отключения");
+        }
+    }
+    
+    public void OnConnectionStateChanged(object? sender, bool e)
+    {
+        UpdateDelegate?.Invoke();
+        logger.LogDebug("Состояние сервиса изменилось на {State}", e);
+    }
+    
     protected override async Task ConfigureHubConnectionAsync()
     {
         await base.ConfigureHubConnectionAsync();
@@ -22,7 +41,7 @@ public class DeviceService(
         {
             var deviceInfo = new DeviceDto()
             {
-                Id = context.DeviceId,
+                Id = infoService.DeviceId,
                 DeviceData = infoService.GetDeviceData()
             };
             await HubConnection.InvokeAsync("RegisterDevice", deviceInfo);

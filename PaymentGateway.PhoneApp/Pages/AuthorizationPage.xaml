@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:PaymentGateway.PhoneApp.ViewModels"
+             x:Class="PaymentGateway.PhoneApp.Pages.AuthorizationPage"
+             Title="Авторизация"
+             x:DataType="viewmodels:AuthorizationViewModel">
+    <Grid RowDefinitions="Auto,Auto,Auto,Auto"
+          Padding="20">
+        <VerticalStackLayout Grid.Row="0"
+                             Spacing="10">
+            <Label Text="Введите код авторизации"
+                   HorizontalOptions="Center"
+                   Margin="0,0,0,10" />
+            <Entry Text="{Binding Token}"
+                   Placeholder="Введите код"
+                   HorizontalOptions="Fill"
+                   FontFamily="JetBrainsMono"
+                   Margin="0,0,0,10" />
+            <Button Text="Авторизоваться"
+                    Style="{StaticResource DefaultButton}"
+                    Command="{Binding AuthorizeCommand}"
+                    HorizontalOptions="Fill"
+                    Margin="0,0,0,10" />
+        </VerticalStackLayout>
+    </Grid>
+</ContentPage>

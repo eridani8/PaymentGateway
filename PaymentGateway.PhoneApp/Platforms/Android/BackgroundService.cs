@@ -7,25 +7,25 @@ using AndroidX.Core.App;
 using Microsoft.Extensions.Logging;
 using PaymentGateway.PhoneApp.Interfaces;
 using PaymentGateway.PhoneApp.Services;
-using PaymentGateway.Shared.Services;
 
 namespace PaymentGateway.PhoneApp;
 
 [Service(ForegroundServiceType = ForegroundService.TypeDataSync)]
 public class BackgroundService : Service
 {
-    private const int notificationId = 99999;
+    private const int notificationId = 9999;
     private const string channelId = "PaymentGatewayChannel";
     private const string channelName = "PaymentGatewayForegroundService";
     private const string actionStop = "com.eridani8.paymentgateway.STOP_SERVICE";
     private const string actionStart = "com.eridani8.paymentgateway.START_SERVICE";
 
-    private DeviceService? _signalRService;
-    private ILogger<BackgroundService>? _logger;
-    private IBackgroundServiceManager? _backgroundServiceManager;
-    private PowerManager.WakeLock? _wakeLock;
-    private NotificationManager? _notificationManager;
+    private ILogger<BackgroundService> _logger = null!;
+    private DeviceService _deviceService = null!;
+    private IBackgroundServiceManager _backgroundServiceManager = null!;
+    private IDeviceInfoService _deviceInfoService = null!;
+    private NotificationManager _notificationManager = null!;
     private ActionReceiver? _actionReceiver;
+    private PowerManager.WakeLock? _wakeLock;
 
     public override IBinder? OnBind(Intent? intent)
     {
@@ -35,17 +35,18 @@ public class BackgroundService : Service
     public override void OnCreate()
     {
         base.OnCreate();
-        _notificationManager = GetSystemService(NotificationService) as NotificationManager;
+        _notificationManager = (GetSystemService(NotificationService) as NotificationManager)!;
         
         CreateNotificationChannel();
         
-        var services = (ApplicationContext as IPlatformApplication)?.Services;
-        if (services != null)
-        {
-            _logger = services.GetRequiredService<ILogger<BackgroundService>>();
-            _signalRService = services.GetRequiredService<DeviceService>();
-            _backgroundServiceManager = services.GetRequiredService<IBackgroundServiceManager>();
-        }
+        var services = (ApplicationContext as IPlatformApplication)!.Services;
+        
+        _logger = services.GetRequiredService<ILogger<BackgroundService>>();
+        _deviceService = services.GetRequiredService<DeviceService>();
+        _backgroundServiceManager = services.GetRequiredService<IBackgroundServiceManager>();
+        _deviceInfoService = services.GetRequiredService<IDeviceInfoService>();
+
+        _deviceService.UpdateDelegate = UpdateNotification;
         
         _actionReceiver = new ActionReceiver();
         var filter = new IntentFilter();
@@ -67,12 +68,12 @@ public class BackgroundService : Service
         }
         catch (Exception e)
         {
-            _logger?.LogError(e, e.Message);
+            _logger.LogError(e, e.Message);
         }
         
         ReleaseWakeLock();
         
-        _backgroundServiceManager?.SetRunningState(false);
+        _backgroundServiceManager.SetRunningState(false);
         
         base.OnDestroy();
     }
@@ -82,74 +83,61 @@ public class BackgroundService : Service
         var initialNotification = BuildNotification("Инициализация сервиса...");
         StartForeground(notificationId, initialNotification, ForegroundService.TypeDataSync);
         
+        if (string.IsNullOrEmpty(_deviceInfoService.Token))
+        {
+            var notification = BuildNotification("Нужно задать токен");
+            _notificationManager.Notify(notificationId, notification);
+            _logger.LogWarning("Задайте токен");
+            return StartCommandResult.Sticky;
+        }
+        
+        
         if (intent?.Action == actionStop)
         {
             _ = StopBackgroundProcess();
             return StartCommandResult.Sticky;
         }
         
-        if (_backgroundServiceManager != null && (!_backgroundServiceManager.IsRunning || intent?.Action == actionStart))
+        if (!_backgroundServiceManager.IsRunning || intent?.Action == actionStart)
         {
             _ = StartBackgroundProcess();
         }
-        else if (_backgroundServiceManager == null)
-        {
-            _logger?.LogError("Background service manager is null");
-        }
-        
+
         return StartCommandResult.Sticky;
     }
 
     private async Task StartBackgroundProcess()
     {
-        _backgroundServiceManager?.SetRunningState(true);
-        
         var notification = BuildNotification(GetStatusText());
-        
-        _notificationManager?.Notify(notificationId, notification);
+        _notificationManager.Notify(notificationId, notification);
+
+        _backgroundServiceManager.SetRunningState(true);
 
         AcquireWakeLock();
         try
         {
-            if (_signalRService == null)
-            {
-                _logger?.LogError("SignalR сервис не инициализирован");
-                return;
-            }
-            _signalRService.ConnectionStateChanged += SignalRServiceOnConnectionStateChanged;
-            await _signalRService.InitializeAsync();
+            _deviceService.ConnectionStateChanged += _deviceService.OnConnectionStateChanged;
+            await _deviceService.InitializeAsync();
         }
         catch (Exception e)
         {
-            _logger?.LogError(e, "Ошибка подключения к сервису");
+            _logger.LogError(e, "Ошибка подключения к сервису");
         }
-    }
-
-    private void SignalRServiceOnConnectionStateChanged(object? sender, bool e)
-    {
-        UpdateNotification();
-        _logger?.LogDebug("Состояние сервиса изменилось на {State}", e);
     }
 
     private async Task StopBackgroundProcess()
     {
-        _backgroundServiceManager?.SetRunningState(false);
-        
-        if (_signalRService != null)
-        {
-            _signalRService.ConnectionStateChanged -= SignalRServiceOnConnectionStateChanged;
-            await _signalRService.StopAsync();
-        }
-        
+        _backgroundServiceManager.SetRunningState(false);
         var notification = BuildNotification(GetStatusText());
-        _notificationManager?.Notify(notificationId, notification);
+        _notificationManager.Notify(notificationId, notification);
+
+        await _deviceService.Stop();
         
         ReleaseWakeLock();
     }
 
     private void UpdateNotification()
     {
-        if (_notificationManager == null || _signalRService == null) return;
         var statusText = GetStatusText();
         var notification = BuildNotification(statusText);
         _notificationManager.Notify(notificationId, notification);
@@ -158,17 +146,12 @@ public class BackgroundService : Service
     private string GetStatusText()
     {
         var processStatus = _backgroundServiceManager is { IsRunning: true } ? "Фоновой процесс активен" : "Фоновой процесс остановлен";
-        
-        if (_signalRService == null) return processStatus;
-        
-        var serviceStatus = _signalRService.IsConnected ? "Сервис доступен" : "Сервис недоступен";
-        
+        var serviceStatus = _deviceService.IsConnected ? "Сервис доступен" : "Сервис недоступен";
         return $"{processStatus}\n{serviceStatus}";
     }
 
     private void AcquireWakeLock()
     {
-        if (_wakeLock != null) return;
         var powerManager = (PowerManager?)GetSystemService(PowerService);
         _wakeLock = powerManager?.NewWakeLock(WakeLockFlags.Partial, "PaymentGateway::BackgroundServiceLock");
         _wakeLock?.Acquire();
@@ -196,7 +179,7 @@ public class BackgroundService : Service
         channel.EnableLights(true);
         channel.EnableVibration(true);
         
-        _notificationManager?.CreateNotificationChannel(channel);
+        _notificationManager.CreateNotificationChannel(channel);
     }
 
     private Notification BuildNotification(string statusText)
@@ -221,7 +204,6 @@ public class BackgroundService : Service
             PendingIntentFlags.Immutable | PendingIntentFlags.UpdateCurrent);
         
         var compatBuilder = new NotificationCompat.Builder(this, channelId)
-            .SetContentTitle("PaymentGateway")
             .SetContentText(statusText)
             .SetSmallIcon(ResourceConstant.Mipmap.appicon)
             .SetOngoing(true)

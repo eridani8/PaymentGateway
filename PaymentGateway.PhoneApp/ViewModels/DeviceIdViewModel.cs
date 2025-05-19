@@ -6,9 +6,9 @@ using PaymentGateway.PhoneApp.Services;
 
 namespace PaymentGateway.PhoneApp.ViewModels;
 
-public partial class DeviceIdViewModel(LiteContext context) : BaseViewModel
+public partial class DeviceIdViewModel(IDeviceInfoService infoService) : BaseViewModel
 {
-    [ObservableProperty] private string _deviceId = context.DeviceId.ToString();
+    [ObservableProperty] private string _deviceId = infoService.DeviceId.ToString();
 
     [RelayCommand]
     private async Task CopyToClipboard()

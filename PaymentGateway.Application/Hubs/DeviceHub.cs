@@ -3,9 +3,11 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Shared.DTOs.Device;
+using Microsoft.AspNetCore.Authorization;
 
 namespace PaymentGateway.Application.Hubs;
 
+[Authorize]
 public class DeviceHub(ILogger<DeviceHub> logger) : Hub<IDeviceClientHub>
 {
     public static ConcurrentDictionary<string, DeviceDto> ConnectedDevices { get; } = new();

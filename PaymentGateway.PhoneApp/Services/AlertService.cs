@@ -8,4 +8,9 @@ public class AlertService : IAlertService
     {
         return await Shell.Current.DisplayAlert(title, message, accept, cancel);
     }
+
+    public Task ShowAlertAsync(string title, string message, string cancel)
+    {
+        return Shell.Current.DisplayAlert(title, message, cancel);
+    }
 }

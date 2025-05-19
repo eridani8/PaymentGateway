@@ -17,7 +17,7 @@
                 <MudToolBar>
                     <MudText Typo="Typo.h6">Список устройств</MudText>
                     <MudSpacer/>
-                    <MudButton Variant="Variant.Filled" 
+                    <MudButton Variant="Variant.Outlined" 
                               Color="Color.Primary" 
                               StartIcon="@Icons.Material.Filled.QrCode"
                               OnClick="@OpenDeviceQrDialog">
@@ -58,7 +58,8 @@
 
             var parameters = new DialogParameters
             {
-                { "QrCodeImage", $"data:image/png;base64,{response.QrCodeUri}" }
+                { "QrCodeImage", $"data:image/png;base64,{response.QrCodeUri}" },
+                { "Token", response.Token }
             };
 
             await DialogService.ShowAsync<DeviceQrDialog>(null, parameters);

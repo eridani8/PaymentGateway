@@ -1,4 +1,5 @@
-@using MudBlazor
+@inject IJSRuntime JsRuntime
+@inject ISnackbar Snackbar
 
 <MudDialog>
     <TitleContent>
@@ -7,25 +8,35 @@
     <DialogContent>
         <MudContainer Class="d-flex flex-column align-center">
             <MudText Typo="Typo.body1" Class="mb-4">
-                Отсканируйте QR-код с помощью устройства
+                Отсканируйте QR-код
             </MudText>
 
-            <div class="d-flex justify-center mb-4">
+            <MudStack>
                 @if (!string.IsNullOrEmpty(QrCodeImage))
                 {
                     <MudImage Src="@QrCodeImage"
-                              Alt="QR код для добавления устройства"
+                              Alt="QR код для авторизации устройства"
                               Width="300"
                               Height="300"
                               ObjectFit="ObjectFit.Cover"
                               Elevation="25"
                               Class="rounded-lg"/>
+                    <MudText Typo="Typo.body1" Class="mb-4">
+                        Или введите токен вручную:
+                        <MudTextField ReadOnly="true"
+                                      Value="@Token"
+                                      Variant="Variant.Outlined"
+                                      Adornment="Adornment.End"
+                                      AdornmentIcon="@Icons.Material.Filled.ContentCopy"
+                                      OnAdornmentClick="@(() => CopyToClipboard(Token))"
+                                      Class="mt-2"/>
+                    </MudText>
                 }
                 else
                 {
                     <MudAlert Severity="Severity.Error">Ошибка генерации QR кода</MudAlert>
                 }
-            </div>
+            </MudStack>
         </MudContainer>
     </DialogContent>
     <DialogActions>
@@ -35,8 +46,15 @@
 
 @code {
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
-    
+
     [Parameter] public string QrCodeImage { get; set; } = string.Empty;
-    
+    [Parameter] public string Token { get; set; } = string.Empty;
+
+    private async Task CopyToClipboard(string text)
+    {
+        await JsRuntime.InvokeVoidAsync("navigator.clipboard.writeText", text);
+        Snackbar.Add("Токен скопирован в буфер обмена", Severity.Success);
+    }
+
     private void Cancel() => MudDialog.Cancel();
 } 
