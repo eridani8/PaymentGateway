@@ -25,9 +25,7 @@ public class BackgroundService : Service
     private IBackgroundServiceManager? _backgroundServiceManager;
     private PowerManager.WakeLock? _wakeLock;
     private bool _isRunning;
-    private bool _previousServiceState;
     private NotificationManager? _notificationManager;
-    private Timer? _backgroundTimer;
     private ActionReceiver? _actionReceiver;
 
     public override IBinder? OnBind(Intent? intent)
@@ -48,10 +46,6 @@ public class BackgroundService : Service
             _logger = services.GetRequiredService<ILogger<BackgroundService>>();
             _signalRService = services.GetRequiredService<DeviceService>();
             _backgroundServiceManager = services.GetRequiredService<IBackgroundServiceManager>();
-            if (_signalRService != null)
-            {
-                _previousServiceState = _signalRService.IsConnected;
-            }
         }
         
         _actionReceiver = new ActionReceiver();
@@ -77,7 +71,10 @@ public class BackgroundService : Service
             _logger?.LogError(e, e.Message);
         }
         
-        StopBackgroundTimer();
+        if (_signalRService != null)
+        {
+            _signalRService.ConnectionStateChanged += SignalRServiceOnConnectionStateChanged;
+        }
         ReleaseWakeLock();
         
         _backgroundServiceManager?.SetRunningState(false);
@@ -98,13 +95,13 @@ public class BackgroundService : Service
         
         if (!_isRunning || intent?.Action == actionStart)
         {
-            StartBackgroundProcess();
+            _ = StartBackgroundProcess();
         }
         
         return StartCommandResult.Sticky;
     }
 
-    private void StartBackgroundProcess()
+    private async Task StartBackgroundProcess()
     {
         _isRunning = true;
         
@@ -115,76 +112,43 @@ public class BackgroundService : Service
         _notificationManager?.Notify(notificationId, notification);
 
         AcquireWakeLock();
-        StartBackgroundTimer();
+        try
+        {
+            if (_signalRService == null)
+            {
+                _logger?.LogError("SignalR сервис не инициализирован");
+                return;
+            }
+            _signalRService.ConnectionStateChanged += SignalRServiceOnConnectionStateChanged;
+            await _signalRService.InitializeAsync();
+        }
+        catch (Exception e)
+        {
+            _logger?.LogError(e, "Ошибка подключения к сервису");
+        }
     }
-    
+
+    private void SignalRServiceOnConnectionStateChanged(object? sender, bool e)
+    {
+        UpdateNotification();
+        _logger?.LogDebug("Состояние сервиса изменилось на {State}", e);
+    }
+
     private void StopBackgroundProcess()
     {
         _isRunning = false;
         
         _backgroundServiceManager?.SetRunningState(false);
         
-        StopBackgroundTimer();
+        if (_signalRService != null)
+        {
+            _signalRService.ConnectionStateChanged += SignalRServiceOnConnectionStateChanged;
+        }
         
         var notification = BuildNotification(GetStatusText());
         _notificationManager?.Notify(notificationId, notification);
         
         ReleaseWakeLock();
-    }
-    
-    private async void StartBackgroundTimer()
-    {
-        StopBackgroundTimer();
-
-        try
-        {
-            await _signalRService?.InitializeAsync()!;
-        }
-        catch (Exception e)
-        {
-            _logger?.LogError(e, "Ошибка подключения к сервису");
-        }
-        
-        _backgroundTimer = new Timer(async void (_) =>
-        {
-            try
-            {
-                await DoBackgroundWork();
-            }
-            catch (Exception e)
-            {
-                _logger?.LogError(e, e.Message);
-            }
-        }, null, TimeSpan.Zero, TimeSpan.FromSeconds(10));
-    }
-    
-    private void StopBackgroundTimer()
-    {
-        if (_backgroundTimer == null) return;
-        _backgroundTimer.Dispose();
-        _backgroundTimer = null;
-    }
-    
-    private async Task DoBackgroundWork()
-    {
-        try
-        {
-            var previousState = _signalRService?.IsConnected ?? false;
-
-            // await _deviceService!.SendPing(); // TODO
-            
-            var currentState = _signalRService?.IsConnected ?? false;
-            if (_isRunning && (previousState != currentState || _previousServiceState != currentState))
-            {
-                _previousServiceState = currentState;
-                _logger?.LogDebug("Состояние сервиса изменилось на {State}", currentState);
-                UpdateNotification();
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger?.LogError(ex, "Ошибка при выполнении фоновой задачи");
-        }
     }
 
     private void UpdateNotification()

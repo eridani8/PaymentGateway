@@ -14,7 +14,21 @@ public class BaseSignalRService(
     IOptions<ApiSettings> settings,
     ILogger<BaseSignalRService> logger) : IAsyncDisposable
 {
-    public bool IsConnected => HubConnection is { State: HubConnectionState.Connected };
+    public event EventHandler<bool>? ConnectionStateChanged;
+    
+    private bool _isConnected;
+    public bool IsConnected
+    {
+        get => _isConnected;
+        private set
+        {
+            if (_isConnected != value)
+            {
+                _isConnected = value;
+                ConnectionStateChanged?.Invoke(this, value);
+            }
+        }
+    }
     
     protected HubConnection? HubConnection;
     private readonly string _hubUrl = $"{settings.Value.BaseAddress}/{settings.Value.HubName}";
@@ -116,18 +130,21 @@ public class BaseSignalRService(
     {
         HubConnection!.Reconnecting += error =>
         {
+            IsConnected = false;
             logger.LogDebug("Попытка переподключения SignalR: {Error}", error?.Message);
             return Task.CompletedTask;
         };
 
         HubConnection.Reconnected += connectionId =>
         {
+            IsConnected = true;
             logger.LogDebug("SignalR успешно переподключен: {ConnectionId}", connectionId);
             return Task.CompletedTask;
         };
 
         HubConnection.Closed += async (error) =>
         {
+            IsConnected = false;
             if (IsDisposed) return;
 
             if (error != null)
