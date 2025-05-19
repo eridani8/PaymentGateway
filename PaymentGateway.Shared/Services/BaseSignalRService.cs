@@ -30,6 +30,7 @@ public class BaseSignalRService(
     protected HubConnection? HubConnection;
     private readonly string _hubUrl = $"{settings.Value.BaseAddress}/{settings.Value.HubName}";
     protected bool IsDisposed;
+    private bool _isStopped;
 
     private static TimeSpan CloseTimeout => TimeSpan.FromMinutes(1);
     private static TimeSpan KeepAliveInterval => TimeSpan.FromSeconds(10);
@@ -118,6 +119,8 @@ public class BaseSignalRService(
     {
         HubConnection!.Reconnecting += error =>
         {
+            if (_isStopped) return Task.CompletedTask;
+            
             IsConnected = false;
             logger.LogDebug("Попытка переподключения SignalR: {Error}", error?.Message);
             return Task.CompletedTask;
@@ -125,6 +128,8 @@ public class BaseSignalRService(
 
         HubConnection.Reconnected += connectionId =>
         {
+            if (_isStopped) return Task.CompletedTask;
+            
             IsConnected = true;
             logger.LogDebug("SignalR успешно переподключен: {ConnectionId}", connectionId);
             return Task.CompletedTask;
@@ -133,7 +138,7 @@ public class BaseSignalRService(
         HubConnection.Closed += async (error) =>
         {
             IsConnected = false;
-            if (IsDisposed) return;
+            if (IsDisposed || _isStopped) return;
 
             if (error != null)
             {
@@ -169,6 +174,7 @@ public class BaseSignalRService(
         
         try
         {
+            _isStopped = false;
             if (HubConnection is { State: HubConnectionState.Connected })
             {
                 logger.LogDebug("SignalR соединение уже установлено");
@@ -181,6 +187,23 @@ public class BaseSignalRService(
         catch (Exception ex)
         {
             logger.LogError(ex, "Ошибка при инициализации SignalR соединения");
+        }
+    }
+
+    public virtual async Task StopAsync()
+    {
+        if (HubConnection == null) return;
+        
+        try
+        {
+            _isStopped = true;
+            IsConnected = false;
+            await HubConnection.StopAsync();
+            logger.LogDebug("SignalR соединение остановлено");
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Ошибка при остановке SignalR соединения");
         }
     }
 

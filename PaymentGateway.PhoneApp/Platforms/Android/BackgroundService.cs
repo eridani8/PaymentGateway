@@ -24,7 +24,6 @@ public class BackgroundService : Service
     private ILogger<BackgroundService>? _logger;
     private IBackgroundServiceManager? _backgroundServiceManager;
     private PowerManager.WakeLock? _wakeLock;
-    private bool _isRunning;
     private NotificationManager? _notificationManager;
     private ActionReceiver? _actionReceiver;
 
@@ -71,10 +70,6 @@ public class BackgroundService : Service
             _logger?.LogError(e, e.Message);
         }
         
-        if (_signalRService != null)
-        {
-            _signalRService.ConnectionStateChanged += SignalRServiceOnConnectionStateChanged;
-        }
         ReleaseWakeLock();
         
         _backgroundServiceManager?.SetRunningState(false);
@@ -89,13 +84,17 @@ public class BackgroundService : Service
         
         if (intent?.Action == actionStop)
         {
-            StopBackgroundProcess();
+            _ = StopBackgroundProcess();
             return StartCommandResult.Sticky;
         }
         
-        if (!_isRunning || intent?.Action == actionStart)
+        if (_backgroundServiceManager != null && (!_backgroundServiceManager.IsRunning || intent?.Action == actionStart))
         {
             _ = StartBackgroundProcess();
+        }
+        else if (_backgroundServiceManager == null)
+        {
+            _logger?.LogError("Background service manager is null");
         }
         
         return StartCommandResult.Sticky;
@@ -103,8 +102,6 @@ public class BackgroundService : Service
 
     private async Task StartBackgroundProcess()
     {
-        _isRunning = true;
-        
         _backgroundServiceManager?.SetRunningState(true);
         
         var notification = BuildNotification(GetStatusText());
@@ -134,15 +131,14 @@ public class BackgroundService : Service
         _logger?.LogDebug("Состояние сервиса изменилось на {State}", e);
     }
 
-    private void StopBackgroundProcess()
+    private async Task StopBackgroundProcess()
     {
-        _isRunning = false;
-        
         _backgroundServiceManager?.SetRunningState(false);
         
         if (_signalRService != null)
         {
-            _signalRService.ConnectionStateChanged += SignalRServiceOnConnectionStateChanged;
+            _signalRService.ConnectionStateChanged -= SignalRServiceOnConnectionStateChanged;
+            await _signalRService.StopAsync();
         }
         
         var notification = BuildNotification(GetStatusText());
@@ -161,10 +157,9 @@ public class BackgroundService : Service
 
     private string GetStatusText()
     {
-        var processStatus = _isRunning ? "Фоновой процесс активен" : "Фоновой процесс остановлен";
+        var processStatus = _backgroundServiceManager is { IsRunning: true } ? "Фоновой процесс активен" : "Фоновой процесс остановлен";
         
-        if (_signalRService == null)
-            return processStatus;
+        if (_signalRService == null) return processStatus;
         
         var serviceStatus = _signalRService.IsConnected ? "Сервис доступен" : "Сервис недоступен";
         
@@ -242,7 +237,7 @@ public class BackgroundService : Service
         var style = new NotificationCompat.BigTextStyle().BigText(statusText);
         compatBuilder.SetStyle(style);
         
-        if (_isRunning)
+        if (_backgroundServiceManager is { IsRunning: true })
         {
             compatBuilder.AddAction(0, "Остановить", stopPendingIntent);
         }
