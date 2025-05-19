@@ -48,6 +48,7 @@ builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IRequisiteService, RequisiteService>();
 builder.Services.AddScoped<ITransactionService, TransactionService>();
+builder.Services.AddScoped<IDeviceService, DeviceService>();
 
 builder.Services.AddHttpClient("API", (serviceProvider, client) =>
     {

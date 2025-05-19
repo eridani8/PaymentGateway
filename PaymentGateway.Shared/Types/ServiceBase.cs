@@ -27,6 +27,14 @@ public class ServiceBase(IHttpClientFactory factory, ILogger<ServiceBase> logger
             ? JsonSerializer.Deserialize<T>(response.Content?.Trim('"') ?? string.Empty, JsonOptions)
             : default;
     }
+    
+    public async Task<T?> PostRequest<T>(string url)
+    {
+        var response = await SendRequest(HttpMethod.Post, url);
+        return response.Code is HttpStatusCode.OK or HttpStatusCode.Created 
+            ? JsonSerializer.Deserialize<T>(response.Content?.Trim('"') ?? string.Empty, JsonOptions)
+            : default;
+    }
 
     public async Task<Response> GetRequest(string url)
     {

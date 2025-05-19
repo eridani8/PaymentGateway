@@ -6,6 +6,7 @@
 @inject ILogger<Devices> Logger
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NotificationService NotificationService
+@inject IDeviceService DeviceService
 @* @implements IAsyncDisposable *@
 @* @implements IDisposable //TODO *@
 
@@ -16,7 +17,12 @@
                 <MudToolBar>
                     <MudText Typo="Typo.h6">Список устройств</MudText>
                     <MudSpacer/>
-
+                    <MudButton Variant="Variant.Filled" 
+                              Color="Color.Primary" 
+                              StartIcon="@Icons.Material.Filled.QrCode"
+                              OnClick="@OpenDeviceQrDialog">
+                        Авторизация устройства
+                    </MudButton>
                 </MudToolBar>
             </MudPaper>
         </MudContainer>
@@ -29,5 +35,38 @@
 </AuthorizeView>
 
 @code {
+    private async Task OpenDeviceQrDialog()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        
+        if (user.Identity?.IsAuthenticated != true)
+        {
+            Snackbar.Add("Необходима авторизация", Severity.Error);
+            return;
+        }
 
+        try
+        {
+            var response = await DeviceService.GenerateDeviceToken();
+
+            if (response is null)
+            {
+                Snackbar.Add("Не удалось сгенерировать токен устройства", Severity.Error);
+                return;
+            }
+
+            var parameters = new DialogParameters
+            {
+                { "QrCodeImage", $"data:image/png;base64,{response.QrCodeUri}" }
+            };
+
+            await DialogService.ShowAsync<DeviceQrDialog>(null, parameters);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Ошибка при генерации токена устройства");
+            Snackbar.Add("Произошла ошибка при генерации токена устройства", Severity.Error);
+        }
+    }
 }

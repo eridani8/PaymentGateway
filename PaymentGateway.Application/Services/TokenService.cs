@@ -36,4 +36,25 @@ public class TokenService(IOptions<AuthConfig> config) : ITokenService
 
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
+
+    public string GenerateDeviceJwtToken(UserEntity user, string role)
+    {
+        var claims = new List<Claim>
+        {
+            new("i", user.Id.ToString()),
+            new("r", role)
+        };
+
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config.Value.SecretKey));
+        var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+        var expires = DateTime.Now.AddYears(999);
+
+        var token = new JwtSecurityToken(
+            claims: claims,
+            expires: expires,
+            signingCredentials: credentials
+        );
+
+        return new JwtSecurityTokenHandler().WriteToken(token);
+    }
 }

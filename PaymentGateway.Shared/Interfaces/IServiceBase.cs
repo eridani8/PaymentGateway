@@ -5,6 +5,7 @@ namespace PaymentGateway.Shared.Interfaces;
 public interface IServiceBase
 {
     Task<T?> PostRequest<T>(string url, object model);
+    Task<T?> PostRequest<T>(string url);
     Task<Response> PostRequest(string url, object model);
     Task<Response> PostRequest(string url);
     Task<Response> GetRequest(string url);
