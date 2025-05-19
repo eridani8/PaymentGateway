@@ -1,4 +1,5 @@
-﻿using Npgsql;
+﻿using AspNetCore.SignalR.OpenTelemetry;
+using Npgsql;
 using OpenTelemetry.Exporter;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
@@ -13,6 +14,8 @@ public static class OpenTelemetryConfiguration
     {
         builder.Services.Configure<OpenTelemetryConfig>(builder.Configuration.GetSection(nameof(OpenTelemetryConfig)));
         
+        builder.Services.AddSignalR().AddHubInstrumentation();
+            
         var resourceBuilder = ResourceBuilder.CreateDefault()
             .AddService(builder.Environment.ApplicationName)
             .AddEnvironmentVariableDetector();
@@ -33,6 +36,7 @@ public static class OpenTelemetryConfiguration
                     // {
                     //     options.SetDbStatementForText = true;
                     // }) // TODO
+                    .AddSignalRInstrumentation()
                     .AddOtlpExporter(options =>
                     {
                         options.Endpoint = new Uri($"{otlpConfig.Endpoint}/ingest/otlp/v1/traces");
