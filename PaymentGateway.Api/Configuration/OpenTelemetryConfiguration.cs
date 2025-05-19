@@ -29,14 +29,14 @@ public static class OpenTelemetryConfiguration
                     {
                         options.RecordException = true;
                     })
-                    .AddEntityFrameworkCoreInstrumentation(options =>
-                    {
-                        options.SetDbStatementForText = true;
-                    })
+                    // .AddEntityFrameworkCoreInstrumentation(options =>
+                    // {
+                    //     options.SetDbStatementForText = true;
+                    // }) // TODO
                     .AddOtlpExporter(options =>
                     {
                         options.Endpoint = new Uri($"{otlpConfig.Endpoint}/ingest/otlp/v1/traces");
-                        options.Protocol = OtlpExportProtocol.HttpProtobuf;
+                        options.Protocol = OtlpExportProtocol.HttpProtobuf; // TODO
                         options.Headers = $"X-Seq-ApiKey={otlpConfig.Token}";
                     });
             })
@@ -49,7 +49,7 @@ public static class OpenTelemetryConfiguration
                     .AddOtlpExporter(options =>
                     {
                         options.Endpoint = new Uri($"{otlpConfig.Endpoint}/ingest/otlp/v1/metrics");
-                        options.Protocol = OtlpExportProtocol.HttpProtobuf;
+                        options.Protocol = OtlpExportProtocol.HttpProtobuf; // TODO
                         options.Headers = $"X-Seq-ApiKey={otlpConfig.Token}";
                     });
             });
