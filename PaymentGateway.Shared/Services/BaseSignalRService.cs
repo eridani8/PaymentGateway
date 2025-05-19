@@ -22,11 +22,8 @@ public class BaseSignalRService(
         get => _isConnected;
         private set
         {
-            if (_isConnected != value)
-            {
-                _isConnected = value;
-                ConnectionStateChanged?.Invoke(this, value);
-            }
+            _isConnected = value;
+            ConnectionStateChanged?.Invoke(this, value);
         }
     }
     
@@ -51,16 +48,7 @@ public class BaseSignalRService(
         TimeSpan.FromSeconds(10),
         TimeSpan.FromSeconds(15),
         TimeSpan.FromSeconds(30),
-        TimeSpan.FromMinutes(1),
-        TimeSpan.FromMinutes(2),
-        TimeSpan.FromMinutes(3),
-        TimeSpan.FromMinutes(4),
-        TimeSpan.FromMinutes(5),
-        TimeSpan.FromMinutes(6),
-        TimeSpan.FromMinutes(7),
-        TimeSpan.FromMinutes(8),
-        TimeSpan.FromMinutes(9),
-        TimeSpan.FromMinutes(10),
+        TimeSpan.FromMinutes(1)
     ];
 
     private readonly AsyncRetryPolicy _reconnectionPolicy = Policy
@@ -206,12 +194,14 @@ public class BaseSignalRService(
         {
             if (HubConnection == null)
             {
+                IsConnected = false;
                 logger.LogError("Соединение с SignalR не инициализировано");
                 throw new InvalidOperationException("Соединение с SignalR не инициализировано");
             }
 
             if (HubConnection.State == HubConnectionState.Connected)
             {
+                IsConnected = true;
                 logger.LogDebug("SignalR уже подключен");
                 return;
             }
@@ -220,10 +210,12 @@ public class BaseSignalRService(
             {
                 logger.LogDebug("Попытка подключения к SignalR хабу: {HubUrl}", _hubUrl);
                 await HubConnection.StartAsync();
+                IsConnected = true;
                 logger.LogDebug("SignalR соединение установлено успешно");
             }
             catch (Exception ex)
             {
+                IsConnected = false;
                 logger.LogError(ex, "Ошибка при подключении SignalR");
                 throw;
             }
@@ -294,6 +286,7 @@ public class BaseSignalRService(
         {
             if (HubConnection != null)
             {
+                IsConnected = false;
                 await HubConnection.DisposeAsync();
                 HubConnection = null!;
                 

@@ -7,6 +7,6 @@ public class DeviceInfoService : IDeviceInfoService
 {
     public string GetDeviceData()
     {
-        return $"{Build.Manufacturer} {Build.VERSION.SdkInt} {Build.Model}";
+        return $"{Build.Manufacturer} {Build.Model} ({Build.VERSION.Release})";
     }
 }
