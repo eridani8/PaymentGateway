@@ -6,15 +6,46 @@ using PaymentGateway.Shared.Constants;
 using PaymentGateway.Shared.Services;
 using PaymentGateway.Shared.Types;
 using PaymentGateway.Shared.DTOs.Device;
+using System.ComponentModel;
+using Android.OS;
+using LiteDB;
+using PaymentGateway.PhoneApp.Types;
 
 namespace PaymentGateway.PhoneApp.Services;
 
-public class DeviceService(
-    IOptions<ApiSettings> settings,
-    ILogger<DeviceService> logger,
-    IDeviceInfoService infoService) : BaseSignalRService(settings, logger)
+public class DeviceService : BaseSignalRService
 {
+    private readonly ILogger<DeviceService> _logger;
+    private readonly LiteContext _context;
+    
+    public Guid DeviceId { get; }
+    
     public Action? UpdateDelegate;
+
+    public DeviceService(IOptions<ApiSettings> settings,
+        ILogger<DeviceService> logger,
+        LiteContext context) : base(settings, logger)
+    {
+        _logger = logger;
+        _context = context;
+        AccessToken = context.GetToken();
+        DeviceId = context.GetDeviceId();
+    }
+    
+    public void SaveToken()
+    {
+        _context.KeyValues.Insert(new KeyValue()
+        {
+            Id = ObjectId.NewObjectId(),
+            Key = LiteContext.tokenKey,
+            Value = AccessToken
+        });
+    }
+    
+    public string GetDeviceData()
+    {
+        return $"{Build.Manufacturer} {Build.Model} ({Build.VERSION.Release})";
+    }
 
     public async Task Stop()
     {
@@ -24,14 +55,14 @@ public class DeviceService(
         }
         catch (Exception e)
         {
-            logger.LogError(e, "Ошибка отключения");
+            _logger.LogError(e, "Ошибка отключения");
         }
     }
     
     public void OnConnectionStateChanged(object? sender, bool e)
     {
         UpdateDelegate?.Invoke();
-        logger.LogDebug("Состояние сервиса изменилось на {State}", e);
+        _logger.LogDebug("Состояние сервиса изменилось на {State}", e);
     }
     
     protected override async Task ConfigureHubConnectionAsync()
@@ -42,8 +73,8 @@ public class DeviceService(
         {
             var deviceInfo = new DeviceDto()
             {
-                Id = infoService.DeviceId,
-                DeviceData = infoService.GetDeviceData()
+                Id = DeviceId,
+                DeviceData = GetDeviceData()
             };
             await HubConnection.InvokeAsync(SignalREvents.DeviceApp.RegisterDevice, deviceInfo);
         });

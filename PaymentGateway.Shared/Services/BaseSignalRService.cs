@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System.ComponentModel;
+using System.Net;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Http.Connections;
 using Microsoft.AspNetCore.SignalR.Client;
@@ -13,9 +14,10 @@ namespace PaymentGateway.Shared.Services;
 
 public class BaseSignalRService(
     IOptions<ApiSettings> settings,
-    ILogger<BaseSignalRService> logger) : IAsyncDisposable
+    ILogger<BaseSignalRService> logger) : IAsyncDisposable, INotifyPropertyChanged
 {
     public event EventHandler<bool>? ConnectionStateChanged;
+    public event PropertyChangedEventHandler? PropertyChanged;
     
     private bool _isConnected;
     public bool IsConnected
@@ -25,15 +27,26 @@ public class BaseSignalRService(
         {
             _isConnected = value;
             ConnectionStateChanged?.Invoke(this, value);
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsConnected)));
         }
     }
+
+    private string _accessToken = string.Empty;
     
-    protected HubConnection? HubConnection;
-    
-    public string? AccessToken { get; set; }
+    public string AccessToken
+    {
+        get => _accessToken;
+        set
+        {
+            _accessToken = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AccessToken)));
+        }
+    }
 
     protected bool IsDisposed;
     private bool _isStopped;
+    
+    protected HubConnection? HubConnection;
 
     private static TimeSpan CloseTimeout => TimeSpan.FromMinutes(1);
     private static TimeSpan KeepAliveInterval => TimeSpan.FromSeconds(10);

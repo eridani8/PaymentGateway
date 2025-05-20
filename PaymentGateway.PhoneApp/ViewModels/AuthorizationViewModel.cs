@@ -9,28 +9,32 @@ namespace PaymentGateway.PhoneApp.ViewModels;
 public partial class AuthorizationViewModel(
     IAlertService alertService,
     ILogger<AuthorizationViewModel> logger,
-    DeviceService deviceService,
-    IDeviceInfoService deviceInfoService)
+    DeviceService deviceService)
     : ObservableObject
 {
-    [ObservableProperty] private string? _token;
+    [ObservableProperty] private DeviceService _deviceService = deviceService;
+
+    [RelayCommand]
+    private async Task Logout()
+    {
+        await DeviceService.Stop();
+        ClearToken();
+    }
 
     [RelayCommand]
     private async Task Authorize()
     {
-        if (string.IsNullOrEmpty(Token)) return;
+        if (string.IsNullOrEmpty(DeviceService.AccessToken)) return;
         
         try
         {
-            deviceInfoService.Token = Token;
-            deviceService.AccessToken = Token;
-            await deviceService.InitializeAsync();
-            if (!await deviceService.WaitConnection(TimeSpan.FromSeconds(10)))
+            await DeviceService.InitializeAsync();
+            if (!await DeviceService.WaitConnection(TimeSpan.FromSeconds(7)))
             {
                 await FailureConnection();
                 return;
             }
-            deviceInfoService.SaveToken();
+            DeviceService.SaveToken();
             await alertService.ShowAlertAsync("Успех", "Авторизация выполнена", "OK");
         }
         catch (Exception e)
@@ -42,9 +46,12 @@ public partial class AuthorizationViewModel(
 
     private async Task FailureConnection()
     {
-        deviceInfoService.Token = string.Empty;
-        deviceService.AccessToken = string.Empty;
-        Token = string.Empty;
+        ClearToken();
         await alertService.ShowAlertAsync("Ошибка", "Не удалось выполнить авторизацию", "OK");
+    }
+
+    private void ClearToken()
+    {
+        DeviceService.AccessToken = string.Empty;
     }
 }

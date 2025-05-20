@@ -13,10 +13,6 @@
         ContentTemplate="{DataTemplate pages:AuthorizationPage}" />
 
     <ShellContent
-        Title="Устройство"
-        ContentTemplate="{DataTemplate pages:DeviceIdPage}" />
-
-    <ShellContent
         Title="Логи"
         ContentTemplate="{DataTemplate pages:LogsPage}" />
 

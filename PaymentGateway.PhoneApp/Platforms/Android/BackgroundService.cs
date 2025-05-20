@@ -22,7 +22,6 @@ public class BackgroundService : Service
     private ILogger<BackgroundService> _logger = null!;
     private DeviceService _deviceService = null!;
     private IBackgroundServiceManager _backgroundServiceManager = null!;
-    private IDeviceInfoService _deviceInfoService = null!;
     private NotificationManager _notificationManager = null!;
     private ActionReceiver? _actionReceiver;
     private PowerManager.WakeLock? _wakeLock;
@@ -44,7 +43,6 @@ public class BackgroundService : Service
         _logger = services.GetRequiredService<ILogger<BackgroundService>>();
         _deviceService = services.GetRequiredService<DeviceService>();
         _backgroundServiceManager = services.GetRequiredService<IBackgroundServiceManager>();
-        _deviceInfoService = services.GetRequiredService<IDeviceInfoService>();
 
         _deviceService.UpdateDelegate = UpdateNotification;
         
@@ -83,7 +81,7 @@ public class BackgroundService : Service
         var initialNotification = BuildNotification("Инициализация сервиса...");
         StartForeground(notificationId, initialNotification, ForegroundService.TypeDataSync);
         
-        if (string.IsNullOrEmpty(_deviceInfoService.Token))
+        if (string.IsNullOrEmpty(_deviceService.AccessToken))
         {
             var notification = BuildNotification("Нужно задать токен");
             _notificationManager.Notify(notificationId, notification);
