@@ -9,6 +9,7 @@ using PaymentGateway.Shared;
 using PaymentGateway.Shared.DTOs.Device;
 using System.Security.Claims;
 using PaymentGateway.Core.Interfaces;
+using PaymentGateway.Shared.Services;
 
 namespace PaymentGateway.Api.Endpoints;
 

@@ -19,20 +19,32 @@ public partial class AuthorizationViewModel(
     private async Task Authorize()
     {
         if (string.IsNullOrEmpty(Token)) return;
-
+        
         try
         {
             deviceInfoService.Token = Token;
+            deviceService.AccessToken = Token;
             await deviceService.InitializeAsync();
+            if (!await deviceService.WaitConnection(TimeSpan.FromSeconds(10)))
+            {
+                await FailureConnection();
+                return;
+            }
             deviceInfoService.SaveToken();
             await alertService.ShowAlertAsync("Успех", "Авторизация выполнена", "OK");
         }
         catch (Exception e)
         {
-            deviceInfoService.Token = string.Empty;
-            Token = string.Empty;
             logger.LogError(e, "Ошибка авторизации");
-            await alertService.ShowAlertAsync("Ошибка", "Не удалось выполнить авторизацию", "OK");
+            await FailureConnection();
         }
+    }
+
+    private async Task FailureConnection()
+    {
+        deviceInfoService.Token = string.Empty;
+        deviceService.AccessToken = string.Empty;
+        Token = string.Empty;
+        await alertService.ShowAlertAsync("Ошибка", "Не удалось выполнить авторизацию", "OK");
     }
 }

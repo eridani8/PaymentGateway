@@ -9,6 +9,7 @@ using System.Security.Claims;
 using Asp.Versioning;
 using Carter;
 using PaymentGateway.Application.Results;
+using PaymentGateway.Shared.Services;
 
 namespace PaymentGateway.Api.Endpoints;
 

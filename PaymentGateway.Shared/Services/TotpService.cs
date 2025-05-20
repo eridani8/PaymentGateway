@@ -2,7 +2,7 @@ using System.Security.Cryptography;
 using OtpNet;
 using QRCoder;
 
-namespace PaymentGateway.Shared;
+namespace PaymentGateway.Shared.Services;
 
 public static class TotpService
 {

@@ -1,6 +1,10 @@
 using System.Text.Json.Serialization;
 using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Application.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using PaymentGateway.Core.Configs;
 
 namespace PaymentGateway.Api.Configuration;
 
@@ -24,5 +28,41 @@ public static class SignalRConfiguration
         });
         
         builder.Services.AddScoped<INotificationService, NotificationService>();
+        
+        var authConfig = builder.Configuration.GetSection(nameof(AuthConfig)).Get<AuthConfig>();
+        if (authConfig != null)
+        {
+            var key = Encoding.ASCII.GetBytes(authConfig.SecretKey);
+            
+            builder.Services.AddAuthentication()
+                .AddJwtBearer("Device", options =>
+                {
+                    options.RequireHttpsMetadata = false;
+                    options.SaveToken = true;
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        IssuerSigningKey = new SymmetricSecurityKey(key),
+                        ValidateIssuer = false,
+                        ValidateAudience = false,
+                        ValidateLifetime = true,
+                        ClockSkew = TimeSpan.Zero
+                    };
+
+                    options.Events = new JwtBearerEvents
+                    {
+                        OnMessageReceived = context =>
+                        {
+                            var accessToken = context.Request.Query["access_token"];
+                            var path = context.HttpContext.Request.Path;
+                            
+                            if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/deviceHub"))
+                            {
+                                context.Token = accessToken;
+                            }
+                            return Task.CompletedTask;
+                        }
+                    };
+                });
+        }
     }
 } 

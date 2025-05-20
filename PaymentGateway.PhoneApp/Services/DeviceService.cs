@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using PaymentGateway.PhoneApp.Interfaces;
+using PaymentGateway.Shared.Constants;
 using PaymentGateway.Shared.Services;
 using PaymentGateway.Shared.Types;
 using PaymentGateway.Shared.DTOs.Device;
@@ -37,14 +38,14 @@ public class DeviceService(
     {
         await base.ConfigureHubConnectionAsync();
 
-        HubConnection?.On("RequestDeviceRegistration", async () =>
+        HubConnection?.On(SignalREvents.DeviceApp.RequestDeviceRegistration, async () =>
         {
             var deviceInfo = new DeviceDto()
             {
                 Id = infoService.DeviceId,
                 DeviceData = infoService.GetDeviceData()
             };
-            await HubConnection.InvokeAsync("RegisterDevice", deviceInfo);
+            await HubConnection.InvokeAsync(SignalREvents.DeviceApp.RegisterDevice, deviceInfo);
         });
     }
 }

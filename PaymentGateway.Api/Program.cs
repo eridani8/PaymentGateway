@@ -70,8 +70,6 @@ try
         }
     });
 
-    // app.UseSerilogRequestLogging();
-
     app.UseCors("AllowAll"); // TODO
     
     // app.UseHttpsRedirection(); // TODO

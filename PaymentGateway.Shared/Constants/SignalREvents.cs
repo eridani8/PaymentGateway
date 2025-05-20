@@ -1,4 +1,4 @@
-﻿namespace PaymentGateway.Shared;
+﻿namespace PaymentGateway.Shared.Constants;
 
 public static class SignalREvents
 {
@@ -18,5 +18,11 @@ public static class SignalREvents
         public const string GetAllUsers = "GetAllUsers";
         public const string GetChatMessages = "GetChatMessages";
         public const string ChangeRequisiteAssignmentAlgorithm = "ChangeRequisiteAssignmentAlgorithm";
+    }
+
+    public static class DeviceApp
+    {
+        public const string RequestDeviceRegistration = "RequestDeviceRegistration";
+        public const string RegisterDevice = "RegisterDevice";
     }
 }

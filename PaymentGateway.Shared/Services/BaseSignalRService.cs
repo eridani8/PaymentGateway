@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.Net;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Http.Connections;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.DependencyInjection;
@@ -28,7 +29,9 @@ public class BaseSignalRService(
     }
     
     protected HubConnection? HubConnection;
-    private readonly string _hubUrl = $"{settings.Value.BaseAddress}/{settings.Value.HubName}";
+    
+    public string? AccessToken { get; set; }
+
     protected bool IsDisposed;
     private bool _isStopped;
 
@@ -38,7 +41,6 @@ public class BaseSignalRService(
     private static HttpTransportType TransportTypes => HttpTransportType.WebSockets | HttpTransportType.ServerSentEvents | HttpTransportType.LongPolling;
     private static bool SkipNegotiation => false;
     protected virtual Func<Task<string?>>? AccessTokenProvider => null;
-    private static Dictionary<string, string>? AdditionalHeaders => new() { { "Connection", "keep-alive" } };
 
     private static TimeSpan[] ReconnectionDelays =>
     [
@@ -53,7 +55,7 @@ public class BaseSignalRService(
     ];
 
     private readonly AsyncRetryPolicy _reconnectionPolicy = Policy
-        .Handle<Exception>()
+        .Handle<Exception>(ShouldRetry)
         .WaitAndRetryAsync(
             99,
             retryAttempt => 
@@ -74,6 +76,47 @@ public class BaseSignalRService(
             }
         );
 
+    private static bool ShouldRetry(Exception e)
+    {
+        if (e is HttpRequestException { StatusCode: HttpStatusCode.Unauthorized })
+        {
+            return false;
+        }
+
+        if (e.InnerException is HttpRequestException { StatusCode: HttpStatusCode.Unauthorized })
+        {
+            return false;
+        }
+
+        return true;
+    }
+    
+    private string GetHubUrl()
+    {
+        var url = $"{settings.Value.BaseAddress}/{settings.Value.HubName}";
+        if (!string.IsNullOrEmpty(AccessToken))
+        {
+            url += $"?access_token={AccessToken}";
+        }
+        return url;
+    }
+
+    public async Task<bool> WaitConnection(TimeSpan timeout)
+    {
+        using var ct = new CancellationTokenSource(timeout);
+        while (!ct.IsCancellationRequested)
+        {
+            if (IsConnected) return true;
+
+            try
+            {
+                await Task.Delay(1000, ct.Token);
+            }
+            catch (OperationCanceledException) { }
+        }
+        return false;
+    }
+    
     protected virtual async Task ConfigureHubConnectionAsync()
     {
         if (HubConnection != null)
@@ -82,19 +125,11 @@ public class BaseSignalRService(
         }
             
         HubConnection = new HubConnectionBuilder()
-            .WithUrl(_hubUrl, options =>
+            .WithUrl(GetHubUrl(), options =>
             {
                 options.CloseTimeout = CloseTimeout;
                 options.SkipNegotiation = SkipNegotiation;
                 options.Transports = TransportTypes;
-                
-                if (AdditionalHeaders != null)
-                {
-                    foreach (var header in AdditionalHeaders)
-                    {
-                        options.Headers[header.Key] = header.Value;
-                    }
-                }
 
                 if (AccessTokenProvider != null)
                 {
@@ -190,7 +225,7 @@ public class BaseSignalRService(
         }
     }
 
-    public virtual async Task StopAsync()
+    protected virtual async Task StopAsync()
     {
         if (HubConnection == null) return;
         
@@ -231,7 +266,7 @@ public class BaseSignalRService(
 
             try
             {
-                logger.LogDebug("Попытка подключения к SignalR хабу: {HubUrl}", _hubUrl);
+                logger.LogDebug("Попытка подключения к SignalR хабу: {HubUrl}", GetHubUrl());
                 await HubConnection.StartAsync();
                 IsConnected = true;
                 logger.LogDebug("SignalR соединение установлено успешно");

@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.SignalR.Client;
 using PaymentGateway.Shared;
+using PaymentGateway.Shared.Constants;
 using PaymentGateway.Shared.DTOs.Payment;
 using PaymentGateway.Shared.DTOs.Requisite;
 using PaymentGateway.Shared.DTOs.Transaction;

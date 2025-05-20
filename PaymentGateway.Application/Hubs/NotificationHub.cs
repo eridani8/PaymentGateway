@@ -3,12 +3,13 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using PaymentGateway.Application.Interfaces;
-using PaymentGateway.Core.Interfaces;
 using PaymentGateway.Shared.DTOs.Chat;
 using PaymentGateway.Shared.DTOs.User;
+using Microsoft.AspNetCore.Authorization;
 
 namespace PaymentGateway.Application.Hubs;
 
+[Authorize(Policy = "Notification")]
 public class NotificationHub(
     ILogger<NotificationHub> logger,
     IChatMessageService chatMessageService) : Hub<IWebClientHub>

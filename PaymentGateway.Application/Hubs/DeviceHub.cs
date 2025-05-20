@@ -7,11 +7,11 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace PaymentGateway.Application.Hubs;
 
-[Authorize]
+[Authorize(AuthenticationSchemes = "Device")]
 public class DeviceHub(ILogger<DeviceHub> logger) : Hub<IDeviceClientHub>
 {
     public static ConcurrentDictionary<string, DeviceDto> ConnectedDevices { get; } = new();
-    private static readonly TimeSpan RegistrationTimeout = TimeSpan.FromSeconds(5);
+    private static readonly TimeSpan RegistrationTimeout = TimeSpan.FromSeconds(10);
 
     public override async Task OnConnectedAsync()
     {
@@ -26,8 +26,7 @@ public class DeviceHub(ILogger<DeviceHub> logger) : Hub<IDeviceClientHub>
             _ = Task.Delay(RegistrationTimeout).ContinueWith(_ =>
             {
                 if (ConnectedDevices.ContainsKey(connectionId)) return;
-                logger.LogWarning("Устройство не зарегистрировалось в течение {Timeout} секунд. Отключение клиента: {ConnectionId}", 
-                    RegistrationTimeout.TotalSeconds, connectionId);
+                logger.LogWarning("Устройство не зарегистрировалось в течение {Timeout} секунд. Отключение клиента: {ConnectionId}", RegistrationTimeout.TotalSeconds, connectionId);
                 context.Abort();
             });
         }

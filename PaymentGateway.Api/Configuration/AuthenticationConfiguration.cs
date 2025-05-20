@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using PaymentGateway.Core.Configs;
 using PaymentGateway.Core.Entities;
+using Microsoft.AspNetCore.Authorization;
 
 namespace PaymentGateway.Api.Configuration;
 
@@ -14,6 +15,7 @@ public static class AuthenticationConfiguration
     {
         var secretKey = authConfig.SecretKey;
         var key = Encoding.ASCII.GetBytes(secretKey);
+        
         builder.Services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -34,14 +36,30 @@ public static class AuthenticationConfiguration
                     ClockSkew = TimeSpan.Zero,
                     RoleClaimType = ClaimTypes.Role
                 };
+            })
+            .AddJwtBearer("Notification", options =>
+            {
+                options.RequireHttpsMetadata = false;
+                options.SaveToken = true;
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    ValidateIssuer = true,
+                    ValidIssuer = authConfig.Issuer,
+                    ValidateAudience = true,
+                    ValidAudience = authConfig.Audience,
+                    ValidateLifetime = true,
+                    ClockSkew = TimeSpan.Zero,
+                    RoleClaimType = ClaimTypes.Role
+                };
 
                 options.Events = new JwtBearerEvents
                 {
                     OnMessageReceived = context =>
                     {
                         var accessToken = context.Request.Query["access_token"];
-
                         var path = context.HttpContext.Request.Path;
+                        
                         if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/notificationHub"))
                         {
                             context.Token = accessToken;
@@ -74,5 +92,19 @@ public static class AuthenticationConfiguration
                     }
                 };
             });
+
+        builder.Services.AddAuthorization(options =>
+        {
+            options.DefaultPolicy = new AuthorizationPolicyBuilder()
+                .RequireAuthenticatedUser()
+                .Build();
+
+            options.AddPolicy("Notification", policy =>
+            {
+                policy.AuthenticationSchemes.Add("Notification");
+                policy.RequireAuthenticatedUser();
+                policy.RequireRole("Admin", "Support", "User");
+            });
+        });
     }
 } 
