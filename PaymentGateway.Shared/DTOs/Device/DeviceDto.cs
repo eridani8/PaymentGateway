@@ -1,8 +1,11 @@
-﻿namespace PaymentGateway.Shared.DTOs.Device;
+﻿using PaymentGateway.Shared.DTOs.User;
+
+namespace PaymentGateway.Shared.DTOs.Device;
 
 public class DeviceDto
 {
     public Guid Id { get; init; }
     public Guid UserId { get; set; }
+    public UserDto? User { get; set; }
     public string? DeviceData { get; init; }
 }

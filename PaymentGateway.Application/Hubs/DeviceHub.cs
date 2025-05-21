@@ -36,13 +36,16 @@ public class DeviceHub(ILogger<DeviceHub> logger) : Hub<IDeviceClientHub>
             
             _ = Task.Delay(RegistrationTimeout).ContinueWith(_ =>
             {
-                if (ConnectedDevices.TryGetValue(connectionId, out var deviceInfo))
+                if (!ConnectedDevices.TryGetValue(connectionId, out var deviceInfo))
                 {
-                    deviceInfo.UserId = userGuid;
+                    logger.LogWarning(
+                        "Устройство не зарегистрировалось в течение {Timeout} секунд. Отключение клиента: {ConnectionId}",
+                        RegistrationTimeout.TotalSeconds, connectionId);
+                    context.Abort();
                     return;
                 }
-                logger.LogWarning("Устройство не зарегистрировалось в течение {Timeout} секунд. Отключение клиента: {ConnectionId}", RegistrationTimeout.TotalSeconds, connectionId);
-                context.Abort();
+                
+                deviceInfo.UserId = userGuid;
             });
         }
         catch (Exception e)

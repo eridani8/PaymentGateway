@@ -108,6 +108,13 @@
                     </Authorized>
                 </AuthorizeView>
 
+                <MudItem xs="12" sm="2">
+                    <MudSelect T="string" Modal="true"
+                               Clearable="true"
+                               Placeholder="Устройство"
+                               Margin="Margin.Normal"/>
+                </MudItem>
+
                 <MudItem xs="12">
                     <MudSwitch T="bool"
                                @bind-Value="_createRequisiteDto.IsActive"

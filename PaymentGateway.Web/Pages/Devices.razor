@@ -1,4 +1,5 @@
 ﻿@page "/devices"
+@using PaymentGateway.Shared.DTOs.Device
 @attribute [Authorize(Roles = "User,Admin,Support")]
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
@@ -7,8 +8,6 @@
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NotificationService NotificationService
 @inject IDeviceService DeviceService
-@* @implements IAsyncDisposable *@
-@* @implements IDisposable //TODO *@
 
 <AuthorizeView Roles="User,Admin,Support">
     <Authorized>
@@ -18,12 +17,28 @@
                     <MudText Typo="Typo.h6">Список устройств</MudText>
                     <MudSpacer/>
                     <MudButton Variant="Variant.Outlined" 
-                              Color="Color.Primary" 
-                              StartIcon="@Icons.Material.Filled.QrCode"
-                              OnClick="@OpenDeviceQrDialog">
+                               Color="Color.Primary" 
+                               StartIcon="@Icons.Material.Filled.QrCode"
+                               OnClick="@OpenDeviceQrDialog">
                         Авторизация устройства
                     </MudButton>
                 </MudToolBar>
+                <MudDataGrid T="DeviceDto"
+                             Items="_devices"
+                             Loading="@_isLoading"
+                             LoadingProgressColor="Color.Primary"
+                             SortMode="SortMode.Multiple"
+                             Filterable="true"
+                             Hideable="true"
+                             Bordered="true"
+                             Hover="true"
+                             Dense="true">
+                    <Columns>
+                        <PropertyColumn Property="x => x.Id" />
+                        <PropertyColumn Property="x => x.UserId" />
+                        <PropertyColumn Property="x => x.DeviceData" />
+                    </Columns>
+                </MudDataGrid>
             </MudPaper>
         </MudContainer>
     </Authorized>
@@ -35,6 +50,52 @@
 </AuthorizeView>
 
 @code {
+    private bool _isLoading = true;
+    private List<DeviceDto> _devices = [];
+    private bool _isShowAll;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        _isShowAll = authState.User.IsInRole("Admin") || authState.User.IsInRole("Support");
+        
+        await LoadDevices();
+        
+        // TODO subscribe
+    }
+    
+    public async ValueTask DisposeAsync()
+    {
+        try
+        {
+            // TODO unsubscribe
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e, "Ошибка при освобождении ресурсов на странице устройств");
+        }
+    }
+    
+    private async Task LoadDevices()
+    {
+        try
+        {
+            _isLoading = true;
+            _devices = _isShowAll
+                ? await DeviceService.GetAllOnlineDevices()
+                : await DeviceService.GetUserOnlineDevices();
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e, e.Message);
+            Snackbar.Add("Ошибка при загрузке устройств", Severity.Error);
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+    
     private async Task OpenDeviceQrDialog()
     {
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
