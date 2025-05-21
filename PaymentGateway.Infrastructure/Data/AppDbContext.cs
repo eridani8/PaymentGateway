@@ -116,5 +116,23 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICryptographyS
                 .HasForeignKey(e => e.UserId)
                 .OnDelete(DeleteBehavior.SetNull);
         });
+
+        modelBuilder.Entity<DeviceEntity>(entity =>
+        {
+            entity.HasIndex(e => e.Id).IsUnique();
+            entity.HasIndex(e => e.UserId);
+            entity.HasIndex(e => e.BindingAt);
+            
+            entity.Property<uint>("xmin")
+                .HasColumnName("xmin")
+                .HasColumnType("xid")
+                .ValueGeneratedOnAddOrUpdate()
+                .IsConcurrencyToken();
+            
+            entity.HasOne(e => e.User)
+                .WithMany()
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
     }
 }
