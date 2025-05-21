@@ -62,13 +62,13 @@ public class NotificationService(
             }
 
             var username = authState.User.FindFirst(ClaimTypes.Name)?.Value;
-            logger.LogDebug("Инициализация SignalR для пользователя: {Username}", username);
+            logger.LogDebug("Инициализация соединения для пользователя: {Username}", username);
 
             return await base.InitializeAsync();
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Ошибка при инициализации SignalR соединения");
+            logger.LogError(ex, "Ошибка при инициализации соединения");
             if (ex.Message.Contains("Unauthorized") || ex.Message.Contains("401"))
             {
                 await authStateProvider.MarkUserAsLoggedOut();

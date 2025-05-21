@@ -142,27 +142,27 @@
 
             if (authState.User.Identity?.IsAuthenticated == true)
             {
-                Logger.LogDebug("Инициализация SignalR в MainLayout");
+                Logger.LogDebug("Инициализация слединения с сервисом");
 
                 try
                 {
                     await NotificationService.InitializeAsync();
 
-                    Logger.LogDebug("SignalR соединение инициализировано");
+                    Logger.LogDebug("Соединение инициализировано");
                 }
                 catch (Exception ex)
                 {
-                    Logger.LogError(ex, "Ошибка при подключении SignalR");
+                    Logger.LogError(ex, "Ошибка при подключении к сервису");
                 }
             }
             else
             {
-                Logger.LogDebug("Пользователь не авторизован, SignalR не инициализирован");
+                Logger.LogDebug("Пользователь не авторизован, соединение не инициализировано");
             }
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Ошибка при инициализации SignalR соединения");
+            Logger.LogError(ex, "Ошибка при инициализации соединения");
         }
     }
 
@@ -253,11 +253,11 @@
                 await NotificationService.DisposeAsync();
             }
 
-            Logger.LogInformation("Отписки от событий SignalR в MainLayout выполнены успешно");
+            Logger.LogDebug("Отписки от событий выполнены");
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Ошибка при отписке от событий SignalR в MainLayout");
+            Logger.LogError(ex, "Ошибка при отписке от событий");
         }
     }
 

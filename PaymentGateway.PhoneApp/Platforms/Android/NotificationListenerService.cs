@@ -18,7 +18,7 @@ public class NotificationListenerService : Android.Service.Notification.Notifica
 {
     private readonly ILogger<NotificationListenerService> _logger = null!;
     private readonly IBackgroundServiceManager _backgroundServiceManager = null!;
-    private readonly DeviceService _signalRService = null!;
+    private readonly DeviceService _deviceService = null!;
     private readonly INotificationProcessor _notificationProcessor = null!;
 
     private readonly HashSet<string> _ignoredPackages =
@@ -34,7 +34,7 @@ public class NotificationListenerService : Android.Service.Notification.Notifica
 
         _logger = app.Services.GetRequiredService<ILogger<NotificationListenerService>>();
         _backgroundServiceManager = app.Services.GetRequiredService<IBackgroundServiceManager>();
-        _signalRService = app.Services.GetRequiredService<DeviceService>();
+        _deviceService = app.Services.GetRequiredService<DeviceService>();
         _notificationProcessor = app.Services.GetRequiredService<INotificationProcessor>();
     }
 
@@ -45,7 +45,7 @@ public class NotificationListenerService : Android.Service.Notification.Notifica
         try
         {
             if (_backgroundServiceManager is not { IsRunning: true }) return;
-            if (_signalRService is not { IsConnected: true }) return;
+            if (_deviceService is not { IsConnected: true }) return;
 
             var packageName = sbn.PackageName;
             var notification = sbn.Notification;

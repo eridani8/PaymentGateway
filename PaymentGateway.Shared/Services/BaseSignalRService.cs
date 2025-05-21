@@ -116,7 +116,7 @@ public class BaseSignalRService(
             (exception, timeSpan, retryCount, _) =>
             {
                 logger.LogDebug(exception,
-                    "Попытка {RetryCount} подключения к SignalR не удалась. Следующая попытка через {RetryTimeSpan} секунд",
+                    "Попытка {RetryCount} подключения не удалась. Следующая попытка через {RetryTimeSpan} секунд",
                     retryCount, timeSpan.TotalSeconds);
             }
         );
@@ -191,7 +191,7 @@ public class BaseSignalRService(
             
             IsConnected = false;
             IsServiceUnavailable = true;
-            logger.LogDebug("Попытка переподключения SignalR: {Error}", error?.Message);
+            logger.LogDebug("Попытка переподключения: {Error}", error?.Message);
             return Task.CompletedTask;
         };
 
@@ -201,7 +201,7 @@ public class BaseSignalRService(
             
             IsConnected = true;
             IsServiceUnavailable = false;
-            logger.LogDebug("SignalR успешно переподключен: {ConnectionId}", connectionId);
+            logger.LogDebug("Успешное переподключение: {ConnectionId}", connectionId);
             return Task.CompletedTask;
         };
 
@@ -213,7 +213,7 @@ public class BaseSignalRService(
             if (error != null)
             {
                 IsServiceUnavailable = true;
-                logger.LogWarning("Соединение с SignalR закрыто с ошибкой: {Error}", error.Message);
+                logger.LogWarning("Соединение закрыто с ошибкой: {Error}", error.Message);
 
                 if (error is IOException || 
                     error.Message.Contains("runtime.lastError") ||
@@ -248,7 +248,7 @@ public class BaseSignalRService(
             _isStopped = false;
             if (HubConnection is { State: HubConnectionState.Connected })
             {
-                logger.LogDebug("SignalR соединение уже установлено");
+                logger.LogDebug("Соединение уже установлено");
                 IsLoggedIn = true;
                 return true;
             }
@@ -266,6 +266,7 @@ public class BaseSignalRService(
             {
                 case HttpRequestException { StatusCode: HttpStatusCode.Unauthorized }:
                     IsLoggedIn = false;
+                    logger.LogError(e, "Неверный токен");
                     break;
                 case HttpRequestException
                 {
@@ -275,9 +276,12 @@ public class BaseSignalRService(
                     HttpStatusCode.InternalServerError
                 }:
                     IsServiceUnavailable = true;
+                    logger.LogError(e, "Сервис временно недоступен");
+                    break;
+                default:
+                    logger.LogError(e, "Ошибка при инициализации соединения");
                     break;
             }
-            logger.LogError(e, "Ошибка при инициализации SignalR соединения");
             return false;
         }
     }
@@ -291,11 +295,11 @@ public class BaseSignalRService(
             _isStopped = true;
             IsConnected = false;
             await HubConnection.StopAsync();
-            logger.LogDebug("SignalR соединение остановлено");
+            logger.LogDebug("Соединение остановлено");
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Ошибка при остановке SignalR соединения");
+            logger.LogError(ex, "Ошибка при остановке соединения");
         }
     }
 
@@ -303,7 +307,7 @@ public class BaseSignalRService(
     {
         if (IsDisposed) return;
         
-        logger.LogDebug("Начало попытки подключения SignalR с политикой переподключения");
+        logger.LogDebug("Начало попытки подключения с политикой переподключения");
         
         await _reconnectionPolicy.ExecuteAsync(async () =>
         {
@@ -311,30 +315,28 @@ public class BaseSignalRService(
             {
                 IsConnected = false;
                 IsLoggedIn = false;
-                logger.LogError("Соединение с SignalR не инициализировано");
-                throw new InvalidOperationException("Соединение с SignalR не инициализировано");
             }
 
-            if (HubConnection.State == HubConnectionState.Connected)
+            if (HubConnection!.State == HubConnectionState.Connected)
             {
                 IsConnected = true;
                 IsLoggedIn = true;
-                logger.LogDebug("SignalR уже подключен");
+                logger.LogDebug("Соединение уже установлено");
                 return;
             }
 
             try
             {
-                logger.LogDebug("Попытка подключения к SignalR хабу: {HubUrl}", GetHubUrl());
+                logger.LogDebug("Попытка подключения к сервису");
                 await HubConnection.StartAsync();
                 IsConnected = true;
                 IsLoggedIn = true;
-                logger.LogDebug("SignalR соединение установлено успешно");
+                logger.LogDebug("Соединение установлено");
             }
             catch (Exception e)
             {
                 IsConnected = false;
-                logger.LogError(e, "Ошибка при подключении SignalR");
+                logger.LogError(e, "Ошибка при подключении к сервису");
                 throw;
             }
         });
@@ -348,13 +350,13 @@ public class BaseSignalRService(
             
             if (HubConnection == null)
             {
-                logger.LogDebug("Подписка на событие {EventName} не выполнена - соединение SignalR не инициализировано", eventName);
+                logger.LogDebug("Подписка на событие {EventName} не выполнена - соединение не инициализировано", eventName);
                 return;
             }
             
             if (HubConnection.State != HubConnectionState.Connected)
             {
-                logger.LogDebug("Подписка на событие {EventName} не выполнена - соединение SignalR не подключено (Текущее состояние: {State})", 
+                logger.LogDebug("Подписка на событие {EventName} не выполнена - соединение не подключено (Текущее состояние: {State})", 
                     eventName, HubConnection.State);
                 return;
             }
@@ -370,7 +372,7 @@ public class BaseSignalRService(
                 }
                 catch (Exception ex)
                 {
-                    logger.LogError(ex, "Ошибка при обработке события SignalR {EventName}", eventName);
+                    logger.LogError(ex, "Ошибка при обработке события {EventName}", eventName);
                 }
 
                 return Task.CompletedTask;
@@ -409,16 +411,16 @@ public class BaseSignalRService(
                 await HubConnection.DisposeAsync();
                 HubConnection = null!;
                 
-                logger.LogDebug("Глобальное состояние инициализации SignalR сброшено");
+                logger.LogDebug("Глобальное состояние инициализации сброшено");
             }
             
             IsDisposed = true;
             
-            logger.LogDebug("Соединение SignalR успешно закрыто");
+            logger.LogDebug("Соединение успешно закрыто");
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Ошибка при утилизации SignalR соединения");
+            logger.LogError(ex, "Ошибка при утилизации соединения");
         }
     }
 }
