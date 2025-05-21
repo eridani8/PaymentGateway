@@ -1,4 +1,5 @@
 using PaymentGateway.Shared.DTOs.Chat;
+using PaymentGateway.Shared.DTOs.Device;
 using PaymentGateway.Shared.DTOs.Payment;
 using PaymentGateway.Shared.DTOs.Requisite;
 using PaymentGateway.Shared.DTOs.User;
@@ -18,4 +19,6 @@ public interface IWebClientHub
     Task UserConnected(UserState state);
     Task UserDisconnected(UserState state);
     Task ChangeRequisiteAssignmentAlgorithm(RequisiteAssignmentAlgorithm algorithm);
+    Task DeviceConnected(DeviceDto device);
+    Task DeviceDisconnected(DeviceDto device);
 } 

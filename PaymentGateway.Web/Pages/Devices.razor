@@ -8,6 +8,7 @@
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NotificationService NotificationService
 @inject IDeviceService DeviceService
+@implements IDisposable
 
 <AuthorizeView Roles="User,Admin,Support">
     <Authorized>
@@ -61,19 +62,45 @@
         
         await LoadDevices();
         
-        // TODO subscribe
+        NotificationService.SubscribeToDeviceConnected(HandleDeviceConnected);
+        NotificationService.SubscribeToDeviceDisconnected(HandleDeviceDisconnected);
     }
-    
-    public async ValueTask DisposeAsync()
+
+    private async void HandleDeviceConnected(DeviceDto deviceDto)
     {
         try
         {
-            // TODO unsubscribe
+            _devices.Insert(0, deviceDto);
+            
+            await InvokeAsync(StateHasChanged);
         }
         catch (Exception e)
         {
-            Logger.LogError(e, "Ошибка при освобождении ресурсов на странице устройств");
+            Logger.LogError(e, "Ошибка при добавлении устройства");
         }
+    }
+    
+    private async void HandleDeviceDisconnected(DeviceDto deviceDto)
+    {
+        try
+        {
+            var device = _devices.FirstOrDefault(d => d.Id == deviceDto.Id);
+            if (device is null) return;
+
+            _devices.Remove(device);
+
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e, "Ошибка при удалении устройства");
+        }
+    }
+    
+    public void Dispose()
+    {
+        NotificationService.UnsubscribeFromDeviceConnected();
+        NotificationService.UnsubscribeFromDeviceDisconnected();
     }
     
     private async Task LoadDevices()

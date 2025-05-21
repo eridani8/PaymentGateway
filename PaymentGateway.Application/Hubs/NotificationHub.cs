@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Shared.DTOs.Chat;
+using PaymentGateway.Shared.DTOs.Device;
 using PaymentGateway.Shared.DTOs.User;
 using Microsoft.AspNetCore.Authorization;
 

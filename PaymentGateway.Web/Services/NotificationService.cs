@@ -11,6 +11,7 @@ using PaymentGateway.Shared.DTOs.User;
 using Polly;
 using Polly.Retry;
 using PaymentGateway.Shared.DTOs.Chat;
+using PaymentGateway.Shared.DTOs.Device;
 using PaymentGateway.Shared.Services;
 using PaymentGateway.Shared.Types;
 
@@ -92,33 +93,55 @@ public class NotificationService(
         Unsubscribe(SignalREvents.Web.UserConnected);
         Unsubscribe(SignalREvents.Web.UserDisconnected);
         Unsubscribe(SignalREvents.Web.ChangeRequisiteAssignmentAlgorithm);
+        Unsubscribe(SignalREvents.Web.OnDeviceConnected);
+        Unsubscribe(SignalREvents.Web.OnDeviceDisconnected);
         
         return base.DisposeAsync();
     }
+
+    #region Device
+
+    public void SubscribeToDeviceConnected(Action<DeviceDto> handler)
+    {
+        Subscribe(SignalREvents.Web.OnDeviceConnected, handler);
+    }
+
+    public void UnsubscribeFromDeviceConnected()
+    {
+        Unsubscribe(SignalREvents.Web.OnDeviceConnected);
+    }
+
+    public void SubscribeToDeviceDisconnected(Action<DeviceDto> handler)
+    {
+        Subscribe(SignalREvents.Web.OnDeviceDisconnected, handler);
+    }
+
+    public void UnsubscribeFromDeviceDisconnected()
+    {
+        Unsubscribe(SignalREvents.Web.OnDeviceDisconnected);
+    }
+
+    #endregion
 
     #region User
 
     public void SubscribeToUserUpdates(Action<UserDto> handler)
     {
-        logger.LogInformation("Подписка на обновления пользователей");
         Subscribe(SignalREvents.Web.UserUpdated, handler);
     }
     
     public void UnsubscribeFromUserUpdates()
     {
-        logger.LogInformation("Отписка от обновлений пользователей");
         Unsubscribe(SignalREvents.Web.UserUpdated);
     }
 
     public void SubscribeToUserDeletions(Action<Guid> handler)
     {
-        logger.LogInformation("Подписка на удаление пользователей");
         Subscribe(SignalREvents.Web.UserDeleted, handler);
     }
     
     public void UnsubscribeFromUserDeletions()
     {
-        logger.LogInformation("Отписка от удаления пользователей");
         Unsubscribe(SignalREvents.Web.UserDeleted);
     }
 
