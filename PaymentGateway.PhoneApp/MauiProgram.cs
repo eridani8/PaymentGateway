@@ -95,12 +95,10 @@ public static class MauiProgram
 
         builder.Services.AddSingleton<MainViewModel>();
         builder.Services.AddSingleton<LogsViewModel>();
-        builder.Services.AddSingleton<ServiceUnavailableViewModel>();
         builder.Services.AddSingleton<AuthorizationViewModel>();
 
         builder.Services.AddSingleton<MainPage>();
         builder.Services.AddSingleton<LogsPage>();
-        builder.Services.AddSingleton<ServiceUnavailablePage>();
         builder.Services.AddSingleton<AuthorizationPage>();
         builder.Services.AddSingleton<QrScannerPage>();
 

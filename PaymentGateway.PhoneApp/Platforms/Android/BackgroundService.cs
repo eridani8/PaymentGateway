@@ -39,6 +39,14 @@ public class BackgroundService : Service
         _backgroundServiceManager = services.GetRequiredService<IBackgroundServiceManager>();
 
         _deviceService.UpdateDelegate = UpdateNotification;
+        _deviceService.ConnectionStateChanged += (_, _) => UpdateNotification();
+        _deviceService.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(_deviceService.IsServiceUnavailable))
+            {
+                UpdateNotification();
+            }
+        };
 
         _actionReceiver = new ActionReceiver();
         var filter = new IntentFilter();
@@ -101,7 +109,6 @@ public class BackgroundService : Service
         
         try
         {
-            _deviceService.ConnectionStateChanged += _deviceService.OnConnectionStateChanged;
             await _deviceService.InitializeAsync();
         }
         finally

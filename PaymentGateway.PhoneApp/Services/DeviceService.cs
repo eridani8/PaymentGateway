@@ -1,12 +1,10 @@
 ﻿using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using PaymentGateway.PhoneApp.Interfaces;
 using PaymentGateway.Shared.Constants;
 using PaymentGateway.Shared.Services;
 using PaymentGateway.Shared.Types;
 using PaymentGateway.Shared.DTOs.Device;
-using System.ComponentModel;
 using Android.OS;
 using LiteDB;
 using PaymentGateway.PhoneApp.Types;
@@ -67,12 +65,6 @@ public class DeviceService : BaseSignalRService
         {
             _logger.LogError(e, "Ошибка отключения");
         }
-    }
-    
-    public void OnConnectionStateChanged(object? sender, bool e)
-    {
-        UpdateDelegate?.Invoke();
-        _logger.LogDebug("Состояние сервиса изменилось на {State}", e);
     }
     
     protected override async Task ConfigureHubConnectionAsync()

@@ -63,6 +63,17 @@ public class BaseSignalRService(
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsServiceUnavailable)));
         }
     }
+    
+    private bool _isLoggedIn;
+    public bool IsLoggedIn
+    {
+        get => _isLoggedIn;
+        set
+        {
+            _isLoggedIn = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsLoggedIn)));
+        }
+    }
 
     protected bool IsDisposed;
     private bool _isStopped;
@@ -115,6 +126,7 @@ public class BaseSignalRService(
         switch (e)
         {
             case HttpRequestException { StatusCode: HttpStatusCode.Unauthorized }:
+                return false;
             case HttpRequestException
             {
                 StatusCode: HttpStatusCode.ServiceUnavailable or
@@ -178,6 +190,7 @@ public class BaseSignalRService(
             if (_isStopped) return Task.CompletedTask;
             
             IsConnected = false;
+            IsServiceUnavailable = true;
             logger.LogDebug("Попытка переподключения SignalR: {Error}", error?.Message);
             return Task.CompletedTask;
         };
@@ -187,6 +200,7 @@ public class BaseSignalRService(
             if (_isStopped) return Task.CompletedTask;
             
             IsConnected = true;
+            IsServiceUnavailable = false;
             logger.LogDebug("SignalR успешно переподключен: {ConnectionId}", connectionId);
             return Task.CompletedTask;
         };
@@ -195,9 +209,10 @@ public class BaseSignalRService(
         {
             IsConnected = false;
             if (IsDisposed || _isStopped) return;
-
+            
             if (error != null)
             {
+                IsServiceUnavailable = true;
                 logger.LogWarning("Соединение с SignalR закрыто с ошибкой: {Error}", error.Message);
 
                 if (error is IOException || 
@@ -234,6 +249,7 @@ public class BaseSignalRService(
             if (HubConnection is { State: HubConnectionState.Connected })
             {
                 logger.LogDebug("SignalR соединение уже установлено");
+                IsLoggedIn = true;
                 return true;
             }
 
@@ -241,6 +257,7 @@ public class BaseSignalRService(
             await StartConnectionWithRetryAsync();
 
             IsServiceUnavailable = false;
+            IsLoggedIn = true;
             return true;
         }
         catch (Exception e)
@@ -248,6 +265,7 @@ public class BaseSignalRService(
             switch (e)
             {
                 case HttpRequestException { StatusCode: HttpStatusCode.Unauthorized }:
+                    IsLoggedIn = false;
                     break;
                 case HttpRequestException
                 {
@@ -292,6 +310,7 @@ public class BaseSignalRService(
             if (HubConnection == null)
             {
                 IsConnected = false;
+                IsLoggedIn = false;
                 logger.LogError("Соединение с SignalR не инициализировано");
                 throw new InvalidOperationException("Соединение с SignalR не инициализировано");
             }
@@ -299,6 +318,7 @@ public class BaseSignalRService(
             if (HubConnection.State == HubConnectionState.Connected)
             {
                 IsConnected = true;
+                IsLoggedIn = true;
                 logger.LogDebug("SignalR уже подключен");
                 return;
             }
@@ -308,6 +328,7 @@ public class BaseSignalRService(
                 logger.LogDebug("Попытка подключения к SignalR хабу: {HubUrl}", GetHubUrl());
                 await HubConnection.StartAsync();
                 IsConnected = true;
+                IsLoggedIn = true;
                 logger.LogDebug("SignalR соединение установлено успешно");
             }
             catch (Exception e)
@@ -384,6 +405,7 @@ public class BaseSignalRService(
             if (HubConnection != null)
             {
                 IsConnected = false;
+                IsLoggedIn = false;
                 await HubConnection.DisposeAsync();
                 HubConnection = null!;
                 

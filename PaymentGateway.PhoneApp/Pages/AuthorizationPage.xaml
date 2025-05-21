@@ -15,12 +15,12 @@
                                HorizontalOptions="Center"
                                VerticalOptions="Center"
                                Color="{StaticResource Primary}"
-                               HeightRequest="70"
-                               WidthRequest="70" />
+                               HeightRequest="90"
+                               WidthRequest="90" />
         </Grid>
         <VerticalStackLayout Grid.Row="0"
                              Spacing="10"
-                             IsVisible="{Binding DeviceService.IsInitializing, Converter={StaticResource InverseBoolConverter}}">
+                             IsVisible="{Binding DeviceService.IsServiceUnavailable, Converter={StaticResource InverseBoolConverter}}">
             <Label Text="Код можно скопировать на странице устройств"
                    HorizontalOptions="Center"
                    LineBreakMode="WordWrap"
@@ -31,25 +31,46 @@
                     FontFamily="JetBrainsMono"
                     HeightRequest="120"
                     Margin="0,0,0,10"
-                    IsVisible="{Binding DeviceService.IsConnected, Converter={StaticResource InverseBoolConverter}}" />
+                    IsVisible="{Binding DeviceService.IsLoggedIn, Converter={StaticResource InverseBoolConverter}}" />
             <Button Text="Авторизоваться"
                     Style="{StaticResource DefaultButton}"
                     Command="{Binding AuthorizeCommand}"
                     HorizontalOptions="Fill"
                     Margin="0,0,0,10"
-                    IsVisible="{Binding DeviceService.IsConnected, Converter={StaticResource InverseBoolConverter}}" />
+                    IsVisible="{Binding DeviceService.IsLoggedIn, Converter={StaticResource InverseBoolConverter}}" />
             <Button Text="Сканировать QR"
                     Style="{StaticResource DefaultButton}"
                     Command="{Binding ScanQrCommand}"
                     HorizontalOptions="Fill"
                     Margin="0,0,0,10"
-                    IsVisible="{Binding DeviceService.IsConnected, Converter={StaticResource InverseBoolConverter}}" />
+                    IsVisible="{Binding DeviceService.IsLoggedIn, Converter={StaticResource InverseBoolConverter}}" />
             <Button Text="Выйти"
                     Style="{StaticResource DefaultButton}"
                     Command="{Binding LogoutCommand}"
                     HorizontalOptions="Fill"
                     Margin="0,0,0,10"
-                    IsVisible="{Binding DeviceService.IsConnected}" />
+                    IsVisible="{Binding DeviceService.IsLoggedIn}" />
+        </VerticalStackLayout>
+        <VerticalStackLayout VerticalOptions="Center"
+                             HorizontalOptions="Center"
+                             Grid.Row="0"
+                             Spacing="10"
+                             IsVisible="{Binding DeviceService.IsServiceUnavailable}">
+            <Label Text="Сервис недоступен"
+                   FontSize="24"
+                   FontAttributes="Bold"
+                   HorizontalOptions="Center" />
+            <Label Text="Не удалось подключиться к сервису. Пожалуйста, проверьте подключение к интернету или дождитесь пока сервис возобновит работу."
+                   HorizontalOptions="Center"
+                   HorizontalTextAlignment="Center" />
+            <StackLayout Orientation="Horizontal"
+                         HorizontalOptions="Center"
+                         Spacing="10">
+                <Button Text="Проверить снова"
+                        Command="{Binding AuthorizeCommand}"
+                        HorizontalOptions="Center"
+                        Margin="0,20,0,0" />
+            </StackLayout>
         </VerticalStackLayout>
     </Grid>
 </ContentPage>

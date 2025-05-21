@@ -12,7 +12,8 @@ public partial class AuthorizationViewModel(
     IAlertService alertService,
     ILogger<AuthorizationViewModel> logger,
     DeviceService deviceService,
-    IBackgroundServiceManager backgroundServiceManager)
+    IBackgroundServiceManager backgroundServiceManager,
+    LiteContext context)
     : ObservableObject
 {
     [ObservableProperty] private DeviceService _deviceService = deviceService;
@@ -23,6 +24,7 @@ public partial class AuthorizationViewModel(
         await DeviceService.Stop();
         ClearToken();
         DeviceService.RemoveToken();
+        DeviceService.IsLoggedIn = false;
         DeviceService.UpdateDelegate?.Invoke();
     }
 
@@ -38,8 +40,12 @@ public partial class AuthorizationViewModel(
                 await FailureConnection();
                 return;
             }
-            DeviceService.SaveToken();
-            DeviceService.UpdateDelegate?.Invoke();
+
+            if (context.GetToken() != DeviceService.AccessToken)
+            {
+                DeviceService.SaveToken();
+                DeviceService.UpdateDelegate?.Invoke();
+            }
             
             if (!backgroundServiceManager.IsRunning)
             {
@@ -48,9 +54,8 @@ public partial class AuthorizationViewModel(
                 Platform.CurrentActivity!.StartService(intent);
             }
         }
-        catch (Exception e)
+        catch
         {
-            logger.LogError(e, "Ошибка авторизации");
             await FailureConnection();
         }
     }
@@ -75,11 +80,14 @@ public partial class AuthorizationViewModel(
             await alertService.ShowAlertAsync("Ошибка", "Не удалось отсканировать QR-код", "OK");
         }
     }
-
+    
     private async Task FailureConnection()
     {
-        ClearToken();
-        await alertService.ShowAlertAsync("Ошибка", "Не удалось выполнить авторизацию", "OK");
+        if (!DeviceService.IsServiceUnavailable)
+        {
+            ClearToken();
+            await alertService.ShowAlertAsync("Ошибка", "Не удалось выполнить авторизацию", "OK");
+        }
     }
 
     private void ClearToken()
