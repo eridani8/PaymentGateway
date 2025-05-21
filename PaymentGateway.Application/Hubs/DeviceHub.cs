@@ -22,11 +22,25 @@ public class DeviceHub(ILogger<DeviceHub> logger) : Hub<IDeviceClientHub>
             var context = Context;
             var connectionId = Context.ConnectionId;
             
+            var userId = context.User?.FindFirst("i")?.Value;
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                context.Abort();
+                return;
+            }
+            
+            var userGuid = Guid.Parse(userId);
+            
             await Clients.Caller.RequestDeviceRegistration();
             
             _ = Task.Delay(RegistrationTimeout).ContinueWith(_ =>
             {
-                if (ConnectedDevices.ContainsKey(connectionId)) return;
+                if (ConnectedDevices.TryGetValue(connectionId, out var deviceInfo))
+                {
+                    deviceInfo.UserId = userGuid;
+                    return;
+                }
                 logger.LogWarning("Устройство не зарегистрировалось в течение {Timeout} секунд. Отключение клиента: {ConnectionId}", RegistrationTimeout.TotalSeconds, connectionId);
                 context.Abort();
             });
