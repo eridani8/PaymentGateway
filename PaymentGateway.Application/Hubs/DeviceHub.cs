@@ -59,14 +59,14 @@ public class DeviceHub(
 
     public Task RegisterDevice(DeviceDto? device)
     {
-        if (device is null || string.IsNullOrEmpty(device.DeviceData) || device.Id == Guid.Empty)
+        if (device is null || string.IsNullOrEmpty(device.DeviceName) || device.Id == Guid.Empty)
         {
             logger.LogWarning("Устройство не предоставило информацию о себе. Отключение клиента: {ConnectionId}", Context.ConnectionId);
             Context.Abort();
             return Task.CompletedTask;
         }
 
-        logger.LogInformation("Устройство онлайн: {Device}", device.DeviceData);
+        logger.LogInformation("Устройство онлайн: {Device}", device.DeviceName);
         ConnectedDevices[Context.ConnectionId] = device;
         return Task.CompletedTask;
     }
@@ -77,7 +77,7 @@ public class DeviceHub(
         {
             if (ConnectedDevices.TryRemove(Context.ConnectionId, out var device))
             {
-                logger.LogInformation("Устройство оффлайн: {Device}", device.DeviceData);
+                logger.LogInformation("Устройство оффлайн: {Device}", device.DeviceName);
                 await notificationService.DeviceDisconnected(device);
             }
             

@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.SignalR.Client;
+﻿using System.Security.Cryptography;
+using System.Text;
+using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using PaymentGateway.Shared.Constants;
@@ -15,8 +17,8 @@ public class DeviceService : BaseSignalRService
 {
     private readonly ILogger<DeviceService> _logger;
     private readonly LiteContext _context;
-    
-    public Guid DeviceId { get; }
+
+    private Guid DeviceId { get; }
 
     public Action? UpdateDelegate;
 
@@ -47,10 +49,28 @@ public class DeviceService : BaseSignalRService
             _context.KeyValues.Delete(keyValue.Id);
         }
     }
-    
-    public string GetDeviceData()
+
+    private static string GetDeviceName()
     {
-        return $"{Build.Manufacturer} {Build.Model} ({Build.VERSION.Release})";
+        return $"{Build.Manufacturer ?? Build.Unknown} {Build.Model ?? Build.Unknown} {Build.Hardware ?? Build.Unknown}";
+    }
+
+    private static string GetHw()
+    {
+        var rawData = new List<string>
+        {
+            Build.Manufacturer ?? Build.Unknown,
+            Build.Device ?? Build.Unknown,
+            Build.Model ?? Build.Unknown,
+            Build.Hardware ?? Build.Unknown,
+            Build.Id ?? Build.Unknown,
+            Build.Fingerprint ?? Build.Unknown,
+            Build.Time.ToString()
+        };
+
+        var combined = string.Join("|", rawData);
+        var hash = SHA256.HashData(Encoding.UTF8.GetBytes(combined));
+        return Convert.ToHexString(hash).ToUpperInvariant();
     }
 
     public async Task Stop()
@@ -76,7 +96,8 @@ public class DeviceService : BaseSignalRService
             var deviceInfo = new DeviceDto()
             {
                 Id = DeviceId,
-                DeviceData = GetDeviceData()
+                DeviceName = GetDeviceName(),
+                Hw = GetHw()
             };
             await HubConnection.InvokeAsync(SignalREvents.DeviceApp.RegisterDevice, deviceInfo);
         });

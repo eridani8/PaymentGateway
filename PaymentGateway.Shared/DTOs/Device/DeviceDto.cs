@@ -7,5 +7,6 @@ public class DeviceDto
     public Guid Id { get; init; }
     public Guid UserId { get; set; }
     public UserDto? User { get; set; }
-    public string? DeviceData { get; init; }
+    public required string DeviceName { get; init; }
+    public required string Hw { get; set; }
 }
