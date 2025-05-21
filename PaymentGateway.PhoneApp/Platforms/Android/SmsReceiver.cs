@@ -8,8 +8,8 @@ using PaymentGateway.Shared.Services;
 
 namespace PaymentGateway.PhoneApp;
 
-[BroadcastReceiver(Enabled = true, Exported = true, Name = "com.eridani8.paymentgateway.SmsReceiver")]
-[IntentFilter(["android.provider.Telephony.SMS_RECEIVED"])]
+[BroadcastReceiver(Enabled = true, Exported = true, Name = Constants.SmsReceiverServiceName)]
+[IntentFilter([Constants.SmsReceiverServiceIntentFilter])]
 public class SmsReceiver : BroadcastReceiver
 {
     private readonly ILogger<SmsReceiver> _logger = null!;
@@ -30,7 +30,7 @@ public class SmsReceiver : BroadcastReceiver
 
     public override void OnReceive(Context? context, Intent? intent)
     {
-        if (context == null || intent is not { Action: "android.provider.Telephony.SMS_RECEIVED" }) return;
+        if (context == null || intent is not { Action: Constants.SmsReceiverServiceIntentFilter }) return;
 
         try
         {

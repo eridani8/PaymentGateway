@@ -13,10 +13,6 @@ namespace PaymentGateway.PhoneApp;
 [Service(ForegroundServiceType = ForegroundService.TypeDataSync)]
 public class BackgroundService : Service
 {
-    private const int notificationId = 9999;
-    private const string channelId = "PaymentGatewayChannel";
-    private const string channelName = "PaymentGatewayForegroundService";
-
     private ILogger<BackgroundService> _logger = null!;
     private DeviceService _deviceService = null!;
     private IBackgroundServiceManager _backgroundServiceManager = null!;
@@ -77,10 +73,10 @@ public class BackgroundService : Service
     public override StartCommandResult OnStartCommand(Intent? intent, StartCommandFlags flags, int startId)
     {
         var initialNotification = BuildNotification("Инициализация сервиса...");
-        StartForeground(notificationId, initialNotification, ForegroundService.TypeDataSync);
+        StartForeground(Constants.NotificationId, initialNotification, ForegroundService.TypeDataSync);
 
         var notification = BuildNotification(GetStatusText());
-        _notificationManager.Notify(notificationId, notification);
+        _notificationManager.Notify(Constants.NotificationId, notification);
         
         if (string.IsNullOrEmpty(_deviceService.AccessToken)) return StartCommandResult.Sticky;
 
@@ -109,13 +105,13 @@ public class BackgroundService : Service
             await _deviceService.InitializeAsync();
             
             var notification = BuildNotification(GetStatusText());
-            _notificationManager.Notify(notificationId, notification);
+            _notificationManager.Notify(Constants.NotificationId, notification);
         }
         catch (Exception e)
         {
             _logger.LogError(e, "Ошибка подключения к сервису");
             var notification = BuildNotification(GetStatusText());
-            _notificationManager.Notify(notificationId, notification);
+            _notificationManager.Notify(Constants.NotificationId, notification);
         }
     }
 
@@ -127,13 +123,13 @@ public class BackgroundService : Service
         ReleaseWakeLock();
 
         var notification = BuildNotification(GetStatusText());
-        _notificationManager.Notify(notificationId, notification);
+        _notificationManager.Notify(Constants.NotificationId, notification);
     }
 
     private void UpdateNotification()
     {
         var notification = BuildNotification(GetStatusText());
-        _notificationManager.Notify(notificationId, notification);
+        _notificationManager.Notify(Constants.NotificationId, notification);
     }
 
     private string GetStatusText()
@@ -172,8 +168,8 @@ public class BackgroundService : Service
     private void CreateNotificationChannel()
     {
         var channel = new NotificationChannel(
-            channelId,
-            channelName,
+            Constants.ChannelId,
+            Constants.ChannelName,
             NotificationImportance.High)
         {
             LockscreenVisibility = NotificationVisibility.Public,
@@ -215,7 +211,7 @@ public class BackgroundService : Service
             this, 3, authIntent,
             PendingIntentFlags.Immutable | PendingIntentFlags.UpdateCurrent);
 
-        var compatBuilder = new NotificationCompat.Builder(this, channelId)
+        var compatBuilder = new NotificationCompat.Builder(this, Constants.ChannelId)
             .SetContentText(statusText)
             .SetSmallIcon(ResourceConstant.Mipmap.appicon)
             .SetOngoing(true)

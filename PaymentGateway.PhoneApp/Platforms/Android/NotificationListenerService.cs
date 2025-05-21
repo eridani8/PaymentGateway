@@ -9,11 +9,11 @@ using PaymentGateway.Shared.Services;
 
 namespace PaymentGateway.PhoneApp;
 
-[Service(Name = "com.eridani8.paymentgateway.NotificationListenerService",
-    Permission = "android.permission.BIND_NOTIFICATION_LISTENER_SERVICE",
-    Label = "PaymentGateway Notification Listener",
+[Service(Name = Constants.NotificationListenerServiceName,
+    Permission = Constants.NotificationListenerServicePermission,
+    Label = Constants.NotificationListenerServiceLabel,
     Exported = false)]
-[IntentFilter(["android.service.notification.NotificationListenerService"])]
+[IntentFilter([Constants.NotificationListenerServiceIntentFilter])]
 public class NotificationListenerService : Android.Service.Notification.NotificationListenerService
 {
     private readonly ILogger<NotificationListenerService> _logger = null!;
@@ -127,9 +127,10 @@ public class NotificationListenerService : Android.Service.Notification.Notifica
     public override void OnListenerDisconnected()
     {
         base.OnListenerDisconnected();
-        _logger.LogInformation("NotificationListenerService отключен");
+        _logger.LogDebug("NotificationListenerService отключен");
 
         RequestRebind(
-            new ComponentName(PackageName ?? string.Empty, Java.Lang.Class.FromType(typeof(NotificationListenerService)).Name));
+            new ComponentName(PackageName ?? string.Empty,
+                Java.Lang.Class.FromType(typeof(NotificationListenerService)).Name));
     }
 }
