@@ -98,14 +98,11 @@ public class BackgroundService : Service
         UpdateNotification();
 
         AcquireWakeLock();
+        
         try
         {
             _deviceService.ConnectionStateChanged += _deviceService.OnConnectionStateChanged;
             await _deviceService.InitializeAsync();
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Ошибка подключения к сервису");
         }
         finally
         {
@@ -120,9 +117,7 @@ public class BackgroundService : Service
         await _deviceService.Stop();
 
         ReleaseWakeLock();
-
-        var notification = BuildNotification(GetStatusText());
-        _notificationManager.Notify(AndroidConstants.NotificationId, notification);
+        UpdateNotification();
     }
 
     private void UpdateNotification()

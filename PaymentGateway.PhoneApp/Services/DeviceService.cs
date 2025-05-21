@@ -90,23 +90,14 @@ public class DeviceService : BaseSignalRService
         });
     }
 
-    public override async Task InitializeAsync()
+    public override async Task<bool> InitializeAsync()
     {
         IsInitializing = true;
         UpdateDelegate?.Invoke();
         
         try
         {
-            await base.InitializeAsync();
-            IsServiceUnavailable = false;
-        }
-        catch (Exception e)
-        {
-            if (e is not HttpRequestException { StatusCode: System.Net.HttpStatusCode.Unauthorized })
-            {
-                IsServiceUnavailable = true;
-            }
-            throw;
+            return await base.InitializeAsync();
         }
         finally
         {

@@ -112,17 +112,20 @@ public class BaseSignalRService(
 
     private static bool ShouldRetry(Exception e)
     {
-        if (e is HttpRequestException { StatusCode: HttpStatusCode.Unauthorized })
+        switch (e)
         {
-            return false;
+            case HttpRequestException { StatusCode: HttpStatusCode.Unauthorized }:
+            case HttpRequestException
+            {
+                StatusCode: HttpStatusCode.ServiceUnavailable or
+                HttpStatusCode.GatewayTimeout or
+                HttpStatusCode.BadGateway or
+                HttpStatusCode.InternalServerError
+            }:
+                return false;
+            default:
+                return true;
         }
-
-        if (e.InnerException is HttpRequestException { StatusCode: HttpStatusCode.Unauthorized })
-        {
-            return false;
-        }
-
-        return true;
     }
     
     private string GetHubUrl()
@@ -133,22 +136,6 @@ public class BaseSignalRService(
             url += $"?access_token={AccessToken}";
         }
         return url;
-    }
-
-    public async Task<bool> WaitConnection(TimeSpan timeout)
-    {
-        using var ct = new CancellationTokenSource(timeout);
-        while (!ct.IsCancellationRequested)
-        {
-            if (IsConnected) return true;
-
-            try
-            {
-                await Task.Delay(1000, ct.Token);
-            }
-            catch (OperationCanceledException) { }
-        }
-        return false;
     }
     
     protected virtual async Task ConfigureHubConnectionAsync()
@@ -237,9 +224,9 @@ public class BaseSignalRService(
         };
     }
 
-    public virtual async Task InitializeAsync()
+    public virtual async Task<bool> InitializeAsync()
     {
-        if (IsDisposed) return;
+        if (IsDisposed) return false;
         
         try
         {
@@ -247,15 +234,33 @@ public class BaseSignalRService(
             if (HubConnection is { State: HubConnectionState.Connected })
             {
                 logger.LogDebug("SignalR соединение уже установлено");
-                return;
+                return true;
             }
 
             await ConfigureHubConnectionAsync();
             await StartConnectionWithRetryAsync();
+
+            IsServiceUnavailable = false;
+            return true;
         }
-        catch (Exception ex)
+        catch (Exception e)
         {
-            logger.LogError(ex, "Ошибка при инициализации SignalR соединения");
+            switch (e)
+            {
+                case HttpRequestException { StatusCode: HttpStatusCode.Unauthorized }:
+                    break;
+                case HttpRequestException
+                {
+                    StatusCode: HttpStatusCode.ServiceUnavailable or
+                    HttpStatusCode.GatewayTimeout or
+                    HttpStatusCode.BadGateway or
+                    HttpStatusCode.InternalServerError
+                }:
+                    IsServiceUnavailable = true;
+                    break;
+            }
+            logger.LogError(e, "Ошибка при инициализации SignalR соединения");
+            return false;
         }
     }
 
@@ -305,10 +310,10 @@ public class BaseSignalRService(
                 IsConnected = true;
                 logger.LogDebug("SignalR соединение установлено успешно");
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
                 IsConnected = false;
-                logger.LogError(ex, "Ошибка при подключении SignalR");
+                logger.LogError(e, "Ошибка при подключении SignalR");
                 throw;
             }
         });

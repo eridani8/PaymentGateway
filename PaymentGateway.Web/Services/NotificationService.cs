@@ -37,9 +37,9 @@ public class NotificationService(
         return currentToken;
     };
 
-    public override async Task InitializeAsync()
+    public override async Task<bool> InitializeAsync()
     {
-        if (IsDisposed) return;
+        if (IsDisposed) return false;
         
         using var scope = serviceProvider.CreateScope();
         var authStateProvider = scope.ServiceProvider.GetRequiredService<CustomAuthStateProvider>();
@@ -51,20 +51,20 @@ public class NotificationService(
             if (string.IsNullOrEmpty(token))
             {
                 logger.LogDebug("Токен не найден в localStorage");
-                return;
+                return false;
             }
 
             var authState = await authStateProvider.GetAuthenticationStateAsync();
             if (authState.User.Identity is not { IsAuthenticated: true })
             {
                 logger.LogWarning("Пользователь не аутентифицирован");
-                return;
+                return false;
             }
 
             var username = authState.User.FindFirst(ClaimTypes.Name)?.Value;
             logger.LogDebug("Инициализация SignalR для пользователя: {Username}", username);
 
-            await base.InitializeAsync();
+            return await base.InitializeAsync();
         }
         catch (Exception ex)
         {
@@ -73,6 +73,8 @@ public class NotificationService(
             {
                 await authStateProvider.MarkUserAsLoggedOut();
             }
+
+            return false;
         }
     }
 

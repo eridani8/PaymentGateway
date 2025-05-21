@@ -33,8 +33,7 @@ public partial class AuthorizationViewModel(
         
         try
         {
-            await DeviceService.InitializeAsync();
-            if (!await DeviceService.WaitConnection(TimeSpan.FromSeconds(7)))
+            if (!await DeviceService.InitializeAsync())
             {
                 await FailureConnection();
                 return;
@@ -44,9 +43,9 @@ public partial class AuthorizationViewModel(
             
             if (!backgroundServiceManager.IsRunning)
             {
-                var intent = new Intent(Platform.CurrentActivity, typeof(BackgroundService));
+                var intent = new Intent(Platform.CurrentActivity!, typeof(BackgroundService));
                 intent.SetAction(AndroidConstants.ActionStart);
-                Platform.CurrentActivity?.StartService(intent);
+                Platform.CurrentActivity!.StartService(intent);
             }
         }
         catch (Exception e)
