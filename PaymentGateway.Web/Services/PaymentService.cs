@@ -86,7 +86,7 @@ public class PaymentService(
         
         var allPayments = await GetPayments();
         return allPayments
-            .Where(p => p.Requisite != null && p.Requisite.UserId == userId)
+            .Where(p => p.Requisite is not null && p.Requisite.UserId == userId)
             .ToList();
     }
     

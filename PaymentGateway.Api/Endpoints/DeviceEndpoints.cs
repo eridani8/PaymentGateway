@@ -74,7 +74,7 @@ public class DeviceEndpoints : ICarterModule
         ClaimsPrincipal user)
     {
         var userEntity = await userManager.GetUserAsync(user);
-        if (userEntity == null)
+        if (userEntity is null)
         {
             return Results.Unauthorized();
         }

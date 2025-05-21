@@ -60,7 +60,7 @@ public class BackgroundService : Service
     {
         try
         {
-            if (_actionReceiver != null)
+            if (_actionReceiver is not null)
             {
                 UnregisterReceiver(_actionReceiver);
                 _actionReceiver = null;

@@ -81,7 +81,7 @@ public class ServiceBase(IHttpClientFactory factory, ILogger<ServiceBase> logger
             using var client = factory.CreateClient("API");
             var request = new HttpRequestMessage(method, url);
 
-            if (model != null && (method != HttpMethod.Get && method != HttpMethod.Head && method != HttpMethod.Options))
+            if (model is not null && (method != HttpMethod.Get && method != HttpMethod.Head && method != HttpMethod.Options))
             {
                 var json = JsonSerializer.Serialize(model, JsonOptions);
                 request.Content = new StringContent(json, Encoding.UTF8, "application/json");

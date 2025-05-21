@@ -248,7 +248,7 @@
     {
         try
         {
-            if (NotificationService != null)
+            if (NotificationService is not null)
             {
                 await NotificationService.DisposeAsync();
             }

@@ -73,7 +73,7 @@ public class CustomAuthStateProvider(ILocalStorageService localStorage) : Authen
         var keyValuePairs = JsonSerializer.Deserialize<Dictionary<string, object>>(jsonBytes);
 
         var claims = new List<Claim>();
-        if (keyValuePairs == null) return claims;
+        if (keyValuePairs is null) return claims;
         
         foreach (var (key, value) in keyValuePairs)
         {

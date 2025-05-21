@@ -60,7 +60,7 @@ public class TransactionService(
             
             var response = await PostRequest<TransactionDto>(apiEndpoint, dto);
             
-            if (response != null)
+            if (response is not null)
             {
                 logger.LogInformation("Успешно создана транзакция {id} на сумму {amount} через {source}", 
                     response.Id, amount, source);

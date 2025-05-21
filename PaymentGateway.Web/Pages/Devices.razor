@@ -70,7 +70,16 @@
     {
         try
         {
-            _devices.Insert(0, deviceDto);
+            var existDevice = _devices.FirstOrDefault(d => d.Id == deviceDto.Id);
+            if (existDevice is not null)
+            {
+                var index = _devices.IndexOf(existDevice);
+                _devices[index] = deviceDto;
+            }
+            else
+            {
+                _devices.Insert(0, deviceDto);
+            }
             
             await InvokeAsync(StateHasChanged);
         }

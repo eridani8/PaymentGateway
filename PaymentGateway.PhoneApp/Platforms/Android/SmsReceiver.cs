@@ -20,7 +20,7 @@ public class SmsReceiver : BroadcastReceiver
     public SmsReceiver()
     {
         var app = Android.App.Application.Context as IPlatformApplication;
-        if (app?.Services == null) return;
+        if (app?.Services is null) return;
         
         _logger = app.Services.GetRequiredService<ILogger<SmsReceiver>>();
         _smsProcessor = app.Services.GetRequiredService<ISmsProcessor>();
@@ -30,7 +30,7 @@ public class SmsReceiver : BroadcastReceiver
 
     public override void OnReceive(Context? context, Intent? intent)
     {
-        if (context == null || intent is not { Action: AndroidConstants.SmsReceiverServiceIntentFilter }) return;
+        if (context is null || intent is not { Action: AndroidConstants.SmsReceiverServiceIntentFilter }) return;
 
         try
         {
@@ -38,7 +38,7 @@ public class SmsReceiver : BroadcastReceiver
             if (_deviceService is not { IsConnected: true }) return;
 
             var messages = Telephony.Sms.Intents.GetMessagesFromIntent(intent);
-            if (messages == null || messages.Length == 0) return;
+            if (messages is null || messages.Length == 0) return;
 
             foreach (var message in messages)
             {

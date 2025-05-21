@@ -183,7 +183,7 @@ public class PaymentService(
 
         try
         {
-            if (entity.Requisite != null && entity.Requisite.PaymentId == id)
+            if (entity.Requisite is not null && entity.Requisite.PaymentId == id)
             {
                 entity.Requisite.Status = RequisiteStatus.Active;
                 entity.Requisite.PaymentId = null;

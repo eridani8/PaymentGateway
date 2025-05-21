@@ -152,7 +152,7 @@ public class BaseSignalRService(
     
     protected virtual async Task ConfigureHubConnectionAsync()
     {
-        if (HubConnection != null)
+        if (HubConnection is not null)
         {
             await HubConnection.DisposeAsync();
         }
@@ -164,7 +164,7 @@ public class BaseSignalRService(
                 options.SkipNegotiation = SkipNegotiation;
                 options.Transports = TransportTypes;
 
-                if (AccessTokenProvider != null)
+                if (AccessTokenProvider is not null)
                 {
                     options.AccessTokenProvider = AccessTokenProvider;
                 }
@@ -210,7 +210,7 @@ public class BaseSignalRService(
             IsConnected = false;
             if (IsDisposed || _isStopped) return;
             
-            if (error != null)
+            if (error is not null)
             {
                 IsServiceUnavailable = true;
                 logger.LogWarning("Соединение закрыто с ошибкой: {Error}", error.Message);
@@ -222,7 +222,7 @@ public class BaseSignalRService(
                 {
                     logger.LogDebug("Обнаружена сетевая ошибка, инициируем полное переподключение");
                     
-                    if (HubConnection != null)
+                    if (HubConnection is not null)
                     {
                         await HubConnection.DisposeAsync();
                         HubConnection = null;
@@ -288,7 +288,7 @@ public class BaseSignalRService(
 
     protected virtual async Task StopAsync()
     {
-        if (HubConnection == null) return;
+        if (HubConnection is null) return;
         
         try
         {
@@ -311,7 +311,7 @@ public class BaseSignalRService(
         
         await _reconnectionPolicy.ExecuteAsync(async () =>
         {
-            if (HubConnection == null)
+            if (HubConnection is null)
             {
                 IsConnected = false;
                 IsLoggedIn = false;
@@ -348,7 +348,7 @@ public class BaseSignalRService(
         {
             logger.LogDebug("Подписка на событие: {EventName}", eventName);
             
-            if (HubConnection == null)
+            if (HubConnection is null)
             {
                 logger.LogDebug("Подписка на событие {EventName} не выполнена - соединение не инициализировано", eventName);
                 return;
@@ -404,7 +404,7 @@ public class BaseSignalRService(
         
         try
         {
-            if (HubConnection != null)
+            if (HubConnection is not null)
             {
                 IsConnected = false;
                 IsLoggedIn = false;

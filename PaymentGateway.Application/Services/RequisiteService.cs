@@ -31,7 +31,7 @@ public class RequisiteService(
         }
         
         var user = await userManager.FindByIdAsync(userId.ToString());
-        if (user == null)
+        if (user is null)
         {
             return Result.Failure<RequisiteDto>(UserErrors.UserNotFound);
         }

@@ -110,7 +110,7 @@
                                     <MudText Typo="Typo.body1">@rowContext.Item.ExternalPaymentId</MudText>
                                 </MudStack>
                             </MudTooltip>
-                            @if (rowContext.Item.Requisite != null)
+                            @if (rowContext.Item.Requisite is not null)
                             {
                                 <MudTooltip Placement="Placement.Left" Text="Id реквизита">
                                     <MudStack Row="true">
@@ -119,7 +119,7 @@
                                     </MudStack>
                                 </MudTooltip>
                             }
-                            @if (rowContext.Item.ManualConfirmUserId != null)
+                            @if (rowContext.Item.ManualConfirmUserId is not null)
                             {
                                 <MudTooltip Placement="Placement.Left" Text="Id принявшего">
                                     <MudStack Row="true">
@@ -128,7 +128,7 @@
                                     </MudStack>
                                 </MudTooltip>
                             }
-                            @if (rowContext.Item.CanceledByUserId != null)
+                            @if (rowContext.Item.CanceledByUserId is not null)
                             {
                                 <MudTooltip Placement="Placement.Left" Text="Id отменившего">
                                     <MudStack Row="true">
@@ -137,7 +137,7 @@
                                     </MudStack>
                                 </MudTooltip>
                             }
-                            @if (rowContext.Item.TransactionId != null)
+                            @if (rowContext.Item.TransactionId is not null)
                             {
                                 <MudTooltip Placement="Placement.Left" Text="Id транзакции">
                                     <MudStack Row="true">
@@ -220,7 +220,7 @@
                 updatedPayment.Id, updatedPayment.Status);
 
             var existingPayment = _payments.FirstOrDefault(p => p.Id == updatedPayment.Id);
-            if (existingPayment != null)
+            if (existingPayment is not null)
             {
                 var index = _payments.IndexOf(existingPayment);
                 _payments[index] = updatedPayment;
@@ -247,7 +247,7 @@
             Logger.LogInformation("Получено уведомление об удалении платежа: {PaymentId}", paymentId);
 
             var payment = _payments.FirstOrDefault(p => p.Id == paymentId);
-            if (payment == null) return;
+            if (payment is null) return;
 
             _payments.Remove(payment);
             Logger.LogInformation("Платеж удален из списка: {PaymentId}", paymentId);
@@ -455,7 +455,7 @@
 
     private static string GetRemainingPendingTime(PaymentDto payment)
     {
-        if (payment.ExpiresAt == null)
+        if (payment.ExpiresAt is null)
         {
             return "";
         }

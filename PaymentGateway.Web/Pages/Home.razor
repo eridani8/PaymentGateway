@@ -56,7 +56,7 @@
         try
         {
             var newPayment = await PaymentService.CreatePayment(_paymentModel);
-            if (newPayment != null && newPayment != Guid.Empty)
+            if (newPayment is not null && newPayment != Guid.Empty)
             {
                 Navigation.NavigateTo($"/payment/{newPayment}");
             }

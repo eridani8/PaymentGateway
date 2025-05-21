@@ -30,7 +30,7 @@ public static class SignalRConfiguration
         builder.Services.AddScoped<INotificationService, NotificationService>();
         
         var authConfig = builder.Configuration.GetSection(nameof(AuthConfig)).Get<AuthConfig>();
-        if (authConfig != null)
+        if (authConfig is not null)
         {
             var key = Encoding.ASCII.GetBytes(authConfig.SecretKey);
             

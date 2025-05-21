@@ -182,7 +182,7 @@
             Logger.LogInformation("Получено обновление пользователя: {UserId}", updatedUser.Id);
 
             var existingUser = _users.FirstOrDefault(u => u.Id == updatedUser.Id);
-            if (existingUser != null)
+            if (existingUser is not null)
             {
                 var index = _users.IndexOf(existingUser);
                 _users[index] = updatedUser;
@@ -210,7 +210,7 @@
             Logger.LogInformation("Получено уведомление об удалении пользователя: {UserId}", userId);
 
             var user = _users.FirstOrDefault(u => u.Id == userId);
-            if (user == null) return;
+            if (user is null) return;
 
             _users.Remove(user);
             _userRoles.Remove(userId);

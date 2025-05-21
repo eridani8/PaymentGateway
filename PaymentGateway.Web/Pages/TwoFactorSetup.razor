@@ -29,7 +29,7 @@
                 Двухфакторная аутентификация успешно настроена!
             </MudAlert>
         }
-        else if (_error != null)
+        else if (_error is not null)
         {
             <MudAlert Severity="Severity.Error" Class="mb-4">
                 @_error
@@ -38,7 +38,7 @@
                 Попробовать снова
             </MudButton>
         }
-        else if (_twoFactorData != null)
+        else if (_twoFactorData is not null)
         {
             <MudText Typo="Typo.body1" Class="mb-4">Отсканируйте QR-код с помощью приложения Google Authenticator
             </MudText>
@@ -117,7 +117,7 @@
         try
         {
             var statusResponse = await UserService.GetTwoFactorStatus();
-            if (statusResponse.Code != HttpStatusCode.OK || statusResponse.Data == null)
+            if (statusResponse.Code != HttpStatusCode.OK || statusResponse.Data is null)
             {
                 _error = "Не удалось проверить статус двухфакторной аутентификации";
                 return;
@@ -130,7 +130,7 @@
             }
 
             var response = await UserService.EnableTwoFactor();
-            if (response.Code != HttpStatusCode.OK || response.Data == null)
+            if (response.Code != HttpStatusCode.OK || response.Data is null)
             {
                 _error = "Не удалось получить данные для настройки двухфакторной аутентификации";
                 return;

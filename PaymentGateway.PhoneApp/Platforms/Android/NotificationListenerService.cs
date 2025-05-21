@@ -30,7 +30,7 @@ public class NotificationListenerService : Android.Service.Notification.Notifica
     public NotificationListenerService()
     {
         var app = Android.App.Application.Context as IPlatformApplication;
-        if (app?.Services == null) return;
+        if (app?.Services is null) return;
 
         _logger = app.Services.GetRequiredService<ILogger<NotificationListenerService>>();
         _backgroundServiceManager = app.Services.GetRequiredService<IBackgroundServiceManager>();
@@ -40,7 +40,7 @@ public class NotificationListenerService : Android.Service.Notification.Notifica
 
     public override void OnNotificationPosted(StatusBarNotification? sbn)
     {
-        if (sbn == null) return;
+        if (sbn is null) return;
 
         try
         {
@@ -50,7 +50,7 @@ public class NotificationListenerService : Android.Service.Notification.Notifica
             var packageName = sbn.PackageName;
             var notification = sbn.Notification;
 
-            if (notification == null || string.IsNullOrEmpty(packageName)) return;
+            if (notification is null || string.IsNullOrEmpty(packageName)) return;
             if (packageName == PackageName) return;
             if (_ignoredPackages.Contains(packageName)) return;
 
@@ -67,7 +67,7 @@ public class NotificationListenerService : Android.Service.Notification.Notifica
             }
 
             var extras = notification.Extras;
-            if (extras == null) return;
+            if (extras is null) return;
 
             var title = extras.GetString(Notification.ExtraTitle)?.Trim();
             var text = extras.GetString(Notification.ExtraText)?.Trim();
@@ -98,7 +98,7 @@ public class NotificationListenerService : Android.Service.Notification.Notifica
             try
             {
                 var packageManager = PackageManager;
-                if (packageManager != null)
+                if (packageManager is not null)
                 {
                     var appInfo = packageManager.GetApplicationInfo(packageName, 0);
                     var appName = packageManager.GetApplicationLabel(appInfo);

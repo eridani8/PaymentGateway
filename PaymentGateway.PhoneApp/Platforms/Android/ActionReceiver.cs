@@ -7,7 +7,7 @@ public class ActionReceiver : BroadcastReceiver
 {
     public override void OnReceive(Context? context, Intent? intent)
     {
-        if (context == null || intent == null) return;
+        if (context is null || intent is null) return;
             
         var serviceIntent = new Intent(context, typeof(BackgroundService));
         serviceIntent.SetAction(intent.Action);

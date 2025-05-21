@@ -14,7 +14,7 @@ public static class ModelBuilderExtensions
 
             foreach (var property in clrType.GetProperties())
             {
-                var isEncrypted = property.GetCustomAttribute<EncryptedAttribute>() != null;
+                var isEncrypted = property.GetCustomAttribute<EncryptedAttribute>() is not null;
                 if (!isEncrypted || property.PropertyType != typeof(string)) continue;
                 var prop = entityType?.FindProperty(property.Name);
                 prop?.SetValueConverter(new StringEncryptionConverter(crypto));

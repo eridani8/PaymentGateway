@@ -78,7 +78,7 @@ public static class AuthenticationConfiguration
                         }
 
                         var user = await userManager.FindByIdAsync(userId);
-                        if (user == null)
+                        if (user is null)
                         {
                             context.Fail("Пользователь не найден");
                             return;

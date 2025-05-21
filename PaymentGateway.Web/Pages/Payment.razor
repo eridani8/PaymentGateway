@@ -17,7 +17,7 @@
     {
         <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" Class="d-block mx-auto my-8"/>
     }
-    else if (_payment == null)
+    else if (_payment is null)
     {
         <MudAlert Severity="Severity.Error" Class="my-4">Платеж не найден или вы не имеете доступа к нему</MudAlert>
         <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/" Class="d-block mx-auto">
@@ -59,7 +59,7 @@
                 </MudItem>
             </MudGrid>
 
-            @if (_payment.Requisite != null)
+            @if (_payment.Requisite is not null)
             {
                 <MudDivider Class="my-4"/>
                 <MudText Typo="Typo.h6" Align="Align.Center" Class="mb-4">Данные для оплаты</MudText>
@@ -189,7 +189,7 @@
         {
             _payment = await PaymentService.GetPaymentById(Id);
 
-            if (_payment == null)
+            if (_payment is null)
             {
                 Snackbar.Add("Платеж не найден или вы не имеете доступа к нему", Severity.Error);
             }
@@ -198,7 +198,7 @@
                 _showSuccessDialog = true;
                 Snackbar.Add("Платеж успешно выполнен", Severity.Success);
             }
-            else if (_payment.Requisite != null)
+            else if (_payment.Requisite is not null)
             {
                 _transactionDto.PaymentData = _payment.Requisite.PaymentData;
                 _transactionDto.ExtractedAmount = _payment.Amount;
@@ -219,10 +219,10 @@
     {
         try
         {
-            if (_payment == null) return;
+            if (_payment is null) return;
 
             var updatedPayment = await PaymentService.GetPaymentById(Id);
-            if (updatedPayment == null ||
+            if (updatedPayment is null ||
                 (_payment.Status == updatedPayment.Status &&
                  _payment.Requisite?.Id == updatedPayment.Requisite?.Id)) return;
 
@@ -233,7 +233,7 @@
                 _showSuccessDialog = true;
                 await InvokeAsync(() => Snackbar.Add("Платеж успешно выполнен", Severity.Success));
             }
-            else if (_payment.Requisite != null)
+            else if (_payment.Requisite is not null)
             {
                 _transactionDto.PaymentData = _payment.Requisite.PaymentData;
                 _transactionDto.ExtractedAmount = _payment.Amount;
@@ -251,7 +251,7 @@
 
     private async Task SimulatePayment()
     {
-        if (_payment?.Requisite == null) return;
+        if (_payment?.Requisite is null) return;
 
         _isSimulating = true;
         try
@@ -262,14 +262,14 @@
                 _transactionDto.Source
             );
 
-            if (transaction != null)
+            if (transaction is not null)
             {
                 _payment = await PaymentService.GetPaymentById(Id);
 
                 if (_payment?.Status == PaymentStatus.Confirmed)
                 {
                     _showSuccessDialog = true;
-                    if (_refreshTimer != null)
+                    if (_refreshTimer is not null)
                     {
                         await _refreshTimer.DisposeAsync();
                     }

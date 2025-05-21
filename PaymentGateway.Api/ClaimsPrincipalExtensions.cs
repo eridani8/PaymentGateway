@@ -12,7 +12,7 @@ public static class ClaimsPrincipalExtensions
     public static Guid GetCurrentUserId(this ClaimsPrincipal principal)
     {
         var userIdClaim = principal.FindFirst(ClaimTypes.NameIdentifier);
-        if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))
+        if (userIdClaim is null || !Guid.TryParse(userIdClaim.Value, out var userId))
         {
             return Guid.Empty;
         }

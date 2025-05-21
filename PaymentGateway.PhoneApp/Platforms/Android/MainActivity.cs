@@ -134,7 +134,7 @@ public class MainActivity : MauiAppCompatActivity
         var powerManager = (PowerManager?)GetSystemService(PowerService);
         var packageName = PackageName;
 
-        if (powerManager == null || powerManager.IsIgnoringBatteryOptimizations(packageName)) return;
+        if (powerManager is null || powerManager.IsIgnoringBatteryOptimizations(packageName)) return;
         try
         {
             var intent = new Intent(Android.Provider.Settings.ActionRequestIgnoreBatteryOptimizations);
@@ -154,7 +154,7 @@ public class MainActivity : MauiAppCompatActivity
             ContentResolver, 
             "enabled_notification_listeners");
             
-        return enabledListeners != null && enabledListeners.Contains(componentName.FlattenToString());
+        return enabledListeners is not null && enabledListeners.Contains(componentName.FlattenToString());
     }
 
     private void RequestNotificationListenerPermission()

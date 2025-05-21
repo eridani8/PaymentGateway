@@ -48,7 +48,7 @@
                                     <MudText Typo="Typo.body1">@rowContext.Item.Id</MudText>
                                 </MudStack>
                             </MudTooltip>
-                            @if (rowContext.Item.RequisiteId != null)
+                            @if (rowContext.Item.RequisiteId is not null)
                             {
                                 <MudTooltip Placement="Placement.Left" Text="Id реквизита">
                                     <MudStack Row="true">
@@ -57,7 +57,7 @@
                                     </MudStack>
                                 </MudTooltip>
                             }
-                            @if (rowContext.Item.PaymentId != null)
+                            @if (rowContext.Item.PaymentId is not null)
                             {
                                 <MudTooltip Placement="Placement.Left" Text="Id платежа">
                                     <MudStack Row="true">
@@ -130,7 +130,7 @@
                 updatedTransaction.Id, updatedTransaction.ExtractedAmount);
 
             var existingTransaction = _transactions.FirstOrDefault(t => t.Id == updatedTransaction.Id);
-            if (existingTransaction != null)
+            if (existingTransaction is not null)
             {
                 var index = _transactions.IndexOf(existingTransaction);
                 _transactions[index] = updatedTransaction;

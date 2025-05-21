@@ -33,7 +33,7 @@ public static class AppConfiguration
     private static async Task CreateUser(UserManager<UserEntity> userManager, string username)
     {
         var defaultUser = await userManager.FindByNameAsync(username);
-        if (defaultUser == null)
+        if (defaultUser is null)
         {
             defaultUser = new UserEntity
             {

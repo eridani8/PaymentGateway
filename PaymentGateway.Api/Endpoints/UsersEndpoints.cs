@@ -136,7 +136,7 @@ public class UsersEndpoints : ICarterModule
         }
         
         var userEntity = await userManager.GetUserAsync(user);
-        if (userEntity == null)
+        if (userEntity is null)
         {
             return Results.NotFound();
         }
@@ -159,7 +159,7 @@ public class UsersEndpoints : ICarterModule
         ClaimsPrincipal user)
     {
         var userEntity = await userManager.GetUserAsync(user);
-        if (userEntity == null)
+        if (userEntity is null)
         {
             return Results.NotFound();
         }
@@ -180,7 +180,7 @@ public class UsersEndpoints : ICarterModule
         ClaimsPrincipal user)
     {
         var userEntity = await userManager.GetUserAsync(user);
-        if (userEntity == null)
+        if (userEntity is null)
         {
             return Results.NotFound();
         }
@@ -217,7 +217,7 @@ public class UsersEndpoints : ICarterModule
         }
         
         var userEntity = await userManager.GetUserAsync(user);
-        if (userEntity == null)
+        if (userEntity is null)
         {
             return Results.NotFound();
         }

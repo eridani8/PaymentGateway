@@ -32,7 +32,7 @@ public class InMemoryLogSink : ILogEventSink
 
     public void Emit(LogEvent logEvent)
     {
-        var exception = logEvent.Exception != null ? Environment.NewLine + logEvent.Exception : "";
+        var exception = logEvent.Exception is not null ? Environment.NewLine + logEvent.Exception : "";
         var message = $"{logEvent.RenderMessage()}{exception}";
         
         string? sourceContext = null;

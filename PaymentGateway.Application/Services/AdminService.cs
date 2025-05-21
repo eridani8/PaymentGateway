@@ -33,7 +33,7 @@ public class AdminService(
         }
     
         var existingUser = await userManager.FindByNameAsync(dto.Username);
-        if (existingUser != null)
+        if (existingUser is not null)
         {
             return Result.Failure<UserDto>(UserErrors.UserAlreadyExists);
         }
@@ -189,7 +189,7 @@ public class AdminService(
     public async Task<Result<bool>> ResetTwoFactor(Guid userId)
     {
         var user = await userManager.FindByIdAsync(userId.ToString());
-        if (user == null)
+        if (user is null)
         {
             return Result.Failure<bool>(UserErrors.UserNotFound);
         }

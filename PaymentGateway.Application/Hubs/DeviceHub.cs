@@ -59,7 +59,7 @@ public class DeviceHub(
 
     public Task RegisterDevice(DeviceDto? device)
     {
-        if (device == null || string.IsNullOrEmpty(device.DeviceData) || device.Id == Guid.Empty)
+        if (device is null || string.IsNullOrEmpty(device.DeviceData) || device.Id == Guid.Empty)
         {
             logger.LogWarning("Устройство не предоставило информацию о себе. Отключение клиента: {ConnectionId}", Context.ConnectionId);
             Context.Abort();

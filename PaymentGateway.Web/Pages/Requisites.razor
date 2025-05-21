@@ -183,7 +183,7 @@
                                     </MudTooltip>
                                 </Authorized>
                             </AuthorizeView>
-                            @if (rowContext.Item.Payment != null)
+                            @if (rowContext.Item.Payment is not null)
                             {
                                 <MudTooltip Placement="Placement.Left" Text="Id платежа">
                                     <MudStack Row="true">
@@ -265,7 +265,7 @@
                 updatedRequisite.Id, updatedRequisite.Status);
 
             var existingRequisite = _requisites.FirstOrDefault(r => r.Id == updatedRequisite.Id);
-            if (existingRequisite != null)
+            if (existingRequisite is not null)
             {
                 var index = _requisites.IndexOf(existingRequisite);
                 _requisites[index] = updatedRequisite;
@@ -292,7 +292,7 @@
             Logger.LogInformation("Получено уведомление об удалении реквизита: {RequisiteId}", requisiteId);
 
             var requisite = _requisites.FirstOrDefault(r => r.Id == requisiteId);
-            if (requisite == null) return;
+            if (requisite is null) return;
 
             _requisites.Remove(requisite);
             Logger.LogInformation("Реквизит удален из списка: {RequisiteId}", requisiteId);
@@ -433,7 +433,7 @@
 
     private static string GetRemainingCooldownTime(RequisiteDto requisite)
     {
-        if (requisite.LastOperationTime == null)
+        if (requisite.LastOperationTime is null)
         {
             return "";
         }
@@ -447,7 +447,7 @@
 
     private static string GetRemainingPendingTime(RequisiteDto requisite)
     {
-        if (requisite.Payment?.ExpiresAt == null)
+        if (requisite.Payment?.ExpiresAt is null)
         {
             return "";
         }

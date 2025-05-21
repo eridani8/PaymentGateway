@@ -125,7 +125,7 @@ public class NotificationService(
                 tasks.Add(staffTask);
             }
 
-            if (payment.Requisite != null && NotificationHub.GetUserConnectionId(payment.Requisite.UserId) is { } connectionId)
+            if (payment.Requisite is not null && NotificationHub.GetUserConnectionId(payment.Requisite.UserId) is { } connectionId)
             {
                 var userTask = hubContext.Clients.Client(connectionId).PaymentUpdated(payment);
                 tasks.Add(userTask);
@@ -151,7 +151,7 @@ public class NotificationService(
                 tasks.Add(staffTask);
             }
 
-            if (userId != null && NotificationHub.GetUserConnectionId(userId.Value) is { } connectionId)
+            if (userId is not null && NotificationHub.GetUserConnectionId(userId.Value) is { } connectionId)
             {
                 var userTask = hubContext.Clients.Client(connectionId).PaymentDeleted(id);
                 tasks.Add(userTask);
