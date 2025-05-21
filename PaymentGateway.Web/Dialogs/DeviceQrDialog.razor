@@ -59,9 +59,9 @@
             await JsRuntime.InvokeVoidAsync("copyTextToClipboard", text);
             Snackbar.Add("Токен скопирован в буфер обмена", Severity.Success);
         }
-        catch (Exception e)
+        catch
         {
-            Snackbar.Add(e.Message, Severity.Error);
+            Snackbar.Add("Clipboard API недоступен без HTTPS", Severity.Error);
         }
     }
 
