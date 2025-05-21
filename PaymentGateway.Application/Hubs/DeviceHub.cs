@@ -10,7 +10,7 @@ namespace PaymentGateway.Application.Hubs;
 [Authorize(AuthenticationSchemes = "Device")]
 public class DeviceHub(
     ILogger<DeviceHub> logger,
-    IHubContext<NotificationHub, IWebClientHub> notificationHub) : Hub<IDeviceClientHub>
+    INotificationService notificationService) : Hub<IDeviceClientHub>
 {
     public static ConcurrentDictionary<string, DeviceDto> ConnectedDevices { get; } = new();
     private static readonly TimeSpan RegistrationTimeout = TimeSpan.FromSeconds(7);
@@ -38,7 +38,7 @@ public class DeviceHub(
             
             _ = Task.Delay(RegistrationTimeout).ContinueWith(_ =>
             {
-                if (!ConnectedDevices.TryGetValue(connectionId, out var deviceInfo))
+                if (!ConnectedDevices.TryGetValue(connectionId, out var device))
                 {
                     logger.LogWarning(
                         "Устройство не зарегистрировалось в течение {Timeout} секунд. Отключение клиента: {ConnectionId}",
@@ -47,8 +47,8 @@ public class DeviceHub(
                     return;
                 }
                 
-                deviceInfo.UserId = userGuid;
-                NotifyDeviceConnected(deviceInfo);
+                device.UserId = userGuid;
+                notificationService.DeviceConnected(device);
             });
         }
         catch (Exception e)
@@ -78,7 +78,7 @@ public class DeviceHub(
             if (ConnectedDevices.TryRemove(Context.ConnectionId, out var device))
             {
                 logger.LogInformation("Устройство оффлайн: {Device}", device.DeviceData);
-                NotifyDeviceDisconnected(device);
+                await notificationService.DeviceDisconnected(device);
             }
             
             await base.OnDisconnectedAsync(exception);
@@ -86,32 +86,6 @@ public class DeviceHub(
         catch (Exception e)
         {
             logger.LogError(e, "Ошибка при отключении устройства: {ConnectionId}", Context.ConnectionId);
-        }
-    }
-
-    private async void NotifyDeviceConnected(DeviceDto device)
-    {
-        try
-        {
-            await notificationHub.Clients.All.DeviceConnected(device);
-            logger.LogInformation("Уведомление о подключении устройства: {Device}", device.DeviceData);
-        }
-        catch (Exception e)
-        {
-            logger.LogError(e, "Ошибка при отправке уведомления о подключении устройства");
-        }
-    }
-
-    private async void NotifyDeviceDisconnected(DeviceDto device)
-    {
-        try
-        {
-            await notificationHub.Clients.All.DeviceDisconnected(device);
-            logger.LogInformation("Уведомление об отключении устройства: {Device}", device.DeviceData);
-        }
-        catch (Exception e)
-        {
-            logger.LogError(e, "Ошибка при отправке уведомления об отключении устройства");
         }
     }
 }

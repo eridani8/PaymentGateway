@@ -1,3 +1,4 @@
+using PaymentGateway.Shared.DTOs.Device;
 using PaymentGateway.Shared.DTOs.Payment;
 using PaymentGateway.Shared.DTOs.Requisite;
 using PaymentGateway.Shared.DTOs.User;
@@ -14,4 +15,6 @@ public interface INotificationService
     Task NotifyPaymentUpdated(PaymentDto payment);
     Task NotifyPaymentDeleted(Guid id, Guid? userId);
     Task NotifyRequisiteAssignmentAlgorithmChanged(RequisiteAssignmentAlgorithm algorithm);
+    Task DeviceConnected(DeviceDto device);
+    Task DeviceDisconnected(DeviceDto device);
 } 

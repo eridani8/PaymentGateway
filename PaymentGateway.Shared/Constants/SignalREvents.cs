@@ -18,8 +18,8 @@ public static class SignalREvents
         public const string GetAllUsers = "GetAllUsers";
         public const string GetChatMessages = "GetChatMessages";
         public const string ChangeRequisiteAssignmentAlgorithm = "ChangeRequisiteAssignmentAlgorithm";
-        public const string OnDeviceConnected = "OnDeviceConnected";
-        public const string OnDeviceDisconnected = "OnDeviceDisconnected";
+        public const string DeviceConnected = "DeviceConnected";
+        public const string DeviceDisconnected = "DeviceDisconnected";
     }
 
     public static class DeviceApp

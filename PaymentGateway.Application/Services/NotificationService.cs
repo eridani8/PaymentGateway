@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using PaymentGateway.Application.Hubs;
 using PaymentGateway.Application.Interfaces;
+using PaymentGateway.Shared.DTOs.Device;
 using PaymentGateway.Shared.DTOs.Payment;
 using PaymentGateway.Shared.DTOs.Requisite;
 using PaymentGateway.Shared.DTOs.User;
@@ -181,6 +182,58 @@ public class NotificationService(
         catch (Exception e)
         {
             logger.LogError(e, "Ошибка отправки уведомления об изменении алгоритма подбора реквизитов");
+        }
+    }
+
+    public async Task DeviceConnected(DeviceDto device)
+    {
+        try
+        {
+            var tasks = new List<Task>();
+            
+            if (NotificationHub.GetUsersByRoles(["Admin"]) is { Count: > 0 } staffIds)
+            {
+                var staffTask = hubContext.Clients.Clients(staffIds).DeviceConnected(device);
+                tasks.Add(staffTask);
+            }
+
+            if (NotificationHub.GetUserConnectionId(device.UserId) is { } connectionId)
+            {
+                var userTask = hubContext.Clients.Client(connectionId).DeviceConnected(device);
+                tasks.Add(userTask);
+            }
+            
+            await Task.WhenAll(tasks);
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, "Ошибка отправки уведомления онлайн устройства");
+        }
+    }
+
+    public async Task DeviceDisconnected(DeviceDto device)
+    {
+        try
+        {
+            var tasks = new List<Task>();
+            
+            if (NotificationHub.GetUsersByRoles(["Admin"]) is { Count: > 0 } staffIds)
+            {
+                var staffTask = hubContext.Clients.Clients(staffIds).DeviceDisconnected(device);
+                tasks.Add(staffTask);
+            }
+
+            if (NotificationHub.GetUserConnectionId(device.UserId) is { } connectionId)
+            {
+                var userTask = hubContext.Clients.Client(connectionId).DeviceDisconnected(device);
+                tasks.Add(userTask);
+            }
+            
+            await Task.WhenAll(tasks);
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, "Ошибка отправки уведомления оффлайн устройства");
         }
     }
 } 

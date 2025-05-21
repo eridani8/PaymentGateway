@@ -93,8 +93,8 @@ public class NotificationService(
         Unsubscribe(SignalREvents.Web.UserConnected);
         Unsubscribe(SignalREvents.Web.UserDisconnected);
         Unsubscribe(SignalREvents.Web.ChangeRequisiteAssignmentAlgorithm);
-        Unsubscribe(SignalREvents.Web.OnDeviceConnected);
-        Unsubscribe(SignalREvents.Web.OnDeviceDisconnected);
+        Unsubscribe(SignalREvents.Web.DeviceConnected);
+        Unsubscribe(SignalREvents.Web.DeviceDisconnected);
         
         return base.DisposeAsync();
     }
@@ -103,22 +103,22 @@ public class NotificationService(
 
     public void SubscribeToDeviceConnected(Action<DeviceDto> handler)
     {
-        Subscribe(SignalREvents.Web.OnDeviceConnected, handler);
+        Subscribe(SignalREvents.Web.DeviceConnected, handler);
     }
 
     public void UnsubscribeFromDeviceConnected()
     {
-        Unsubscribe(SignalREvents.Web.OnDeviceConnected);
+        Unsubscribe(SignalREvents.Web.DeviceConnected);
     }
 
     public void SubscribeToDeviceDisconnected(Action<DeviceDto> handler)
     {
-        Subscribe(SignalREvents.Web.OnDeviceDisconnected, handler);
+        Subscribe(SignalREvents.Web.DeviceDisconnected, handler);
     }
 
     public void UnsubscribeFromDeviceDisconnected()
     {
-        Unsubscribe(SignalREvents.Web.OnDeviceDisconnected);
+        Unsubscribe(SignalREvents.Web.DeviceDisconnected);
     }
 
     #endregion
