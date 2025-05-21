@@ -62,7 +62,7 @@ public partial class AuthorizationViewModel(
         try
         {
             var scannerPage = new QrScannerPage();
-            scannerPage.OnQrCodeScanned += async (sender, code) =>
+            scannerPage.OnQrCodeScanned += async (_, code) =>
             {
                 DeviceService.AccessToken = code;
                 await Authorize();
