@@ -19,7 +19,7 @@ public class DeviceService : BaseSignalRService
     private readonly LiteContext _context;
     
     public Guid DeviceId { get; }
-    
+
     public Action? UpdateDelegate;
 
     public DeviceService(IOptions<ApiSettings> settings,
@@ -59,6 +59,8 @@ public class DeviceService : BaseSignalRService
     {
         try
         {
+            IsInitializing = false;
+            UpdateDelegate?.Invoke();
             await StopAsync();
         }
         catch (Exception e)
@@ -86,5 +88,30 @@ public class DeviceService : BaseSignalRService
             };
             await HubConnection.InvokeAsync(SignalREvents.DeviceApp.RegisterDevice, deviceInfo);
         });
+    }
+
+    public override async Task InitializeAsync()
+    {
+        IsInitializing = true;
+        UpdateDelegate?.Invoke();
+        
+        try
+        {
+            await base.InitializeAsync();
+            IsServiceUnavailable = false;
+        }
+        catch (Exception e)
+        {
+            if (e is not HttpRequestException { StatusCode: System.Net.HttpStatusCode.Unauthorized })
+            {
+                IsServiceUnavailable = true;
+            }
+            throw;
+        }
+        finally
+        {
+            IsInitializing = false;
+            UpdateDelegate?.Invoke();
+        }
     }
 }

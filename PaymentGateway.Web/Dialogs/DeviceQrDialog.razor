@@ -54,8 +54,15 @@
 
     private async Task CopyToClipboard(string text)
     {
-        await JsRuntime.InvokeVoidAsync("navigator.clipboard.writeText", text);
-        Snackbar.Add("Токен скопирован в буфер обмена", Severity.Success);
+        try
+        {
+            await JsRuntime.InvokeVoidAsync("copyTextToClipboard", text);
+            Snackbar.Add("Токен скопирован в буфер обмена", Severity.Success);
+        }
+        catch (Exception e)
+        {
+            Snackbar.Add(e.Message, Severity.Error);
+        }
     }
 
     private void Cancel() => MudDialog.Cancel();

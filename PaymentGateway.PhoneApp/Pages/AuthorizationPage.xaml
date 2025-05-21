@@ -1,15 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:viewmodels="clr-namespace:PaymentGateway.PhoneApp.ViewModels"
-             xmlns:converters="clr-namespace:PaymentGateway.PhoneApp.Converters"
              x:Class="PaymentGateway.PhoneApp.Pages.AuthorizationPage"
              Title="Авторизация"
              x:DataType="viewmodels:AuthorizationViewModel">
     <Grid RowDefinitions="Auto,Auto,Auto,Auto"
           Padding="20">
+        <Grid IsVisible="{Binding DeviceService.IsInitializing}"
+              BackgroundColor="Transparent"
+              HorizontalOptions="Fill"
+              VerticalOptions="Fill">
+            <ActivityIndicator IsRunning="True"
+                               HorizontalOptions="Center"
+                               VerticalOptions="Center"
+                               Color="{StaticResource Primary}"
+                               HeightRequest="70"
+                               WidthRequest="70" />
+        </Grid>
         <VerticalStackLayout Grid.Row="0"
-                             Spacing="10">
+                             Spacing="10"
+                             IsVisible="{Binding DeviceService.IsInitializing, Converter={StaticResource InverseBoolConverter}}">
             <Label Text="Код можно скопировать на странице устройств"
                    HorizontalOptions="Center"
                    LineBreakMode="WordWrap"

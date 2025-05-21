@@ -4,10 +4,11 @@ public static class AndroidConstants
 {
     public const string ActionStop = "com.eridani8.paymentgateway.STOP_SERVICE";
     public const string ActionStart = "com.eridani8.paymentgateway.START_SERVICE";
-    
     public const int NotificationId = 9999;
     public const string ChannelId = "PaymentGatewayChannel";
     public const string ChannelName = "PaymentGatewayForegroundService";
+    public const string ChannelDescription = "Фоновый процесс отслеживания уведомлений и СМС";
+    public const string WakeLockTag = "PaymentGateway::BackgroundServiceLock";
     
     public const int NotificationPermissionCode = 100;
     public const int SmsPermissionCode = 200;

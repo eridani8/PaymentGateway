@@ -72,12 +72,9 @@ public class BackgroundService : Service
 
     public override StartCommandResult OnStartCommand(Intent? intent, StartCommandFlags flags, int startId)
     {
-        var initialNotification = BuildNotification("Инициализация сервиса...");
+        var initialNotification = BuildNotification(GetStatusText());
         StartForeground(AndroidConstants.NotificationId, initialNotification, ForegroundService.TypeDataSync);
 
-        var notification = BuildNotification(GetStatusText());
-        _notificationManager.Notify(AndroidConstants.NotificationId, notification);
-        
         if (string.IsNullOrEmpty(_deviceService.AccessToken)) return StartCommandResult.Sticky;
 
         if (intent?.Action == AndroidConstants.ActionStop)
@@ -97,21 +94,23 @@ public class BackgroundService : Service
     private async Task StartBackgroundProcess()
     {
         _backgroundServiceManager.SetRunningState(true);
+        _deviceService.IsInitializing = true;
+        UpdateNotification();
 
         AcquireWakeLock();
         try
         {
             _deviceService.ConnectionStateChanged += _deviceService.OnConnectionStateChanged;
             await _deviceService.InitializeAsync();
-            
-            var notification = BuildNotification(GetStatusText());
-            _notificationManager.Notify(AndroidConstants.NotificationId, notification);
         }
         catch (Exception e)
         {
             _logger.LogError(e, "Ошибка подключения к сервису");
-            var notification = BuildNotification(GetStatusText());
-            _notificationManager.Notify(AndroidConstants.NotificationId, notification);
+        }
+        finally
+        {
+            _deviceService.IsInitializing = false;
+            UpdateNotification();
         }
     }
 
@@ -134,28 +133,47 @@ public class BackgroundService : Service
 
     private string GetStatusText()
     {
-        var text = string.IsNullOrEmpty(_deviceService.AccessToken)
-            ? "Нужно задать токен"
-            : _backgroundServiceManager is { IsRunning: true }
-                ? "Фоновой процесс активен"
-                : "Фоновой процесс остановлен";
-        return text;
+        if (_deviceService.IsInitializing)
+        {
+            return "Инициализация";
+        }
+
+        if (string.IsNullOrEmpty(_deviceService.AccessToken))
+        {
+            return "Нужно задать токен";
+        }
+
+        if (_deviceService.IsServiceUnavailable)
+        {
+            return "Сервис недоступен";
+        }
+
+        return _backgroundServiceManager is { IsRunning: true }
+            ? "Фоновой процесс активен"
+            : "Фоновой процесс остановлен";
     }
 
     private string GetButtonText()
     {
-        var text = string.IsNullOrEmpty(_deviceService.AccessToken)
-            ? "Авторизация"
-            : _backgroundServiceManager is { IsRunning: true }
-                ? "Остановить"
-                : "Запустить";
-        return text;
+        if (_deviceService.IsInitializing || _deviceService.IsServiceUnavailable)
+        {
+            return string.Empty;
+        }
+
+        if (string.IsNullOrEmpty(_deviceService.AccessToken))
+        {
+            return "Авторизация";
+        }
+
+        return _backgroundServiceManager is { IsRunning: true }
+            ? "Остановить"
+            : "Запустить";
     }
 
     private void AcquireWakeLock()
     {
         var powerManager = (PowerManager?)GetSystemService(PowerService);
-        _wakeLock = powerManager?.NewWakeLock(WakeLockFlags.Partial, "PaymentGateway::BackgroundServiceLock");
+        _wakeLock = powerManager?.NewWakeLock(WakeLockFlags.Partial, AndroidConstants.WakeLockTag);
         _wakeLock?.Acquire();
     }
 
@@ -173,7 +191,7 @@ public class BackgroundService : Service
             NotificationImportance.High)
         {
             LockscreenVisibility = NotificationVisibility.Public,
-            Description = "Фоновый процесс отслеживания уведомлений и СМС"
+            Description = AndroidConstants.ChannelDescription
         };
 
         channel.SetShowBadge(true);
@@ -227,17 +245,21 @@ public class BackgroundService : Service
         var style = new NotificationCompat.BigTextStyle().BigText(statusText);
         compatBuilder.SetStyle(style);
 
-        if (string.IsNullOrEmpty(_deviceService.AccessToken))
+        var buttonText = GetButtonText();
+        if (!string.IsNullOrEmpty(buttonText))
         {
-            compatBuilder.AddAction(0, GetButtonText(), authPendingIntent);
-        }
-        else if (_backgroundServiceManager is { IsRunning: true })
-        {
-            compatBuilder.AddAction(0, GetButtonText(), stopPendingIntent);
-        }
-        else
-        {
-            compatBuilder.AddAction(0, GetButtonText(), startPendingIntent);
+            if (string.IsNullOrEmpty(_deviceService.AccessToken))
+            {
+                compatBuilder.AddAction(0, buttonText, authPendingIntent);
+            }
+            else if (_backgroundServiceManager is { IsRunning: true })
+            {
+                compatBuilder.AddAction(0, buttonText, stopPendingIntent);
+            }
+            else
+            {
+                compatBuilder.AddAction(0, buttonText, startPendingIntent);
+            }
         }
 
         return compatBuilder.Build();

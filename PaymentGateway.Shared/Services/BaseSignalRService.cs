@@ -32,7 +32,6 @@ public class BaseSignalRService(
     }
 
     private string _accessToken = string.Empty;
-    
     public string AccessToken
     {
         get => _accessToken;
@@ -40,6 +39,28 @@ public class BaseSignalRService(
         {
             _accessToken = value;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AccessToken)));
+        }
+    }
+    
+    private bool _isInitializing;
+    public bool IsInitializing
+    {
+        get => _isInitializing;
+        set
+        {
+            _isInitializing = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsInitializing)));
+        }
+    }
+    
+    private bool _isServiceUnavailable;
+    public bool IsServiceUnavailable
+    {
+        get => _isServiceUnavailable;
+        set
+        {
+            _isServiceUnavailable = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsServiceUnavailable)));
         }
     }
 
