@@ -11,7 +11,7 @@
                 Отсканируйте QR-код
             </MudText>
 
-            <MudStack>
+            <MudContainer MaxWidth="MaxWidth.Large" Class="d-flex flex-column w-100">
                 @if (!string.IsNullOrEmpty(QrCodeImage))
                 {
                     <MudImage Src="@QrCodeImage"
@@ -20,7 +20,7 @@
                               Height="300"
                               ObjectFit="ObjectFit.Cover"
                               Elevation="25"
-                              Class="rounded-lg"/>
+                              Class="rounded-lg mx-auto"/>
                     <MudText Typo="Typo.body1" Class="mb-4">
                         Или введите токен вручную:
                         <MudTextField ReadOnly="true"
@@ -29,6 +29,8 @@
                                       Adornment="Adornment.End"
                                       AdornmentIcon="@Icons.Material.Filled.ContentCopy"
                                       OnAdornmentClick="@(() => CopyToClipboard(Token))"
+                                      FullWidth="true"
+                                      Lines="3"
                                       Class="mt-2"/>
                     </MudText>
                 }
@@ -36,7 +38,7 @@
                 {
                     <MudAlert Severity="Severity.Error">Ошибка генерации QR кода</MudAlert>
                 }
-            </MudStack>
+            </MudContainer>
         </MudContainer>
     </DialogContent>
     <DialogActions>
