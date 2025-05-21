@@ -80,7 +80,7 @@ public class BackgroundService : Service
 
     public override StartCommandResult OnStartCommand(Intent? intent, StartCommandFlags flags, int startId)
     {
-        var initialNotification = BuildNotification(GetStatusText());
+        var initialNotification = BuildNotification(GetStatusText(), false);
         StartForeground(AndroidConstants.NotificationId, initialNotification, ForegroundService.TypeDataSync);
 
         if (string.IsNullOrEmpty(_deviceService.AccessToken)) return StartCommandResult.Sticky;
@@ -129,7 +129,7 @@ public class BackgroundService : Service
 
     private void UpdateNotification()
     {
-        var notification = BuildNotification(GetStatusText());
+        var notification = BuildNotification(GetStatusText(), true);
         _notificationManager.Notify(AndroidConstants.NotificationId, notification);
     }
 
@@ -204,7 +204,7 @@ public class BackgroundService : Service
         _notificationManager.CreateNotificationChannel(channel);
     }
 
-    private Notification BuildNotification(string statusText)
+    private Notification BuildNotification(string statusText, bool notification)
     {
         var contentIntent = new Intent(this, typeof(MainActivity));
         contentIntent.AddFlags(ActivityFlags.ClearTop | ActivityFlags.SingleTop);
@@ -239,10 +239,14 @@ public class BackgroundService : Service
             .SetCategory(NotificationCompat.CategoryService)
             .SetShowWhen(true)
             .SetPriority(NotificationCompat.PriorityHigh)
-            .SetDefaults(NotificationCompat.DefaultAll)
             .SetColor(unchecked((int)0xFF7D5BA6))
             .SetForegroundServiceBehavior(NotificationCompat.ForegroundServiceImmediate)
             .SetContentIntent(pendingIntent);
+        
+        if (notification)
+        {
+            compatBuilder.SetDefaults(NotificationCompat.DefaultAll);
+        }
 
         var style = new NotificationCompat.BigTextStyle().BigText(statusText);
         compatBuilder.SetStyle(style);
