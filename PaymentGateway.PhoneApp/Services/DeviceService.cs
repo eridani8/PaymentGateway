@@ -52,9 +52,9 @@ public class DeviceService : BaseSignalRService
 
     private static string GetDeviceName()
     {
-        return $"{Build.Manufacturer ?? Build.Unknown} {Build.Model ?? Build.Unknown} {Build.Hardware ?? Build.Unknown}";
+        return $"{Build.Manufacturer ?? Build.Unknown} {Build.Model ?? Build.Unknown} {Build.Device ?? Build.Unknown}";
     }
-
+    
     private static string GetHw()
     {
         var rawData = new List<string>
