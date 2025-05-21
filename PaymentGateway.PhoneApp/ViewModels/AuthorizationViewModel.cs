@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using PaymentGateway.PhoneApp.Interfaces;
 using PaymentGateway.PhoneApp.Services;
 using Android.Content;
+using PaymentGateway.PhoneApp.Pages;
 
 namespace PaymentGateway.PhoneApp.ViewModels;
 
@@ -52,6 +53,27 @@ public partial class AuthorizationViewModel(
         {
             logger.LogError(e, "Ошибка авторизации");
             await FailureConnection();
+        }
+    }
+
+    [RelayCommand]
+    private async Task ScanQr()
+    {
+        try
+        {
+            var scannerPage = new QrScannerPage();
+            scannerPage.OnQrCodeScanned += async (sender, code) =>
+            {
+                DeviceService.AccessToken = code;
+                await Authorize();
+            };
+
+            await Shell.Current.Navigation.PushAsync(scannerPage);
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, "Ошибка при сканировании QR-кода");
+            await alertService.ShowAlertAsync("Ошибка", "Не удалось отсканировать QR-код", "OK");
         }
     }
 

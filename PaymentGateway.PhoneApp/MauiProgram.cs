@@ -102,6 +102,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<LogsPage>();
         builder.Services.AddSingleton<ServiceUnavailablePage>();
         builder.Services.AddSingleton<AuthorizationPage>();
+        builder.Services.AddSingleton<QrScannerPage>();
 
         builder.Services.AddSingleton<ISmsProcessor, SmsProcessor>();
         builder.Services.AddSingleton<IBackgroundServiceManager, BackgroundServiceManager>();

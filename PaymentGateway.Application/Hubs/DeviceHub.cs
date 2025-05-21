@@ -11,13 +11,14 @@ namespace PaymentGateway.Application.Hubs;
 public class DeviceHub(ILogger<DeviceHub> logger) : Hub<IDeviceClientHub>
 {
     public static ConcurrentDictionary<string, DeviceDto> ConnectedDevices { get; } = new();
-    private static readonly TimeSpan RegistrationTimeout = TimeSpan.FromSeconds(10);
+    private static readonly TimeSpan RegistrationTimeout = TimeSpan.FromSeconds(7);
 
     public override async Task OnConnectedAsync()
     {
         try
         {
             await base.OnConnectedAsync();
+            
             var context = Context;
             var connectionId = Context.ConnectionId;
             
