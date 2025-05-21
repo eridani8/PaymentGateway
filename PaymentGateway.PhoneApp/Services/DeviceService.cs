@@ -41,6 +41,14 @@ public class DeviceService : BaseSignalRService
             Value = AccessToken
         });
     }
+
+    public void RemoveToken()
+    {
+        if (_context.KeyValues.FindOne(e => e.Key == LiteContext.tokenKey) is { } keyValue)
+        {
+            _context.KeyValues.Delete(keyValue.Id);
+        }
+    }
     
     public string GetDeviceData()
     {

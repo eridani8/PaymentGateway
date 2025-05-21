@@ -12,10 +12,10 @@ namespace PaymentGateway.PhoneApp;
 [IntentFilter(["android.provider.Telephony.SMS_RECEIVED"])]
 public class SmsReceiver : BroadcastReceiver
 {
-    private readonly ILogger<SmsReceiver>? _logger;
-    private readonly ISmsProcessor? _smsProcessor;
-    private readonly IBackgroundServiceManager? _backgroundServiceManager;
-    private readonly DeviceService? _signalRService;
+    private readonly ILogger<SmsReceiver> _logger = null!;
+    private readonly ISmsProcessor _smsProcessor = null!;
+    private readonly IBackgroundServiceManager _backgroundServiceManager = null!;
+    private readonly DeviceService _signalRService = null!;
 
     public SmsReceiver()
     {
@@ -34,7 +34,6 @@ public class SmsReceiver : BroadcastReceiver
 
         try
         {
-            if (_smsProcessor == null) return;
             if (_backgroundServiceManager is not { IsRunning: true }) return;
             if (_signalRService is not { IsConnected: true }) return;
 
@@ -52,13 +51,13 @@ public class SmsReceiver : BroadcastReceiver
                 }
                 catch (Exception e)
                 {
-                    _logger?.LogError(e, "SmsReceiver: Ошибка при обработке SMS");
+                    _logger.LogError(e, "Ошибка при обработке SMS");
                 }
             }
         }
         catch (Exception e)
         {
-            _logger?.LogError(e, "SmsReceiver: Ошибка при получении SMS");
+            _logger.LogError(e, "Ошибка при обработке SMS");
         }
     }
 } 

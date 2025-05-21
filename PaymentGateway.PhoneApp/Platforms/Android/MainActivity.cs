@@ -13,11 +13,11 @@ namespace PaymentGateway.PhoneApp;
                            ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize | ConfigChanges.Density)]
 public class MainActivity : MauiAppCompatActivity
 {
-    private const string ActionStart = "com.eridani8.paymentgateway.START_SERVICE";
-    private const int NotificationPermissionCode = 100;
-    private const int SmsPermissionCode = 200;
-    private const int NotificationListenerSettingsCode = 300;
-    private const string NotificationListenerSettingsAction = "android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS";
+    private const string actionStart = "com.eridani8.paymentgateway.START_SERVICE";
+    private const int notificationPermissionCode = 100;
+    private const int smsPermissionCode = 200;
+    private const int notificationListenerSettingsCode = 300;
+    private const string notificationListenerSettingsAction = "android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS";
     private bool _isFromNotificationSettings;
 
     protected override void OnCreate(Bundle? savedInstanceState)
@@ -55,7 +55,7 @@ public class MainActivity : MauiAppCompatActivity
             ActivityCompat.RequestPermissions(
                 this,
                 [Android.Manifest.Permission.PostNotifications],
-                NotificationPermissionCode);
+                notificationPermissionCode);
         }
     }
 
@@ -71,7 +71,7 @@ public class MainActivity : MauiAppCompatActivity
 
         if (!allSmsPermissionsGranted)
         {
-            ActivityCompat.RequestPermissions(this, smsPermissions, SmsPermissionCode);
+            ActivityCompat.RequestPermissions(this, smsPermissions, smsPermissionCode);
         }
     }
 
@@ -79,7 +79,7 @@ public class MainActivity : MauiAppCompatActivity
     {
         switch (requestCode)
         {
-            case NotificationPermissionCode:
+            case notificationPermissionCode:
             {
                 if (grantResults.Length > 0 && grantResults[0] == Permission.Granted)
                 {
@@ -88,7 +88,7 @@ public class MainActivity : MauiAppCompatActivity
 
                 break;
             }
-            case SmsPermissionCode:
+            case smsPermissionCode:
             {
                 var allGranted = grantResults.All(t => t == Permission.Granted);
 
@@ -122,7 +122,7 @@ public class MainActivity : MauiAppCompatActivity
     private void StartBackgroundService()
     {
         var intent = new Intent(this, typeof(BackgroundService));
-        intent.SetAction(ActionStart);
+        intent.SetAction(actionStart);
 
         if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
         {
@@ -171,9 +171,9 @@ public class MainActivity : MauiAppCompatActivity
         
         try
         {
-            var intent = new Intent(NotificationListenerSettingsAction);
+            var intent = new Intent(notificationListenerSettingsAction);
             _isFromNotificationSettings = true;
-            StartActivityForResult(intent, NotificationListenerSettingsCode);
+            StartActivityForResult(intent, notificationListenerSettingsCode);
         }
         catch
         {
@@ -183,7 +183,7 @@ public class MainActivity : MauiAppCompatActivity
 
     protected override void OnActivityResult(int requestCode, Result resultCode, Intent? data)
     {
-        if (requestCode == NotificationListenerSettingsCode)
+        if (requestCode == notificationListenerSettingsCode)
         {
             if (IsNotificationListenerEnabled())
             {

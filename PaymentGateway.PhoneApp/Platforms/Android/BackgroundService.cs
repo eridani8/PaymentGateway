@@ -16,8 +16,6 @@ public class BackgroundService : Service
     private const int notificationId = 9999;
     private const string channelId = "PaymentGatewayChannel";
     private const string channelName = "PaymentGatewayForegroundService";
-    private const string actionStop = "com.eridani8.paymentgateway.STOP_SERVICE";
-    private const string actionStart = "com.eridani8.paymentgateway.START_SERVICE";
 
     private ILogger<BackgroundService> _logger = null!;
     private DeviceService _deviceService = null!;
@@ -35,22 +33,22 @@ public class BackgroundService : Service
     {
         base.OnCreate();
         _notificationManager = (GetSystemService(NotificationService) as NotificationManager)!;
-        
+
         CreateNotificationChannel();
-        
+
         var services = (ApplicationContext as IPlatformApplication)!.Services;
-        
+
         _logger = services.GetRequiredService<ILogger<BackgroundService>>();
         _deviceService = services.GetRequiredService<DeviceService>();
         _backgroundServiceManager = services.GetRequiredService<IBackgroundServiceManager>();
 
         _deviceService.UpdateDelegate = UpdateNotification;
-        
+
         _actionReceiver = new ActionReceiver();
         var filter = new IntentFilter();
-        filter.AddAction(actionStop);
-        filter.AddAction(actionStart);
-        
+        filter.AddAction(Constants.ActionStop);
+        filter.AddAction(Constants.ActionStart);
+
         RegisterReceiver(_actionReceiver, filter, ReceiverFlags.NotExported);
     }
 
@@ -68,11 +66,11 @@ public class BackgroundService : Service
         {
             _logger.LogError(e, e.Message);
         }
-        
+
         ReleaseWakeLock();
-        
+
         _backgroundServiceManager.SetRunningState(false);
-        
+
         base.OnDestroy();
     }
 
@@ -80,23 +78,19 @@ public class BackgroundService : Service
     {
         var initialNotification = BuildNotification("Инициализация сервиса...");
         StartForeground(notificationId, initialNotification, ForegroundService.TypeDataSync);
+
+        var notification = BuildNotification(GetStatusText());
+        _notificationManager.Notify(notificationId, notification);
         
-        if (string.IsNullOrEmpty(_deviceService.AccessToken))
-        {
-            var notification = BuildNotification("Нужно задать токен");
-            _notificationManager.Notify(notificationId, notification);
-            _logger.LogWarning("Задайте токен");
-            return StartCommandResult.Sticky;
-        }
-        
-        
-        if (intent?.Action == actionStop)
+        if (string.IsNullOrEmpty(_deviceService.AccessToken)) return StartCommandResult.Sticky;
+
+        if (intent?.Action == Constants.ActionStop)
         {
             _ = StopBackgroundProcess();
             return StartCommandResult.Sticky;
         }
         
-        if (!_backgroundServiceManager.IsRunning || intent?.Action == actionStart)
+        if (!_backgroundServiceManager.IsRunning || intent?.Action == Constants.ActionStart)
         {
             _ = StartBackgroundProcess();
         }
@@ -106,9 +100,6 @@ public class BackgroundService : Service
 
     private async Task StartBackgroundProcess()
     {
-        var notification = BuildNotification(GetStatusText());
-        _notificationManager.Notify(notificationId, notification);
-
         _backgroundServiceManager.SetRunningState(true);
 
         AcquireWakeLock();
@@ -116,36 +107,53 @@ public class BackgroundService : Service
         {
             _deviceService.ConnectionStateChanged += _deviceService.OnConnectionStateChanged;
             await _deviceService.InitializeAsync();
+            
+            var notification = BuildNotification(GetStatusText());
+            _notificationManager.Notify(notificationId, notification);
         }
         catch (Exception e)
         {
             _logger.LogError(e, "Ошибка подключения к сервису");
+            var notification = BuildNotification(GetStatusText());
+            _notificationManager.Notify(notificationId, notification);
         }
     }
 
     private async Task StopBackgroundProcess()
     {
         _backgroundServiceManager.SetRunningState(false);
+        await _deviceService.Stop();
+
+        ReleaseWakeLock();
+
         var notification = BuildNotification(GetStatusText());
         _notificationManager.Notify(notificationId, notification);
-
-        await _deviceService.Stop();
-        
-        ReleaseWakeLock();
     }
 
     private void UpdateNotification()
     {
-        var statusText = GetStatusText();
-        var notification = BuildNotification(statusText);
+        var notification = BuildNotification(GetStatusText());
         _notificationManager.Notify(notificationId, notification);
     }
 
     private string GetStatusText()
     {
-        var processStatus = _backgroundServiceManager is { IsRunning: true } ? "Фоновой процесс активен" : "Фоновой процесс остановлен";
-        var serviceStatus = _deviceService.IsConnected ? "Сервис доступен" : "Сервис недоступен";
-        return $"{processStatus}\n{serviceStatus}";
+        var text = string.IsNullOrEmpty(_deviceService.AccessToken)
+            ? "Нужно задать токен"
+            : _backgroundServiceManager is { IsRunning: true }
+                ? "Фоновой процесс активен"
+                : "Фоновой процесс остановлен";
+        return text;
+    }
+
+    private string GetButtonText()
+    {
+        var text = string.IsNullOrEmpty(_deviceService.AccessToken)
+            ? "Авторизация"
+            : _backgroundServiceManager is { IsRunning: true }
+                ? "Остановить"
+                : "Запустить";
+        return text;
     }
 
     private void AcquireWakeLock()
@@ -164,19 +172,19 @@ public class BackgroundService : Service
     private void CreateNotificationChannel()
     {
         var channel = new NotificationChannel(
-            channelId, 
-            channelName, 
+            channelId,
+            channelName,
             NotificationImportance.High)
         {
             LockscreenVisibility = NotificationVisibility.Public,
-            Description = "Управление фоновыми процессами приложения и мониторинг доступности сервиса"
+            Description = "Фоновый процесс отслеживания уведомлений и СМС"
         };
 
         channel.SetShowBadge(true);
         channel.Importance = NotificationImportance.High;
         channel.EnableLights(true);
         channel.EnableVibration(true);
-        
+
         _notificationManager.CreateNotificationChannel(channel);
     }
 
@@ -184,23 +192,29 @@ public class BackgroundService : Service
     {
         var contentIntent = new Intent(this, typeof(MainActivity));
         contentIntent.AddFlags(ActivityFlags.ClearTop | ActivityFlags.SingleTop);
-        
+
         var pendingIntent = PendingIntent.GetActivity(
-            this, 0, contentIntent, 
+            this, 0, contentIntent,
             PendingIntentFlags.Immutable | PendingIntentFlags.UpdateCurrent);
-        
-        var stopIntent = new Intent(actionStop);
+
+        var stopIntent = new Intent(Constants.ActionStop);
         stopIntent.SetPackage(PackageName);
         var stopPendingIntent = PendingIntent.GetBroadcast(
             this, 1, stopIntent,
             PendingIntentFlags.Immutable | PendingIntentFlags.UpdateCurrent);
-            
-        var startIntent = new Intent(actionStart);
+
+        var startIntent = new Intent(Constants.ActionStart);
         startIntent.SetPackage(PackageName);
         var startPendingIntent = PendingIntent.GetBroadcast(
             this, 2, startIntent,
             PendingIntentFlags.Immutable | PendingIntentFlags.UpdateCurrent);
-        
+
+        var authIntent = new Intent(this, typeof(MainActivity));
+        authIntent.AddFlags(ActivityFlags.ClearTop | ActivityFlags.SingleTop);
+        var authPendingIntent = PendingIntent.GetActivity(
+            this, 3, authIntent,
+            PendingIntentFlags.Immutable | PendingIntentFlags.UpdateCurrent);
+
         var compatBuilder = new NotificationCompat.Builder(this, channelId)
             .SetContentText(statusText)
             .SetSmallIcon(ResourceConstant.Mipmap.appicon)
@@ -213,19 +227,23 @@ public class BackgroundService : Service
             .SetColor(unchecked((int)0xFF7D5BA6))
             .SetForegroundServiceBehavior(NotificationCompat.ForegroundServiceImmediate)
             .SetContentIntent(pendingIntent);
-            
+
         var style = new NotificationCompat.BigTextStyle().BigText(statusText);
         compatBuilder.SetStyle(style);
-        
-        if (_backgroundServiceManager is { IsRunning: true })
+
+        if (string.IsNullOrEmpty(_deviceService.AccessToken))
         {
-            compatBuilder.AddAction(0, "Остановить", stopPendingIntent);
+            compatBuilder.AddAction(0, GetButtonText(), authPendingIntent);
+        }
+        else if (_backgroundServiceManager is { IsRunning: true })
+        {
+            compatBuilder.AddAction(0, GetButtonText(), stopPendingIntent);
         }
         else
         {
-            compatBuilder.AddAction(0, "Запустить", startPendingIntent);
+            compatBuilder.AddAction(0, GetButtonText(), startPendingIntent);
         }
-        
+
         return compatBuilder.Build();
     }
-} 
+}

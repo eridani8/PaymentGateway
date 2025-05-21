@@ -3,13 +3,15 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using PaymentGateway.PhoneApp.Interfaces;
 using PaymentGateway.PhoneApp.Services;
+using Android.Content;
 
 namespace PaymentGateway.PhoneApp.ViewModels;
 
 public partial class AuthorizationViewModel(
     IAlertService alertService,
     ILogger<AuthorizationViewModel> logger,
-    DeviceService deviceService)
+    DeviceService deviceService,
+    IBackgroundServiceManager backgroundServiceManager)
     : ObservableObject
 {
     [ObservableProperty] private DeviceService _deviceService = deviceService;
@@ -19,6 +21,8 @@ public partial class AuthorizationViewModel(
     {
         await DeviceService.Stop();
         ClearToken();
+        DeviceService.RemoveToken();
+        DeviceService.UpdateDelegate?.Invoke();
     }
 
     [RelayCommand]
@@ -35,7 +39,14 @@ public partial class AuthorizationViewModel(
                 return;
             }
             DeviceService.SaveToken();
-            await alertService.ShowAlertAsync("Успех", "Авторизация выполнена", "OK");
+            DeviceService.UpdateDelegate?.Invoke();
+            
+            if (!backgroundServiceManager.IsRunning)
+            {
+                var intent = new Intent(Platform.CurrentActivity, typeof(BackgroundService));
+                intent.SetAction(Constants.ActionStart);
+                Platform.CurrentActivity?.StartService(intent);
+            }
         }
         catch (Exception e)
         {

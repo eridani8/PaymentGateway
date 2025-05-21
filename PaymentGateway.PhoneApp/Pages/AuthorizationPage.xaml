@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:viewmodels="clr-namespace:PaymentGateway.PhoneApp.ViewModels"
@@ -6,6 +7,7 @@
              x:Class="PaymentGateway.PhoneApp.Pages.AuthorizationPage"
              Title="Авторизация"
              x:DataType="viewmodels:AuthorizationViewModel">
+
     <Grid RowDefinitions="Auto,Auto,Auto,Auto"
           Padding="20">
         <VerticalStackLayout Grid.Row="0"
@@ -19,17 +21,20 @@
                     HorizontalOptions="Fill"
                     FontFamily="JetBrainsMono"
                     HeightRequest="120"
-                    Margin="0,0,0,10"/>
+                    Margin="0,0,0,10"
+                    IsVisible="{Binding DeviceService.IsConnected, Converter={StaticResource InverseBoolConverter}}" />
             <Button Text="Авторизоваться"
                     Style="{StaticResource DefaultButton}"
                     Command="{Binding AuthorizeCommand}"
                     HorizontalOptions="Fill"
-                    Margin="0,0,0,10" />
+                    Margin="0,0,0,10"
+                    IsVisible="{Binding DeviceService.IsConnected, Converter={StaticResource InverseBoolConverter}}" />
             <Button Text="Выйти"
                     Style="{StaticResource DefaultButton}"
                     Command="{Binding LogoutCommand}"
                     HorizontalOptions="Fill"
-                    Margin="0,0,0,10" />
+                    Margin="0,0,0,10"
+                    IsVisible="{Binding DeviceService.IsConnected}" />
         </VerticalStackLayout>
     </Grid>
 </ContentPage>
