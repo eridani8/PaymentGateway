@@ -44,7 +44,7 @@ public partial class AuthorizationViewModel(
             if (!backgroundServiceManager.IsRunning)
             {
                 var intent = new Intent(Platform.CurrentActivity, typeof(BackgroundService));
-                intent.SetAction(Constants.ActionStart);
+                intent.SetAction(AndroidConstants.ActionStart);
                 Platform.CurrentActivity?.StartService(intent);
             }
         }

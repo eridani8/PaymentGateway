@@ -42,8 +42,8 @@ public class BackgroundService : Service
 
         _actionReceiver = new ActionReceiver();
         var filter = new IntentFilter();
-        filter.AddAction(Constants.ActionStop);
-        filter.AddAction(Constants.ActionStart);
+        filter.AddAction(AndroidConstants.ActionStop);
+        filter.AddAction(AndroidConstants.ActionStart);
 
         RegisterReceiver(_actionReceiver, filter, ReceiverFlags.NotExported);
     }
@@ -73,20 +73,20 @@ public class BackgroundService : Service
     public override StartCommandResult OnStartCommand(Intent? intent, StartCommandFlags flags, int startId)
     {
         var initialNotification = BuildNotification("Инициализация сервиса...");
-        StartForeground(Constants.NotificationId, initialNotification, ForegroundService.TypeDataSync);
+        StartForeground(AndroidConstants.NotificationId, initialNotification, ForegroundService.TypeDataSync);
 
         var notification = BuildNotification(GetStatusText());
-        _notificationManager.Notify(Constants.NotificationId, notification);
+        _notificationManager.Notify(AndroidConstants.NotificationId, notification);
         
         if (string.IsNullOrEmpty(_deviceService.AccessToken)) return StartCommandResult.Sticky;
 
-        if (intent?.Action == Constants.ActionStop)
+        if (intent?.Action == AndroidConstants.ActionStop)
         {
             _ = StopBackgroundProcess();
             return StartCommandResult.Sticky;
         }
         
-        if (!_backgroundServiceManager.IsRunning || intent?.Action == Constants.ActionStart)
+        if (!_backgroundServiceManager.IsRunning || intent?.Action == AndroidConstants.ActionStart)
         {
             _ = StartBackgroundProcess();
         }
@@ -105,13 +105,13 @@ public class BackgroundService : Service
             await _deviceService.InitializeAsync();
             
             var notification = BuildNotification(GetStatusText());
-            _notificationManager.Notify(Constants.NotificationId, notification);
+            _notificationManager.Notify(AndroidConstants.NotificationId, notification);
         }
         catch (Exception e)
         {
             _logger.LogError(e, "Ошибка подключения к сервису");
             var notification = BuildNotification(GetStatusText());
-            _notificationManager.Notify(Constants.NotificationId, notification);
+            _notificationManager.Notify(AndroidConstants.NotificationId, notification);
         }
     }
 
@@ -123,13 +123,13 @@ public class BackgroundService : Service
         ReleaseWakeLock();
 
         var notification = BuildNotification(GetStatusText());
-        _notificationManager.Notify(Constants.NotificationId, notification);
+        _notificationManager.Notify(AndroidConstants.NotificationId, notification);
     }
 
     private void UpdateNotification()
     {
         var notification = BuildNotification(GetStatusText());
-        _notificationManager.Notify(Constants.NotificationId, notification);
+        _notificationManager.Notify(AndroidConstants.NotificationId, notification);
     }
 
     private string GetStatusText()
@@ -168,8 +168,8 @@ public class BackgroundService : Service
     private void CreateNotificationChannel()
     {
         var channel = new NotificationChannel(
-            Constants.ChannelId,
-            Constants.ChannelName,
+            AndroidConstants.ChannelId,
+            AndroidConstants.ChannelName,
             NotificationImportance.High)
         {
             LockscreenVisibility = NotificationVisibility.Public,
@@ -193,13 +193,13 @@ public class BackgroundService : Service
             this, 0, contentIntent,
             PendingIntentFlags.Immutable | PendingIntentFlags.UpdateCurrent);
 
-        var stopIntent = new Intent(Constants.ActionStop);
+        var stopIntent = new Intent(AndroidConstants.ActionStop);
         stopIntent.SetPackage(PackageName);
         var stopPendingIntent = PendingIntent.GetBroadcast(
             this, 1, stopIntent,
             PendingIntentFlags.Immutable | PendingIntentFlags.UpdateCurrent);
 
-        var startIntent = new Intent(Constants.ActionStart);
+        var startIntent = new Intent(AndroidConstants.ActionStart);
         startIntent.SetPackage(PackageName);
         var startPendingIntent = PendingIntent.GetBroadcast(
             this, 2, startIntent,
@@ -211,7 +211,7 @@ public class BackgroundService : Service
             this, 3, authIntent,
             PendingIntentFlags.Immutable | PendingIntentFlags.UpdateCurrent);
 
-        var compatBuilder = new NotificationCompat.Builder(this, Constants.ChannelId)
+        var compatBuilder = new NotificationCompat.Builder(this, AndroidConstants.ChannelId)
             .SetContentText(statusText)
             .SetSmallIcon(ResourceConstant.Mipmap.appicon)
             .SetOngoing(true)

@@ -9,11 +9,11 @@ using PaymentGateway.Shared.Services;
 
 namespace PaymentGateway.PhoneApp;
 
-[Service(Name = Constants.NotificationListenerServiceName,
-    Permission = Constants.NotificationListenerServicePermission,
-    Label = Constants.NotificationListenerServiceLabel,
+[Service(Name = AndroidConstants.NotificationListenerServiceName,
+    Permission = AndroidConstants.NotificationListenerServicePermission,
+    Label = AndroidConstants.NotificationListenerServiceLabel,
     Exported = false)]
-[IntentFilter([Constants.NotificationListenerServiceIntentFilter])]
+[IntentFilter([AndroidConstants.NotificationListenerServiceIntentFilter])]
 public class NotificationListenerService : Android.Service.Notification.NotificationListenerService
 {
     private readonly ILogger<NotificationListenerService> _logger = null!;

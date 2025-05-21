@@ -8,8 +8,8 @@ using PaymentGateway.Shared.Services;
 
 namespace PaymentGateway.PhoneApp;
 
-[BroadcastReceiver(Enabled = true, Exported = true, Name = Constants.SmsReceiverServiceName)]
-[IntentFilter([Constants.SmsReceiverServiceIntentFilter])]
+[BroadcastReceiver(Enabled = true, Exported = true, Name = AndroidConstants.SmsReceiverServiceName)]
+[IntentFilter([AndroidConstants.SmsReceiverServiceIntentFilter])]
 public class SmsReceiver : BroadcastReceiver
 {
     private readonly ILogger<SmsReceiver> _logger = null!;
@@ -30,7 +30,7 @@ public class SmsReceiver : BroadcastReceiver
 
     public override void OnReceive(Context? context, Intent? intent)
     {
-        if (context == null || intent is not { Action: Constants.SmsReceiverServiceIntentFilter }) return;
+        if (context == null || intent is not { Action: AndroidConstants.SmsReceiverServiceIntentFilter }) return;
 
         try
         {

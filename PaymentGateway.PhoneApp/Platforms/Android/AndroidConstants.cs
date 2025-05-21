@@ -1,6 +1,6 @@
-﻿namespace PaymentGateway.PhoneApp;
+namespace PaymentGateway.PhoneApp;
 
-public static class Constants
+public static class AndroidConstants
 {
     public const string ActionStop = "com.eridani8.paymentgateway.STOP_SERVICE";
     public const string ActionStart = "com.eridani8.paymentgateway.START_SERVICE";
@@ -21,4 +21,4 @@ public static class Constants
     
     public const string SmsReceiverServiceName = "com.eridani8.paymentgateway.SmsReceiver";
     public const string SmsReceiverServiceIntentFilter = "android.provider.Telephony.SMS_RECEIVED";
-}
+} 

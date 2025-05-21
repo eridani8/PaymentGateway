@@ -50,7 +50,7 @@ public class MainActivity : MauiAppCompatActivity
             ActivityCompat.RequestPermissions(
                 this,
                 [Android.Manifest.Permission.PostNotifications],
-                Constants.NotificationPermissionCode);
+                AndroidConstants.NotificationPermissionCode);
         }
     }
 
@@ -66,7 +66,7 @@ public class MainActivity : MauiAppCompatActivity
 
         if (!allSmsPermissionsGranted)
         {
-            ActivityCompat.RequestPermissions(this, smsPermissions, Constants.SmsPermissionCode);
+            ActivityCompat.RequestPermissions(this, smsPermissions, AndroidConstants.SmsPermissionCode);
         }
     }
 
@@ -74,7 +74,7 @@ public class MainActivity : MauiAppCompatActivity
     {
         switch (requestCode)
         {
-            case Constants.NotificationPermissionCode:
+            case AndroidConstants.NotificationPermissionCode:
             {
                 if (grantResults.Length > 0 && grantResults[0] == Permission.Granted)
                 {
@@ -83,7 +83,7 @@ public class MainActivity : MauiAppCompatActivity
 
                 break;
             }
-            case Constants.SmsPermissionCode:
+            case AndroidConstants.SmsPermissionCode:
             {
                 var allGranted = grantResults.All(t => t == Permission.Granted);
 
@@ -117,7 +117,7 @@ public class MainActivity : MauiAppCompatActivity
     private void StartBackgroundService()
     {
         var intent = new Intent(this, typeof(BackgroundService));
-        intent.SetAction(Constants.ActionStart);
+        intent.SetAction(AndroidConstants.ActionStart);
 
         if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
         {
@@ -166,9 +166,9 @@ public class MainActivity : MauiAppCompatActivity
         
         try
         {
-            var intent = new Intent(Constants.NotificationListenerSettingsAction);
+            var intent = new Intent(AndroidConstants.NotificationListenerSettingsAction);
             _isFromNotificationSettings = true;
-            StartActivityForResult(intent, Constants.NotificationListenerSettingsCode);
+            StartActivityForResult(intent, AndroidConstants.NotificationListenerSettingsCode);
         }
         catch
         {
@@ -178,7 +178,7 @@ public class MainActivity : MauiAppCompatActivity
 
     protected override void OnActivityResult(int requestCode, Result resultCode, Intent? data)
     {
-        if (requestCode == Constants.NotificationListenerSettingsCode)
+        if (requestCode == AndroidConstants.NotificationListenerSettingsCode)
         {
             if (IsNotificationListenerEnabled())
             {
