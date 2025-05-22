@@ -5,17 +5,39 @@ namespace PaymentGateway.PhoneApp.Pages;
 public partial class QrScannerPage : ContentPage
 {
     public event EventHandler<string>? OnQrCodeScanned;
+    private bool _isProcessing;
 
     public QrScannerPage()
     {
         InitializeComponent();
     }
 
-    private void OnBarcodesDetected(object? sender, BarcodeDetectionEventArgs e)
+    private async void OnBarcodesDetected(object? sender, BarcodeDetectionEventArgs e)
     {
-        if (e.Results.Length <= 0) return;
-        var result = e.Results[0];
-        OnQrCodeScanned?.Invoke(this, result.Value);
-        Navigation.PopAsync();
+        try
+        {
+            if (_isProcessing) return;
+            _isProcessing = true;
+
+            if (e?.Results == null || e.Results.Length <= 0) return;
+            
+            var result = e.Results[0];
+            if (string.IsNullOrEmpty(result?.Value)) return;
+
+            OnQrCodeScanned?.Invoke(this, result.Value);
+            
+            if (Navigation.NavigationStack.Count > 0)
+            {
+                await Navigation.PopAsync();
+            }
+        }
+        catch
+        {
+            await DisplayAlert("Ошибка", "Произошла ошибка при сканировании QR-кода", "OK");
+        }
+        finally
+        {
+            _isProcessing = false;
+        }
     }
 } 
