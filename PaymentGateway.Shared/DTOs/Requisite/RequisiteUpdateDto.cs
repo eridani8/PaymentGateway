@@ -15,4 +15,5 @@ public class RequisiteUpdateDto // TODO CanActivate
     public int Priority { get; set; }
     public TimeOnly WorkFrom { get; set; }
     public TimeOnly WorkTo { get; set; }
+    // TODO device
 }

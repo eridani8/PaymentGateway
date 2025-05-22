@@ -150,8 +150,8 @@
         {
             _isLoading = true;
             _devices = _isShowAll
-                ? await DeviceService.GetDevices()
-                : await DeviceService.GetUserDevices();
+                ? await DeviceService.GetOnlineDevices()
+                : await DeviceService.GetUserOnlineDevices();
         }
         catch (Exception e)
         {

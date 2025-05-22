@@ -134,6 +134,13 @@ public class RequisiteEntity : BaseEntity
     /// </summary>
     public TimeOnly WorkTo { get; set; }
 
+    /// <summary>
+    /// ИД привязанного устройства
+    /// </summary>
+    public Guid? DeviceId { get; set; }
+
+    public DeviceEntity? Device { get; set; }
+    
     public void AssignToPayment(PaymentEntity payment)
     {
         PaymentId = payment.Id;

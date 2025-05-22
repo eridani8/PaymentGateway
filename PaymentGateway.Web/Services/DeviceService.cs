@@ -17,20 +17,20 @@ public class DeviceService(
     private const string apiEndpoint = "api/device";
     public async Task<DeviceTokenDto?> GenerateDeviceToken()
     {
-        return await PostRequest<DeviceTokenDto>($"{apiEndpoint}/token");
+        return await PostRequest<DeviceTokenDto>($"{apiEndpoint}/user/token");
     }
 
-    public async Task<List<DeviceDto>> GetDevices()
+    public async Task<List<DeviceDto>> GetOnlineDevices()
     {
         var authState = await authStateProvider.GetAuthenticationStateAsync();
         var isAdmin = authState.User.IsInRole("Admin");
         
         if (!isAdmin)
         {
-            return await GetUserDevices();
+            return await GetUserOnlineDevices();
         }
         
-        var response = await GetRequest($"{apiEndpoint}");
+        var response = await GetRequest($"{apiEndpoint}/online");
         if (response.Code == HttpStatusCode.OK && !string.IsNullOrEmpty(response.Content))
         {
             return JsonSerializer.Deserialize<List<DeviceDto>>(response.Content, JsonOptions) ?? [];
@@ -38,9 +38,9 @@ public class DeviceService(
         return [];
     }
 
-    public async Task<List<DeviceDto>> GetUserDevices()
+    public async Task<List<DeviceDto>> GetUserOnlineDevices()
     {
-        var response = await GetRequest($"{apiEndpoint}/user");
+        var response = await GetRequest($"{apiEndpoint}/user/online");
         if (response.Code == HttpStatusCode.OK && !string.IsNullOrEmpty(response.Content))
         {
             return JsonSerializer.Deserialize<List<DeviceDto>>(response.Content, JsonOptions) ?? [];
@@ -50,9 +50,11 @@ public class DeviceService(
 
     public async Task<List<DeviceDto>> GetDevicesByUserId(Guid userId)
     {
-        var devices = await GetDevices();
-        return devices
-            .Where(d => d.UserId == userId)
-            .ToList(); // TODO
+        var response = await GetRequest($"{apiEndpoint}/user/{userId}/online");
+        if (response.Code == HttpStatusCode.OK && !string.IsNullOrEmpty(response.Content))
+        {
+            return JsonSerializer.Deserialize<List<DeviceDto>>(response.Content, JsonOptions) ?? [];
+        }
+        return [];
     }
 }

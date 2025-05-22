@@ -1,4 +1,5 @@
-﻿using PaymentGateway.Shared.DTOs.Payment;
+﻿using PaymentGateway.Shared.DTOs.Device;
+using PaymentGateway.Shared.DTOs.Payment;
 using PaymentGateway.Shared.DTOs.User;
 using PaymentGateway.Shared.Enums;
 
@@ -7,7 +8,6 @@ namespace PaymentGateway.Shared.DTOs.Requisite;
 public class RequisiteDto // TODO CanActivate
 {
     public Guid Id { get; set; }
-    public Guid UserId { get; set; }
     public UserDto? User { get; set; }
     public string FullName { get; set; } = string.Empty;
     public PaymentType PaymentType { get; set; }
@@ -15,7 +15,6 @@ public class RequisiteDto // TODO CanActivate
     public string BankNumber { get; set; } = string.Empty;
     public bool IsActive { get; set; }
     public DateTime CreatedAt { get; set; }
-    public Guid? PaymentId { get; set; }
     public PaymentDto? Payment { get; set; }
     public RequisiteStatus Status { get; set; }
     public DateTime? LastOperationTime { get; set; }
@@ -30,4 +29,5 @@ public class RequisiteDto // TODO CanActivate
     public DateTime? LastFundsResetAt { get; set; }
     public DateTime? LastMonthlyFundsResetAt { get; set; }
     public int DayOperationsCount { get; set; }
+    public DeviceDto? Device { get; set; }
 }

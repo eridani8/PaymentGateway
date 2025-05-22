@@ -21,5 +21,6 @@ public class RequisiteUpdateDtoValidator : BaseValidator<RequisiteUpdateDto>
         RuleFor(x => x.MaxAmount).ValidMoneyAmount();
         RuleFor(x => x.Cooldown).ValidCooldown();
         RuleFor(x => x.Priority).ValidPriority();
+        // TODO device
     }
 }

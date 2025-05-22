@@ -15,4 +15,5 @@ public class RequisiteCreateDto
     public int Priority { get; set; }
     public TimeOnly WorkFrom { get; set; }
     public TimeOnly WorkTo { get; set; }
+    public Guid DeviceId { get; set; }
 }

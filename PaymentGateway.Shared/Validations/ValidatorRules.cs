@@ -7,14 +7,14 @@ public static class ValidatorRules
     public static IRuleBuilderOptions<T, Guid> ValidGuid<T>(this IRuleBuilder<T, Guid> rule)
     {
         return rule.Must(x => x != Guid.Empty)
-            .WithMessage("Значение должно быть Guid");
+            .WithMessage("Нужно задать значение");
     }
 
     public static IRuleBuilderOptions<T, Guid?> ValidGuid<T>(this IRuleBuilder<T, Guid?> rule)
     {
         return rule
             .Must(x => !x.HasValue || x.Value != Guid.Empty)
-            .WithMessage("Значение должно быть Guid, если указано");
+            .WithMessage("Значение должно быть Guid");
     }
 
     public static IRuleBuilderOptions<T, string> ValidFullName<T>(this IRuleBuilder<T, string> rule)

@@ -12,13 +12,11 @@ public class RequisiteProfile : Profile
     {
         CreateMap<RequisiteEntity, RequisiteDto>()
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
-            .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId))
             .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.FullName))
             .ForMember(dest => dest.PaymentType, opt => opt.MapFrom(src => src.PaymentType))
             .ForMember(dest => dest.PaymentData, opt => opt.MapFrom(src => src.PaymentData))
             .ForMember(dest => dest.BankNumber, opt => opt.MapFrom(src => src.BankNumber))
             .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt))
-            .ForMember(dest => dest.PaymentId, opt => opt.MapFrom(src => src.PaymentId))
             .ForMember(dest => dest.Payment, opt => opt.MapFrom(src => src.Payment))
             .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status))
             .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive))
@@ -62,6 +60,7 @@ public class RequisiteProfile : Profile
             .ForMember(dest => dest.MonthLimit, opt => opt.MapFrom(src => src.MonthLimit))
             .ForMember(dest => dest.LastMonthlyFundsResetAt, opt => opt.MapFrom(src => DateTime.UtcNow.Date))
             .ForMember(dest => dest.MonthReceivedFunds, opt => opt.MapFrom(src => 0m))
+            .ForMember(dest => dest.DeviceId, opt => opt.MapFrom(src => src.DeviceId))
             
             .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
             .ForMember(dest => dest.WorkFrom, opt => opt.ConvertUsing(new LocalToUtcTimeOnlyConverter(), src => src.WorkFrom))
@@ -84,6 +83,7 @@ public class RequisiteProfile : Profile
             .ForMember(dest => dest.Priority, opt => opt.MapFrom(src => src.Priority))
             .ForMember(dest => dest.WorkFrom, opt => opt.ConvertUsing(new LocalToUtcTimeOnlyConverter(), src => src.WorkFrom))
             .ForMember(dest => dest.WorkTo, opt => opt.ConvertUsing(new LocalToUtcTimeOnlyConverter(), src => src.WorkTo))
+            // TODO device
             
             .ForMember(dest => dest.Id, opt => opt.Ignore())
             .ForMember(dest => dest.Status, opt => opt.Ignore())

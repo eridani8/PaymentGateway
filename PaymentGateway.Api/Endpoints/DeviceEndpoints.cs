@@ -27,21 +27,28 @@ public class DeviceEndpoints : ICarterModule
             .WithTags("Взаимодействие с устройствами")
             .AddEndpointFilter<UserStatusFilter>();
         
-        group.MapGet("/", GetDevices)
+        group.MapGet("/online", GetOnlineDevices)
             .Produces<List<DeviceDto>>()
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status401Unauthorized)
             .AddEndpointFilter<UserStatusFilter>()
             .RequireAuthorization(new AuthorizeAttribute { Roles = "Admin" });
         
-        group.MapGet("/user", GetUserDevices)
+        group.MapGet("/user/{userId:guid}/online", GetOnlineDevicesByUserId)
+            .Produces<List<DeviceDto>>()
+            .Produces(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .AddEndpointFilter<UserStatusFilter>()
+            .RequireAuthorization(new AuthorizeAttribute { Roles = "Admin" });
+        
+        group.MapGet("/user/online", GetUserOnlineDevices)
             .Produces<List<DeviceDto>>()
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status401Unauthorized)
             .AddEndpointFilter<UserStatusFilter>()
             .RequireAuthorization(new AuthorizeAttribute { Roles = "User,Admin,Support" });
 
-        group.MapPost("/token", GenerateDeviceToken)
+        group.MapPost("/user/token", GenerateDeviceToken)
             .Produces<DeviceTokenDto>()
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status401Unauthorized)
@@ -49,7 +56,19 @@ public class DeviceEndpoints : ICarterModule
             .RequireAuthorization(new AuthorizeAttribute { Roles = "User,Admin,Support" });
     }
 
-    private static IResult GetUserDevices(ClaimsPrincipal user)
+    private static IResult GetOnlineDevices()
+    {
+        var devices = DeviceHub.ConnectedDevices.Values.ToList();
+        
+        return Results.Json(devices);
+    }
+
+    private static IResult GetOnlineDevicesByUserId(Guid userId)
+    {
+        return Results.Ok();
+    }
+    
+    private static IResult GetUserOnlineDevices(ClaimsPrincipal user)
     {
         var currentUserId = user.GetCurrentUserId();
         if (currentUserId == Guid.Empty) return Results.Unauthorized();
@@ -58,13 +77,6 @@ public class DeviceEndpoints : ICarterModule
             .Where(d => d.UserId == currentUserId)
             .ToList();
 
-        return Results.Json(devices);
-    }
-
-    private static IResult GetDevices()
-    {
-        var devices = DeviceHub.ConnectedDevices.Values.ToList();
-        
         return Results.Json(devices);
     }
 
