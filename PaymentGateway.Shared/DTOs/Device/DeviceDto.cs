@@ -8,5 +8,4 @@ public class DeviceDto
     public Guid UserId { get; set; }
     public UserDto? User { get; set; }
     public required string DeviceName { get; init; }
-    public required string Hw { get; set; }
 }

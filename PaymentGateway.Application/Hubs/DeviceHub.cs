@@ -24,31 +24,15 @@ public class DeviceHub(
             var context = Context;
             var connectionId = Context.ConnectionId;
             
-            var userId = context.User?.FindFirst("i")?.Value;
-
-            if (string.IsNullOrEmpty(userId))
-            {
-                context.Abort();
-                return;
-            }
-            
-            var userGuid = Guid.Parse(userId);
-            
             await Clients.Caller.RequestDeviceRegistration();
             
             _ = Task.Delay(RegistrationTimeout).ContinueWith(_ =>
             {
-                if (!ConnectedDevices.TryGetValue(connectionId, out var device))
-                {
-                    logger.LogWarning(
-                        "Устройство не зарегистрировалось в течение {Timeout} секунд. Отключение клиента: {ConnectionId}",
-                        RegistrationTimeout.TotalSeconds, connectionId);
-                    context.Abort();
-                    return;
-                }
-                
-                device.UserId = userGuid;
-                notificationService.DeviceConnected(device);
+                if (ConnectedDevices.ContainsKey(connectionId)) return;
+                logger.LogWarning(
+                    "Устройство не зарегистрировалось в течение {Timeout} секунд. Отключение клиента: {ConnectionId}",
+                    RegistrationTimeout.TotalSeconds, connectionId);
+                context.Abort();
             });
         }
         catch (Exception e)
@@ -65,9 +49,22 @@ public class DeviceHub(
             Context.Abort();
             return Task.CompletedTask;
         }
-
+        
+        var userId = Context.User?.FindFirst("i")?.Value;
+        if (string.IsNullOrEmpty(userId))
+        {
+            Context.Abort();
+            return Task.CompletedTask;
+        }
+        
+        var userGuid = Guid.Parse(userId);
+        device.UserId = userGuid;
+        
         logger.LogInformation("Устройство онлайн: {Device}", device.DeviceName);
+        
         ConnectedDevices[Context.ConnectionId] = device;
+        notificationService.DeviceConnected(device);
+        
         return Task.CompletedTask;
     }
 

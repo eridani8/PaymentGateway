@@ -52,25 +52,7 @@ public class DeviceService : BaseSignalRService
 
     private static string GetDeviceName()
     {
-        return $"{Build.Manufacturer ?? Build.Unknown} {Build.Model ?? Build.Unknown} {Build.Device ?? Build.Unknown}";
-    }
-    
-    private static string GetHw()
-    {
-        var rawData = new List<string>
-        {
-            Build.Manufacturer ?? Build.Unknown,
-            Build.Device ?? Build.Unknown,
-            Build.Model ?? Build.Unknown,
-            Build.Hardware ?? Build.Unknown,
-            Build.Id ?? Build.Unknown,
-            Build.Fingerprint ?? Build.Unknown,
-            Build.Time.ToString()
-        };
-
-        var combined = string.Join("|", rawData);
-        var hash = SHA256.HashData(Encoding.UTF8.GetBytes(combined));
-        return Convert.ToHexString(hash).ToUpperInvariant();
+        return $"{Build.Manufacturer ?? Build.Unknown} {Build.Model ?? Build.Unknown} ({Build.Device ?? Build.Unknown})";
     }
 
     public async Task Stop()
@@ -96,8 +78,7 @@ public class DeviceService : BaseSignalRService
             var deviceInfo = new DeviceDto()
             {
                 Id = DeviceId,
-                DeviceName = GetDeviceName(),
-                Hw = GetHw()
+                DeviceName = GetDeviceName()
             };
             await HubConnection.InvokeAsync(SignalREvents.DeviceApp.RegisterDevice, deviceInfo);
         });
