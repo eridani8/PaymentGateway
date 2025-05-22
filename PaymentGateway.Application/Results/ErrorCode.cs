@@ -37,5 +37,5 @@ public enum ErrorCode
     TransactionError,
     WrongPaymentAmount,
     
-    DeviceModelIsEmpty,
+    DeviceBindingError,
 } 

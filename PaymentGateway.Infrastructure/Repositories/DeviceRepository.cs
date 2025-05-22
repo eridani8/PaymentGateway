@@ -13,7 +13,7 @@ public class DeviceRepository(
     {
         return await GetSet()
             .AsNoTracking()
-            .OrderByDescending(d => d.BindingAt)
+            .OrderByDescending(d => d.Id)
             .ToListAsync();
     }
 
@@ -22,7 +22,7 @@ public class DeviceRepository(
         return await GetSet()
             .AsNoTracking()
             .Where(d => d.UserId == userId)
-            .OrderByDescending(d => d.BindingAt)
+            .OrderByDescending(d => d.Id)
             .ToListAsync();
     }
 }

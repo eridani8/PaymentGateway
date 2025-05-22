@@ -2,6 +2,6 @@
 
 public static class DeviceErrors
 {
-    public static Error ModelIsEmpty => 
-        new(ErrorCode.DeviceModelIsEmpty, "Модель устройства не может быть пустой");
+    public static Error BindingError => 
+        new(ErrorCode.DeviceBindingError, "Ошибка привязки устройства");
 }

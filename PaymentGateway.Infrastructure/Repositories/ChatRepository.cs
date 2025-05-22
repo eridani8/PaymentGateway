@@ -14,7 +14,7 @@ public class ChatRepository(AppDbContext context)
     {
         return await _context.ChatMessages
             .Include(m => m.User)
-            .OrderBy(m => m.Timestamp)
+            .OrderBy(m => m.Id)
             .ToListAsync();
     }
 

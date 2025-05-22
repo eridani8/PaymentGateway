@@ -138,6 +138,11 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICryptographyS
                 .WithMany()
                 .HasForeignKey(e => e.UserId)
                 .OnDelete(DeleteBehavior.SetNull);
+            
+            entity.HasOne(e => e.Requisite)
+                .WithMany()
+                .HasForeignKey(e => e.RequisiteId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
     }
 }

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Npgsql;
+using PaymentGateway.Application.Hubs;
 using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Application.Results;
 using PaymentGateway.Core.Entities;
@@ -29,7 +30,7 @@ public class RequisiteService(
         {
             return Result.Failure<RequisiteDto>(new ValidationError(validation.Errors.Select(e => e.ErrorMessage)));
         }
-        
+
         var user = await userManager.FindByIdAsync(userId.ToString());
         if (user is null)
         {
@@ -41,20 +42,30 @@ public class RequisiteService(
         {
             return Result.Failure<RequisiteDto>(RequisiteErrors.RequisiteLimitExceeded(user.MaxRequisitesCount));
         }
-        
+
         var containsRequisite = await unit.RequisiteRepository.HasSimilarRequisite(dto.PaymentData);
         if (containsRequisite is not null)
         {
             return Result.Failure<RequisiteDto>(RequisiteErrors.DuplicateRequisite);
         }
 
-        var requisite = mapper.Map<RequisiteEntity>(dto, opts => 
+        var deviceDto = DeviceHub.ConnectedDevices.Values
+            .FirstOrDefault(d =>
+                d.UserId == userId &&
+                d.BindingAt == DateTime.MinValue &&
+                d.Requisite is null);
+
+        if (deviceDto is null)
         {
-            opts.Items["UserId"] = userId;
-        });
+            return Result.Failure<RequisiteDto>(DeviceErrors.BindingError);
+        }
         
+        // TODO device
+
+        var requisite = mapper.Map<RequisiteEntity>(dto, opts => { opts.Items["UserId"] = userId; });
+
         requisite.User = user;
-        
+
         await unit.RequisiteRepository.Add(requisite);
         await unit.Commit();
 
@@ -62,9 +73,10 @@ public class RequisiteService(
         await userManager.UpdateAsync(user);
 
         var requisiteDto = mapper.Map<RequisiteDto>(requisite);
-        
+        var userDto = mapper.Map<UserDto>(user);
+
         await notificationService.NotifyRequisiteUpdated(requisiteDto);
-        await notificationService.NotifyUserUpdated(mapper.Map<UserDto>(user));
+        await notificationService.NotifyUserUpdated(userDto);
 
         return Result.Success(requisiteDto);
     }
@@ -86,9 +98,9 @@ public class RequisiteService(
     public async Task<Result<RequisiteDto>> GetRequisiteById(Guid id)
     {
         var requisite = await unit.RequisiteRepository.GetRequisiteById(id);
-        if (requisite is null) 
+        if (requisite is null)
             return Result.Failure<RequisiteDto>(RequisiteErrors.RequisiteNotFound);
-            
+
         var dto = mapper.Map<RequisiteDto>(requisite);
         return Result.Success(dto);
     }
@@ -103,22 +115,23 @@ public class RequisiteService(
 
         var requisite = await unit.RequisiteRepository.GetRequisiteById(id);
         if (requisite is null) return Result.Failure<RequisiteDto>(RequisiteErrors.RequisiteNotFound);
-        
+
         var now = DateTime.UtcNow;
         var nowTimeOnly = TimeOnly.FromDateTime(now);
         if (requisite.ProcessStatus(now, nowTimeOnly, out var status))
         {
-            logger.LogInformation("Статус реквизита {RequisiteId} изменен с {OldStatus} на {NewStatus}", requisite.Id, requisite.Status.ToString(), status.ToString());
+            logger.LogInformation("Статус реквизита {RequisiteId} изменен с {OldStatus} на {NewStatus}", requisite.Id,
+                requisite.Status.ToString(), status.ToString());
             requisite.Status = status;
         }
 
         requisite = mapper.Map(dto, requisite);
-        
+
         unit.RequisiteRepository.Update(requisite);
         await unit.Commit();
-        
+
         var requisiteDto = mapper.Map<RequisiteDto>(requisite);
-        
+
         await notificationService.NotifyRequisiteUpdated(requisiteDto);
 
         return Result.Success(requisiteDto);
@@ -145,9 +158,10 @@ public class RequisiteService(
 
             return Result.Success(requisiteDto);
         }
-        catch (DbUpdateException e) when(e.InnerException is PostgresException { SqlState: "23503" })
+        catch (DbUpdateException e) when (e.InnerException is PostgresException { SqlState: "23503" })
         {
-            return Result.Failure<RequisiteDto>(Error.OperationFailed("Невозможно удалить реквизит, так как он используется в платежах"));
+            return Result.Failure<RequisiteDto>(
+                Error.OperationFailed("Невозможно удалить реквизит, так как он используется в платежах"));
         }
         catch (Exception ex)
         {

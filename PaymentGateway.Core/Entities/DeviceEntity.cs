@@ -6,7 +6,8 @@ public class DeviceEntity : BaseEntity
 {
     public Guid UserId { get; set; }
     public UserEntity? User { get; set; }
-    [MaxLength(100)] public required string DeviceData { get; set; }
-    [MaxLength(100)] public required string DeviceName { get; set; }
-    public DateTime BindingAt { get; set; } // TODO device
+    [MaxLength(255)] public required string DeviceName { get; set; }
+    public DateTime BindingAt { get; set; }
+    public Guid? RequisiteId { get; set; }
+    public RequisiteEntity? Requisite { get; set; }
 }

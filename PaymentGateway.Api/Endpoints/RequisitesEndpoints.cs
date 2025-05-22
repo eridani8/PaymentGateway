@@ -104,7 +104,6 @@ public class RequisitesEndpoints : ICarterModule
                 ErrorCode.RequisiteLimitExceeded => Results.BadRequest(result.Error.Message),
                 ErrorCode.Validation => Results.BadRequest(result.Error.Message),
                 ErrorCode.UserNotFound => Results.NotFound(result.Error.Message),
-                // TODO device
                 _ => Results.BadRequest(result.Error.Message)
             };
         }
