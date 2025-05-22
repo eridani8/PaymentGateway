@@ -43,6 +43,11 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICryptographyS
                 .WithOne()
                 .HasForeignKey<RequisiteEntity>(e => e.PaymentId)
                 .OnDelete(DeleteBehavior.SetNull);
+            
+            entity.HasOne(e => e.Device)
+                .WithOne()
+                .HasForeignKey<RequisiteEntity>(e => e.DeviceId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
         modelBuilder.Entity<PaymentEntity>(entity =>

@@ -19,6 +19,7 @@ public class RequisiteRepository(
         return await GetSet()
             .Include(r => r.Payment)
             .Include(r => r.User)
+            .Include(r => r.Device)
             .ToListAsync();
     }
 
@@ -30,6 +31,7 @@ public class RequisiteRepository(
         var query = GetSet()
             .Include(r => r.Payment)
             .Include(r => r.User)
+            .Include(r => r.Device)
             .Where(r => r.IsActive && r.Status == RequisiteStatus.Active && r.PaymentId == null &&
                         (
                             (r.WorkFrom == TimeOnly.MinValue && r.WorkTo == TimeOnly.MinValue) ||
@@ -60,6 +62,7 @@ public class RequisiteRepository(
         return await GetSet()
             .Include(r => r.Payment)
             .Include(r => r.User)
+            .Include(r => r.Device)
             .AsNoTracking()
             .OrderByDescending(r => r.CreatedAt)
             .ToListAsync();
@@ -70,6 +73,7 @@ public class RequisiteRepository(
         return await GetSet()
             .Include(r => r.Payment)
             .Include(r => r.User)
+            .Include(r => r.Device)
             .AsNoTracking()
             .Where(r => r.UserId == userId)
             .OrderByDescending(r => r.CreatedAt)
@@ -81,6 +85,7 @@ public class RequisiteRepository(
         return await GetSet()
             .Include(r => r.Payment)
             .Include(r => r.User)
+            .Include(r => r.Device)
             .FirstOrDefaultAsync(r => r.Id == id);
     }
 
@@ -96,6 +101,7 @@ public class RequisiteRepository(
         return await GetSet()
             .Include(r => r.Payment)
             .Include(r => r.User)
+            .Include(r => r.Device)
             .FirstOrDefaultAsync(r =>
                 r.PaymentData == paymentData &&
                 r.Payment != null &&
