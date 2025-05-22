@@ -109,47 +109,72 @@
                 </AuthorizeView>
 
                 <MudItem xs="12" sm="2">
-                    <MudSelect T="string" Modal="true"
-                               Clearable="true"
-                               Placeholder="Устройство"
-                               Margin="Margin.Normal"/>
-                </MudItem>
-
-                <MudItem xs="12">
                     <MudSwitch T="bool"
                                @bind-Value="_createRequisiteDto.IsActive"
                                Color="Color.Primary"
                                Label="Активный"
                                Class="mt-2"/>
                 </MudItem>
+
+                <MudItem xs="12" sm="2">
+                    <MudSwitch T="bool"
+                               @bind-Value="_useWorkingHours"
+                               Color="Color.Primary"
+                               Label="Рабочее время"
+                               Class="mt-2"/>
+                </MudItem>
+
+                <MudItem xs="12" sm="2">
+                    <MudTimePicker Label="С"
+                                   @bind-Time="_workFromTime"
+                                   TimeEditMode="TimeEditMode.Normal"
+                                   Margin="Margin.Normal"
+                                   Disabled="@(!_useWorkingHours)"/>
+                </MudItem>
+                <MudItem xs="12" sm="2">
+                    <MudTimePicker Label="До"
+                                   @bind-Time="_workToTime"
+                                   TimeEditMode="TimeEditMode.Normal"
+                                   Margin="Margin.Normal"
+                                   Disabled="@(!_useWorkingHours)"/>
+                </MudItem>
+
+                <MudItem xs="12" sm="4">
+                    <MudSelect T="string" Modal="true"
+                               Clearable="true"
+                               Placeholder="Устройство"
+                               Margin="Margin.Normal"
+                               Class="mt-2"/>
+                </MudItem>
+
             </MudGrid>
 
-            <MudStack Row="true" Class="mt-2 mb-2">
-                <MudSwitch T="bool"
-                           @bind-Value="_useWorkingHours"
-                           Color="Color.Primary"
-                           Label="Использовать рабочее время"
-                           Class="mr-4"/>
-
-                @if (_useWorkingHours)
-                {
-                    <MudText Typo="Typo.subtitle1">Часы работы</MudText>
-                    <MudGrid>
-                        <MudItem xs="6">
-                            <MudTimePicker Label="С"
-                                           @bind-Time="_workFromTime"
-                                           TimeEditMode="TimeEditMode.Normal"
-                                           Margin="Margin.Normal"/>
-                        </MudItem>
-                        <MudItem xs="6">
-                            <MudTimePicker Label="До"
-                                           @bind-Time="_workToTime"
-                                           TimeEditMode="TimeEditMode.Normal"
-                                           Margin="Margin.Normal"/>
-                        </MudItem>
-                    </MudGrid>
-                }
-            </MudStack>
+            @* <MudStack Row="true" Class="mt-2 mb-2"> *@
+            @*     <MudSwitch T="bool" *@
+            @*                @bind-Value="_useWorkingHours" *@
+            @*                Color="Color.Primary" *@
+            @*                Label="Использовать рабочее время" *@
+            @*                Class="mr-4"/> *@
+            @* *@
+            @*     @if (_useWorkingHours) *@
+            @*     { *@
+            @*         <MudText Typo="Typo.subtitle1">Часы работы</MudText> *@
+            @*         <MudGrid> *@
+            @*             <MudItem xs="6"> *@
+            @*                 <MudTimePicker Label="С" *@
+            @*                                @bind-Time="_workFromTime" *@
+            @*                                TimeEditMode="TimeEditMode.Normal" *@
+            @*                                Margin="Margin.Normal"/> *@
+            @*             </MudItem> *@
+            @*             <MudItem xs="6"> *@
+            @*                 <MudTimePicker Label="До" *@
+            @*                                @bind-Time="_workToTime" *@
+            @*                                TimeEditMode="TimeEditMode.Normal" *@
+            @*                                Margin="Margin.Normal"/> *@
+            @*             </MudItem> *@
+            @*         </MudGrid> *@
+            @*     } *@
+            @* </MudStack> *@
 
             @if (!string.IsNullOrEmpty(_errorMessage))
             {
