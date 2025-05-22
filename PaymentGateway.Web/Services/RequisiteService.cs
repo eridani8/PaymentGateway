@@ -51,9 +51,11 @@ public class RequisiteService(
 
     public async Task<List<RequisiteDto>> GetRequisitesByUserId(Guid userId)
     {
-        var requisites = await GetRequisites();
-        return requisites
-            .Where(r => r.UserId == userId)
-            .ToList(); // TODO
+        var response = await GetRequest($"{apiEndpoint}/user/{userId}");
+        if (response.Code == HttpStatusCode.OK && !string.IsNullOrEmpty(response.Content))
+        {
+            return JsonSerializer.Deserialize<List<RequisiteDto>>(response.Content, JsonOptions) ?? [];
+        }
+        return [];
     }
 } 

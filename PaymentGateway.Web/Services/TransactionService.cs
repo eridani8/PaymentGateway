@@ -68,4 +68,14 @@ public class TransactionService(
             throw;
         }
     }
+
+    public async Task<List<TransactionDto>> GetTransactionsByUserId(Guid userId)
+    {
+        var response = await GetRequest($"{apiEndpoint}/user/{userId}");
+        if (response.Code == HttpStatusCode.OK && !string.IsNullOrEmpty(response.Content))
+        {
+            return JsonSerializer.Deserialize<List<TransactionDto>>(response.Content, JsonOptions) ?? [];
+        }
+        return [];
+    }
 } 

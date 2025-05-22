@@ -64,10 +64,12 @@ public class PaymentService(
     
     public async Task<List<PaymentDto>> GetPaymentsByUserId(Guid userId)
     {
-        var payments = await GetPayments();
-        return payments
-            .Where(p => p.Requisite is not null && p.Requisite.UserId == userId)
-            .ToList(); // TODO
+        var response = await GetRequest($"{apiEndpoint}/user/{userId}");
+        if (response.Code == HttpStatusCode.OK && !string.IsNullOrEmpty(response.Content))
+        {
+            return JsonSerializer.Deserialize<List<PaymentDto>>(response.Content, JsonOptions) ?? [];
+        }
+        return [];
     }
     
     public async Task<PaymentDto?> GetPaymentById(Guid id)

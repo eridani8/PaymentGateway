@@ -61,6 +61,15 @@ public class PaymentsEndpoints : ICarterModule
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status403Forbidden)
             .RequireAuthorization(new AuthorizeAttribute { Roles = "Admin,Support" });
+        
+        group.MapGet("/user/{userId:guid}", GetPaymentsByUserId)
+            .WithName("GetPaymentsByUserId")
+            .WithSummary("Получение платежей пользователя")
+            .WithDescription("Возвращает список платежей пользователя")
+            .Produces<IEnumerable<PaymentDto>>()
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
+            .RequireAuthorization(new AuthorizeAttribute { Roles = "Admin,Support" });
 
         group.MapGet("user", GetUserPayments)
             .WithName("GetUserPayments")
@@ -165,6 +174,15 @@ public class PaymentsEndpoints : ICarterModule
         
         if (result.IsFailure) return Results.BadRequest(result.Error.Message);
             
+        return Results.Json(result.Value);
+    }
+
+    private static async Task<IResult> GetPaymentsByUserId(Guid userId, IPaymentService service)
+    {
+        var result = await service.GetUserPayments(userId);
+        
+        if (result.IsFailure) return Results.BadRequest(result.Error.Message);
+        
         return Results.Json(result.Value);
     }
 

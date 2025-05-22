@@ -17,7 +17,7 @@ public class TransactionsEndpoints : ICarterModule
             .HasApiVersion(new ApiVersion(1))
             .ReportApiVersions()
             .Build();
-        
+
         var group = app.MapGroup("api/transactions")
             .WithApiVersionSet(versionSet)
             .WithTags("Управление транзакциями")
@@ -28,8 +28,7 @@ public class TransactionsEndpoints : ICarterModule
             .WithSummary("Создание транзакции")
             .WithDescription("Создает новую транзакцию в системе")
             .Produces<TransactionDto>(StatusCodes.Status201Created)
-            .Produces(StatusCodes.Status400BadRequest)
-            .Produces(StatusCodes.Status404NotFound);
+            .Produces(StatusCodes.Status400BadRequest);
 
         group.MapGet("/", GetAllTransactions)
             .WithName("GetAllTransactions")
@@ -38,7 +37,16 @@ public class TransactionsEndpoints : ICarterModule
             .Produces<List<TransactionDto>>()
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status403Forbidden)
-            .Produces(StatusCodes.Status500InternalServerError)
+            .Produces(StatusCodes.Status400BadRequest)
+            .RequireAuthorization(new AuthorizeAttribute { Roles = "Admin,Support" });
+
+        group.MapGet("/user/{userId:guid}", GetTransactionsByUserId)
+            .WithName("GetTransactionsByUserId")
+            .WithSummary("Получение транзакций пользователя")
+            .WithDescription("Возвращает список транзакций пользователя")
+            .Produces<List<TransactionDto>>()
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status400BadRequest)
             .RequireAuthorization(new AuthorizeAttribute { Roles = "Admin,Support" });
 
         group.MapGet("user", GetUserTransactions)
@@ -47,7 +55,7 @@ public class TransactionsEndpoints : ICarterModule
             .WithDescription("Возвращает список транзакций текущего пользователя")
             .Produces<List<TransactionDto>>()
             .Produces(StatusCodes.Status401Unauthorized)
-            .Produces(StatusCodes.Status500InternalServerError)
+            .Produces(StatusCodes.Status400BadRequest)
             .RequireAuthorization();
     }
 
@@ -59,7 +67,7 @@ public class TransactionsEndpoints : ICarterModule
         if (dto is null) return Results.BadRequest();
 
         var result = await service.CreateTransaction(dto);
-        
+
         if (result.IsFailure)
         {
             return result.Error.Code switch
@@ -68,38 +76,48 @@ public class TransactionsEndpoints : ICarterModule
                 _ => Results.BadRequest(result.Error.Message)
             };
         }
-        
-        logger.LogInformation("Создание транзакции {transactionId} на сумму {amount}", result.Value.Id, result.Value.ExtractedAmount);
+
+        logger.LogInformation("Создание транзакции {transactionId} на сумму {amount}", result.Value.Id,
+            result.Value.ExtractedAmount);
         return Results.Created($"/api/transactions/{result.Value.Id}", result.Value);
     }
-    
+
     private static async Task<IResult> GetAllTransactions(
         ITransactionService service)
     {
         var result = await service.GetAllTransactions();
-        
+
         if (result.IsFailure)
         {
-            return Results.Problem(result.Error.Message, statusCode: StatusCodes.Status500InternalServerError);
+            return Results.BadRequest(result.Error.Message);
         }
+
+        return Results.Json(result.Value);
+    }
+
+    private static async Task<IResult> GetTransactionsByUserId(Guid userId, ITransactionService service)
+    {
+        var result = await service.GetUserTransactions(userId);
+
+        if (result.IsFailure) return Results.BadRequest(result.Error.Message);
         
         return Results.Json(result.Value);
     }
-    
+
     private static async Task<IResult> GetUserTransactions(
         ITransactionService service,
         ClaimsPrincipal user)
     {
         var userId = user.GetCurrentUserId();
         if (userId == Guid.Empty) return Results.Unauthorized();
-        
+
         var result = await service.GetUserTransactions(userId);
-        
+
         if (result.IsFailure)
         {
-            return Results.Problem(result.Error.Message, statusCode: StatusCodes.Status500InternalServerError);
+            return Results.BadRequest(result.Error.Message);
         }
-        
+
         return Results.Json(result.Value);
     }
-} 
+}

@@ -42,6 +42,14 @@ public class RequisitesEndpoints : ICarterModule
             .Produces(StatusCodes.Status403Forbidden)
             .RequireAuthorization(new AuthorizeAttribute { Roles = "Admin,Support" });
 
+        group.MapGet("/user/{userId:guid}", GetRequisitesByUserId)
+            .WithName("GetRequisitesByUserId")
+            .WithSummary("Получение реквизитов пользователя")
+            .WithDescription("Возвращает список реквизитов пользователя")
+            .Produces<IEnumerable<RequisiteDto>>()
+            .Produces(StatusCodes.Status401Unauthorized)
+            .RequireAuthorization(new AuthorizeAttribute { Roles = "Admin,Support" });
+
         group.MapGet("/user", GetUserRequisites)
             .WithName("GetUserRequisites")
             .WithSummary("Получение реквизитов пользователя")
@@ -108,6 +116,15 @@ public class RequisitesEndpoints : ICarterModule
         IRequisiteService service)
     {
         var result = await service.GetAllRequisites();
+        
+        if (result.IsFailure) return Results.BadRequest(result.Error.Message);
+        
+        return Results.Json(result.Value);
+    }
+
+    private static async Task<IResult> GetRequisitesByUserId(Guid userId, IPaymentService service)
+    {
+        var result = await service.GetUserPayments(userId);
         
         if (result.IsFailure) return Results.BadRequest(result.Error.Message);
         
