@@ -30,7 +30,7 @@ public class DeviceService(
             return await GetUserOnlineDevices();
         }
         
-        var response = await GetRequest($"{apiEndpoint}/online");
+        var response = await GetRequest($"{apiEndpoint}");
         if (response.Code == HttpStatusCode.OK && !string.IsNullOrEmpty(response.Content))
         {
             return JsonSerializer.Deserialize<List<DeviceDto>>(response.Content, JsonOptions) ?? [];
@@ -40,7 +40,7 @@ public class DeviceService(
 
     public async Task<List<DeviceDto>> GetUserOnlineDevices()
     {
-        var response = await GetRequest($"{apiEndpoint}/user/online");
+        var response = await GetRequest($"{apiEndpoint}/user");
         if (response.Code == HttpStatusCode.OK && !string.IsNullOrEmpty(response.Content))
         {
             return JsonSerializer.Deserialize<List<DeviceDto>>(response.Content, JsonOptions) ?? [];
@@ -50,7 +50,7 @@ public class DeviceService(
 
     public async Task<List<DeviceDto>> GetDevicesByUserId(Guid userId)
     {
-        var response = await GetRequest($"{apiEndpoint}/user/{userId}/online");
+        var response = await GetRequest($"{apiEndpoint}/user/{userId}");
         if (response.Code == HttpStatusCode.OK && !string.IsNullOrEmpty(response.Content))
         {
             return JsonSerializer.Deserialize<List<DeviceDto>>(response.Content, JsonOptions) ?? [];

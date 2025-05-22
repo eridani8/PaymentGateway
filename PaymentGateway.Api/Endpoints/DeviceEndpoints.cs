@@ -27,21 +27,21 @@ public class DeviceEndpoints : ICarterModule
             .WithTags("Взаимодействие с устройствами")
             .AddEndpointFilter<UserStatusFilter>();
         
-        group.MapGet("/online", GetOnlineDevices)
+        group.MapGet("/", GetDevices)
             .Produces<List<DeviceDto>>()
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status401Unauthorized)
             .AddEndpointFilter<UserStatusFilter>()
             .RequireAuthorization(new AuthorizeAttribute { Roles = "Admin" });
         
-        group.MapGet("/user/{userId:guid}/online", GetOnlineDevicesByUserId)
+        group.MapGet("/user/{userId:guid}", GetDevicesByUserId)
             .Produces<List<DeviceDto>>()
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status401Unauthorized)
             .AddEndpointFilter<UserStatusFilter>()
             .RequireAuthorization(new AuthorizeAttribute { Roles = "Admin" });
         
-        group.MapGet("/user/online", GetUserOnlineDevices)
+        group.MapGet("/user", GetUserDevices)
             .Produces<List<DeviceDto>>()
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status401Unauthorized)
@@ -56,14 +56,14 @@ public class DeviceEndpoints : ICarterModule
             .RequireAuthorization(new AuthorizeAttribute { Roles = "User,Admin,Support" });
     }
 
-    private static IResult GetOnlineDevices()
+    private static IResult GetDevices()
     {
         var devices = DeviceHub.Devices.Values.ToList();
         
         return Results.Json(devices);
     }
 
-    private static IResult GetOnlineDevicesByUserId(Guid userId)
+    private static IResult GetDevicesByUserId(Guid userId)
     {
         var devices = DeviceHub.Devices.Values
             .Where(d => d.UserId == userId && d.Requisite is null)
@@ -72,7 +72,7 @@ public class DeviceEndpoints : ICarterModule
         return Results.Json(devices);
     }
     
-    private static IResult GetUserOnlineDevices(ClaimsPrincipal user)
+    private static IResult GetUserDevices(ClaimsPrincipal user)
     {
         var currentUserId = user.GetCurrentUserId();
         if (currentUserId == Guid.Empty) return Results.Unauthorized();
