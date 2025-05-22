@@ -32,6 +32,7 @@ public static class AppConfiguration
         var deviceRepository = scope.ServiceProvider.GetRequiredService<IDeviceRepository>();
         var mapper = scope.ServiceProvider.GetRequiredService<IMapper>();
         var devices = await deviceRepository.GetAllDevices();
+        
         foreach (var device in devices)
         {
             DeviceHub.Devices.TryAdd(device.Id, mapper.Map<DeviceDto>(device));

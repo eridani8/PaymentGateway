@@ -12,6 +12,7 @@ public class DeviceRepository(
     public async Task<List<DeviceEntity>> GetAllDevices()
     {
         return await GetSet()
+            .Include(d => d.User)
             .AsNoTracking()
             .OrderByDescending(d => d.Id)
             .ToListAsync();
@@ -20,6 +21,7 @@ public class DeviceRepository(
     public async Task<List<DeviceEntity>> GetUserDevices(Guid userId)
     {
         return await GetSet()
+            .Include(d => d.User)
             .AsNoTracking()
             .Where(d => d.UserId == userId)
             .OrderByDescending(d => d.Id)
