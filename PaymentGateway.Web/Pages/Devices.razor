@@ -17,12 +17,41 @@
                 <MudToolBar>
                     <MudText Typo="Typo.h6">Список устройств</MudText>
                     <MudSpacer/>
-                    <MudButton Variant="Variant.Outlined" 
-                               Color="Color.Primary" 
+                    <MudButton Variant="Variant.Outlined"
+                               Color="Color.Primary"
                                StartIcon="@Icons.Material.Filled.QrCode"
                                OnClick="@OpenDeviceQrDialog">
                         Авторизация устройства
                     </MudButton>
+                    <MudSpacer/>
+                    <AuthorizeView Roles="Admin, Support">
+                        <Authorized Context="adminContext">
+                            <MudStack Row="true" Spacing="1">
+                                <MudTextField @bind-Value="_searchUserId" Label="ID пользователя"
+                                              Adornment="Adornment.End"
+                                              AdornmentIcon="@Icons.Material.Filled.Search"
+                                              Variant="Variant.Outlined"
+                                              Margin="Margin.Normal"
+                                              Placeholder="Фильтр по пользователю"
+                                              Error="@(!string.IsNullOrEmpty(_searchError))"
+                                              ErrorText="@_searchError"
+                                              Style="width: 600px"/>
+                                <MudButton Color="Color.Primary"
+                                           Variant="Variant.Outlined"
+                                           OnClick="@(SearchDevicesByUserId)"
+                                           Style="height: 56px; align-self: flex-start; margin-top: 16px;">Найти
+                                </MudButton>
+                                @if (_isFiltered)
+                                {
+                                    <MudButton Color="Color.Secondary"
+                                               Variant="Variant.Outlined"
+                                               OnClick="@(ClearSearch)"
+                                               Style="height: 56px; align-self: flex-start; margin-top: 16px;">Сбросить
+                                    </MudButton>
+                                }
+                            </MudStack>
+                        </Authorized>
+                    </AuthorizeView>
                 </MudToolBar>
                 <MudDataGrid T="DeviceDto"
                              Items="_devices"
@@ -35,9 +64,9 @@
                              Hover="true"
                              Dense="true">
                     <Columns>
-                        <PropertyColumn Property="x => x.Id" />
-                        <PropertyColumn Property="x => x.UserId" />
-                        <PropertyColumn Property="x => x.DeviceName" />
+                        <PropertyColumn Property="x => x.Id"/>
+                        <PropertyColumn Property="x => x.UserId"/>
+                        <PropertyColumn Property="x => x.DeviceName"/>
                     </Columns>
                 </MudDataGrid>
             </MudPaper>
@@ -54,14 +83,17 @@
     private bool _isLoading = true;
     private List<DeviceDto> _devices = [];
     private bool _isShowAll;
-    
+    private string _searchUserId = string.Empty;
+    private string _searchError = string.Empty;
+    private bool _isFiltered;
+
     protected override async Task OnInitializedAsync()
     {
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
         _isShowAll = authState.User.IsInRole("Admin") || authState.User.IsInRole("Support");
-        
+
         await LoadDevices();
-        
+
         NotificationService.SubscribeToDeviceConnected(HandleDeviceConnected);
         NotificationService.SubscribeToDeviceDisconnected(HandleDeviceDisconnected);
     }
@@ -80,7 +112,7 @@
             {
                 _devices.Insert(0, deviceDto);
             }
-            
+
             await InvokeAsync(StateHasChanged);
         }
         catch (Exception e)
@@ -88,7 +120,7 @@
             Logger.LogError(e, "Ошибка при добавлении устройства");
         }
     }
-    
+
     private async void HandleDeviceDisconnected(DeviceDto deviceDto)
     {
         try
@@ -105,21 +137,21 @@
             Logger.LogError(e, "Ошибка при удалении устройства");
         }
     }
-    
+
     public void Dispose()
     {
         NotificationService.UnsubscribeFromDeviceConnected();
         NotificationService.UnsubscribeFromDeviceDisconnected();
     }
-    
+
     private async Task LoadDevices()
     {
         try
         {
             _isLoading = true;
             _devices = _isShowAll
-                ? await DeviceService.GetAllOnlineDevices()
-                : await DeviceService.GetUserOnlineDevices();
+                ? await DeviceService.GetDevices()
+                : await DeviceService.GetUserDevices();
         }
         catch (Exception e)
         {
@@ -131,12 +163,12 @@
             _isLoading = false;
         }
     }
-    
+
     private async Task OpenDeviceQrDialog()
     {
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
-        
+
         if (user.Identity?.IsAuthenticated != true)
         {
             Snackbar.Add("Необходима авторизация", Severity.Error);
@@ -166,5 +198,52 @@
             Logger.LogError(ex, "Ошибка при генерации токена устройства");
             Snackbar.Add("Произошла ошибка при генерации токена устройства", Severity.Error);
         }
+    }
+
+    private async Task SearchDevicesByUserId()
+    {
+        _searchError = string.Empty;
+
+        if (string.IsNullOrWhiteSpace(_searchUserId))
+        {
+            await LoadDevices();
+            _isFiltered = false;
+            return;
+        }
+
+        if (!Guid.TryParse(_searchUserId, out var userId))
+        {
+            _searchError = "Некорректный формат ID пользователя";
+            return;
+        }
+
+        try
+        {
+            _isLoading = true;
+            _devices = await DeviceService.GetDevicesByUserId(userId);
+            _isFiltered = true;
+
+            if (_devices.Count == 0)
+            {
+                Snackbar.Add("Реквизиты по указанному ID пользователя не найдены", Severity.Info);
+            }
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e, "Ошибка при поиске реквизитов по ID пользователя {UserId}", userId);
+            Snackbar.Add("Ошибка при поиске реквизитов", Severity.Error);
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+    
+    private async Task ClearSearch()
+    {
+        _searchUserId = string.Empty;
+        _searchError = string.Empty;
+        _isFiltered = false;
+        await LoadDevices();
     }
 }

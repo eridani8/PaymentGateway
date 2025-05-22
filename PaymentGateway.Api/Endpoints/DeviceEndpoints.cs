@@ -27,14 +27,14 @@ public class DeviceEndpoints : ICarterModule
             .WithTags("Взаимодействие с устройствами")
             .AddEndpointFilter<UserStatusFilter>();
         
-        group.MapGet("/", GetAllOnlineDevices)
+        group.MapGet("/", GetDevices)
             .Produces<List<DeviceDto>>()
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status401Unauthorized)
             .AddEndpointFilter<UserStatusFilter>()
             .RequireAuthorization(new AuthorizeAttribute { Roles = "Admin" });
         
-        group.MapGet("/user", GetUserOnlineDevices)
+        group.MapGet("/user", GetUserDevices)
             .Produces<List<DeviceDto>>()
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status401Unauthorized)
@@ -49,7 +49,7 @@ public class DeviceEndpoints : ICarterModule
             .RequireAuthorization(new AuthorizeAttribute { Roles = "User,Admin,Support" });
     }
 
-    private static IResult GetUserOnlineDevices(ClaimsPrincipal user)
+    private static IResult GetUserDevices(ClaimsPrincipal user)
     {
         var currentUserId = user.GetCurrentUserId();
         if (currentUserId == Guid.Empty) return Results.Unauthorized();
@@ -61,7 +61,7 @@ public class DeviceEndpoints : ICarterModule
         return Results.Json(devices);
     }
 
-    private static IResult GetAllOnlineDevices()
+    private static IResult GetDevices()
     {
         var devices = DeviceHub.ConnectedDevices.Values.ToList();
         

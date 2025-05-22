@@ -10,7 +10,6 @@ namespace PaymentGateway.Web.Services;
 public class PaymentService(
     IHttpClientFactory factory,
     ILogger<RequisiteService> logger,
-    AuthenticationStateProvider authStateProvider,
     JsonSerializerOptions jsonOptions) : ServiceBase(factory, logger, jsonOptions), IPaymentService
 {
     private const string apiEndpoint = "api/payments";
@@ -45,20 +44,11 @@ public class PaymentService(
 
     public async Task<List<PaymentDto>> GetPayments()
     {
-        var authState = await authStateProvider.GetAuthenticationStateAsync();
-        var isAdmin = authState.User.IsInRole("Admin");
-        
-        if (!isAdmin)
-        {
-            return await GetUserPayments();
-        }
-        
         var response = await GetRequest(apiEndpoint);
         if (response.Code == HttpStatusCode.OK && !string.IsNullOrEmpty(response.Content))
         {
             return JsonSerializer.Deserialize<List<PaymentDto>>(response.Content, JsonOptions) ?? [];
         }
-        logger.LogWarning("Failed to get payments. Status code: {StatusCode}", response.Code);
         return [];
     }
 
@@ -69,57 +59,37 @@ public class PaymentService(
         {
             return JsonSerializer.Deserialize<List<PaymentDto>>(response.Content, JsonOptions) ?? [];
         }
-        logger.LogWarning("Failed to get user payments. Status code: {StatusCode}", response.Code);
         return [];
     }
     
     public async Task<List<PaymentDto>> GetPaymentsByUserId(Guid userId)
     {
-        var authState = await authStateProvider.GetAuthenticationStateAsync();
-        var isAdmin = authState.User.IsInRole("Admin") || authState.User.IsInRole("Support");
-        
-        if (!isAdmin)
-        {
-            logger.LogWarning("Non-admin user attempted to access payment data for user ID: {UserId}", userId);
-            return [];
-        }
-        
-        var allPayments = await GetPayments();
-        return allPayments
+        var payments = await GetPayments();
+        return payments
             .Where(p => p.Requisite is not null && p.Requisite.UserId == userId)
-            .ToList();
+            .ToList(); // TODO
     }
     
     public async Task<PaymentDto?> GetPaymentById(Guid id)
     {
         var response = await GetRequest($"{apiEndpoint}/{id}");
         
-        if (response.Code == HttpStatusCode.OK && !string.IsNullOrEmpty(response.Content))
+        switch (response.Code)
         {
-            try
-            {
-                return JsonSerializer.Deserialize<PaymentDto>(response.Content, JsonOptions);
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Ошибка при десериализации платежа с ID {Id}: {Message}", id, ex.Message);
+            case HttpStatusCode.OK when !string.IsNullOrEmpty(response.Content):
+                try
+                {
+                    return JsonSerializer.Deserialize<PaymentDto>(response.Content, JsonOptions);
+                }
+                catch
+                {
+                    return null;
+                }
+
+            case HttpStatusCode.NotFound:
+            case HttpStatusCode.Forbidden:
+            default:
                 return null;
-            }
         }
-        
-        if (response.Code == HttpStatusCode.NotFound)
-        {
-            logger.LogInformation("Payment with ID {Id} not found", id);
-            return null;
-        }
-        
-        if (response.Code == HttpStatusCode.Forbidden)
-        {
-            logger.LogInformation("Access denied to payment with ID {Id}", id);
-            return null;
-        }
-        
-        logger.LogWarning("Failed to get payment by ID {Id}. Status code: {StatusCode}", id, response.Code);
-        return null;
     }
 }

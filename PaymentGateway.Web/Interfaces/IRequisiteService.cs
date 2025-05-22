@@ -1,6 +1,5 @@
 using PaymentGateway.Shared.DTOs.Requisite;
 using PaymentGateway.Shared.Types;
-using PaymentGateway.Web.Services;
 
 namespace PaymentGateway.Web.Interfaces;
 

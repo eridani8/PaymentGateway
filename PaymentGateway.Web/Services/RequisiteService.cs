@@ -10,27 +10,17 @@ namespace PaymentGateway.Web.Services;
 public class RequisiteService(
     IHttpClientFactory factory,
     ILogger<RequisiteService> logger,
-    AuthenticationStateProvider authStateProvider,
     JsonSerializerOptions jsonOptions) : ServiceBase(factory, logger, jsonOptions), IRequisiteService
 {
     private const string apiEndpoint = "api/requisites";
     
     public async Task<List<RequisiteDto>> GetRequisites()
     {
-        var authState = await authStateProvider.GetAuthenticationStateAsync();
-        var isAdmin = authState.User.IsInRole("Admin");
-        
-        if (!isAdmin)
-        {
-            return await GetUserRequisites();
-        }
-
         var response = await GetRequest(apiEndpoint);
         if (response.Code == HttpStatusCode.OK && !string.IsNullOrEmpty(response.Content))
         {
             return JsonSerializer.Deserialize<List<RequisiteDto>>(response.Content, JsonOptions) ?? [];
         }
-        logger.LogWarning("Failed to get requisites. Status code: {StatusCode}", response.Code);
         return [];
     }
     
@@ -41,31 +31,17 @@ public class RequisiteService(
         {
             return JsonSerializer.Deserialize<List<RequisiteDto>>(response.Content, JsonOptions) ?? [];
         }
-        logger.LogWarning("Failed to get user requisites. Status code: {StatusCode}", response.Code);
         return [];
     }
     
     public async Task<Response> CreateRequisite(RequisiteCreateDto dto)
     {
-        try
-        {
-            return await PostRequest(apiEndpoint, dto);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error creating requisite");
-            throw;
-        }
+        return await PostRequest(apiEndpoint, dto);
     }
     
     public async Task<Response> UpdateRequisite(Guid id, RequisiteUpdateDto dto)
     {
-        var response = await PutRequest($"{apiEndpoint}/{id}", dto);
-        if (response.Code != HttpStatusCode.OK)
-        {
-            logger.LogWarning("Failed to update requisite {Id}. Status code: {StatusCode}", id, response.Code);
-        }
-        return response;
+        return await PutRequest($"{apiEndpoint}/{id}", dto);
     }
     
     public async Task<Response> DeleteRequisite(Guid id)
@@ -75,18 +51,9 @@ public class RequisiteService(
 
     public async Task<List<RequisiteDto>> GetRequisitesByUserId(Guid userId)
     {
-        var authState = await authStateProvider.GetAuthenticationStateAsync();
-        var isAdmin = authState.User.IsInRole("Admin") || authState.User.IsInRole("Support");
-        
-        if (!isAdmin)
-        {
-            logger.LogWarning("Non-admin user attempted to access requisite data for user ID: {UserId}", userId);
-            return [];
-        }
-        
-        var allPayments = await GetRequisites();
-        return allPayments
+        var requisites = await GetRequisites();
+        return requisites
             .Where(r => r.UserId == userId)
-            .ToList();
+            .ToList(); // TODO
     }
 } 

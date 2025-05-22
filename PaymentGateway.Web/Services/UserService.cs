@@ -36,10 +36,6 @@ public class UserService(
         {
             result.Data = JsonSerializer.Deserialize<TwoFactorStatusDto>(response.Content, JsonOptions);
         }
-        else
-        {
-            logger.LogWarning("Failed to get two-factor status. Status code: {StatusCode}", response.Code);
-        }
 
         return result;
     }
@@ -56,10 +52,6 @@ public class UserService(
         if (response.Code == HttpStatusCode.OK && !string.IsNullOrEmpty(response.Content))
         {
             result.Data = JsonSerializer.Deserialize<TwoFactorDto>(response.Content, JsonOptions);
-        }
-        else
-        {
-            logger.LogWarning("Failed to enable two-factor authentication. Status code: {StatusCode}", response.Code);
         }
 
         return result;
