@@ -218,7 +218,7 @@
         _processing = true;
         try
         {
-            _devices = await DeviceService.GetUserOnlineDevices();
+            _devices = await DeviceService.GetUserDevices(true);
         }
         catch (Exception e)
         {

@@ -20,14 +20,14 @@ public class DeviceService(
         return await PostRequest<DeviceTokenDto>($"{apiEndpoint}/user/token");
     }
 
-    public async Task<List<DeviceDto>> GetOnlineDevices()
+    public async Task<List<DeviceDto>> GetDevices()
     {
         var authState = await authStateProvider.GetAuthenticationStateAsync();
         var isAdmin = authState.User.IsInRole("Admin");
         
         if (!isAdmin)
         {
-            return await GetUserOnlineDevices();
+            return await GetUserDevices();
         }
         
         var response = await GetRequest($"{apiEndpoint}");
@@ -38,9 +38,9 @@ public class DeviceService(
         return [];
     }
 
-    public async Task<List<DeviceDto>> GetUserOnlineDevices()
+    public async Task<List<DeviceDto>> GetUserDevices(bool onlyAvailable = false)
     {
-        var response = await GetRequest($"{apiEndpoint}/user");
+        var response = await GetRequest($"{apiEndpoint}/user?onlyAvailable={onlyAvailable}");
         if (response.Code == HttpStatusCode.OK && !string.IsNullOrEmpty(response.Content))
         {
             return JsonSerializer.Deserialize<List<DeviceDto>>(response.Content, JsonOptions) ?? [];

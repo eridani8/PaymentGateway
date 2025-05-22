@@ -72,16 +72,20 @@ public class DeviceEndpoints : ICarterModule
         return Results.Json(devices);
     }
     
-    private static IResult GetUserDevices(ClaimsPrincipal user)
+    private static IResult GetUserDevices(ClaimsPrincipal user, bool onlyAvailable)
     {
         var currentUserId = user.GetCurrentUserId();
         if (currentUserId == Guid.Empty) return Results.Unauthorized();
-        
-        var devices = DeviceHub.Devices.Values
-            .Where(d => d.UserId == currentUserId)
-            .ToList();
 
-        return Results.Json(devices);
+        var devices = DeviceHub.Devices.Values
+            .Where(d => d.UserId == currentUserId);
+
+        if (onlyAvailable)
+        {
+            devices = devices.Where(d => d.BindingAt == DateTime.MinValue);
+        }
+
+        return Results.Json(devices.ToList());
     }
 
     private static async Task<IResult> GenerateDeviceToken(
