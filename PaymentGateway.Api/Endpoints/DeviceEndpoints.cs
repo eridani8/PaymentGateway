@@ -58,14 +58,14 @@ public class DeviceEndpoints : ICarterModule
 
     private static IResult GetOnlineDevices()
     {
-        var devices = DeviceHub.ConnectedDevices.Values.ToList();
+        var devices = DeviceHub.Devices.Values.ToList();
         
         return Results.Json(devices);
     }
 
     private static IResult GetOnlineDevicesByUserId(Guid userId)
     {
-        var devices = DeviceHub.ConnectedDevices.Values
+        var devices = DeviceHub.Devices.Values
             .Where(d => d.UserId == userId && d.Requisite is null)
             .ToList();
 
@@ -77,7 +77,7 @@ public class DeviceEndpoints : ICarterModule
         var currentUserId = user.GetCurrentUserId();
         if (currentUserId == Guid.Empty) return Results.Unauthorized();
         
-        var devices = DeviceHub.ConnectedDevices.Values
+        var devices = DeviceHub.Devices.Values
             .Where(d => d.UserId == currentUserId)
             .ToList();
 

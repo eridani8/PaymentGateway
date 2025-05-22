@@ -49,7 +49,7 @@ public class RequisiteService(
             return Result.Failure<RequisiteDto>(RequisiteErrors.DuplicateRequisite);
         }
 
-        var deviceDto = DeviceHub.ConnectedDevices.Values
+        var deviceDto = DeviceHub.Devices.Values
             .FirstOrDefault(d =>
                 d.UserId == userId &&
                 d.BindingAt == DateTime.MinValue &&

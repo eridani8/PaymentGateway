@@ -12,7 +12,7 @@ public class DeviceHub(
     ILogger<DeviceHub> logger,
     INotificationService notificationService) : Hub<IDeviceClientHub>
 {
-    public static ConcurrentDictionary<string, DeviceDto> ConnectedDevices { get; } = new();
+    public static ConcurrentDictionary<Guid, DeviceDto> Devices { get; } = new();
     private static readonly TimeSpan RegistrationTimeout = TimeSpan.FromSeconds(7);
 
     public override async Task OnConnectedAsync()
@@ -28,7 +28,7 @@ public class DeviceHub(
             
             _ = Task.Delay(RegistrationTimeout).ContinueWith(_ =>
             {
-                if (ConnectedDevices.ContainsKey(connectionId)) return;
+                if (Devices.Values.Any(d => d.ConnectionId == connectionId)) return;
                 logger.LogWarning(
                     "Устройство не зарегистрировалось в течение {Timeout} секунд. Отключение клиента: {ConnectionId}",
                     RegistrationTimeout.TotalSeconds, connectionId);
@@ -41,48 +41,72 @@ public class DeviceHub(
         }
     }
 
-    public Task RegisterDevice(DeviceDto? device)
+    public Task RegisterDevice(DeviceDto? deviceDto)
     {
-        if (device is null || string.IsNullOrEmpty(device.DeviceName) || device.Id == Guid.Empty)
+        if (deviceDto is null || string.IsNullOrWhiteSpace(deviceDto.DeviceName) || deviceDto.Id == Guid.Empty)
         {
-            logger.LogWarning("Устройство не предоставило информацию о себе. Отключение клиента: {ConnectionId}", Context.ConnectionId);
+            logger.LogWarning("Получены невалидные данные устройства: {@DeviceDto}", deviceDto);
             Context.Abort();
             return Task.CompletedTask;
         }
         
-        var userId = Context.User?.FindFirst("i")?.Value;
-        if (string.IsNullOrEmpty(userId))
+        if (Devices.TryGetValue(deviceDto.Id, out var existingDevice))
         {
-            Context.Abort();
-            return Task.CompletedTask;
+            existingDevice.State = true;
+            existingDevice.ConnectionId = Context.ConnectionId;
+            
+            notificationService.DeviceConnected(existingDevice);
+            logger.LogInformation("Устройство переподключено: {DeviceName} (ID: {DeviceId})", existingDevice.DeviceName, existingDevice.Id);
         }
-        
-        var userGuid = Guid.Parse(userId);
-        device.UserId = userGuid;
-        
-        logger.LogInformation("Устройство онлайн: {Device}", device.DeviceName);
-        
-        ConnectedDevices[Context.ConnectionId] = device;
-        notificationService.DeviceConnected(device);
+        else
+        {
+            var userIdClaim = Context.User?.FindFirst("i")?.Value;
+            if (string.IsNullOrEmpty(userIdClaim))
+            {
+                logger.LogWarning("Не удалось получить ID пользователя из контекста для устройства {DeviceId}", deviceDto.Id);
+                Context.Abort();
+                return Task.CompletedTask;
+            }
+            
+            if (!Guid.TryParse(userIdClaim, out var userId))
+            {
+                logger.LogError("Невалидный формат ID пользователя: {UserId}", userIdClaim);
+                Context.Abort();
+                return Task.CompletedTask;
+            }
+            
+            deviceDto.UserId = userId;
+            deviceDto.ConnectionId = Context.ConnectionId;
+            deviceDto.State = true;
+            
+            if (!Devices.TryAdd(deviceDto.Id, deviceDto))
+            {
+                logger.LogError("Не удалось добавить устройство: {@Device}", deviceDto);
+                Context.Abort();
+                return Task.CompletedTask;
+            }
+            
+            notificationService.DeviceConnected(deviceDto);
+            logger.LogInformation("Новое устройство зарегистрировано: {DeviceName} (ID: {DeviceId})", deviceDto.DeviceName, deviceDto.Id);
+        }
         
         return Task.CompletedTask;
     }
 
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
-        try
+        var device = Devices.Values.FirstOrDefault(d => d.ConnectionId == Context.ConnectionId);
+        if (device is not null)
         {
-            if (ConnectedDevices.TryRemove(Context.ConnectionId, out var device))
-            {
-                logger.LogInformation("Устройство оффлайн: {Device}", device.DeviceName);
-                await notificationService.DeviceDisconnected(device);
-            }
+            device.State = false;
+            device.ConnectionId = null;
+            logger.LogInformation("Устройство отключено: {DeviceName} (ID: {DeviceId})", device.DeviceName, device.Id);
+        }
+        else
+        {
+            logger.LogWarning("Соединение не найдено");
+        }
             
-            await base.OnDisconnectedAsync(exception);
-        }
-        catch (Exception e)
-        {
-            logger.LogError(e, "Ошибка при отключении устройства: {ConnectionId}", Context.ConnectionId);
-        }
+        await base.OnDisconnectedAsync(exception);
     }
 }

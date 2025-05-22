@@ -12,4 +12,5 @@ public class DeviceDto
     public required string DeviceName { get; set; }
     public DateTime BindingAt { get; set; }
     public RequisiteDto? Requisite { get; set; }
+    public string? ConnectionId { get; set; }
 }
