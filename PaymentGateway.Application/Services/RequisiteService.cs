@@ -68,8 +68,6 @@ public class RequisiteService(
         requisite.User = user;
         requisite.DeviceId = device.Id;
 
-        device.RequisiteId = requisite.Id;
-
         await unit.DeviceRepository.Add(device);
         await unit.RequisiteRepository.Add(requisite);
         await unit.Commit();
