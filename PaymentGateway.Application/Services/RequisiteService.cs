@@ -73,11 +73,14 @@ public class RequisiteService(
         await unit.DeviceRepository.Add(device);
         await unit.RequisiteRepository.Add(requisite);
         await unit.Commit();
+        
+        var requisiteDto = mapper.Map<RequisiteDto>(requisite);
+
+        deviceDto.Requisite = requisiteDto;
 
         user.RequisitesCount++;
         await userManager.UpdateAsync(user);
-
-        var requisiteDto = mapper.Map<RequisiteDto>(requisite);
+        
         var userDto = mapper.Map<UserDto>(user);
 
         await notificationService.NotifyRequisiteUpdated(requisiteDto);
