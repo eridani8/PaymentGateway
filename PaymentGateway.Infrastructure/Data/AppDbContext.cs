@@ -71,6 +71,12 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICryptographyS
                 .IsConcurrencyToken();
 
             entity
+                .HasOne(p => p.Requisite)
+                .WithOne()
+                .HasForeignKey<PaymentEntity>(p => p.RequisiteId)
+                .OnDelete(DeleteBehavior.SetNull);
+            
+            entity
                 .HasOne(e => e.Transaction)
                 .WithOne(e => e.Payment)
                 .HasForeignKey<TransactionEntity>(e => e.PaymentId)
