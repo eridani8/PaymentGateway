@@ -46,7 +46,7 @@ public class DeviceHub(
                 context.Abort();
                 _registrationTimeouts.TryRemove(connectionId, out _);
             
-            }, TaskScheduler.Default);
+            }, cancellationTokenSource.Token);
         
             await base.OnConnectedAsync();
         }

@@ -16,7 +16,6 @@ public static class AppConfiguration
 
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<UserEntity>>();
-
         
         foreach (var role in Roles)
         {
@@ -28,6 +27,8 @@ public static class AppConfiguration
 
         await CreateUser(userManager, "root");
         await CreateUser(userManager, "eridani");
+        
+        // TODO device
     }
 
     private static async Task CreateUser(UserManager<UserEntity> userManager, string username)
