@@ -1,8 +1,9 @@
+using AutoMapper;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.SignalR;
 using PaymentGateway.Application.Hubs;
-using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Core.Entities;
+using PaymentGateway.Infrastructure.Interfaces;
+using PaymentGateway.Shared.DTOs.Device;
 
 namespace PaymentGateway.Api.Configuration;
 
@@ -28,7 +29,14 @@ public static class AppConfiguration
         await CreateUser(userManager, "root");
         await CreateUser(userManager, "eridani");
         
-        // TODO device
+        var deviceRepository = scope.ServiceProvider.GetRequiredService<IDeviceRepository>();
+        var mapper = scope.ServiceProvider.GetRequiredService<IMapper>();
+        var devices = await deviceRepository.GetAllDevices();
+        foreach (var device in devices)
+        {
+            DeviceHub.Devices.TryAdd(device.Id, mapper.Map<DeviceDto>(device));
+        }
+        
     }
 
     private static async Task CreateUser(UserManager<UserEntity> userManager, string username)

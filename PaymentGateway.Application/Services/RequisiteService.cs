@@ -9,6 +9,7 @@ using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Application.Results;
 using PaymentGateway.Core.Entities;
 using PaymentGateway.Infrastructure.Interfaces;
+using PaymentGateway.Shared.DTOs.Device;
 using PaymentGateway.Shared.DTOs.Requisite;
 using PaymentGateway.Shared.DTOs.User;
 
@@ -59,13 +60,17 @@ public class RequisiteService(
         {
             return Result.Failure<RequisiteDto>(DeviceErrors.BindingError);
         }
+
+        var device = mapper.Map<DeviceEntity>(deviceDto);
         
-        // TODO device
-
         var requisite = mapper.Map<RequisiteEntity>(dto, opts => { opts.Items["UserId"] = userId; });
-
+        
         requisite.User = user;
+        requisite.DeviceId = device.Id;
 
+        device.RequisiteId = requisite.Id;
+
+        await unit.DeviceRepository.Add(device);
         await unit.RequisiteRepository.Add(requisite);
         await unit.Commit();
 
@@ -98,8 +103,7 @@ public class RequisiteService(
     public async Task<Result<RequisiteDto>> GetRequisiteById(Guid id)
     {
         var requisite = await unit.RequisiteRepository.GetRequisiteById(id);
-        if (requisite is null)
-            return Result.Failure<RequisiteDto>(RequisiteErrors.RequisiteNotFound);
+        if (requisite is null) return Result.Failure<RequisiteDto>(RequisiteErrors.RequisiteNotFound);
 
         var dto = mapper.Map<RequisiteDto>(requisite);
         return Result.Success(dto);

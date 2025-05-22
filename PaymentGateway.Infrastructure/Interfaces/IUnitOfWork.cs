@@ -10,5 +10,6 @@ public interface IUnitOfWork
     IPaymentRepository PaymentRepository { get; }
     ITransactionRepository TransactionRepository { get; }
     IChatRepository ChatRepository { get; }
+    IDeviceRepository DeviceRepository { get; }
     Task Commit(CancellationToken cancellationToken = default);
 }

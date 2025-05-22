@@ -10,6 +10,7 @@ public sealed class UnitOfWork(
     IPaymentRepository paymentRepository,
     ITransactionRepository transactionRepository,
     IChatRepository chatRepository,
+    IDeviceRepository deviceRepository,
     ILogger<UnitOfWork> logger) : IUnitOfWork, IDisposable
 {
     public AppDbContext Context { get; } = context;
@@ -20,6 +21,7 @@ public sealed class UnitOfWork(
     public IPaymentRepository PaymentRepository { get; } = paymentRepository;
     public ITransactionRepository TransactionRepository { get; } = transactionRepository;
     public IChatRepository ChatRepository { get; } = chatRepository;
+    public IDeviceRepository DeviceRepository { get; } = deviceRepository;
 
     public async Task Commit(CancellationToken cancellationToken = default)
     {

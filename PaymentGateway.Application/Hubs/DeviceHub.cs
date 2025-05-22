@@ -143,10 +143,6 @@ public class DeviceHub(
             await notificationService.DeviceDisconnected(device);
             logger.LogInformation("Устройство отключено: {DeviceName} (ID: {DeviceId})", device.DeviceName, device.Id);
         }
-        else
-        {
-            logger.LogWarning("Соединение не найдено");
-        }
             
         await base.OnDisconnectedAsync(exception);
     }
