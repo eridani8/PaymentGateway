@@ -62,7 +62,7 @@ public class DeviceHub(
             existingDevice.ConnectionId = Context.ConnectionId;
             
             await notificationService.DeviceConnected(existingDevice);
-            logger.LogInformation("Устройство переподключено: {DeviceName} (ID: {DeviceId})", existingDevice.DeviceName, existingDevice.Id);
+            logger.LogInformation("Устройство подключено: {DeviceName} (ID: {DeviceId})", existingDevice.DeviceName, existingDevice.Id);
         }
         else
         {
@@ -113,6 +113,8 @@ public class DeviceHub(
         {
             device.State = false;
             device.ConnectionId = null;
+            
+            await notificationService.DeviceDisconnected(device);
             logger.LogInformation("Устройство отключено: {DeviceName} (ID: {DeviceId})", device.DeviceName, device.Id);
         }
         else

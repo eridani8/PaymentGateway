@@ -160,7 +160,8 @@
             var device = _devices.FirstOrDefault(d => d.Id == deviceDto.Id);
             if (device is null) return;
 
-            _devices.Remove(device);
+            var index = _devices.IndexOf(device);
+            _devices[index] = deviceDto;
 
             await InvokeAsync(StateHasChanged);
         }

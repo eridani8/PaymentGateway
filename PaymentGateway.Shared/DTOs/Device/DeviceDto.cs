@@ -1,4 +1,5 @@
-﻿using PaymentGateway.Shared.DTOs.Requisite;
+﻿using System.Text.Json.Serialization;
+using PaymentGateway.Shared.DTOs.Requisite;
 using PaymentGateway.Shared.DTOs.User;
 
 namespace PaymentGateway.Shared.DTOs.Device;
@@ -12,5 +13,5 @@ public class DeviceDto
     public required string DeviceName { get; set; }
     public DateTime BindingAt { get; set; }
     public RequisiteDto? Requisite { get; set; }
-    public string? ConnectionId { get; set; }
+    [JsonIgnore] public string? ConnectionId { get; set; }
 }
