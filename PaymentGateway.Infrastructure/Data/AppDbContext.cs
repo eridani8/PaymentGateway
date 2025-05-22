@@ -15,6 +15,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICryptographyS
     public DbSet<RequisiteEntity> Requisites { get; set; }
     public DbSet<TransactionEntity> Transactions { get; set; }
     public DbSet<ChatMessageEntity> ChatMessages { get; set; }
+    public DbSet<DeviceEntity> Devices { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
