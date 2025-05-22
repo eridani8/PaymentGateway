@@ -66,7 +66,7 @@ public class DeviceEndpoints : ICarterModule
     private static IResult GetDevicesByUserId(Guid userId)
     {
         var devices = DeviceHub.Devices.Values
-            .Where(d => d.UserId == userId && d.Requisite is null)
+            .Where(d => d.UserId == userId && d.BindingAt == DateTime.MinValue)
             .ToList();
 
         return Results.Json(devices);

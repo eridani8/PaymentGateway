@@ -53,13 +53,14 @@ public class RequisiteService(
         var deviceDto = DeviceHub.Devices.Values
             .FirstOrDefault(d =>
                 d.UserId == userId &&
-                d.BindingAt == DateTime.MinValue &&
-                d.Requisite is null);
+                d.BindingAt == DateTime.MinValue);
 
         if (deviceDto is null)
         {
             return Result.Failure<RequisiteDto>(DeviceErrors.BindingError);
         }
+        
+        deviceDto.BindingAt = DateTime.UtcNow;
 
         var device = mapper.Map<DeviceEntity>(deviceDto);
         
@@ -73,8 +74,6 @@ public class RequisiteService(
         await unit.Commit();
         
         var requisiteDto = mapper.Map<RequisiteDto>(requisite);
-
-        deviceDto.Requisite = requisiteDto;
 
         user.RequisitesCount++;
         await userManager.UpdateAsync(user);

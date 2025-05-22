@@ -12,6 +12,5 @@ public class DeviceDto
     public bool State { get; set; }
     public required string DeviceName { get; set; }
     public DateTime BindingAt { get; set; }
-    public RequisiteDto? Requisite { get; set; }
     [JsonIgnore] public string? ConnectionId { get; set; }
 }
