@@ -61,7 +61,7 @@
                              Dense="true">
                     <Columns>
                         <HierarchyColumn/>
-                        <TemplateColumn Title="Владелец реквизита" Hidden="!_isShowAll">
+                        <TemplateColumn Title="Владелец реквизита" Hidden="!_isShowAll" Sortable="true" Filterable="true">
                             <CellTemplate Context="cellContext">
                                 @if (!string.IsNullOrEmpty(cellContext.Item?.Requisite?.User?.Username))
                                 {
@@ -73,7 +73,7 @@
                             </CellTemplate>
                         </TemplateColumn>
                         <PropertyColumn Property="x => x.Amount" Title="Сумма"/>
-                        <TemplateColumn Title="Статус">
+                        <TemplateColumn Title="Статус" Sortable="true" Filterable="true">
                             <CellTemplate Context="cellContext">
                                 <MudChip Size="Size.Small" Color="@GetStatusColor(cellContext.Item.Status)">
                                     @GetStatusText(cellContext.Item.Status)
@@ -85,12 +85,12 @@
                             </CellTemplate>
                         </TemplateColumn>
                         <PropertyColumn Property="x => x.CreatedAt" Title="Создан"/>
-                        <TemplateColumn Title="Обработан">
+                        <TemplateColumn Title="Обработан" Sortable="true" Filterable="true">
                             <CellTemplate Context="cellContext">
                                 @(cellContext.Item.ProcessedAt is null ? "-" : cellContext.Item.ProcessedAt.ToString())
                             </CellTemplate>
                         </TemplateColumn>
-                        <TemplateColumn Title="Истечение">
+                        <TemplateColumn Title="Истечение" Sortable="true" Filterable="true">
                             <CellTemplate Context="cellContext">
                                 @(cellContext.Item.ExpiresAt is null ? "-" : cellContext.Item.ExpiresAt.ToString())
                             </CellTemplate>

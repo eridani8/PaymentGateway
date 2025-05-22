@@ -59,14 +59,14 @@
                     <Columns>
                         <HierarchyColumn/>
                         <PropertyColumn Property="x => x.ExtractedAmount" Title="Сумма"/>
-                        <TemplateColumn Title="Источник">
+                        <TemplateColumn Title="Источник" Sortable="true" Filterable="true">
                             <CellTemplate Context="cellContext">
                                 <MudChip Color="Color.Primary" Size="Size.Small">
                                     @GetSourceText(cellContext.Item.Source)
                                 </MudChip>
                             </CellTemplate>
                         </TemplateColumn>
-                        <PropertyColumn Property="x => x.ReceivedAt" Title="Получена"/>
+                        <PropertyColumn Property="x => x.ReceivedAt" Title="Время"/>
                     </Columns>
                     <ChildRowContent Context="rowContext">
                         <MudStack>

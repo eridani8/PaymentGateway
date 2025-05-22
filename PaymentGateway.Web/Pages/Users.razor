@@ -63,17 +63,17 @@
                     <Columns>
                         <HierarchyColumn/>
                         <PropertyColumn Property="x => x.Username" Title="Логин"/>
-                        <TemplateColumn Title="Лимит реквизитов">
+                        <TemplateColumn Title="Лимит реквизитов" Sortable="true" Filterable="true">
                             <CellTemplate Context="cellContext">
                                 @($"{cellContext.Item.RequisitesCount}/{cellContext.Item.MaxRequisitesCount}")
                             </CellTemplate>
                         </TemplateColumn>
-                        <TemplateColumn Title="Суточный лимит">
+                        <TemplateColumn Title="Суточный лимит" Sortable="true" Filterable="true">
                             <CellTemplate Context="cellContext">
                                 @($"{cellContext.Item.ReceivedDailyFunds:N0}/{cellContext.Item.MaxDailyMoneyReceptionLimit:N0}")
                             </CellTemplate>
                         </TemplateColumn>
-                        <TemplateColumn Title="Роль">
+                        <TemplateColumn Title="Роль" Sortable="true" Filterable="true">
                             <CellTemplate Context="cellContext">
                                 @if (_userRoles.TryGetValue(cellContext.Item.Id, out var role) && !string.IsNullOrEmpty(role))
                                 {
@@ -91,7 +91,7 @@
                                 }
                             </CellTemplate>
                         </TemplateColumn>
-                        <TemplateColumn Title="Статус">
+                        <TemplateColumn Title="Статус" Sortable="true" Filterable="true">
                             <CellTemplate Context="cellContext">
                                 <MudChip Color="@(cellContext.Item.IsActive ? Color.Success : Color.Error)"
                                          Size="Size.Small">
