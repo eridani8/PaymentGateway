@@ -1,16 +1,22 @@
 ﻿using System.Collections.Concurrent;
+using AutoMapper;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Shared.DTOs.Device;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using PaymentGateway.Core.Entities;
+using PaymentGateway.Shared.DTOs.User;
 
 namespace PaymentGateway.Application.Hubs;
 
 [Authorize(AuthenticationSchemes = "Device")]
 public class DeviceHub(
     ILogger<DeviceHub> logger,
-    INotificationService notificationService) : Hub<IDeviceClientHub>
+    INotificationService notificationService,
+    UserManager<UserEntity> userManager,
+    IMapper mapper) : Hub<IDeviceClientHub>
 {
     public static ConcurrentDictionary<Guid, DeviceDto> Devices { get; } = new();
     private static readonly TimeSpan RegistrationTimeout = TimeSpan.FromSeconds(7);
@@ -41,13 +47,13 @@ public class DeviceHub(
         }
     }
 
-    public Task RegisterDevice(DeviceDto? deviceDto)
+    public async Task RegisterDevice(DeviceDto? deviceDto)
     {
         if (deviceDto is null || string.IsNullOrWhiteSpace(deviceDto.DeviceName) || deviceDto.Id == Guid.Empty)
         {
             logger.LogWarning("Получены невалидные данные устройства: {@DeviceDto}", deviceDto);
             Context.Abort();
-            return Task.CompletedTask;
+            return;
         }
         
         if (Devices.TryGetValue(deviceDto.Id, out var existingDevice))
@@ -55,7 +61,7 @@ public class DeviceHub(
             existingDevice.State = true;
             existingDevice.ConnectionId = Context.ConnectionId;
             
-            notificationService.DeviceConnected(existingDevice);
+            await notificationService.DeviceConnected(existingDevice);
             logger.LogInformation("Устройство переподключено: {DeviceName} (ID: {DeviceId})", existingDevice.DeviceName, existingDevice.Id);
         }
         else
@@ -65,16 +71,25 @@ public class DeviceHub(
             {
                 logger.LogWarning("Не удалось получить ID пользователя из контекста для устройства {DeviceId}", deviceDto.Id);
                 Context.Abort();
-                return Task.CompletedTask;
+                return;
+            }
+            
+            var user = await userManager.FindByIdAsync(userIdClaim);
+            if (user is null)
+            {
+                logger.LogError("Невалидный ID пользователя: {UserId}", userIdClaim);
+                Context.Abort();
+                return;
             }
             
             if (!Guid.TryParse(userIdClaim, out var userId))
             {
                 logger.LogError("Невалидный формат ID пользователя: {UserId}", userIdClaim);
                 Context.Abort();
-                return Task.CompletedTask;
+                return;
             }
             
+            deviceDto.User = mapper.Map<UserDto>(user);
             deviceDto.UserId = userId;
             deviceDto.ConnectionId = Context.ConnectionId;
             deviceDto.State = true;
@@ -83,14 +98,12 @@ public class DeviceHub(
             {
                 logger.LogError("Не удалось добавить устройство: {@Device}", deviceDto);
                 Context.Abort();
-                return Task.CompletedTask;
+                return;
             }
             
-            notificationService.DeviceConnected(deviceDto);
+            await notificationService.DeviceConnected(deviceDto);
             logger.LogInformation("Новое устройство зарегистрировано: {DeviceName} (ID: {DeviceId})", deviceDto.DeviceName, deviceDto.Id);
         }
-        
-        return Task.CompletedTask;
     }
 
     public override async Task OnDisconnectedAsync(Exception? exception)

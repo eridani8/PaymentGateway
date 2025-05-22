@@ -64,10 +64,18 @@
                              Hover="true"
                              Dense="true">
                     <Columns>
-                        <PropertyColumn Property="x => x.Id"/>
-                        <PropertyColumn Property="x => x.UserId"/>
-                        <PropertyColumn Property="x => x.DeviceName"/>
-                        <TemplateColumn Title="State" Sortable="true" Filterable="true">
+                        <TemplateColumn Title="Владелец" Hidden="!_isShowAll" Sortable="true" Filterable="true">
+                            <CellTemplate Context="cellContext">
+                                @if (!string.IsNullOrEmpty(cellContext.Item.User?.Username))
+                                {
+                                    <MudChip Size="Size.Small" Icon="@Icons.Material.Filled.Person"
+                                             Color="Color.Primary"
+                                             Text="@cellContext.Item.User.Username"/>
+                                }
+                            </CellTemplate>
+                        </TemplateColumn>
+                        <PropertyColumn Property="x => x.DeviceName" Title="Устройство"/>
+                        <TemplateColumn Title="Состояние подключения" Sortable="true" Filterable="true">
                             <CellTemplate Context="cellContext">
                                 <div style="display: flex; align-items: center; gap: 8px;">
                                     <div style="width: 12px; height: 12px; border-radius: 50%; background-color: @(cellContext.Item.State ? "#4caf50" : "#f44336");"></div>
@@ -75,6 +83,22 @@
                             </CellTemplate>
                         </TemplateColumn>
                     </Columns>
+                    <ChildRowContent Context="rowContext">
+                        <MudStack>
+                            <MudTooltip Placement="Placement.Left" Text="Id устройства">
+                                <MudStack Row="true">
+                                    <MudIcon Icon="@Icons.Material.Filled.Smartphone" Class="mr-2"/>
+                                    <MudText Typo="Typo.body1">@rowContext.Item.Id</MudText>
+                                </MudStack>
+                            </MudTooltip>
+                            <MudTooltip Placement="Placement.Left" Text="Id пользователя">
+                                <MudStack Row="true">
+                                    <MudIcon Icon="@Icons.Material.Filled.AssignmentInd" Class="mr-2"/>
+                                    <MudText Typo="Typo.body1">@rowContext.Item.User?.Id</MudText>
+                                </MudStack>
+                            </MudTooltip>
+                        </MudStack>
+                    </ChildRowContent>
                 </MudDataGrid>
             </MudPaper>
         </MudContainer>
