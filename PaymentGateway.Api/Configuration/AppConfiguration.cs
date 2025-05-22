@@ -4,6 +4,7 @@ using PaymentGateway.Application.Hubs;
 using PaymentGateway.Core.Entities;
 using PaymentGateway.Infrastructure.Interfaces;
 using PaymentGateway.Shared.DTOs.Device;
+using PaymentGateway.Shared.DTOs.User;
 
 namespace PaymentGateway.Api.Configuration;
 
@@ -35,9 +36,10 @@ public static class AppConfiguration
         
         foreach (var device in devices)
         {
-            DeviceHub.Devices.TryAdd(device.Id, mapper.Map<DeviceDto>(device));
+            var deviceDto = mapper.Map<DeviceDto>(device);
+            deviceDto.User = mapper.Map<UserDto>(device.User);
+            DeviceHub.Devices.TryAdd(device.Id, deviceDto);
         }
-        
     }
 
     private static async Task CreateUser(UserManager<UserEntity> userManager, string username)
