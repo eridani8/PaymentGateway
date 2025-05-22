@@ -19,27 +19,36 @@ public class DeviceHub(
     IMapper mapper) : Hub<IDeviceClientHub>
 {
     public static ConcurrentDictionary<Guid, DeviceDto> Devices { get; } = new();
+    private readonly ConcurrentDictionary<string, CancellationTokenSource> _registrationTimeouts = new();
     private static readonly TimeSpan RegistrationTimeout = TimeSpan.FromSeconds(7);
 
     public override async Task OnConnectedAsync()
     {
         try
         {
-            await base.OnConnectedAsync();
-            
             var context = Context;
             var connectionId = Context.ConnectionId;
             
             await Clients.Caller.RequestDeviceRegistration();
             
-            _ = Task.Delay(RegistrationTimeout).ContinueWith(_ =>
+            var cancellationTokenSource = new CancellationTokenSource();
+            _registrationTimeouts[connectionId] = cancellationTokenSource;
+            
+            _ = Task.Delay(RegistrationTimeout, cancellationTokenSource.Token).ContinueWith(task =>
             {
+                if (task.IsCanceled) return;
+            
                 if (Devices.Values.Any(d => d.ConnectionId == connectionId)) return;
+            
                 logger.LogWarning(
                     "Устройство не зарегистрировалось в течение {Timeout} секунд. Отключение клиента: {ConnectionId}",
                     RegistrationTimeout.TotalSeconds, connectionId);
                 context.Abort();
-            });
+                _registrationTimeouts.TryRemove(connectionId, out _);
+            
+            }, TaskScheduler.Default);
+        
+            await base.OnConnectedAsync();
         }
         catch (Exception e)
         {
@@ -56,10 +65,14 @@ public class DeviceHub(
             return;
         }
         
+        var connectionId = Context.ConnectionId;
+        
         if (Devices.TryGetValue(deviceDto.Id, out var existingDevice))
         {
             existingDevice.State = true;
-            existingDevice.ConnectionId = Context.ConnectionId;
+            existingDevice.ConnectionId = connectionId;
+            
+            CancelRegistrationTimeout(connectionId);
             
             await notificationService.DeviceConnected(existingDevice);
             logger.LogInformation("Устройство подключено: {DeviceName} (ID: {DeviceId})", existingDevice.DeviceName, existingDevice.Id);
@@ -91,7 +104,7 @@ public class DeviceHub(
             
             deviceDto.User = mapper.Map<UserDto>(user);
             deviceDto.UserId = userId;
-            deviceDto.ConnectionId = Context.ConnectionId;
+            deviceDto.ConnectionId = connectionId;
             deviceDto.State = true;
             
             if (!Devices.TryAdd(deviceDto.Id, deviceDto))
@@ -101,14 +114,27 @@ public class DeviceHub(
                 return;
             }
             
+            CancelRegistrationTimeout(connectionId);
+            
             await notificationService.DeviceConnected(deviceDto);
             logger.LogInformation("Новое устройство зарегистрировано: {DeviceName} (ID: {DeviceId})", deviceDto.DeviceName, deviceDto.Id);
         }
     }
 
+    private void CancelRegistrationTimeout(string connectionId)
+    {
+        if (!_registrationTimeouts.TryRemove(connectionId, out var cancellationTokenSource)) return;
+        cancellationTokenSource.Cancel();
+        cancellationTokenSource.Dispose();
+    }
+    
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
-        var device = Devices.Values.FirstOrDefault(d => d.ConnectionId == Context.ConnectionId);
+        var connectionId = Context.ConnectionId;
+        
+        CancelRegistrationTimeout(connectionId);
+        
+        var device = Devices.Values.FirstOrDefault(d => d.ConnectionId == connectionId);
         if (device is not null)
         {
             device.State = false;
