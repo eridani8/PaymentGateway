@@ -64,6 +64,7 @@
                              Hover="true"
                              Dense="true">
                     <Columns>
+                        <HierarchyColumn/>
                         <TemplateColumn Title="Владелец" Hidden="!_isShowAll" Sortable="true" Filterable="true">
                             <CellTemplate Context="cellContext">
                                 @if (!string.IsNullOrEmpty(cellContext.Item.User?.Username))
