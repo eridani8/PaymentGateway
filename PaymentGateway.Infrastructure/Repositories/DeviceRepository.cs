@@ -13,6 +13,7 @@ public class DeviceRepository(
     {
         return await GetSet()
             .Include(d => d.User)
+            .Include(d => d.Requisite)
             .OrderByDescending(d => d.Id)
             .FirstOrDefaultAsync();
     }

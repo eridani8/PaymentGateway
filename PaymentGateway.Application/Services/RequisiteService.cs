@@ -166,6 +166,7 @@ public class RequisiteService(
             if (device is not null)
             {
                 device.BindingAt = DateTime.MinValue;
+                device.RequisiteId = null;
                 unit.DeviceRepository.Update(device);
             }
             
@@ -181,6 +182,7 @@ public class RequisiteService(
                 if (deviceDto is not null)
                 {
                     deviceDto.BindingAt = DateTime.MinValue;
+                    deviceDto.RequisiteId = null;
                 }
             }
 
