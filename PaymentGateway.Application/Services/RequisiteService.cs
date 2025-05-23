@@ -59,7 +59,7 @@ public class RequisiteService(
 
         if (deviceDto is null)
         {
-            return Result.Failure<RequisiteDto>(DeviceErrors.BindingError);
+            return Result.Failure<RequisiteDto>(DeviceErrors.DeviceShouldBeOnline);
         }
 
         var device = await unit.DeviceRepository.GetDeviceById(deviceDto.Id);

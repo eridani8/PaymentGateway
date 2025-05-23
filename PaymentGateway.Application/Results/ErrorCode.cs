@@ -37,5 +37,6 @@ public enum ErrorCode
     TransactionError,
     WrongPaymentAmount,
     
-    DeviceBindingError,
+    DeviceShouldBeOnline,
+    DeviceShouldNotBeTied
 } 

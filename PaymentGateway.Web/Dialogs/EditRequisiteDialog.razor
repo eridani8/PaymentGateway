@@ -229,7 +229,7 @@
         _processing = true;
         try
         {
-            _devices = await DeviceService.GetUserDevices(false, true);
+            _devices = await DeviceService.GetUserDevices();
         }
         catch (Exception e)
         {
