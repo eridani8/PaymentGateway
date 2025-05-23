@@ -1,9 +1,12 @@
 @using System.Net
+@using PaymentGateway.Shared.DTOs.Device
 @using PaymentGateway.Shared.DTOs.Requisite
 @using PaymentGateway.Shared.Enums
 @using PaymentGateway.Shared.Validations.Validators.Requisite
 @inject ISnackbar Snackbar
 @inject IRequisiteService RequisiteService
+@inject IDeviceService DeviceService
+@inject ILogger<EditRequisiteDialog> Logger
 
 <MudDialog>
     <TitleContent>
@@ -107,41 +110,59 @@
                     </Authorized>
                 </AuthorizeView>
 
-                <MudItem xs="12">
+                <MudItem xs="12" sm="2">
                     <MudSwitch T="bool"
                                @bind-Value="_updateRequisiteDto.IsActive"
                                Color="Color.Primary"
                                Label="Активный"
-                               Class="mt-2"/>
+                               Class="mt-4"/>
                 </MudItem>
+
+                <MudItem xs="12" sm="2">
+                    <MudSwitch T="bool"
+                               @bind-Value="_useWorkingHours"
+                               Color="Color.Primary"
+                               Label="Рабочее время"
+                               Class="mt-4"/>
+                </MudItem>
+
+                <MudItem xs="12" sm="2">
+                    <MudTimePicker Label="С"
+                                   Variant="Variant.Outlined"
+                                   @bind-Time="_workFromTime"
+                                   TimeEditMode="TimeEditMode.Normal"
+                                   Margin="Margin.Normal"
+                                   Disabled="@(!_useWorkingHours)"/>
+                </MudItem>
+                <MudItem xs="12" sm="2">
+                    <MudTimePicker Label="До"
+                                   Variant="Variant.Outlined"
+                                   @bind-Time="_workToTime"
+                                   TimeEditMode="TimeEditMode.Normal"
+                                   Margin="Margin.Normal"
+                                   Disabled="@(!_useWorkingHours)"/>
+                </MudItem>
+
+                <MudItem xs="12" sm="4">
+                    <MudSelect T="Guid"
+                               @bind-Value="@_updateRequisiteDto.DeviceId"
+                               ToStringFunc="deviceId => _devices.FirstOrDefault(d => d.Id == deviceId)?.DeviceName ?? string.Empty"
+                               Modal="true"
+                               Variant="Variant.Outlined"
+                               Clearable="true"
+                               Placeholder="Устройство"
+                               Margin="Margin.Normal"
+                               Class="mt-4"
+                               For="@(() => _updateRequisiteDto.DeviceId)"
+                               Immediate="true">
+                        @foreach (var device in _devices)
+                        {
+                            <MudSelectItem Value="device.Id">@device.DeviceName</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                
             </MudGrid>
-
-            <MudStack Row="true" Class="mt-2 mb-2">
-                <MudSwitch T="bool"
-                           @bind-Value="_useWorkingHours"
-                           Color="Color.Primary"
-                           Label="Использовать рабочее время"
-                           Class="mr-4"/>
-
-                @if (_useWorkingHours)
-                {
-                    <MudText Typo="Typo.subtitle1">Часы работы</MudText>
-                    <MudGrid>
-                        <MudItem xs="6">
-                            <MudTimePicker Label="С"
-                                           @bind-Time="_workFromTime"
-                                           TimeEditMode="TimeEditMode.Normal"
-                                           Margin="Margin.Normal"/>
-                        </MudItem>
-                        <MudItem xs="6">
-                            <MudTimePicker Label="До"
-                                           @bind-Time="_workToTime"
-                                           TimeEditMode="TimeEditMode.Normal"
-                                           Margin="Margin.Normal"/>
-                        </MudItem>
-                    </MudGrid>
-                }
-            </MudStack>
 
             @if (!string.IsNullOrEmpty(_errorMessage))
             {
@@ -176,6 +197,7 @@
     private bool _useWorkingHours;
     private TimeSpan? _workFromTime;
     private TimeSpan? _workToTime;
+    private List<DeviceDto> _devices = [];
 
     private readonly RequisiteUpdateDtoValidator _validator = new();
 
@@ -199,6 +221,23 @@
         _useWorkingHours = Requisite.WorkTo != TimeOnly.MinValue;
         _workFromTime = _useWorkingHours ? new TimeSpan(Requisite.WorkFrom.Hour, Requisite.WorkFrom.Minute, 0) : new TimeSpan(9, 0, 0);
         _workToTime = _useWorkingHours ? new TimeSpan(Requisite.WorkTo.Hour, Requisite.WorkTo.Minute, 0) : new TimeSpan(18, 0, 0);
+    }
+    
+    protected override async Task OnInitializedAsync()
+    {
+        _processing = true;
+        try
+        {
+            _devices = await DeviceService.GetUserDevices(true, true);
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e, "Ошибка загрузки устройств");
+        }
+        finally
+        {
+            _processing = false;
+        }
     }
 
     private async Task Submit()

@@ -15,5 +15,5 @@ public class RequisiteUpdateDto // TODO cannot be activated if the administrator
     public int Priority { get; set; }
     public TimeOnly WorkFrom { get; set; }
     public TimeOnly WorkTo { get; set; }
-    // TODO device
+    public Guid DeviceId { get; set; }
 }
