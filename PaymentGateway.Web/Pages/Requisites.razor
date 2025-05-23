@@ -420,8 +420,8 @@
         RequisiteStatus.Pending => Color.Warning,
         RequisiteStatus.Cooldown => Color.Info,
         RequisiteStatus.Inactive => Color.Error,
-        RequisiteStatus.Frozen => Color.Dark,
-        _ => Color.Default
+        RequisiteStatus.Frozen => Color.Default,
+        _ => Color.Dark
     };
 
     private static string GetStatusText(RequisiteStatus status) => status switch
