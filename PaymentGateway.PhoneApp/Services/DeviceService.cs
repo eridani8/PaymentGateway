@@ -20,22 +20,21 @@ public class DeviceService : BaseSignalRService
     private readonly ILogger<DeviceService> _logger;
     private readonly LiteContext _context;
     private readonly IAlertService _alertService;
-    private readonly IBackgroundServiceManager _backgroundServiceManager;
 
     private Guid DeviceId { get; }
 
     public Action? UpdateDelegate;
+    
+    public bool IsRunning { get; private set; }
 
     public DeviceService(IOptions<ApiSettings> settings,
         ILogger<DeviceService> logger,
         LiteContext context,
-        IAlertService alertService,
-        IBackgroundServiceManager backgroundServiceManager) : base(settings, logger)
+        IAlertService alertService) : base(settings, logger)
     {
         _logger = logger;
         _context = context;
         _alertService = alertService;
-        _backgroundServiceManager = backgroundServiceManager;
         AccessToken = context.GetToken();
         DeviceId = context.GetDeviceId();
     }
@@ -59,7 +58,7 @@ public class DeviceService : BaseSignalRService
                     UpdateDelegate?.Invoke();
                 }
 
-                if (!_backgroundServiceManager.IsRunning)
+                if (!IsRunning)
                 {
                     var intent = new Intent(Platform.CurrentActivity!, typeof(BackgroundService));
                     intent.SetAction(AndroidConstants.ActionStart);
@@ -103,7 +102,7 @@ public class DeviceService : BaseSignalRService
                 await _alertService.ShowAlertAsync("Ошибка", "Токен недействителен", "OK");
             });
         }
-        _backgroundServiceManager.SetRunningState(false);
+        IsRunning = false;
         ClearToken();
     }
 
@@ -143,7 +142,7 @@ public class DeviceService : BaseSignalRService
             IsInitializing = false;
             UpdateDelegate?.Invoke();
             await StopAsync();
-            _backgroundServiceManager.SetRunningState(false);
+            IsRunning = false;
         }
         catch (Exception e)
         {
@@ -177,9 +176,8 @@ public class DeviceService : BaseSignalRService
         
         try
         {
-            var state = await base.InitializeAsync();
-            _backgroundServiceManager.SetRunningState(state);
-            return state;
+            IsRunning = await base.InitializeAsync();
+            return IsRunning;
         }
         finally
         {
