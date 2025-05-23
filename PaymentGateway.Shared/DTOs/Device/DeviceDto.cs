@@ -13,4 +13,5 @@ public class DeviceDto
     public required string DeviceName { get; set; }
     public DateTime BindingAt { get; set; }
     [JsonIgnore] public string? ConnectionId { get; set; }
+    public Guid? RequisiteId { get; set; }
 }

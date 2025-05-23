@@ -50,7 +50,11 @@ public class RequisiteService(
         {
             return Result.Failure<RequisiteDto>(RequisiteErrors.DuplicateRequisite);
         }
-
+        
+        var requisite = mapper.Map<RequisiteEntity>(dto, opts => { opts.Items["UserId"] = userId; });
+        
+        requisite.User = user;
+        
         var deviceDto = DeviceHub.AvailableDeviceByUserId(userId);
 
         if (deviceDto is null)
@@ -63,17 +67,16 @@ public class RequisiteService(
         if (device is null)
         {
             deviceDto.BindingAt = DateTime.UtcNow;
+            deviceDto.RequisiteId = requisite.Id;
             device = mapper.Map<DeviceEntity>(deviceDto);
         }
         else
         {
             device.BindingAt = DateTime.UtcNow;
+            device.RequisiteId = requisite.Id;
             hasDeviceInBase = true;
         }
         
-        var requisite = mapper.Map<RequisiteEntity>(dto, opts => { opts.Items["UserId"] = userId; });
-        
-        requisite.User = user;
         requisite.DeviceId = device.Id;
 
         if (!hasDeviceInBase)

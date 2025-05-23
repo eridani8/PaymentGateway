@@ -13,13 +13,15 @@ public class DeviceProfile : Profile
             .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId))
             .ForMember(dest => dest.User, opt => opt.Ignore())
             .ForMember(dest => dest.DeviceName, opt => opt.MapFrom(src => src.DeviceName))
-            .ForMember(dest => dest.BindingAt, opt => opt.MapFrom(src => src.BindingAt));
+            .ForMember(dest => dest.BindingAt, opt => opt.MapFrom(src => src.BindingAt))
+            .ForMember(dest => dest.RequisiteId, opt => opt.MapFrom(src => src.RequisiteId));
 
         CreateMap<DeviceDto, DeviceEntity>()
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
             .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId))
             .ForMember(dest => dest.User, opt => opt.Ignore())
             .ForMember(dest => dest.DeviceName, opt => opt.MapFrom(src => src.DeviceName))
-            .ForMember(dest => dest.BindingAt, opt => opt.MapFrom(src => src.BindingAt));
+            .ForMember(dest => dest.BindingAt, opt => opt.MapFrom(src => src.BindingAt))
+            .ForMember(dest => dest.RequisiteId, opt => opt.MapFrom(src => src.RequisiteId));
     }
 }

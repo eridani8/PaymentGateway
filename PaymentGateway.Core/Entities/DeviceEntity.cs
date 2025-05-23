@@ -8,4 +8,6 @@ public class DeviceEntity : BaseEntity
     public UserEntity? User { get; set; }
     [MaxLength(255)] public required string DeviceName { get; set; }
     public DateTime BindingAt { get; set; }
+    public Guid? RequisiteId { get; set; }
+    public RequisiteEntity? Requisite { get; set; }
 }
