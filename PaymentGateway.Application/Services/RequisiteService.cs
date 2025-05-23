@@ -12,6 +12,7 @@ using PaymentGateway.Infrastructure.Interfaces;
 using PaymentGateway.Shared.DTOs.Device;
 using PaymentGateway.Shared.DTOs.Requisite;
 using PaymentGateway.Shared.DTOs.User;
+using PaymentGateway.Shared.Enums;
 
 namespace PaymentGateway.Application.Services;
 
@@ -119,16 +120,8 @@ public class RequisiteService(
 
         var requisite = await unit.RequisiteRepository.GetRequisiteById(id);
         if (requisite is null) return Result.Failure<RequisiteDto>(RequisiteErrors.RequisiteNotFound);
-
-        var now = DateTime.UtcNow;
-        var nowTimeOnly = TimeOnly.FromDateTime(now);
-        if (requisite.ProcessStatus(now, nowTimeOnly, out var status))
-        {
-            logger.LogInformation("Статус реквизита {RequisiteId} изменен с {OldStatus} на {NewStatus}", requisite.Id,
-                requisite.Status.ToString(), status.ToString());
-            requisite.Status = status;
-        }
-
+        
+        requisite.Status = RequisiteStatus.Frozen;
         requisite = mapper.Map(dto, requisite);
 
         unit.RequisiteRepository.Update(requisite);
@@ -150,15 +143,23 @@ public class RequisiteService(
         {
             var userId = requisite.UserId;
             var requisiteDto = mapper.Map<RequisiteDto>(requisite);
+            var device = requisite.Device;
+            var user = requisite.User;
 
+            if (device is not null)
+            {
+                device.BindingAt = DateTime.MinValue;
+                unit.DeviceRepository.Update(device);
+            }
+            
             unit.RequisiteRepository.Delete(requisite);
             await unit.Commit();
 
-            requisite.User.RequisitesCount--;
-            await userManager.UpdateAsync(requisite.User);
+            user.RequisitesCount--;
+            await userManager.UpdateAsync(user);
 
             await notificationService.NotifyRequisiteDeleted(id, userId);
-            await notificationService.NotifyUserUpdated(mapper.Map<UserDto>(requisite.User));
+            await notificationService.NotifyUserUpdated(mapper.Map<UserDto>(user));
 
             return Result.Success(requisiteDto);
         }

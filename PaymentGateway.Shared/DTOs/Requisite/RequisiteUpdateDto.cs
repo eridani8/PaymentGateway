@@ -2,7 +2,7 @@
 
 namespace PaymentGateway.Shared.DTOs.Requisite;
 
-public class RequisiteUpdateDto // TODO freeze after update
+public class RequisiteUpdateDto // TODO cannot be activated if the administrator is deactivated
 {
     public string FullName { get; set; } = string.Empty;
     public PaymentType PaymentType { get; set; }

@@ -5,7 +5,7 @@ using PaymentGateway.Shared.Enums;
 
 namespace PaymentGateway.Shared.DTOs.Requisite;
 
-public class RequisiteDto // TODO freeze after update
+public class RequisiteDto // TODO cannot be activated if the administrator is deactivated
 {
     public Guid Id { get; set; }
     public UserDto? User { get; set; }

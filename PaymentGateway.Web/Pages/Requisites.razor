@@ -33,7 +33,8 @@
                             <MudSelect T="RequisiteAssignmentAlgorithm" Value="_currentAlgorithm"
                                        ValueChanged="RequisiteAssignmentAlgorithmChanged">
                                 <MudSelectItem Value="RequisiteAssignmentAlgorithm.Priority">Приоритет</MudSelectItem>
-                                <MudSelectItem Value="RequisiteAssignmentAlgorithm.Distribution">Равномерно</MudSelectItem>
+                                <MudSelectItem Value="RequisiteAssignmentAlgorithm.Distribution">Равномерно
+                                </MudSelectItem>
                             </MudSelect>
                             <MudSpacer/>
                             <MudStack Row="true" Spacing="1">
@@ -419,6 +420,7 @@
         RequisiteStatus.Pending => Color.Warning,
         RequisiteStatus.Cooldown => Color.Info,
         RequisiteStatus.Inactive => Color.Error,
+        RequisiteStatus.Frozen => Color.Dark,
         _ => Color.Default
     };
 
@@ -428,6 +430,7 @@
         RequisiteStatus.Pending => "Ожидание",
         RequisiteStatus.Cooldown => "Пауза",
         RequisiteStatus.Inactive => "Неактивный",
+        RequisiteStatus.Frozen => "Заморожен",
         _ => "Неизвестно"
     };
 
