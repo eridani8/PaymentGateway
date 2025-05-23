@@ -175,6 +175,18 @@ public class RequisiteService(
             user.RequisitesCount--;
             await userManager.UpdateAsync(user);
 
+            if (device is not null)
+            {
+                var deviceDto = DeviceHub.Devices.Values
+                    .FirstOrDefault(d => 
+                        d.UserId == user.Id && 
+                        d.Id == device.Id);
+                if (deviceDto is not null)
+                {
+                    deviceDto.BindingAt = DateTime.MinValue;
+                }
+            }
+
             await notificationService.NotifyRequisiteDeleted(id, userId);
             await notificationService.NotifyUserUpdated(mapper.Map<UserDto>(user));
 
