@@ -45,10 +45,8 @@ public static class SignalRConfiguration
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     IssuerSigningKey = new SymmetricSecurityKey(key),
-                    ValidateIssuer = true,
-                    ValidIssuer = authConfig.Issuer,
-                    ValidateAudience = true,
-                    ValidAudience = authConfig.Audience,
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
                     ValidateLifetime = true,
                     ClockSkew = TimeSpan.Zero
                 };
@@ -66,7 +64,7 @@ public static class SignalRConfiguration
                         }
                         return Task.CompletedTask;
                     },
-                    // OnTokenValidated = context => AuthenticationConfiguration.ValidateUserTokenAsync(context, "i")
+                    OnTokenValidated = context => AuthenticationConfiguration.ValidateUserTokenAsync(context, "i")
                 };
             });
     }
