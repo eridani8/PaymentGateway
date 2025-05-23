@@ -70,7 +70,7 @@ public class DeviceEndpoints : ICarterModule
         return Results.Json(devices);
     }
     
-    private static IResult GetUserDevices(ClaimsPrincipal user, bool onlyAvailable, bool onlyOnline)
+    private static IResult GetUserDevices(ClaimsPrincipal user, bool onlyAvailable = false, bool onlyOnline = false)
     {
         var currentUserId = user.GetCurrentUserId();
         if (currentUserId == Guid.Empty) return Results.Unauthorized();
