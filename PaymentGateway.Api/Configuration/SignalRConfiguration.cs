@@ -66,30 +66,7 @@ public static class SignalRConfiguration
                         }
                         return Task.CompletedTask;
                     },
-                    OnTokenValidated = async context =>
-                    {
-                        var userManager = context.HttpContext.RequestServices.GetRequiredService<UserManager<UserEntity>>();
-                        var userId = context.Principal?.FindFirst("i")?.Value;
-                        
-                        if (string.IsNullOrEmpty(userId) || !Guid.TryParse(userId, out _))
-                        {
-                            context.Fail("Неверный идентификатор пользователя");
-                            return;
-                        }
-
-                        var user = await userManager.FindByIdAsync(userId);
-                        if (user is null)
-                        {
-                            context.Fail("Пользователь не найден");
-                            return;
-                        }
-
-                        if (!user.IsActive)
-                        {
-                            context.Fail("Пользователь деактивирован");
-                            return;
-                        }
-                    }
+                    OnTokenValidated = context => AuthenticationConfiguration.ValidateUserTokenAsync(context, "i")
                 };
             });
     }
