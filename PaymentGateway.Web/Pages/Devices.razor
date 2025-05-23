@@ -86,6 +86,15 @@
                     </Columns>
                     <ChildRowContent Context="rowContext">
                         <MudStack>
+                            @if (rowContext.Item.RequisiteId != null)
+                            {
+                                <MudTooltip Placement="Placement.Left" Text="Id реквизита">
+                                    <MudStack Row="true">
+                                        <MudIcon Icon="@Icons.Material.Filled.RequestPage" Class="mr-2"/>
+                                        <MudText Typo="Typo.body1">@rowContext.Item.RequisiteId</MudText>
+                                    </MudStack>
+                                </MudTooltip>
+                            }
                             <MudTooltip Placement="Placement.Left" Text="Id устройства">
                                 <MudStack Row="true">
                                     <MudIcon Icon="@Icons.Material.Filled.Smartphone" Class="mr-2"/>

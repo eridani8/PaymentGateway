@@ -32,16 +32,20 @@ public class RequisiteRepository(
             .Include(r => r.Payment)
             .Include(r => r.User)
             .Include(r => r.Device)
-            .Where(r => r.IsActive && r.Status == RequisiteStatus.Active && r.PaymentId == null &&
-                        (
-                            (r.WorkFrom == TimeOnly.MinValue && r.WorkTo == TimeOnly.MinValue) ||
-                            (r.WorkFrom <= r.WorkTo && currentTimeOnly >= r.WorkFrom &&
-                             currentTimeOnly <= r.WorkTo) ||
-                            (r.WorkFrom > r.WorkTo &&
-                             (currentTimeOnly >= r.WorkFrom || currentTimeOnly <= r.WorkTo))
-                        ) &&
-                        (r.User.MaxDailyMoneyReceptionLimit == 0 ||
-                         r.User.ReceivedDailyFunds < r.User.MaxDailyMoneyReceptionLimit));
+            .Where(r =>
+                r.IsActive &&
+                r.Status == RequisiteStatus.Active &&
+                r.PaymentId == null &&
+                r.DeviceId != null &&
+                (
+                    (r.WorkFrom == TimeOnly.MinValue && r.WorkTo == TimeOnly.MinValue) ||
+                    (r.WorkFrom <= r.WorkTo && currentTimeOnly >= r.WorkFrom &&
+                     currentTimeOnly <= r.WorkTo) ||
+                    (r.WorkFrom > r.WorkTo &&
+                     (currentTimeOnly >= r.WorkFrom || currentTimeOnly <= r.WorkTo))
+                ) &&
+                (r.User.MaxDailyMoneyReceptionLimit == 0 ||
+                 r.User.ReceivedDailyFunds < r.User.MaxDailyMoneyReceptionLimit));
 
         return gatewayConfig.Value.AppointmentAlgorithm switch
         {

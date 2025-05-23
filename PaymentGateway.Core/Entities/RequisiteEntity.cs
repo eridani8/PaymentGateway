@@ -194,11 +194,15 @@ public class RequisiteEntity : BaseEntity
 
     public RequisiteStatus DetermineStatus(DateTime now, TimeOnly nowTimeOnly)
     {
-        if (LimitReached())
-            return RequisiteStatus.Inactive;
+        if (DeviceId is null)
+        {
+            return RequisiteStatus.Frozen;
+        }
 
-        if (!IsWorkingTime(nowTimeOnly))
+        if (LimitReached() || !IsWorkingTime(nowTimeOnly))
+        {
             return RequisiteStatus.Inactive;
+        }
 
         return IsCooldownOver(now)
             ? RequisiteStatus.Active
