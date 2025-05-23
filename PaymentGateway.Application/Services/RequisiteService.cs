@@ -60,17 +60,34 @@ public class RequisiteService(
         {
             return Result.Failure<RequisiteDto>(DeviceErrors.BindingError);
         }
-        
-        deviceDto.BindingAt = DateTime.UtcNow;
 
-        var device = mapper.Map<DeviceEntity>(deviceDto);
+        var device = await unit.DeviceRepository.GetDeviceById(deviceDto.Id);
+        var hasDeviceInBase = false;
+        if (device is null)
+        {
+            deviceDto.BindingAt = DateTime.UtcNow;
+            device = mapper.Map<DeviceEntity>(deviceDto);
+        }
+        else
+        {
+            device.BindingAt = DateTime.UtcNow;
+            hasDeviceInBase = true;
+        }
         
         var requisite = mapper.Map<RequisiteEntity>(dto, opts => { opts.Items["UserId"] = userId; });
         
         requisite.User = user;
         requisite.DeviceId = device.Id;
 
-        await unit.DeviceRepository.Add(device);
+        if (!hasDeviceInBase)
+        {
+            await unit.DeviceRepository.Add(device);
+        }
+        else
+        {
+            unit.DeviceRepository.Update(device);
+        }
+
         await unit.RequisiteRepository.Add(requisite);
         await unit.Commit();
         

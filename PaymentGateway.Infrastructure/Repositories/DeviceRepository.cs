@@ -9,6 +9,13 @@ public class DeviceRepository(
     AppDbContext context)
     : RepositoryBase<DeviceEntity>(context), IDeviceRepository
 {
+    public async Task<DeviceEntity?> GetDeviceById(Guid id)
+    {
+        return await GetSet()
+            .Include(d => d.User)
+            .FirstOrDefaultAsync();
+    }
+
     public async Task<List<DeviceEntity>> GetAllDevices()
     {
         return await GetSet()

@@ -9,6 +9,11 @@ public class CachedDeviceRepository(DeviceRepository repository, IMemoryCache ca
 {
     protected override string CacheKeyPrefix => "Devices";
 
+    public Task<DeviceEntity?> GetDeviceById(Guid id)
+    {
+        return Repository.GetDeviceById(id);
+    }
+
     public Task<List<DeviceEntity>> GetAllDevices()
     {
         return GetCachedData(GetCacheKey(), Repository.GetAllDevices);
