@@ -128,6 +128,9 @@ public class GatewayHandler(
             try
             {
                 var requisite = activeRequisites.FirstOrDefault(r =>
+                    r.DeviceId is { } deviceId &&
+                    DeviceHub.DeviceByIdAndUserId(deviceId, r.UserId) is { } device &&
+                    device.State &&
                     r.DayLimit >= payment.Amount &&
                     (r.DayLimit - r.DayReceivedFunds) >= payment.Amount &&
                     (r.MonthLimit == 0 || r.MonthLimit >= payment.Amount) &&
