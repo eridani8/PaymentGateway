@@ -65,9 +65,7 @@ public class DeviceEndpoints : ICarterModule
 
     private static IResult GetDevicesByUserId(Guid userId)
     {
-        var devices = DeviceHub.Devices.Values
-            .Where(d => d.UserId == userId && d.BindingAt == DateTime.MinValue)
-            .ToList();
+        var devices = DeviceHub.AvailableDevicesByUserId(userId);
 
         return Results.Json(devices);
     }
@@ -77,8 +75,7 @@ public class DeviceEndpoints : ICarterModule
         var currentUserId = user.GetCurrentUserId();
         if (currentUserId == Guid.Empty) return Results.Unauthorized();
 
-        var devices = DeviceHub.Devices.Values
-            .Where(d => d.UserId == currentUserId);
+        var devices = DeviceHub.UserDevices(currentUserId);
 
         if (onlyAvailable)
         {

@@ -51,10 +51,7 @@ public class RequisiteService(
             return Result.Failure<RequisiteDto>(RequisiteErrors.DuplicateRequisite);
         }
 
-        var deviceDto = DeviceHub.Devices.Values
-            .FirstOrDefault(d =>
-                d.UserId == userId &&
-                d.BindingAt == DateTime.MinValue);
+        var deviceDto = DeviceHub.AvailableDeviceByUserId(userId);
 
         if (deviceDto is null)
         {
@@ -177,10 +174,7 @@ public class RequisiteService(
 
             if (device is not null)
             {
-                var deviceDto = DeviceHub.Devices.Values
-                    .FirstOrDefault(d => 
-                        d.UserId == user.Id && 
-                        d.Id == device.Id);
+                var deviceDto = DeviceHub.DeviceByIdAndUserId(device.Id, userId);
                 if (deviceDto is not null)
                 {
                     deviceDto.BindingAt = DateTime.MinValue;
