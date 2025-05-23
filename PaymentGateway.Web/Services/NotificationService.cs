@@ -30,7 +30,7 @@ public class NotificationService(
         
         if (string.IsNullOrEmpty(currentToken))
         {
-            logger.LogWarning("Токен отсутствует при запросе AccessTokenProvider");
+            logger.LogWarning("Токен отсутствует при запросе");
             await authStateProvider.MarkUserAsLoggedOut();
             throw new InvalidOperationException("Токен не найден");
         }

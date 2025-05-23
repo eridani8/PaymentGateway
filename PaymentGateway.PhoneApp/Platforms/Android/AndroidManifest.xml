@@ -6,7 +6,7 @@
                  android:roundIcon="@mipmap/appicon_round"
                  android:supportsRtl="true"
                  android:usesCleartextTraffic="true">
-        <!-- usesCleartextTraffic TODO -->
+        <!-- usesCleartextTraffic TODO https connection -->
         <service android:name=".BackgroundService"
                  android:enabled="true"
                  android:exported="false"

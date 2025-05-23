@@ -70,9 +70,9 @@ try
         }
     });
 
-    app.UseCors("AllowAll"); // TODO
+    app.UseCors("AllowAll");
     
-    // app.UseHttpsRedirection(); // TODO
+    // app.UseHttpsRedirection(); // TODO https connection
     
     app.UseWebSockets(new WebSocketOptions
     {

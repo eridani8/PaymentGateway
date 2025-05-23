@@ -266,7 +266,7 @@ public class BaseSignalRService(
             {
                 case HttpRequestException { StatusCode: HttpStatusCode.Unauthorized }:
                     IsLoggedIn = false;
-                    logger.LogError(e, "Неверный токен");
+                    logger.LogError(e, "Токен недействителен");
                     break;
                 case HttpRequestException
                 {

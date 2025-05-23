@@ -12,24 +12,19 @@ public partial class QrScannerPage : ContentPage
         InitializeComponent();
     }
 
-    private async void OnBarcodesDetected(object? sender, BarcodeDetectionEventArgs e)
+    private async void OnBarcodesDetected(object? sender, BarcodeDetectionEventArgs? e)
     {
         try
         {
             if (_isProcessing) return;
             _isProcessing = true;
 
-            if (e?.Results == null || e.Results.Length <= 0) return;
+            if (e?.Results is not { Length: > 0 }) return;
             
             var result = e.Results[0];
             if (string.IsNullOrEmpty(result?.Value)) return;
 
             OnQrCodeScanned?.Invoke(this, result.Value);
-            
-            if (Navigation.NavigationStack.Count > 0)
-            {
-                await Navigation.PopAsync();
-            }
         }
         catch
         {

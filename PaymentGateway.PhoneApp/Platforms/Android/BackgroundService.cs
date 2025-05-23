@@ -73,8 +73,6 @@ public class BackgroundService : Service
 
         ReleaseWakeLock();
 
-        _backgroundServiceManager.SetRunningState(false);
-
         base.OnDestroy();
     }
 
@@ -101,7 +99,6 @@ public class BackgroundService : Service
 
     private async Task StartBackgroundProcess()
     {
-        _backgroundServiceManager.SetRunningState(true);
         _deviceService.IsInitializing = true;
         UpdateNotification();
 
@@ -109,22 +106,19 @@ public class BackgroundService : Service
         
         try
         {
-            await _deviceService.InitializeAsync();
+            await _deviceService.Authorize();
         }
         finally
         {
             _deviceService.IsInitializing = false;
-            UpdateNotification();
         }
     }
 
     private async Task StopBackgroundProcess()
     {
-        _backgroundServiceManager.SetRunningState(false);
         await _deviceService.Stop();
-
+        
         ReleaseWakeLock();
-        UpdateNotification();
     }
 
     private void UpdateNotification()
@@ -157,7 +151,7 @@ public class BackgroundService : Service
 
     private string GetButtonText()
     {
-        if (_deviceService.IsInitializing || _deviceService.IsServiceUnavailable)
+        if (_deviceService.IsInitializing || _deviceService.IsServiceUnavailable || !_deviceService.IsLoggedIn)
         {
             return string.Empty;
         }

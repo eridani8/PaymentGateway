@@ -60,7 +60,7 @@ public static class MauiProgram
         var liteContext = new LiteContext(settings!);
         var sink = new InMemoryLogSink(liteContext);
 
-        var levelSwitch = new LoggingLevelSwitch(LogEventLevel.Debug); // TODO
+        var levelSwitch = new LoggingLevelSwitch(LogEventLevel.Debug); // TODO logs level
         Log.Logger = new LoggerConfiguration()
             .MinimumLevel.ControlledBy(levelSwitch)
             .Enrich.FromLogContext()

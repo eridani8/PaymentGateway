@@ -35,12 +35,12 @@ public static class OpenTelemetryConfiguration
                     // .AddEntityFrameworkCoreInstrumentation(options =>
                     // {
                     //     options.SetDbStatementForText = true;
-                    // }) // TODO
+                    // }) // TODO ef core logs
                     .AddSignalRInstrumentation()
                     .AddOtlpExporter(options =>
                     {
                         options.Endpoint = new Uri($"{otlpConfig.Endpoint}/ingest/otlp/v1/traces");
-                        options.Protocol = OtlpExportProtocol.HttpProtobuf; // TODO
+                        options.Protocol = OtlpExportProtocol.HttpProtobuf; // TODO https connection
                         options.Headers = $"X-Seq-ApiKey={otlpConfig.Token}";
                     });
             })
@@ -53,7 +53,7 @@ public static class OpenTelemetryConfiguration
                     .AddOtlpExporter(options =>
                     {
                         options.Endpoint = new Uri($"{otlpConfig.Endpoint}/ingest/otlp/v1/metrics");
-                        options.Protocol = OtlpExportProtocol.HttpProtobuf; // TODO
+                        options.Protocol = OtlpExportProtocol.HttpProtobuf; // TODO https connection
                         options.Headers = $"X-Seq-ApiKey={otlpConfig.Token}";
                     });
             });

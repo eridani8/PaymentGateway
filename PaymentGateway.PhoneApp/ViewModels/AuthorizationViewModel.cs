@@ -9,11 +9,8 @@ using PaymentGateway.PhoneApp.Pages;
 namespace PaymentGateway.PhoneApp.ViewModels;
 
 public partial class AuthorizationViewModel(
-    IAlertService alertService,
     ILogger<AuthorizationViewModel> logger,
-    DeviceService deviceService,
-    IBackgroundServiceManager backgroundServiceManager,
-    LiteContext context)
+    DeviceService deviceService)
     : ObservableObject
 {
     [ObservableProperty] private DeviceService _deviceService = deviceService;
@@ -21,77 +18,37 @@ public partial class AuthorizationViewModel(
     [RelayCommand]
     private async Task Logout()
     {
-        await DeviceService.Stop();
-        ClearToken();
-        DeviceService.RemoveToken();
-        DeviceService.IsLoggedIn = false;
-        DeviceService.UpdateDelegate?.Invoke();
+        await DeviceService.Logout();
     }
 
     [RelayCommand]
     private async Task Authorize()
     {
-        if (string.IsNullOrEmpty(DeviceService.AccessToken)) return;
-        
-        try
-        {
-            if (!await DeviceService.InitializeAsync())
-            {
-                await FailureConnection();
-                return;
-            }
-
-            if (context.GetToken() != DeviceService.AccessToken)
-            {
-                DeviceService.SaveToken();
-                DeviceService.UpdateDelegate?.Invoke();
-            }
-            
-            if (!backgroundServiceManager.IsRunning)
-            {
-                var intent = new Intent(Platform.CurrentActivity!, typeof(BackgroundService));
-                intent.SetAction(AndroidConstants.ActionStart);
-                Platform.CurrentActivity!.StartService(intent);
-            }
-        }
-        catch
-        {
-            await FailureConnection();
-        }
+        await DeviceService.Authorize();
     }
 
     [RelayCommand]
     private async Task ScanQr()
     {
-        try
+        DeviceService.ClearToken();
+            
+        var scannerPage = new QrScannerPage();
+        scannerPage.OnQrCodeScanned += async (_, code) =>
         {
-            var scannerPage = new QrScannerPage();
-            scannerPage.OnQrCodeScanned += async (_, code) =>
+            DeviceService.AccessToken = code;
+            if (await DeviceService.Authorize())
             {
-                DeviceService.AccessToken = code;
-                await Authorize();
-            };
+                await MainThread.InvokeOnMainThreadAsync(async () =>
+                {
+                    await Shell.Current.Navigation.PopAsync();
+                });
+            }
+            else
+            {
+                await Task.Delay(3000);
+            }
+        };
 
-            await Shell.Current.Navigation.PushAsync(scannerPage);
-        }
-        catch (Exception e)
-        {
-            logger.LogError(e, "Ошибка при сканировании QR-кода");
-            await alertService.ShowAlertAsync("Ошибка", "Не удалось отсканировать QR-код", "OK");
-        }
-    }
-    
-    private async Task FailureConnection()
-    {
-        if (!DeviceService.IsServiceUnavailable)
-        {
-            ClearToken();
-            await alertService.ShowAlertAsync("Ошибка", "Не удалось выполнить авторизацию", "OK");
-        }
-    }
-
-    private void ClearToken()
-    {
-        DeviceService.AccessToken = string.Empty;
+        await Shell.Current.Navigation.PushAsync(scannerPage);
     }
 }

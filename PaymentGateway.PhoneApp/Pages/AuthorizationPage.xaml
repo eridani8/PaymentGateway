@@ -21,7 +21,7 @@
         <VerticalStackLayout Grid.Row="0"
                              Spacing="10"
                              IsVisible="{Binding DeviceService.IsServiceUnavailable, Converter={StaticResource InverseBoolConverter}}">
-            <Label Text="Токен доступа можно скопировать на странице устройств"
+            <Label Text="Токен доступа можно сканировать или скопировать на странице устройств"
                    HorizontalOptions="Center"
                    LineBreakMode="WordWrap"
                    Margin="0,0,0,10" />

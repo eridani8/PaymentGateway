@@ -66,7 +66,7 @@ public static class SignalRConfiguration
                         }
                         return Task.CompletedTask;
                     },
-                    OnTokenValidated = context => AuthenticationConfiguration.ValidateUserTokenAsync(context, "i")
+                    // OnTokenValidated = context => AuthenticationConfiguration.ValidateUserTokenAsync(context, "i")
                 };
             });
     }

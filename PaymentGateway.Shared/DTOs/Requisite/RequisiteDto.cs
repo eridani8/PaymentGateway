@@ -5,7 +5,7 @@ using PaymentGateway.Shared.Enums;
 
 namespace PaymentGateway.Shared.DTOs.Requisite;
 
-public class RequisiteDto // TODO CanActivate
+public class RequisiteDto // TODO freeze after update
 {
     public Guid Id { get; set; }
     public UserDto? User { get; set; }
