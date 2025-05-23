@@ -9,7 +9,6 @@ using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Application.Results;
 using PaymentGateway.Core.Entities;
 using PaymentGateway.Infrastructure.Interfaces;
-using PaymentGateway.Shared.DTOs.Device;
 using PaymentGateway.Shared.DTOs.Requisite;
 using PaymentGateway.Shared.DTOs.User;
 using PaymentGateway.Shared.Enums;
@@ -55,7 +54,7 @@ public class RequisiteService(
         
         requisite.User = user;
         
-        var deviceDto = DeviceHub.AvailableDeviceByUserId(userId);
+        var deviceDto = DeviceHub.DeviceByIdAndUserId(dto.DeviceId, userId);
 
         if (deviceDto is null)
         {
@@ -87,6 +86,8 @@ public class RequisiteService(
         {
             unit.DeviceRepository.Update(device);
         }
+
+        logger.LogInformation("Устройство {DeviceId} привязано к реквизиту {RequisiteId} пользователя {UserId}", device.Id, requisite.Id, requisite.UserId);
 
         await unit.RequisiteRepository.Add(requisite);
         await unit.Commit();
@@ -137,10 +138,61 @@ public class RequisiteService(
 
         var requisite = await unit.RequisiteRepository.GetRequisiteById(id);
         if (requisite is null) return Result.Failure<RequisiteDto>(RequisiteErrors.RequisiteNotFound);
+        var sourceDeviceId = requisite.DeviceId;
         
-        requisite.Status = RequisiteStatus.Frozen;
         requisite = mapper.Map(dto, requisite);
 
+        if (requisite.DeviceId != null && sourceDeviceId != dto.DeviceId)
+        {
+            var deviceDto = DeviceHub.DeviceByIdAndUserId(dto.DeviceId, requisite.UserId);
+            
+            if (deviceDto is null)
+            {
+                return Result.Failure<RequisiteDto>(DeviceErrors.DeviceShouldBeOnline);
+            }
+            
+            var device = await unit.DeviceRepository.GetDeviceById(deviceDto.Id);
+            var hasDeviceInBase = false;
+            if (device is null)
+            {
+                deviceDto.BindingAt = DateTime.UtcNow;
+                deviceDto.RequisiteId = requisite.Id;
+                device = mapper.Map<DeviceEntity>(deviceDto);
+            }
+            else
+            {
+                device.BindingAt = DateTime.UtcNow;
+                device.RequisiteId = requisite.Id;
+                hasDeviceInBase = true;
+            }
+            
+            requisite.DeviceId = device.Id;
+            
+            if (!hasDeviceInBase)
+            {
+                await unit.DeviceRepository.Add(device);
+            }
+            else
+            {
+                unit.DeviceRepository.Update(device);
+            }
+            logger.LogInformation("Устройство {DeviceId} привязано к реквизиту {RequisiteId} пользователя {UserId}", device.Id, requisite.Id, requisite.UserId);
+
+            if (sourceDeviceId != null && sourceDeviceId != dto.DeviceId)
+            {
+                var oldDevice = await unit.DeviceRepository.GetDeviceById(sourceDeviceId.Value);
+                if (oldDevice != null)
+                {
+                    oldDevice.RequisiteId = null;
+                    oldDevice.BindingAt = DateTime.MinValue;
+                    unit.DeviceRepository.Update(oldDevice);
+                    logger.LogInformation("Устройство {DeviceId} отвязано от реквизита {RequisiteId} пользователя {UserId}", oldDevice.Id, requisite.Id, requisite.UserId);
+                }
+            }
+        }
+        
+        requisite.Status = RequisiteStatus.Frozen;
+        
         unit.RequisiteRepository.Update(requisite);
         await unit.Commit();
 
@@ -168,6 +220,7 @@ public class RequisiteService(
                 device.BindingAt = DateTime.MinValue;
                 device.RequisiteId = null;
                 unit.DeviceRepository.Update(device);
+                logger.LogInformation("Устройство {DeviceId} отвязано от реквизита {RequisiteId} пользователя {UserId}", device.Id, requisite.Id, userId);
             }
             
             unit.RequisiteRepository.Delete(requisite);

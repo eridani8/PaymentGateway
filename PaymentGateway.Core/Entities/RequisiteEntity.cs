@@ -196,7 +196,7 @@ public class RequisiteEntity : BaseEntity
     {
         if (LimitReached() || !IsWorkingTime(nowTimeOnly))
         {
-            return RequisiteStatus.Inactive;
+            return RequisiteStatus.Frozen;
         }
 
         return IsCooldownOver(now)

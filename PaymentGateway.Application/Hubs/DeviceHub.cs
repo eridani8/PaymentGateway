@@ -29,15 +29,7 @@ public class DeviceHub(
                 d.UserId == userId &&
                 d.Id == id);
     }
-
-    public static DeviceDto? AvailableDeviceByUserId(Guid userId)
-    {
-        return Devices.Values
-            .FirstOrDefault(d =>
-                d.UserId == userId &&
-                d.BindingAt == DateTime.MinValue);
-    }
-
+    
     public static List<DeviceDto> AvailableDevicesByUserId(Guid userId)
     {
         return Devices.Values
