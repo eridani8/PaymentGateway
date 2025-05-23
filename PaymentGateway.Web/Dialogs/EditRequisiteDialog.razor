@@ -215,7 +215,8 @@
             Cooldown = Requisite.Cooldown,
             Priority = Requisite.Priority,
             WorkFrom = Requisite.WorkFrom,
-            WorkTo = Requisite.WorkTo
+            WorkTo = Requisite.WorkTo,
+            DeviceId = Requisite.Device?.Id ?? Guid.Empty
         };
 
         _useWorkingHours = Requisite.WorkTo != TimeOnly.MinValue;
@@ -228,7 +229,7 @@
         _processing = true;
         try
         {
-            _devices = await DeviceService.GetUserDevices(true, true);
+            _devices = await DeviceService.GetUserDevices(false, true);
         }
         catch (Exception e)
         {
