@@ -35,15 +35,15 @@ public class GatewayHandler(
             {
                 requisite.ProcessStatus(now, nowTimeOnly, out var status);
                 
-                if (requisite.DeviceId != null)
-                {
-                    var deviceDto = DeviceHub.DeviceByIdAndUserId(requisite.DeviceId.Value, requisite.UserId);
-                    if (deviceDto == null) requisite.Status = RequisiteStatus.Frozen;
-                    if (deviceDto is { State: false })
-                    {
-                        requisite.Status = RequisiteStatus.Frozen;
-                    }
-                }
+                // if (requisite.DeviceId != null)
+                // {
+                //     var deviceDto = DeviceHub.DeviceByIdAndUserId(requisite.DeviceId.Value, requisite.UserId);
+                //     if (deviceDto == null) requisite.Status = RequisiteStatus.Frozen;
+                //     if (deviceDto is { State: false })
+                //     {
+                //         requisite.Status = RequisiteStatus.Frozen;
+                //     }
+                // } // TODO device
 
                 if (requisite.Status != status)
                 {

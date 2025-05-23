@@ -175,18 +175,18 @@ public class DeviceHub(
             device.State = false;
             device.ConnectionId = null;
             
-            if (device.RequisiteId is { } requisiteId)
-            {
-                var requisite = await unit.RequisiteRepository
-                    .GetRequisiteById(requisiteId);
-                if (requisite is not null)
-                {
-                    requisite.Status = RequisiteStatus.Frozen;
-                    unit.RequisiteRepository.Update(requisite);
-                    await unit.Commit();
-                    await notificationService.NotifyRequisiteUpdated(mapper.Map<RequisiteDto>(requisite));
-                }
-            }
+            // if (device.RequisiteId is { } requisiteId)
+            // {
+            //     var requisite = await unit.RequisiteRepository
+            //         .GetRequisiteById(requisiteId);
+            //     if (requisite is not null)
+            //     {
+            //         requisite.Status = RequisiteStatus.Frozen;
+            //         unit.RequisiteRepository.Update(requisite);
+            //         await unit.Commit();
+            //         await notificationService.NotifyRequisiteUpdated(mapper.Map<RequisiteDto>(requisite));
+            //     }
+            // } // TODO device
             
             await notificationService.DeviceDisconnected(device);
             logger.LogInformation("Устройство отключено: {DeviceName} (ID: {DeviceId})", device.DeviceName, device.Id);
