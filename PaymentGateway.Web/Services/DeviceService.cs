@@ -40,7 +40,12 @@ public class DeviceService(
 
     public async Task<List<DeviceDto>> GetUserDevices(bool onlyAvailable = false, bool onlyOnline = false)
     {
-        var response = await GetRequest($"{apiEndpoint}/user?onlyAvailable={onlyAvailable}&onlyOnline={onlyOnline}");
+        var queryParams = new List<string>();
+        if (onlyAvailable) queryParams.Add("onlyAvailable=true");
+        if (onlyOnline) queryParams.Add("onlyOnline=true");
+        var query = queryParams.Count > 0 ? "?" + string.Join("&", queryParams) : "";
+        
+        var response = await GetRequest($"{apiEndpoint}/user{query}");
         if (response.Code == HttpStatusCode.OK && !string.IsNullOrEmpty(response.Content))
         {
             return JsonSerializer.Deserialize<List<DeviceDto>>(response.Content, JsonOptions) ?? [];
