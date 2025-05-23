@@ -7,7 +7,7 @@ public static class AndroidConstants
     public const int NotificationId = 9999;
     public const string ChannelId = "PaymentGatewayChannel";
     public const string ChannelName = "PaymentGatewayForegroundService";
-    public const string ChannelDescription = "Фоновый процесс отслеживания уведомлений и СМС";
+    public const string ChannelDescription = "Отслеживания уведомлений и СМС";
     public const string WakeLockTag = "PaymentGateway::BackgroundServiceLock";
     
     public const int NotificationPermissionCode = 100;

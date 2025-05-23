@@ -30,7 +30,7 @@ public class BackgroundService : Service
         base.OnCreate();
         _notificationManager = (GetSystemService(NotificationService) as NotificationManager)!;
 
-        CreateNotificationChannel();
+        CreateNotificationChannels();
 
         var services = (ApplicationContext as IPlatformApplication)!.Services;
 
@@ -80,7 +80,7 @@ public class BackgroundService : Service
 
     public override StartCommandResult OnStartCommand(Intent? intent, StartCommandFlags flags, int startId)
     {
-        var initialNotification = BuildNotification(GetStatusText());
+        var initialNotification = BuildNotification(GetStatusText(), true);
         StartForeground(AndroidConstants.NotificationId, initialNotification, ForegroundService.TypeDataSync);
 
         if (string.IsNullOrEmpty(_deviceService.AccessToken)) return StartCommandResult.Sticky;
@@ -129,7 +129,7 @@ public class BackgroundService : Service
 
     private void UpdateNotification()
     {
-        var notification = BuildNotification(GetStatusText());
+        var notification = BuildNotification(GetStatusText(), false);
         _notificationManager.Notify(AndroidConstants.NotificationId, notification);
     }
 
@@ -185,9 +185,9 @@ public class BackgroundService : Service
         _wakeLock = null;
     }
 
-    private void CreateNotificationChannel()
+    private void CreateNotificationChannels()
     {
-        var channel = new NotificationChannel(
+        var normalChannel = new NotificationChannel(
             AndroidConstants.ChannelId,
             AndroidConstants.ChannelName,
             NotificationImportance.High)
@@ -195,17 +195,31 @@ public class BackgroundService : Service
             LockscreenVisibility = NotificationVisibility.Public,
             Description = AndroidConstants.ChannelDescription
         };
+        normalChannel.SetShowBadge(true);
+        normalChannel.EnableLights(true);
+        normalChannel.EnableVibration(true);
 
-        channel.SetShowBadge(true);
-        channel.Importance = NotificationImportance.High;
-        channel.EnableLights(true);
-        channel.EnableVibration(true);
+        var silentChannel = new NotificationChannel(
+                AndroidConstants.ChannelId + "_silent",
+                AndroidConstants.ChannelName + " (silent)",
+                NotificationImportance.Low)
+            {
+                LockscreenVisibility = NotificationVisibility.Public,
+                Description = AndroidConstants.ChannelDescription
+            };
+        silentChannel.SetShowBadge(false);
+        silentChannel.EnableLights(false);
+        silentChannel.EnableVibration(false);
+        silentChannel.SetSound(null, null);
 
-        _notificationManager.CreateNotificationChannel(channel);
+        _notificationManager.CreateNotificationChannel(normalChannel);
+        _notificationManager.CreateNotificationChannel(silentChannel);
     }
 
-    private Notification BuildNotification(string statusText)
+    private Notification BuildNotification(string statusText, bool silent)
     {
+        var channelId = silent ? AndroidConstants.ChannelId + "_silent" : AndroidConstants.ChannelId;
+        
         var contentIntent = new Intent(this, typeof(MainActivity));
         contentIntent.AddFlags(ActivityFlags.ClearTop | ActivityFlags.SingleTop);
 
@@ -231,18 +245,29 @@ public class BackgroundService : Service
             this, 3, authIntent,
             PendingIntentFlags.Immutable | PendingIntentFlags.UpdateCurrent);
 
-        var compatBuilder = new NotificationCompat.Builder(this, AndroidConstants.ChannelId)
+        var compatBuilder = new NotificationCompat.Builder(this, channelId)
             .SetContentText(statusText)
             .SetSmallIcon(ResourceConstant.Mipmap.appicon)
             .SetOngoing(true)
             .SetVisibility(NotificationCompat.VisibilityPublic)
             .SetCategory(NotificationCompat.CategoryService)
             .SetShowWhen(true)
-            .SetPriority(NotificationCompat.PriorityHigh)
-            .SetDefaults(NotificationCompat.DefaultAll)
             .SetColor(unchecked((int)0xFF7D5BA6))
             .SetForegroundServiceBehavior(NotificationCompat.ForegroundServiceImmediate)
             .SetContentIntent(pendingIntent);
+        
+        if (silent)
+        {
+            compatBuilder.SetPriority(NotificationCompat.PriorityLow);
+            compatBuilder.SetDefaults(0);
+            compatBuilder.SetSound(null);
+            compatBuilder.SetVibrate(null);
+        }
+        else
+        {
+            compatBuilder.SetPriority(NotificationCompat.PriorityHigh);
+            compatBuilder.SetDefaults(NotificationCompat.DefaultAll);
+        }
 
         var style = new NotificationCompat.BigTextStyle().BigText(statusText);
         compatBuilder.SetStyle(style);
