@@ -3,12 +3,14 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+using PaymentGateway.Application.Hubs;
 using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Core.Entities;
 using PaymentGateway.Infrastructure.Interfaces;
 using PaymentGateway.Shared.DTOs.Payment;
 using PaymentGateway.Shared.DTOs.Requisite;
 using PaymentGateway.Shared.DTOs.User;
+using PaymentGateway.Shared.Enums;
 
 namespace PaymentGateway.Application.Services;
 
@@ -32,6 +34,16 @@ public class GatewayHandler(
             try
             {
                 requisite.ProcessStatus(now, nowTimeOnly, out var status);
+                
+                if (requisite.DeviceId != null)
+                {
+                    var deviceDto = DeviceHub.DeviceByIdAndUserId(requisite.DeviceId.Value, requisite.UserId);
+                    if (deviceDto == null) requisite.Status = RequisiteStatus.Frozen;
+                    if (deviceDto is { State: false })
+                    {
+                        requisite.Status = RequisiteStatus.Frozen;
+                    }
+                }
 
                 if (requisite.Status != status)
                 {

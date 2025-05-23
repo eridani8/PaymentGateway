@@ -7,7 +7,10 @@ using PaymentGateway.Shared.DTOs.Device;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using PaymentGateway.Core.Entities;
+using PaymentGateway.Infrastructure.Data;
+using PaymentGateway.Shared.DTOs.Requisite;
 using PaymentGateway.Shared.DTOs.User;
+using PaymentGateway.Shared.Enums;
 
 namespace PaymentGateway.Application.Hubs;
 
@@ -16,7 +19,8 @@ public class DeviceHub(
     ILogger<DeviceHub> logger,
     INotificationService notificationService,
     UserManager<UserEntity> userManager,
-    IMapper mapper) : Hub<IDeviceClientHub>
+    IMapper mapper,
+    UnitOfWork unit) : Hub<IDeviceClientHub>
 {
     public static ConcurrentDictionary<Guid, DeviceDto> Devices { get; } = new();
     private readonly ConcurrentDictionary<string, CancellationTokenSource> _registrationTimeouts = new();
@@ -170,7 +174,20 @@ public class DeviceHub(
         {
             device.State = false;
             device.ConnectionId = null;
-
+            
+            if (device.RequisiteId is { } requisiteId)
+            {
+                var requisite = await unit.RequisiteRepository
+                    .GetRequisiteById(requisiteId);
+                if (requisite is not null)
+                {
+                    requisite.Status = RequisiteStatus.Frozen;
+                    unit.RequisiteRepository.Update(requisite);
+                    await unit.Commit();
+                    await notificationService.NotifyRequisiteUpdated(mapper.Map<RequisiteDto>(requisite));
+                }
+            }
+            
             await notificationService.DeviceDisconnected(device);
             logger.LogInformation("Устройство отключено: {DeviceName} (ID: {DeviceId})", device.DeviceName, device.Id);
         }
