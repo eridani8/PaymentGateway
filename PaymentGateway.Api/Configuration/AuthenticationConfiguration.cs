@@ -93,18 +93,15 @@ public static class AuthenticationConfiguration
                 };
             });
 
-        builder.Services.AddAuthorization(options =>
-        {
-            options.DefaultPolicy = new AuthorizationPolicyBuilder()
+        builder.Services.AddAuthorizationBuilder()
+            .SetDefaultPolicy(new AuthorizationPolicyBuilder()
                 .RequireAuthenticatedUser()
-                .Build();
-
-            options.AddPolicy("Notification", policy =>
+                .Build())
+            .AddPolicy("Notification", policy =>
             {
                 policy.AuthenticationSchemes.Add("Notification");
                 policy.RequireAuthenticatedUser();
                 policy.RequireRole("Admin", "Support", "User");
             });
-        });
     }
 } 
