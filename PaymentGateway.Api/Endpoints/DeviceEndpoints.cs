@@ -72,7 +72,7 @@ public class DeviceEndpoints : ICarterModule
         return Results.Json(devices);
     }
     
-    private static IResult GetUserDevices(ClaimsPrincipal user, bool onlyAvailable)
+    private static IResult GetUserDevices(ClaimsPrincipal user, bool onlyAvailable, bool onlyOnline)
     {
         var currentUserId = user.GetCurrentUserId();
         if (currentUserId == Guid.Empty) return Results.Unauthorized();
@@ -83,6 +83,11 @@ public class DeviceEndpoints : ICarterModule
         if (onlyAvailable)
         {
             devices = devices.Where(d => d.BindingAt == DateTime.MinValue);
+        }
+
+        if (onlyOnline)
+        {
+            devices = devices.Where(d => d.State);
         }
 
         return Results.Json(devices.ToList());
