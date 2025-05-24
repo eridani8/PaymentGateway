@@ -83,6 +83,11 @@ public class DeviceHub(
             await notificationService.NotifyDeviceUpdated(existingDevice);
             logger.LogInformation("Устройство подключено: {DeviceName} (ID: {DeviceId})", existingDevice.DeviceName,
                 existingDevice.Id);
+            
+            if (existingDevice.RequisiteId is not null)
+            {
+                await Clients.Caller.RegisterRequisite(existingDevice.RequisiteId.Value);
+            }
         }
         else
         {
@@ -127,11 +132,6 @@ public class DeviceHub(
             await notificationService.NotifyDeviceUpdated(deviceDto);
             logger.LogInformation("Новое устройство зарегистрировано: {DeviceName} (ID: {DeviceId})",
                 deviceDto.DeviceName, deviceDto.Id);
-
-            if (deviceDto.RequisiteId is not null)
-            {
-                await Clients.Caller.RegisterRequisite(deviceDto.RequisiteId.Value);
-            }
         }
     }
 
