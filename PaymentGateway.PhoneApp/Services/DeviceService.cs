@@ -206,10 +206,16 @@ public class DeviceService : BaseSignalRService
         HubConnection?.On(SignalREvents.DeviceApp.RegisterRequisite, (Guid? requisiteId) =>
         {
             RequisiteId = requisiteId;
-            var requisiteStr = requisiteId == null 
-                ? "null" 
-                : requisiteId.ToString();
-            _logger.LogInformation("Принят ID реквизита: {RequisiteId}", requisiteStr);
+            
+            if (requisiteId.HasValue)
+            {
+                _logger.LogInformation("ID реквизита: {RequisiteId}", requisiteId);
+            }
+            else
+            {
+                _logger.LogInformation("Очищен реквизит");
+            }
+            
             return Task.CompletedTask;
         });
     }
