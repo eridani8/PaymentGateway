@@ -117,6 +117,7 @@ public class RequisiteService(
         var requisite = await unit.RequisiteRepository.GetRequisiteById(id);
         if (requisite is null) return Result.Failure<RequisiteDto>(RequisiteErrors.RequisiteNotFound);
         
+        var deviceId = requisite.DeviceId;
         requisite = mapper.Map(dto, requisite);
 
         if (requisite.DeviceId == Guid.Empty && requisite.Device is { } currentDevice)
