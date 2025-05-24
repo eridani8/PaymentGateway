@@ -15,6 +15,5 @@ public interface INotificationService
     Task NotifyPaymentUpdated(PaymentDto payment);
     Task NotifyPaymentDeleted(Guid id, Guid? userId);
     Task NotifyRequisiteAssignmentAlgorithmChanged(RequisiteAssignmentAlgorithm algorithm);
-    Task DeviceConnected(DeviceDto device);
-    Task DeviceDisconnected(DeviceDto device);
+    Task NotifyDeviceUpdated(DeviceDto device);
 } 

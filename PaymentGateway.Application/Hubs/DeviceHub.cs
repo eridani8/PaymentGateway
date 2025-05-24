@@ -94,7 +94,7 @@ public class DeviceHub(
 
             CancelRegistrationTimeout(connectionId);
 
-            await notificationService.DeviceConnected(existingDevice);
+            await notificationService.NotifyDeviceUpdated(existingDevice);
             logger.LogInformation("Устройство подключено: {DeviceName} (ID: {DeviceId})", existingDevice.DeviceName,
                 existingDevice.Id);
         }
@@ -138,7 +138,7 @@ public class DeviceHub(
 
             CancelRegistrationTimeout(connectionId);
 
-            await notificationService.DeviceConnected(deviceDto);
+            await notificationService.NotifyDeviceUpdated(deviceDto);
             logger.LogInformation("Новое устройство зарегистрировано: {DeviceName} (ID: {DeviceId})",
                 deviceDto.DeviceName, deviceDto.Id);
         }
@@ -163,7 +163,7 @@ public class DeviceHub(
             device.State = false;
             device.ConnectionId = null;
             
-            await notificationService.DeviceDisconnected(device);
+            await notificationService.NotifyDeviceUpdated(device);
             logger.LogInformation("Устройство отключено: {DeviceName} (ID: {DeviceId})", device.DeviceName, device.Id);
         }
 

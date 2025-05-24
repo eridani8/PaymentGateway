@@ -185,7 +185,7 @@ public class NotificationService(
         }
     }
 
-    public async Task DeviceConnected(DeviceDto device)
+    public async Task NotifyDeviceUpdated(DeviceDto device)
     {
         try
         {
@@ -193,13 +193,13 @@ public class NotificationService(
             
             if (NotificationHub.GetUsersByRoles(["Admin"]) is { Count: > 0 } staffIds)
             {
-                var staffTask = hubContext.Clients.Clients(staffIds).DeviceConnected(device);
+                var staffTask = hubContext.Clients.Clients(staffIds).DeviceUpdated(device);
                 tasks.Add(staffTask);
             }
 
             if (NotificationHub.GetUserConnectionId(device.UserId) is { } connectionId)
             {
-                var userTask = hubContext.Clients.Client(connectionId).DeviceConnected(device);
+                var userTask = hubContext.Clients.Client(connectionId).DeviceUpdated(device);
                 tasks.Add(userTask);
             }
             
@@ -208,32 +208,6 @@ public class NotificationService(
         catch (Exception e)
         {
             logger.LogError(e, "Ошибка отправки уведомления онлайн устройства");
-        }
-    }
-
-    public async Task DeviceDisconnected(DeviceDto device)
-    {
-        try
-        {
-            var tasks = new List<Task>();
-            
-            if (NotificationHub.GetUsersByRoles(["Admin"]) is { Count: > 0 } staffIds)
-            {
-                var staffTask = hubContext.Clients.Clients(staffIds).DeviceDisconnected(device);
-                tasks.Add(staffTask);
-            }
-
-            if (NotificationHub.GetUserConnectionId(device.UserId) is { } connectionId)
-            {
-                var userTask = hubContext.Clients.Client(connectionId).DeviceDisconnected(device);
-                tasks.Add(userTask);
-            }
-            
-            await Task.WhenAll(tasks);
-        }
-        catch (Exception e)
-        {
-            logger.LogError(e, "Ошибка отправки уведомления оффлайн устройства");
         }
     }
 } 

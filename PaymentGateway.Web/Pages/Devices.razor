@@ -135,11 +135,10 @@
 
         await LoadDevices();
 
-        NotificationService.SubscribeToDeviceConnected(HandleDeviceConnected);
-        NotificationService.SubscribeToDeviceDisconnected(HandleDeviceDisconnected);
+        NotificationService.SubscribeToDeviceUpdated(HandleDeviceUpdated);
     }
 
-    private async void HandleDeviceConnected(DeviceDto deviceDto)
+    private async void HandleDeviceUpdated(DeviceDto deviceDto)
     {
         try
         {
@@ -162,28 +161,9 @@
         }
     }
 
-    private async void HandleDeviceDisconnected(DeviceDto deviceDto)
-    {
-        try
-        {
-            var device = _devices.FirstOrDefault(d => d.Id == deviceDto.Id);
-            if (device is null) return;
-
-            var index = _devices.IndexOf(device);
-            _devices[index] = deviceDto;
-
-            await InvokeAsync(StateHasChanged);
-        }
-        catch (Exception e)
-        {
-            Logger.LogError(e, "Ошибка при удалении устройства");
-        }
-    }
-
     public void Dispose()
     {
-        NotificationService.UnsubscribeFromDeviceConnected();
-        NotificationService.UnsubscribeFromDeviceDisconnected();
+        NotificationService.UnsubscribeFromDeviceUpdated();
     }
 
     private async Task LoadDevices()
