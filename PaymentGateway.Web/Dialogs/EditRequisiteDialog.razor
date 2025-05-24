@@ -157,7 +157,7 @@
                                Immediate="true">
                         @foreach (var device in _devices)
                         {
-                            <MudSelectItem Value="device.Id">@device.DeviceName</MudSelectItem>
+                            <MudSelectItem Value="@device.Id">@device.DeviceName</MudSelectItem>
                         }
                     </MudSelect>
                 </MudItem>

@@ -121,7 +121,7 @@ public class RequisiteService(
         
         var deviceId = requisite.DeviceId;
         requisite = mapper.Map(dto, requisite);
-
+        
         if (requisite.DeviceId == Guid.Empty && requisite.Device is { } currentDevice)
         {
             currentDevice.ClearBinding();
