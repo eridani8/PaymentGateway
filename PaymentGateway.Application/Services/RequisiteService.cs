@@ -56,7 +56,6 @@ public class RequisiteService(
         requisite.User = user;
         
         var deviceDto = DeviceHub.AvailableNotBindDeviceByIdAndUserId(dto.DeviceId, userId);
-
         if (deviceDto is null)
         {
             return Result.Failure<RequisiteDto>(DeviceErrors.DeviceShouldBeOnline);
@@ -155,6 +154,12 @@ public class RequisiteService(
         else if (requisite.DeviceId != Guid.Empty && requisite.DeviceId != deviceId &&
                  requisite.Device is { } replacedDevice)
         {
+            var deviceDto = DeviceHub.AvailableNotBindDeviceByIdAndUserId(dto.DeviceId, requisite.UserId);
+            if (deviceDto is null)
+            {
+                return Result.Failure<RequisiteDto>(DeviceErrors.DeviceShouldBeOnline);
+            }
+            
             replacedDevice.ClearBinding();
             requisite.ClearBinding();
             
@@ -167,13 +172,6 @@ public class RequisiteService(
             
             unit.DeviceRepository.Update(replacedDevice);
             logger.LogInformation("Устройство {DeviceId} отвязано от реквизита {RequisiteId} пользователя {UserId}", replacedDevice.Id, requisite.Id, requisite.UserId);
-            
-            var deviceDto = DeviceHub.AvailableNotBindDeviceByIdAndUserId(dto.DeviceId, requisite.UserId);
-
-            if (deviceDto is null)
-            {
-                return Result.Failure<RequisiteDto>(DeviceErrors.DeviceShouldBeOnline);
-            }
 
             var device = await BindDeviceToRequisite(deviceDto, requisite.Id);
             deviceDto.SetBinding(requisite.Id);
