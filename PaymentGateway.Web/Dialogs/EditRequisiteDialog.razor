@@ -157,11 +157,15 @@
                                Immediate="true">
                         @foreach (var device in _devices)
                         {
-                            <MudSelectItem Value="@device.Id">@device.DeviceName</MudSelectItem>
+                            var isHighlighted = _currentDevice.HasValue && device.Id == _currentDevice.Value;
+                            <MudSelectItem Value="@device.Id"
+                                           Style="@(isHighlighted ? "color: orange;" : null)">
+                                @device.DeviceName
+                            </MudSelectItem>
                         }
                     </MudSelect>
                 </MudItem>
-                
+
             </MudGrid>
 
             @if (!string.IsNullOrEmpty(_errorMessage))
@@ -198,6 +202,7 @@
     private TimeSpan? _workFromTime;
     private TimeSpan? _workToTime;
     private List<DeviceDto> _devices = [];
+    private Guid? _currentDevice;
 
     private readonly RequisiteUpdateDtoValidator _validator = new();
 
@@ -218,12 +223,12 @@
             WorkTo = Requisite.WorkTo,
             DeviceId = Requisite.Device?.Id ?? Guid.Empty
         };
-
+        _currentDevice = Requisite.Device?.Id ?? null;
         _useWorkingHours = Requisite.WorkTo != TimeOnly.MinValue;
         _workFromTime = _useWorkingHours ? new TimeSpan(Requisite.WorkFrom.Hour, Requisite.WorkFrom.Minute, 0) : new TimeSpan(9, 0, 0);
         _workToTime = _useWorkingHours ? new TimeSpan(Requisite.WorkTo.Hour, Requisite.WorkTo.Minute, 0) : new TimeSpan(18, 0, 0);
     }
-    
+
     protected override async Task OnInitializedAsync()
     {
         _processing = true;
