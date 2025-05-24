@@ -25,5 +25,7 @@ public static class SignalREvents
     {
         public const string RequestDeviceRegistration = "RequestDeviceRegistration";
         public const string RegisterDevice = "RegisterDevice";
+        public const string RegisterRequisite = "RegisterRequisite";
+        public const string TransactionReceived = "TransactionReceived";
     }
 }

@@ -40,6 +40,11 @@ public sealed class TransactionEntity : BaseEntity
     /// </summary>
     public DateTime ReceivedAt { get; set; }
     
+    [MaxLength(100)]
+    public string? AppName { get; set; }
+    [MaxLength(20)]
+    public string? Number { get; set; }
+    
     /// <summary>
     /// Оригинальный текст сообщения
     /// </summary>

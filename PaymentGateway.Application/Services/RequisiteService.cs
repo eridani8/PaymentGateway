@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using FluentValidation;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Npgsql;
@@ -23,7 +24,8 @@ public class RequisiteService(
     IValidator<RequisiteUpdateDto> updateValidator,
     ILogger<RequisiteService> logger,
     UserManager<UserEntity> userManager,
-    INotificationService notificationService) : IRequisiteService
+    INotificationService notificationService,
+    IHubContext<DeviceHub, IDeviceClientHub> deviceHubContext) : IRequisiteService
 {
     public async Task<Result<RequisiteDto>> CreateRequisite(RequisiteCreateDto dto, Guid userId)
     {
@@ -80,6 +82,11 @@ public class RequisiteService(
         await notificationService.NotifyRequisiteUpdated(requisiteDto);
         await notificationService.NotifyUserUpdated(userDto);
         await notificationService.NotifyDeviceUpdated(deviceDto);
+        
+        if (deviceDto.ConnectionId != null)
+        {
+            await deviceHubContext.Clients.Client(deviceDto.ConnectionId).RegisterRequisite(requisite.Id);
+        }
 
         return Result.Success(requisiteDto);
     }
@@ -135,6 +142,11 @@ public class RequisiteService(
             
             unit.DeviceRepository.Update(currentDevice);
             logger.LogInformation("Устройство {DeviceId} отвязано от реквизита {RequisiteId} пользователя {UserId}", currentDevice.Id, requisite.Id, requisite.UserId);
+            
+            if (deviceDto?.ConnectionId != null)
+            {
+                await deviceHubContext.Clients.Client(deviceDto.ConnectionId).RegisterRequisite(null);
+            }
         }
         else if (requisite.DeviceId != Guid.Empty && requisite.Device is null)
         {
@@ -150,6 +162,11 @@ public class RequisiteService(
             await notificationService.NotifyDeviceUpdated(deviceDto);
             requisite.DeviceId = device.Id;
             logger.LogInformation("Устройство {DeviceId} привязано к реквизиту {RequisiteId} пользователя {UserId}", device.Id, requisite.Id, requisite.UserId);
+            
+            if (deviceDto.ConnectionId != null)
+            {
+                await deviceHubContext.Clients.Client(deviceDto.ConnectionId).RegisterRequisite(requisite.Id);
+            }
         }
         else if (requisite.DeviceId != Guid.Empty && requisite.DeviceId != deviceId &&
                  requisite.Device is { } replacedDevice)
@@ -178,6 +195,11 @@ public class RequisiteService(
             await notificationService.NotifyDeviceUpdated(deviceDto);
             requisite.DeviceId = device.Id;
             logger.LogInformation("Устройство {DeviceId} привязано к реквизиту {RequisiteId} пользователя {UserId}", device.Id, requisite.Id, requisite.UserId);
+            
+            if (deviceDto.ConnectionId != null)
+            {
+                await deviceHubContext.Clients.Client(deviceDto.ConnectionId).RegisterRequisite(requisite.Id);
+            }
         }
         
         requisite.Status = RequisiteStatus.Processing;
@@ -222,6 +244,11 @@ public class RequisiteService(
                     await notificationService.NotifyDeviceUpdated(deviceDto);
                 }
                 logger.LogInformation("Устройство {DeviceId} отвязано от реквизита {RequisiteId} пользователя {UserId}", device.Id, requisite.Id, userId);
+                
+                if (deviceDto?.ConnectionId != null)
+                {
+                    await deviceHubContext.Clients.Client(deviceDto.ConnectionId).RegisterRequisite(null);
+                }
             }
 
             user.RequisitesCount--;

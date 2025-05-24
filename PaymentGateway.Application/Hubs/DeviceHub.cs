@@ -7,6 +7,7 @@ using PaymentGateway.Shared.DTOs.Device;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using PaymentGateway.Core.Entities;
+using PaymentGateway.Shared.DTOs.Transaction;
 using PaymentGateway.Shared.DTOs.User;
 
 namespace PaymentGateway.Application.Hubs;
@@ -16,51 +17,16 @@ public class DeviceHub(
     ILogger<DeviceHub> logger,
     INotificationService notificationService,
     UserManager<UserEntity> userManager,
-    IMapper mapper) : Hub<IDeviceClientHub>
+    IMapper mapper,
+    ITransactionService service) : Hub<IDeviceClientHub>
 {
     public static ConcurrentDictionary<Guid, DeviceDto> Devices { get; } = new();
     private readonly ConcurrentDictionary<string, CancellationTokenSource> _registrationTimeouts = new();
     private static readonly TimeSpan RegistrationTimeout = TimeSpan.FromSeconds(7);
 
-    public static DeviceDto? AvailableNotBindDeviceByIdAndUserId(Guid id, Guid userId)
+    public async Task TransactionReceived(TransactionCreateDto transaction)
     {
-        return Devices.Values
-            .FirstOrDefault(d =>
-                d.UserId == userId &&
-                d.Id == id &&
-                d.State &&
-                d.BindingAt == DateTime.MinValue);
-    }
-    
-    public static DeviceDto? AvailableDeviceByIdAndUserId(Guid id, Guid userId)
-    {
-        return Devices.Values
-            .FirstOrDefault(d =>
-                d.UserId == userId &&
-                d.Id == id &&
-                d.State);
-    }
-    
-    public static DeviceDto? BindDeviceByIdAndUserId(Guid id, Guid userId)
-    {
-        return Devices.Values
-            .FirstOrDefault(d =>
-                d.UserId == userId &&
-                d.Id == id &&
-                d.BindingAt > DateTime.MinValue);
-    }
-    
-    public static List<DeviceDto> AvailableDevicesByUserId(Guid userId)
-    {
-        return Devices.Values
-            .Where(d => d.UserId == userId && d.BindingAt == DateTime.MinValue)
-            .ToList();
-    }
-
-    public static IEnumerable<DeviceDto> UserDevices(Guid userId)
-    {
-        return Devices.Values
-            .Where(d => d.UserId == userId);
+        await service.CreateTransaction(transaction);
     }
 
     public override async Task OnConnectedAsync()
@@ -161,6 +127,11 @@ public class DeviceHub(
             await notificationService.NotifyDeviceUpdated(deviceDto);
             logger.LogInformation("Новое устройство зарегистрировано: {DeviceName} (ID: {DeviceId})",
                 deviceDto.DeviceName, deviceDto.Id);
+
+            if (deviceDto.RequisiteId is not null)
+            {
+                await Clients.Caller.RegisterRequisite(deviceDto.RequisiteId.Value);
+            }
         }
     }
 
@@ -188,5 +159,46 @@ public class DeviceHub(
         }
 
         await base.OnDisconnectedAsync(exception);
+    }
+    
+    public static DeviceDto? AvailableNotBindDeviceByIdAndUserId(Guid id, Guid userId)
+    {
+        return Devices.Values
+            .FirstOrDefault(d =>
+                d.UserId == userId &&
+                d.Id == id &&
+                d.State &&
+                d.BindingAt == DateTime.MinValue);
+    }
+    
+    public static DeviceDto? AvailableDeviceByIdAndUserId(Guid id, Guid userId)
+    {
+        return Devices.Values
+            .FirstOrDefault(d =>
+                d.UserId == userId &&
+                d.Id == id &&
+                d.State);
+    }
+    
+    public static DeviceDto? BindDeviceByIdAndUserId(Guid id, Guid userId)
+    {
+        return Devices.Values
+            .FirstOrDefault(d =>
+                d.UserId == userId &&
+                d.Id == id &&
+                d.BindingAt > DateTime.MinValue);
+    }
+    
+    public static List<DeviceDto> AvailableDevicesByUserId(Guid userId)
+    {
+        return Devices.Values
+            .Where(d => d.UserId == userId && d.BindingAt == DateTime.MinValue)
+            .ToList();
+    }
+
+    public static IEnumerable<DeviceDto> UserDevices(Guid userId)
+    {
+        return Devices.Values
+            .Where(d => d.UserId == userId);
     }
 }

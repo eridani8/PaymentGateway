@@ -41,7 +41,7 @@ public class TransactionService(
         {
             var dto = new TransactionCreateDto
             {
-                PaymentData = paymentData,
+                // PaymentData = paymentData,
                 ExtractedAmount = amount,
                 Source = source,
                 RawMessage = $"Поступление {amount} на счет {paymentData} через {source}"

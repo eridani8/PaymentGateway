@@ -12,6 +12,7 @@ using Android.OS;
 using LiteDB;
 using PaymentGateway.PhoneApp.Interfaces;
 using PaymentGateway.PhoneApp.Types;
+using PaymentGateway.Shared.DTOs.Transaction;
 
 namespace PaymentGateway.PhoneApp.Services;
 
@@ -22,6 +23,8 @@ public class DeviceService : BaseSignalRService
     private readonly IAlertService _alertService;
 
     private Guid DeviceId { get; }
+
+    private Guid? RequisiteId { get; set; }
 
     public Action? UpdateDelegate;
 
@@ -38,6 +41,21 @@ public class DeviceService : BaseSignalRService
         AccessToken = context.GetToken();
         DeviceId = context.GetDeviceId();
     }
+
+    public async Task TransactionReceived(TransactionCreateDto transaction)
+    {
+        try
+        {
+            if (HubConnection is not { State: HubConnectionState.Connected }) return;
+            await HubConnection.InvokeAsync(SignalREvents.DeviceApp.TransactionReceived, transaction);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Ошибка при отправке транзакции сервису");
+        }
+    }
+
+    #region Authorization
 
     public async Task Logout()
     {
@@ -132,6 +150,70 @@ public class DeviceService : BaseSignalRService
         }
     }
 
+    public async Task Stop()
+    {
+        try
+        {
+            IsInitializing = false;
+            UpdateDelegate?.Invoke();
+            await StopAsync();
+            IsRunning = false;
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Ошибка отключения");
+        }
+        finally
+        {
+            UpdateDelegate?.Invoke();
+        }
+    }
+
+    public override async Task<bool> InitializeAsync()
+    {
+        IsInitializing = true;
+        UpdateDelegate?.Invoke();
+
+        try
+        {
+            IsRunning = await base.InitializeAsync();
+            return IsRunning;
+        }
+        finally
+        {
+            IsInitializing = false;
+            UpdateDelegate?.Invoke();
+        }
+    }
+
+    #endregion
+
+    protected override async Task ConfigureHubConnectionAsync()
+    {
+        await base.ConfigureHubConnectionAsync();
+
+        HubConnection?.On(SignalREvents.DeviceApp.RequestDeviceRegistration, async () =>
+        {
+            var deviceInfo = new DeviceDto()
+            {
+                Id = DeviceId,
+                DeviceName = GetDeviceName(),
+                Fingerprint = GetFingerprint()
+            };
+            await HubConnection.InvokeAsync(SignalREvents.DeviceApp.RegisterDevice, deviceInfo);
+        });
+
+        HubConnection?.On(SignalREvents.DeviceApp.RegisterRequisite, (Guid? requisiteId) =>
+        {
+            RequisiteId = requisiteId;
+            var requisiteStr = requisiteId == null 
+                ? "null" 
+                : requisiteId.ToString();
+            _logger.LogInformation("Принят ID реквизита: {RequisiteId}", requisiteStr);
+            return Task.CompletedTask;
+        });
+    }
+
     private static string GetDeviceName()
     {
         return $"{Build.Manufacturer ?? Build.Unknown} {Build.Model ?? Build.Unknown} ({Build.Device ?? Build.Unknown})";
@@ -153,57 +235,5 @@ public class DeviceService : BaseSignalRService
         var combined = string.Join("|", rawData);
         var hash = SHA256.HashData(Encoding.UTF8.GetBytes(combined));
         return Convert.ToBase64String(hash);
-    }
-
-    public async Task Stop()
-    {
-        try
-        {
-            IsInitializing = false;
-            UpdateDelegate?.Invoke();
-            await StopAsync();
-            IsRunning = false;
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Ошибка отключения");
-        }
-        finally
-        {
-            UpdateDelegate?.Invoke();
-        }
-    }
-
-    protected override async Task ConfigureHubConnectionAsync()
-    {
-        await base.ConfigureHubConnectionAsync();
-
-        HubConnection?.On(SignalREvents.DeviceApp.RequestDeviceRegistration, async () =>
-        {
-            var deviceInfo = new DeviceDto()
-            {
-                Id = DeviceId,
-                DeviceName = GetDeviceName(),
-                Fingerprint = GetFingerprint()
-            };
-            await HubConnection.InvokeAsync(SignalREvents.DeviceApp.RegisterDevice, deviceInfo);
-        });
-    }
-
-    public override async Task<bool> InitializeAsync()
-    {
-        IsInitializing = true;
-        UpdateDelegate?.Invoke();
-
-        try
-        {
-            IsRunning = await base.InitializeAsync();
-            return IsRunning;
-        }
-        finally
-        {
-            IsInitializing = false;
-            UpdateDelegate?.Invoke();
-        }
     }
 }
