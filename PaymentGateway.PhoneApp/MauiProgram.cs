@@ -89,6 +89,7 @@ public static class MauiProgram
             PropertyNameCaseInsensitive = true
         });
 
+        builder.Services.AddParsers();
         builder.Services.AddSingleton(liteContext);
         builder.Services.AddSingleton(sink);
 

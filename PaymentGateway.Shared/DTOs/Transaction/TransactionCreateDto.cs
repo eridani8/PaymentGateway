@@ -4,7 +4,7 @@ namespace PaymentGateway.Shared.DTOs.Transaction;
 
 public class TransactionCreateDto
 {
-    public Guid PaymentId { get; set; }
+    public Guid RequisiteId { get; set; }
     public TransactionSource Source { get; set; }
     public decimal ExtractedAmount { get; set; }
     public string? AppName { get; set; }

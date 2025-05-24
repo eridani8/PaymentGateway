@@ -84,6 +84,7 @@
                           Version="0.4.0" />
     </ItemGroup>
     <ItemGroup>
+        <Folder Include="Parsers\Notification\" />
         <Folder Include="Resources\Images\" />
         <Folder Include="Resources\Splash\" />
     </ItemGroup>

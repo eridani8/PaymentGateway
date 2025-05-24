@@ -24,7 +24,7 @@ public class DeviceService : BaseSignalRService
 
     private Guid DeviceId { get; }
 
-    private Guid? RequisiteId { get; set; }
+    public Guid? RequisiteId { get; set; }
 
     public Action? UpdateDelegate;
 

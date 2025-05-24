@@ -28,7 +28,7 @@ public class TransactionService(
             return Result.Failure<TransactionDto>(new ValidationError(validation.Errors.Select(e => e.ErrorMessage)));
         }
 
-        var requisite = await unit.RequisiteRepository.GetRequisiteById(dto.PaymentId);
+        var requisite = await unit.RequisiteRepository.GetRequisiteById(dto.RequisiteId);
 
         if (requisite?.Payment is not { } payment)
         {
