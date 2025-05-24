@@ -138,9 +138,56 @@ public class RequisiteService(
 
         var requisite = await unit.RequisiteRepository.GetRequisiteById(id);
         if (requisite is null) return Result.Failure<RequisiteDto>(RequisiteErrors.RequisiteNotFound);
-        // var sourceDeviceId = requisite.DeviceId;
         
         requisite = mapper.Map(dto, requisite);
+
+        if (requisite.DeviceId == Guid.Empty && requisite.Device is { } currentDevice)
+        {
+            currentDevice.BindingAt = DateTime.MinValue;
+            currentDevice.RequisiteId = null;
+
+            requisite.DeviceId = null;
+            requisite.Device = null;
+            
+            unit.DeviceRepository.Update(currentDevice);
+            logger.LogInformation("Устройство {DeviceId} отвязано от реквизита {RequisiteId} пользователя {UserId}", currentDevice.Id, requisite.Id, requisite.UserId);
+        }
+        else if (requisite.DeviceId != Guid.Empty && requisite.Device is null)
+        {
+            var deviceDto = DeviceHub.DeviceByIdAndUserId(dto.DeviceId, requisite.UserId);
+
+            if (deviceDto is null)
+            {
+                return Result.Failure<RequisiteDto>(DeviceErrors.DeviceShouldBeOnline);
+            }
+            
+            var newDevice = await unit.DeviceRepository.GetDeviceById(deviceDto.Id);
+            var hasDeviceInBase = false;
+            if (newDevice is null)
+            {
+                deviceDto.BindingAt = DateTime.UtcNow;
+                deviceDto.RequisiteId = requisite.Id;
+                newDevice = mapper.Map<DeviceEntity>(deviceDto);
+            }
+            else
+            {
+                newDevice.BindingAt = DateTime.UtcNow;
+                newDevice.RequisiteId = requisite.Id;
+                hasDeviceInBase = true;
+            }
+            
+            requisite.DeviceId = newDevice.Id;
+            if (!hasDeviceInBase)
+            {
+                await unit.DeviceRepository.Add(newDevice);
+            }
+            else
+            {
+                unit.DeviceRepository.Update(newDevice);
+            }
+            
+            logger.LogInformation("Устройство {DeviceId} привязано к реквизиту {RequisiteId} пользователя {UserId}", newDevice.Id, requisite.Id, requisite.UserId);
+        }
 
         // if (requisite.DeviceId != null && sourceDeviceId != dto.DeviceId)
         // {
