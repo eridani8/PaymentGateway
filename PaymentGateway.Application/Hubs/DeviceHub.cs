@@ -22,12 +22,32 @@ public class DeviceHub(
     private readonly ConcurrentDictionary<string, CancellationTokenSource> _registrationTimeouts = new();
     private static readonly TimeSpan RegistrationTimeout = TimeSpan.FromSeconds(7);
 
-    public static DeviceDto? DeviceByIdAndUserId(Guid id, Guid userId)
+    public static DeviceDto? AvailableNotBindDeviceByIdAndUserId(Guid id, Guid userId)
     {
         return Devices.Values
             .FirstOrDefault(d =>
                 d.UserId == userId &&
-                d.Id == id);
+                d.Id == id &&
+                d.State &&
+                d.BindingAt == DateTime.MinValue);
+    }
+    
+    public static DeviceDto? AvailableDeviceByIdAndUserId(Guid id, Guid userId)
+    {
+        return Devices.Values
+            .FirstOrDefault(d =>
+                d.UserId == userId &&
+                d.Id == id &&
+                d.State);
+    }
+    
+    public static DeviceDto? BindDeviceByIdAndUserId(Guid id, Guid userId)
+    {
+        return Devices.Values
+            .FirstOrDefault(d =>
+                d.UserId == userId &&
+                d.Id == id &&
+                d.BindingAt > DateTime.MinValue);
     }
     
     public static List<DeviceDto> AvailableDevicesByUserId(Guid userId)

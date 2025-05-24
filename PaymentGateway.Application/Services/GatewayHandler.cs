@@ -47,7 +47,7 @@ public class GatewayHandler(
                 }
                 else
                 {
-                    var deviceDto = DeviceHub.DeviceByIdAndUserId(requisite.DeviceId.Value, requisite.UserId);
+                    var deviceDto = DeviceHub.BindDeviceByIdAndUserId(requisite.DeviceId.Value, requisite.UserId);
                     if (deviceDto is not { State: true })
                     {
                         if (cache.Get(deviceOfflineCacheKey) is null)
@@ -156,8 +156,7 @@ public class GatewayHandler(
             {
                 var requisite = activeRequisites.FirstOrDefault(r =>
                     r.DeviceId is { } deviceId &&
-                    DeviceHub.DeviceByIdAndUserId(deviceId, r.UserId) is { } device &&
-                    device.State &&
+                    DeviceHub.AvailableDeviceByIdAndUserId(deviceId, r.UserId) is not null &&
                     r.DayLimit >= payment.Amount &&
                     (r.DayLimit - r.DayReceivedFunds) >= payment.Amount &&
                     (r.MonthLimit == 0 || r.MonthLimit >= payment.Amount) &&
