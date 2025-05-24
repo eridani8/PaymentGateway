@@ -155,19 +155,6 @@ public class RequisiteService(
         else if (requisite.DeviceId != Guid.Empty && requisite.DeviceId != deviceId &&
                  requisite.Device is { } replacedDevice)
         {
-            replacedDevice.ClearBinding();
-            requisite.ClearBinding();
-            
-            var replacedDeviceDto = DeviceHub.BindDeviceByIdAndUserId(replacedDevice.Id, requisite.UserId);
-            if (replacedDeviceDto is not null)
-            {
-                replacedDeviceDto.ClearBinding();
-                await notificationService.NotifyDeviceUpdated(replacedDeviceDto);
-            }
-            
-            unit.DeviceRepository.Update(replacedDevice);
-            logger.LogInformation("Устройство {DeviceId} отвязано от реквизита {RequisiteId} пользователя {UserId}", replacedDevice.Id, requisite.Id, requisite.UserId);
-            
             var deviceDto = DeviceHub.AvailableNotBindDeviceByIdAndUserId(dto.DeviceId, requisite.UserId);
 
             if (deviceDto is null)
@@ -180,6 +167,19 @@ public class RequisiteService(
             await notificationService.NotifyDeviceUpdated(deviceDto);
             requisite.DeviceId = device.Id;
             logger.LogInformation("Устройство {DeviceId} привязано к реквизиту {RequisiteId} пользователя {UserId}", device.Id, requisite.Id, requisite.UserId);
+            
+            replacedDevice.ClearBinding();
+            requisite.ClearBinding();
+            
+            var replacedDeviceDto = DeviceHub.BindDeviceByIdAndUserId(replacedDevice.Id, requisite.UserId);
+            if (replacedDeviceDto is not null)
+            {
+                replacedDeviceDto.ClearBinding();
+                await notificationService.NotifyDeviceUpdated(replacedDeviceDto);
+            }
+            
+            unit.DeviceRepository.Update(replacedDevice);
+            logger.LogInformation("Устройство {DeviceId} отвязано от реквизита {RequisiteId} пользователя {UserId}", replacedDevice.Id, requisite.Id, requisite.UserId);
         }
         
         requisite.Status = RequisiteStatus.Processing;
