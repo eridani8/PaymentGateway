@@ -63,6 +63,7 @@ public class RequisiteService(
         }
 
         var device = await BindDeviceToRequisite(deviceDto, requisite.Id);
+        deviceDto.SetBinding(requisite.Id);
         requisite.DeviceId = device.Id;
 
         logger.LogInformation("Устройство {DeviceId} привязано к реквизиту {RequisiteId} пользователя {UserId}", device.Id, requisite.Id, requisite.UserId);
@@ -79,6 +80,7 @@ public class RequisiteService(
 
         await notificationService.NotifyRequisiteUpdated(requisiteDto);
         await notificationService.NotifyUserUpdated(userDto);
+        await notificationService.NotifyDeviceUpdated(deviceDto);
 
         return Result.Success(requisiteDto);
     }
@@ -125,7 +127,12 @@ public class RequisiteService(
             currentDevice.ClearBinding();
             requisite.ClearBinding();
             
-            DeviceHub.DeviceByIdAndUserId(currentDevice.Id, requisite.UserId)?.ClearBinding();
+            var deviceDto = DeviceHub.DeviceByIdAndUserId(currentDevice.Id, requisite.UserId);
+            if (deviceDto is not null)
+            {
+                deviceDto.ClearBinding();
+                await notificationService.NotifyDeviceUpdated(deviceDto);
+            }
             
             unit.DeviceRepository.Update(currentDevice);
             logger.LogInformation("Устройство {DeviceId} отвязано от реквизита {RequisiteId} пользователя {UserId}", currentDevice.Id, requisite.Id, requisite.UserId);
@@ -140,8 +147,9 @@ public class RequisiteService(
             }
 
             var device = await BindDeviceToRequisite(deviceDto, requisite.Id);
+            deviceDto.SetBinding(requisite.Id);
+            await notificationService.NotifyDeviceUpdated(deviceDto);
             requisite.DeviceId = device.Id;
-
             logger.LogInformation("Устройство {DeviceId} привязано к реквизиту {RequisiteId} пользователя {UserId}", device.Id, requisite.Id, requisite.UserId);
         }
         
@@ -172,13 +180,22 @@ public class RequisiteService(
             if (device is not null)
             {
                 device.ClearBinding();
-                DeviceHub.DeviceByIdAndUserId(device.Id, userId)?.ClearBinding();
                 unit.DeviceRepository.Update(device);
-                logger.LogInformation("Устройство {DeviceId} отвязано от реквизита {RequisiteId} пользователя {UserId}", device.Id, requisite.Id, userId);
             }
             
             unit.RequisiteRepository.Delete(requisite);
             await unit.Commit();
+
+            if (device is not null)
+            {
+                var deviceDto = DeviceHub.DeviceByIdAndUserId(device.Id, userId);
+                if (deviceDto is not null)
+                {
+                    deviceDto.ClearBinding();
+                    await notificationService.NotifyDeviceUpdated(deviceDto);
+                }
+                logger.LogInformation("Устройство {DeviceId} отвязано от реквизита {RequisiteId} пользователя {UserId}", device.Id, requisite.Id, userId);
+            }
 
             user.RequisitesCount--;
             await userManager.UpdateAsync(user);
