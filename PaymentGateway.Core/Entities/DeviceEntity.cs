@@ -10,4 +10,17 @@ public class DeviceEntity : BaseEntity
     public DateTime BindingAt { get; set; }
     public Guid? RequisiteId { get; set; }
     public RequisiteEntity? Requisite { get; set; }
+
+    public void ClearBinding()
+    {
+        BindingAt = DateTime.MinValue;
+        RequisiteId = null;
+        Requisite = null;
+    }
+    
+    public void SetBinding(Guid requisiteId)
+    {
+        BindingAt = DateTime.UtcNow;
+        RequisiteId = requisiteId;
+    }
 }

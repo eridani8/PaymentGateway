@@ -57,8 +57,7 @@ builder.Services.AddHttpClient("API", (serviceProvider, client) =>
         client.BaseAddress = new Uri(settings.BaseAddress);
         client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
     })
-    .AddHttpMessageHandler<AuthMessageHandler>()
-    .AddStandardResilienceHandler();
+    .AddHttpMessageHandler<AuthMessageHandler>();
 
 builder.Services.AddMudServices(c =>
 {

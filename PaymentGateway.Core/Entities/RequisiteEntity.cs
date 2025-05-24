@@ -213,4 +213,10 @@ public class RequisiteEntity : BaseEntity
 
         return status != Status;
     }
+
+    public void ClearBinding()
+    {
+        DeviceId = null;
+        Device = null;
+    }
 }

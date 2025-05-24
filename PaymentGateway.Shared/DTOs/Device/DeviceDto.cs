@@ -14,4 +14,16 @@ public class DeviceDto
     public DateTime BindingAt { get; set; }
     [JsonIgnore] public string? ConnectionId { get; set; }
     public Guid? RequisiteId { get; set; }
+
+    public void ClearBinding()
+    {
+        BindingAt = DateTime.MinValue;
+        RequisiteId = null;
+    }
+    
+    public void SetBinding(Guid requisiteId)
+    {
+        BindingAt = DateTime.UtcNow;
+        RequisiteId = requisiteId;
+    }
 }
