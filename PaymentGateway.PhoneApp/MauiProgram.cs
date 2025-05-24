@@ -11,6 +11,7 @@ using PaymentGateway.PhoneApp.Pages;
 using PaymentGateway.PhoneApp.Services;
 using PaymentGateway.PhoneApp.Types;
 using PaymentGateway.PhoneApp.ViewModels;
+using PaymentGateway.Shared;
 using PaymentGateway.Shared.Types;
 using Serilog;
 using Serilog.Core;

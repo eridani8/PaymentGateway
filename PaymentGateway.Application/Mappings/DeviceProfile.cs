@@ -13,6 +13,7 @@ public class DeviceProfile : Profile
             .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId))
             .ForMember(dest => dest.User, opt => opt.Ignore())
             .ForMember(dest => dest.DeviceName, opt => opt.MapFrom(src => src.DeviceName))
+            .ForMember(dest => dest.Fingerprint, opt => opt.MapFrom(src => src.Fingerprint))
             .ForMember(dest => dest.BindingAt, opt => opt.MapFrom(src => src.BindingAt))
             .ForMember(dest => dest.RequisiteId, opt => opt.MapFrom(src => src.RequisiteId));
 

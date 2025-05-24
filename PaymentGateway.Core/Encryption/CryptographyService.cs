@@ -3,6 +3,8 @@ using System.Text;
 using Microsoft.Extensions.Options;
 using PaymentGateway.Core.Configs;
 using PaymentGateway.Core.Interfaces;
+using PaymentGateway.Shared;
+using PaymentGateway.Shared.Types;
 
 namespace PaymentGateway.Core.Encryption;
 

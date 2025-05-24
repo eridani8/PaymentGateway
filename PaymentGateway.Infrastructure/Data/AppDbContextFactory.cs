@@ -4,6 +4,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using PaymentGateway.Core.Configs;
 using PaymentGateway.Core.Encryption;
+using PaymentGateway.Shared;
+using PaymentGateway.Shared.Types;
 
 namespace PaymentGateway.Infrastructure.Data;
 

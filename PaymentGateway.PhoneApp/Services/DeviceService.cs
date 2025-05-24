@@ -24,7 +24,7 @@ public class DeviceService : BaseSignalRService
     private Guid DeviceId { get; }
 
     public Action? UpdateDelegate;
-    
+
     public bool IsRunning { get; private set; }
 
     public DeviceService(IOptions<ApiSettings> settings,
@@ -46,6 +46,7 @@ public class DeviceService : BaseSignalRService
         IsLoggedIn = false;
         UpdateDelegate?.Invoke();
     }
+
     public async Task<bool> Authorize()
     {
         try
@@ -83,11 +84,11 @@ public class DeviceService : BaseSignalRService
             UpdateDelegate?.Invoke();
         }
     }
-    
+
     private async Task FailureConnection()
     {
         await Stop();
-        
+
         if (IsServiceUnavailable)
         {
             await MainThread.InvokeOnMainThreadAsync(async () =>
@@ -102,6 +103,7 @@ public class DeviceService : BaseSignalRService
                 await _alertService.ShowAlertAsync("Ошибка", "Токен недействителен", "OK");
             });
         }
+
         IsRunning = false;
         ClearToken();
     }
@@ -135,6 +137,24 @@ public class DeviceService : BaseSignalRService
         return $"{Build.Manufacturer ?? Build.Unknown} {Build.Model ?? Build.Unknown} ({Build.Device ?? Build.Unknown})";
     }
 
+    private static string GetFingerprint()
+    {
+        var rawData = new List<string>
+        {
+            Build.Manufacturer ?? Build.Unknown,
+            Build.Device ?? Build.Unknown,
+            Build.Model ?? Build.Unknown,
+            Build.Hardware ?? Build.Unknown,
+            Build.Id ?? Build.Unknown,
+            Build.Fingerprint ?? Build.Unknown,
+            Build.Time.ToString()
+        };
+
+        var combined = string.Join("|", rawData);
+        var hash = SHA256.HashData(Encoding.UTF8.GetBytes(combined));
+        return Convert.ToBase64String(hash);
+    }
+
     public async Task Stop()
     {
         try
@@ -153,7 +173,7 @@ public class DeviceService : BaseSignalRService
             UpdateDelegate?.Invoke();
         }
     }
-    
+
     protected override async Task ConfigureHubConnectionAsync()
     {
         await base.ConfigureHubConnectionAsync();
@@ -163,7 +183,8 @@ public class DeviceService : BaseSignalRService
             var deviceInfo = new DeviceDto()
             {
                 Id = DeviceId,
-                DeviceName = GetDeviceName()
+                DeviceName = GetDeviceName(),
+                Fingerprint = GetFingerprint()
             };
             await HubConnection.InvokeAsync(SignalREvents.DeviceApp.RegisterDevice, deviceInfo);
         });
@@ -173,7 +194,7 @@ public class DeviceService : BaseSignalRService
     {
         IsInitializing = true;
         UpdateDelegate?.Invoke();
-        
+
         try
         {
             IsRunning = await base.InitializeAsync();

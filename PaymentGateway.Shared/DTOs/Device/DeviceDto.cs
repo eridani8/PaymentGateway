@@ -14,6 +14,7 @@ public class DeviceDto
     public DateTime BindingAt { get; set; }
     [JsonIgnore] public string? ConnectionId { get; set; }
     public Guid? RequisiteId { get; set; }
+    public required string Fingerprint { get; set; }
 
     public void ClearBinding()
     {
