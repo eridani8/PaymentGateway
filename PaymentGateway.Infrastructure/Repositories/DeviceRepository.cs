@@ -15,7 +15,7 @@ public class DeviceRepository(
             .Include(d => d.User)
             .Include(d => d.Requisite)
             .OrderByDescending(d => d.Id)
-            .FirstOrDefaultAsync();
+            .FirstOrDefaultAsync(d => d.Id == id);
     }
 
     public async Task<List<DeviceEntity>> GetAllDevices()
