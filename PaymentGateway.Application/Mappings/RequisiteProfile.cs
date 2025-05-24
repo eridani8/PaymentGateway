@@ -65,7 +65,7 @@ public class RequisiteProfile : Profile
             .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
             .ForMember(dest => dest.WorkFrom, opt => opt.ConvertUsing(new LocalToUtcTimeOnlyConverter(), src => src.WorkFrom))
             .ForMember(dest => dest.WorkTo, opt => opt.ConvertUsing(new LocalToUtcTimeOnlyConverter(), src => src.WorkTo))
-            .ForMember(dest => dest.Status, opt => opt.MapFrom(src => RequisiteStatus.Frozen))
+            .ForMember(dest => dest.Status, opt => opt.MapFrom(src => RequisiteStatus.Processing))
             .ForMember(dest => dest.LastOperationTime, opt => opt.MapFrom(src => (DateTime?)null))
             .ForMember(dest => dest.PaymentId, opt => opt.MapFrom(src => (Guid?)null))
             .ForMember(dest => dest.Payment, opt => opt.MapFrom(src => (PaymentEntity?)null));
@@ -83,7 +83,7 @@ public class RequisiteProfile : Profile
             .ForMember(dest => dest.Priority, opt => opt.MapFrom(src => src.Priority))
             .ForMember(dest => dest.WorkFrom, opt => opt.ConvertUsing(new LocalToUtcTimeOnlyConverter(), src => src.WorkFrom))
             .ForMember(dest => dest.WorkTo, opt => opt.ConvertUsing(new LocalToUtcTimeOnlyConverter(), src => src.WorkTo))
-            // TODO device
+            .ForMember(dest => dest.DeviceId, opt => opt.MapFrom(src => src.DeviceId))
             
             .ForMember(dest => dest.Id, opt => opt.Ignore())
             .ForMember(dest => dest.Status, opt => opt.Ignore())

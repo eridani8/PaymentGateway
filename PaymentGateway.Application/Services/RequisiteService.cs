@@ -66,7 +66,7 @@ public class RequisiteService(
         requisite.DeviceId = device.Id;
 
         logger.LogInformation("Устройство {DeviceId} привязано к реквизиту {RequisiteId} пользователя {UserId}", device.Id, requisite.Id, requisite.UserId);
-
+        
         await unit.RequisiteRepository.Add(requisite);
         await unit.Commit();
         
@@ -145,7 +145,7 @@ public class RequisiteService(
             logger.LogInformation("Устройство {DeviceId} привязано к реквизиту {RequisiteId} пользователя {UserId}", device.Id, requisite.Id, requisite.UserId);
         }
         
-        requisite.Status = RequisiteStatus.Frozen;
+        requisite.Status = RequisiteStatus.Processing;
         
         unit.RequisiteRepository.Update(requisite);
         await unit.Commit();

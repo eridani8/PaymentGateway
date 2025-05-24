@@ -6,5 +6,6 @@ public enum RequisiteStatus
     Pending = 1,
     Cooldown = 2,
     Inactive = 3,
-    Frozen = 4
+    Frozen = 4,
+    Processing = 5
 }
