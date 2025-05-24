@@ -139,7 +139,7 @@ public class RequisiteService(
         }
         else if (requisite.DeviceId != Guid.Empty && requisite.Device is null)
         {
-            var deviceDto = DeviceHub.AvailableDeviceByIdAndUserId(dto.DeviceId, requisite.UserId);
+            var deviceDto = DeviceHub.AvailableNotBindDeviceByIdAndUserId(dto.DeviceId, requisite.UserId);
 
             if (deviceDto is null)
             {
