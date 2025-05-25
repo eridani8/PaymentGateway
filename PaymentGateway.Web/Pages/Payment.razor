@@ -140,11 +140,9 @@
 
     private PaymentDto? _payment;
     private bool _isLoading = true;
-    private bool _isSimulating;
     private bool _showSuccessDialog;
     private Timer? _refreshTimer;
     private const int refreshInterval = 3000;
-    private readonly TransactionSource[] _selectedTransactionType = [TransactionSource.Sms, TransactionSource.Push];
     private readonly TransactionCreateDto _transactionDto = new();
 
     protected override async Task OnInitializedAsync()
@@ -172,7 +170,6 @@
             }
             else if (_payment.Requisite is not null)
             {
-                // _transactionDto.PaymentData = _payment.Requisite.PaymentData; // TODO
                 _transactionDto.ExtractedAmount = _payment.Amount;
             }
         }
@@ -207,7 +204,6 @@
             }
             else if (_payment.Requisite is not null)
             {
-                // _transactionDto.PaymentData = _payment.Requisite.PaymentData; // TODO
                 _transactionDto.ExtractedAmount = _payment.Amount;
             }
 
@@ -241,15 +237,4 @@
             _ => "NULL"
         };
     }
-
-    private string GetTransactionSourceText(TransactionSource source)
-    {
-        return source switch
-        {
-            TransactionSource.Sms => "SMS",
-            TransactionSource.Push => "Push",
-            _ => "Unknown"
-        };
-    }
-
 } 
