@@ -75,6 +75,10 @@ public class GatewayHandler(
                         }
                     }
                 }
+                else
+                {
+                    status = requisite.Status;
+                }
 
                 if (requisite.Status != status)
                 {
