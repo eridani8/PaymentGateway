@@ -73,8 +73,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICryptographyS
 
             entity
                 .HasOne(p => p.Requisite)
-                .WithOne()
-                .HasForeignKey<PaymentEntity>(p => p.RequisiteId)
+                .WithMany()
+                .HasForeignKey(p => p.RequisiteId)
                 .OnDelete(DeleteBehavior.SetNull);
             
             entity
