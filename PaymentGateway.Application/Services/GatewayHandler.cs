@@ -35,7 +35,7 @@ public class GatewayHandler(
             {
                 var status = requisite.Status;
 
-                if (requisite.Status is not RequisiteStatus.Cooldown)
+                if (requisite.Status is not RequisiteStatus.Cooldown and RequisiteStatus.Pending)
                 {
                     var deviceOfflineCacheKey = $"device_offline_warning:{requisite.Id}";
                 
