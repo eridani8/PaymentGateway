@@ -13,6 +13,18 @@ public class UserEntity : IdentityUser<Guid>
     
     [Range(0, 9999999999999999)]
     [Column(TypeName = "decimal(20,0)")]
+    public decimal Balance { get; set; }
+    
+    [Range(0, 9999999999999999)]
+    [Column(TypeName = "decimal(20,0)")]
+    public decimal Frozen { get; set; }
+    
+    [Range(0, 9999999999999999)]
+    [Column(TypeName = "decimal(20,0)")]
+    public decimal Profit { get; set; }
+    
+    [Range(0, 9999999999999999)]
+    [Column(TypeName = "decimal(20,0)")]
     public decimal MaxDailyMoneyReceptionLimit { get; set; }
     
     [Range(0, 9999999999999999)]

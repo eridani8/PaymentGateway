@@ -65,7 +65,7 @@
                              Dense="true">
                     <Columns>
                         <HierarchyColumn/>
-                        <TemplateColumn Title="Владелец" Hidden="!_isShowAll" Sortable="true" Filterable="true">
+                        <TemplateColumn Title="Владелец" Hidden="!_isShowAll">
                             <CellTemplate Context="cellContext">
                                 @if (!string.IsNullOrEmpty(cellContext.Item.User?.Username))
                                 {
@@ -76,14 +76,14 @@
                             </CellTemplate>
                         </TemplateColumn>
                         <PropertyColumn Property="x => x.DeviceName" Title="Устройство"/>
-                        <TemplateColumn Title="Привязка" Sortable="true" Filterable="true">
+                        <TemplateColumn Title="Привязка">
                             <CellTemplate Context="cellContext">
                                 <div style="display: flex; align-items: center; gap: 8px;">
                                     <div style="width: 12px; height: 12px; border-radius: 50%; background-color: @(cellContext.Item.RequisiteId is not null ? "#4caf50" : "#f44336");"></div>
                                 </div>
                             </CellTemplate>
                         </TemplateColumn>
-                        <TemplateColumn Title="Состояние подключения" Sortable="true" Filterable="true">
+                        <TemplateColumn Title="Состояние подключения">
                             <CellTemplate Context="cellContext">
                                 <div style="display: flex; align-items: center; gap: 8px;">
                                     <div style="width: 12px; height: 12px; border-radius: 50%; background-color: @(cellContext.Item.State ? "#4caf50" : "#f44336");"></div>

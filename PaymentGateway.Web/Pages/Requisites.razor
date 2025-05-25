@@ -76,7 +76,7 @@
                              Dense="true">
                     <Columns>
                         <HierarchyColumn/>
-                        <TemplateColumn Title="Владелец" Hidden="!_isShowAll" Sortable="true" Filterable="true">
+                        <TemplateColumn Title="Владелец" Hidden="!_isShowAll">
                             <CellTemplate Context="cellContext">
                                 @if (!string.IsNullOrEmpty(cellContext.Item.User?.Username))
                                 {
@@ -86,22 +86,22 @@
                                 }
                             </CellTemplate>
                         </TemplateColumn>
-                        <TemplateColumn Title="Тип" Sortable="true" Filterable="true">
+                        <TemplateColumn Title="Тип">
                             <CellTemplate Context="cellContext">
                                 @(cellContext.Item.PaymentType == PaymentType.PhoneNumber ? "Телефон" : "Карта")
                             </CellTemplate>
                         </TemplateColumn>
-                        <TemplateColumn Title="Лимит (день)" Sortable="true" Filterable="true">
+                        <TemplateColumn Title="Лимит (день)">
                             <CellTemplate Context="cellContext">
                                 @($"{cellContext.Item.DayReceivedFunds:N0}/{cellContext.Item.DayLimit:N0}")
                             </CellTemplate>
                         </TemplateColumn>
-                        <TemplateColumn Title="Лимит (месяц)" Sortable="true" Filterable="true">
+                        <TemplateColumn Title="Лимит (месяц)">
                             <CellTemplate Context="cellContext">
                                 @($"{cellContext.Item.MonthReceivedFunds:N0}/{cellContext.Item.MonthLimit:N0}")
                             </CellTemplate>
                         </TemplateColumn>
-                        <TemplateColumn Title="Статус" Sortable="true" Filterable="true">
+                        <TemplateColumn Title="Статус">
                             <CellTemplate Context="cellContext">
                                 <MudChip Size="Size.Small" Color="@GetStatusColor(cellContext.Item.Status)">
                                     @GetStatusText(cellContext.Item.Status)
@@ -118,7 +118,7 @@
                             </CellTemplate>
                         </TemplateColumn>
                         <PropertyColumn Property="x => (int)x.Cooldown.TotalMinutes" Title="Задержка (мин)"/>
-                        <TemplateColumn Title="Активное время" Sortable="true" Filterable="true">
+                        <TemplateColumn Title="Активное время">
                             <CellTemplate Context="cellContext">
                                 @if (cellContext.Item.WorkFrom == TimeOnly.MinValue && cellContext.Item.WorkTo == TimeOnly.MinValue)
                                 {
