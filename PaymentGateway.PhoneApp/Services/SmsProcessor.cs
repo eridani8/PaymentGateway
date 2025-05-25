@@ -26,16 +26,9 @@ public class SmsProcessor(ILogger<SmsProcessor> logger, ParserFactory factory, D
         }
         
         logger.LogInformation("[{ParserName}] {Extracted}", parser.GetType().Name, parser.ExtractedAmount);
-        
-        if (!service.RequisiteId.HasValue)
-        {
-            logger.LogWarning("Не привязан реквизит");
-            return;
-        }
 
-        await service.TransactionReceived(new TransactionCreateDto()
+        await service.TransactionReceived(new TransactionReceivedDto()
         {
-            RequisiteId = service.RequisiteId.Value,
             Number = sender,
             ExtractedAmount = parser.ExtractedAmount,
             Source = TransactionSource.Sms,

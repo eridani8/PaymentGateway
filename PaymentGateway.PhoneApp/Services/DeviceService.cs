@@ -24,8 +24,6 @@ public class DeviceService : BaseSignalRService
 
     private Guid DeviceId { get; }
 
-    public Guid? RequisiteId { get; set; }
-
     public Action? UpdateDelegate;
 
     public bool IsRunning { get; private set; }
@@ -42,12 +40,12 @@ public class DeviceService : BaseSignalRService
         DeviceId = context.GetDeviceId();
     }
 
-    public async Task TransactionReceived(TransactionCreateDto transaction)
+    public async Task TransactionReceived(TransactionReceivedDto dto)
     {
         try
         {
             if (HubConnection is not { State: HubConnectionState.Connected }) return;
-            await HubConnection.InvokeAsync(SignalREvents.DeviceApp.TransactionReceived, transaction);
+            await HubConnection.InvokeAsync(SignalREvents.DeviceApp.TransactionReceived, dto);
         }
         catch (Exception e)
         {
@@ -201,22 +199,6 @@ public class DeviceService : BaseSignalRService
                 Fingerprint = GetFingerprint()
             };
             await HubConnection.InvokeAsync(SignalREvents.DeviceApp.RegisterDevice, deviceInfo);
-        });
-
-        HubConnection?.On(SignalREvents.DeviceApp.RegisterRequisite, (Guid? requisiteId) =>
-        {
-            RequisiteId = requisiteId;
-            
-            if (requisiteId.HasValue)
-            {
-                _logger.LogInformation("ID реквизита: {RequisiteId}", requisiteId);
-            }
-            else
-            {
-                _logger.LogInformation("Очищен реквизит");
-            }
-            
-            return Task.CompletedTask;
         });
     }
 

@@ -33,5 +33,12 @@ public class TransactionProfile : Profile
             .ForMember(dest => dest.Requisite, opt => opt.Ignore())
             .ForMember(dest => dest.PaymentId, opt => opt.Ignore())
             .ForMember(dest => dest.Payment, opt => opt.Ignore());
+
+        CreateMap<TransactionReceivedDto, TransactionCreateDto>()
+            .ForMember(dest => dest.Source, opt => opt.MapFrom(src => src.Source))
+            .ForMember(dest => dest.ExtractedAmount, opt => opt.MapFrom(src => src.ExtractedAmount))
+            .ForMember(dest => dest.AppName, opt => opt.MapFrom(src => src.AppName))
+            .ForMember(dest => dest.Number, opt => opt.MapFrom(src => src.Number))
+            .ForMember(dest => dest.RawMessage, opt => opt.MapFrom(src => src.RawMessage));
     }
 }

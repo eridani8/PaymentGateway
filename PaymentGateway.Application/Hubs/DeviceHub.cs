@@ -24,9 +24,17 @@ public class DeviceHub(
     private readonly ConcurrentDictionary<string, CancellationTokenSource> _registrationTimeouts = new();
     private static readonly TimeSpan RegistrationTimeout = TimeSpan.FromSeconds(7);
 
-    public async Task TransactionReceived(TransactionCreateDto transaction)
+    public async Task TransactionReceived(TransactionReceivedDto dto)
     {
-        await service.CreateTransaction(transaction);
+        var device = Devices.Values.FirstOrDefault(d => d.ConnectionId == Context.ConnectionId);
+        if (device?.RequisiteId is null)
+        {
+            logger.LogWarning("Устройство транзакции не распознано: {@TransactionData}", dto);
+            return;
+        }
+        var transactionCreateDto = mapper.Map<TransactionCreateDto>(dto);
+        transactionCreateDto.RequisiteId = device.RequisiteId.Value;
+        await service.CreateTransaction(transactionCreateDto);
     }
 
     public override async Task OnConnectedAsync()
