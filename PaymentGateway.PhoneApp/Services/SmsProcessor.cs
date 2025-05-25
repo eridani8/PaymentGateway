@@ -25,6 +25,8 @@ public class SmsProcessor(ILogger<SmsProcessor> logger, ParserFactory factory, D
             return;
         }
         
+        logger.LogInformation("[{ParserName}] {Extracted}", parser.GetType().Name, parser.ExtractedAmount);
+        
         if (!service.RequisiteId.HasValue)
         {
             logger.LogWarning("Не привязан реквизит");

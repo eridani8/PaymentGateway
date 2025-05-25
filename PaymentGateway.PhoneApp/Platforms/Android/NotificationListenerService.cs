@@ -23,7 +23,8 @@ public class NotificationListenerService : Android.Service.Notification.Notifica
     private readonly HashSet<string> _ignoredPackages =
     [
         "android", "com.android.systemui", "com.android.settings",
-        "com.google.android.packageinstaller", "com.google.android.gms"
+        "com.google.android.packageinstaller", "com.google.android.gms",
+        "com.google.android.apps.messaging"
     ];
 
     public NotificationListenerService()

@@ -25,7 +25,7 @@ public static class ServiceExtensions
 
         foreach (var type in parserTypes)
         {
-            services.AddSingleton(type);
+            services.AddSingleton(typeof(T), type);
         }
 
         return services;

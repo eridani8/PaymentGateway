@@ -10,11 +10,13 @@ public interface ISmsParser
     
     public bool ParseMessage(string message)
     {
-        var match = Regex.Match(message, Pattern);
+        var match = Regex.Match(message, Pattern, RegexOptions.IgnoreCase);
         if (!match.Success) return false;
         var moneyGroup = match.Groups["money"];
         if (!moneyGroup.Success) return false;
-        if (!decimal.TryParse(moneyGroup.Value, out var amount)) return false;
+        var amountStr = moneyGroup.Value.Replace(" ", "");
+        if (!decimal.TryParse(amountStr, out var amount)) return false;
+        if (amount == 0) return false;
         ExtractedAmount = amount;
         return true;
     }
