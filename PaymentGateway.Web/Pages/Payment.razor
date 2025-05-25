@@ -11,7 +11,7 @@
 
 <PageTitle>Платеж @Id</PageTitle>
 
-<MudContainer MaxWidth="MaxWidth.Medium" Class="pa-4">
+<MudContainer MaxWidth="MaxWidth.Medium" Style="padding: 20px;">
     @if (_isLoading)
     {
         <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" Class="d-block mx-auto my-8"/>
@@ -25,7 +25,7 @@
     }
     else
     {
-        <MudCard Elevation="3" Class="pa-4">
+        <MudCard Elevation="3">
             <MudText Typo="Typo.h5" Align="Align.Center" Class="mb-4">Информация о платеже</MudText>
 
             <MudGrid>
@@ -60,7 +60,7 @@
 
             @if (_payment.Requisite is not null)
             {
-                <MudDivider Class="my-4"/>
+                <MudDivider />
                 <MudText Typo="Typo.h6" Align="Align.Center" Class="mb-4">Данные для оплаты</MudText>
 
                 <MudPaper Elevation="0" Class="pa-4 mb-4" Style="border-radius: 8px;">
@@ -100,7 +100,7 @@
             }
             else
             {
-                <MudDivider Class="my-4"/>
+                <MudDivider />
                 <MudText Typo="Typo.h6" Align="Align.Center" Class="mb-3">Ожидание свободного реквизита</MudText>
 
                 <MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="my-4"/>
