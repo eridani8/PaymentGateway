@@ -33,7 +33,7 @@ public class GatewayHandler(
         {
             try
             {
-                var status = requisite.Status;
+                RequisiteStatus status;
 
                 if (requisite.Status is not RequisiteStatus.Cooldown and RequisiteStatus.Pending)
                 {
@@ -77,7 +77,7 @@ public class GatewayHandler(
                 }
                 else
                 {
-                    status = requisite.Status;
+                    requisite.ProcessStatus(now, nowTimeOnly, out status);
                 }
 
                 if (requisite.Status != status)
