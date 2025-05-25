@@ -11,7 +11,7 @@
 
 <PageTitle>Платеж @Id</PageTitle>
 
-<MudContainer MaxWidth="MaxWidth.Medium" Style="padding: 20px;">
+<MudContainer MaxWidth="MaxWidth.Medium" Class="pa-16">
     @if (_isLoading)
     {
         <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" Class="d-block mx-auto my-8"/>
@@ -25,7 +25,7 @@
     }
     else
     {
-        <MudCard Elevation="3">
+        <MudCard Elevation="3" Class="pa-16">
             <MudText Typo="Typo.h5" Align="Align.Center" Class="mb-4">Информация о платеже</MudText>
 
             <MudGrid>
