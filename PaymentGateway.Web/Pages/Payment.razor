@@ -7,7 +7,6 @@
 @inject IPaymentService PaymentService
 @inject ISnackbar Snackbar
 @inject ILogger<Payment> Logger
-@inject ITransactionService TransactionService
 @implements IDisposable
 
 <PageTitle>Платеж @Id</PageTitle>
@@ -97,33 +96,6 @@
                 @if (_payment.Status is PaymentStatus.Confirmed or PaymentStatus.ManualConfirm)
                 {
                     <MudAlert Severity="Severity.Success" Class="mt-4">Платеж успешно выполнен</MudAlert>
-                }
-                else
-                {
-                    <MudStack Class="mt-8" Spacing="2">
-                        @* <MudTextField @bind-Value="@_transactionDto.PaymentData" Placeholder="Куда переводим"/> TODO *@
-                        <MudTextField @bind-Value="@_transactionDto.ExtractedAmount" Placeholder="Сколько переводим"/>
-                        <MudToggleGroup SelectionMode="SelectionMode.ToggleSelection" Color="Color.Primary"
-                                        @bind-Value="@_transactionDto.Source">
-                            @foreach (var source in _selectedTransactionType)
-                            {
-                                <MudToggleItem Value="source">@source.ToString()</MudToggleItem>
-                            }
-                        </MudToggleGroup>
-                        <MudButton Variant="Variant.Filled" Color="Color.Success"
-                                   OnClick="@(SimulatePayment)" Class="mt-4"
-                                   Disabled="@(_isSimulating)">
-                            @if (_isSimulating)
-                            {
-                                <MudProgressCircular Class="ms-n1" Indeterminate="true"/>
-                                <MudText Class="ms-2">Обработка...</MudText>
-                            }
-                            else
-                            {
-                                <MudText>Имитировать платеж</MudText>
-                            }
-                        </MudButton>
-                    </MudStack>
                 }
             }
             else
@@ -246,50 +218,6 @@
         catch (Exception ex)
         {
             Logger.LogError(ex, "Ошибка при обновлении данных платежа {PaymentId}", Id);
-        }
-    }
-
-    private async Task SimulatePayment()
-    {
-        if (_payment?.Requisite is null) return;
-
-        _isSimulating = true;
-        try
-        {
-            var transaction = await TransactionService.SimulatePayment(
-                // _transactionDto.PaymentData,
-                "",
-                _transactionDto.ExtractedAmount,
-                _transactionDto.Source
-            );
-
-            if (transaction is not null)
-            {
-                _payment = await PaymentService.GetPaymentById(Id);
-
-                if (_payment?.Status == PaymentStatus.Confirmed)
-                {
-                    _showSuccessDialog = true;
-                    if (_refreshTimer is not null)
-                    {
-                        await _refreshTimer.DisposeAsync();
-                    }
-                }
-
-                Snackbar.Add($"Платеж успешно выполнен через {GetTransactionSourceText(transaction.Source)}", Severity.Success);
-            }
-            else
-            {
-                Snackbar.Add("Ошибка при обработке платежа", Severity.Error);
-            }
-        }
-        catch (Exception ex)
-        {
-            Snackbar.Add($"Ошибка при имитации платежа: {ex.Message}", Severity.Error);
-        }
-        finally
-        {
-            _isSimulating = false;
         }
     }
 
