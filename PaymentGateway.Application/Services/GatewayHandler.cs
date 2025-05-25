@@ -35,17 +35,23 @@ public class GatewayHandler(
             {
                 RequisiteStatus status;
 
-                if (requisite.Status is not RequisiteStatus.Cooldown and RequisiteStatus.Pending)
+                if (requisite.Status is RequisiteStatus.Cooldown or RequisiteStatus.Pending)
+                {
+                    requisite.ProcessStatus(now, nowTimeOnly, out status);
+                }
+                else
                 {
                     var deviceOfflineCacheKey = $"device_offline_warning:{requisite.Id}";
-                
+
                     if (requisite.DeviceId == null)
                     {
                         if (cache.Get(deviceOfflineCacheKey) is null)
                         {
-                            logger.LogInformation("Реквизит {RequisiteId} заморожен из-за оффлайн устройства", requisite.Id);
+                            logger.LogInformation("Реквизит {RequisiteId} заморожен из-за оффлайн устройства",
+                                requisite.Id);
                             cache.Set(deviceOfflineCacheKey, 0, logTimeout);
                         }
+
                         status = RequisiteStatus.Frozen;
                     }
                     else
@@ -55,9 +61,11 @@ public class GatewayHandler(
                         {
                             if (cache.Get(deviceOfflineCacheKey) is null)
                             {
-                                logger.LogInformation("Реквизит {RequisiteId} заморожен из-за оффлайн статуса устройства", requisite.Id);
+                                logger.LogInformation(
+                                    "Реквизит {RequisiteId} заморожен из-за оффлайн статуса устройства", requisite.Id);
                                 cache.Set(deviceOfflineCacheKey, 0, logTimeout);
                             }
+
                             status = RequisiteStatus.Frozen;
                         }
                         else
@@ -66,7 +74,8 @@ public class GatewayHandler(
                             if (requisite.Status == RequisiteStatus.Frozen)
                             {
                                 requisite.ProcessStatus(now, nowTimeOnly, out status);
-                                logger.LogInformation("Реквизит {RequisiteId} разморожен, устройство онлайн", requisite.Id);
+                                logger.LogInformation("Реквизит {RequisiteId} разморожен, устройство онлайн",
+                                    requisite.Id);
                             }
                             else
                             {
@@ -74,10 +83,6 @@ public class GatewayHandler(
                             }
                         }
                     }
-                }
-                else
-                {
-                    requisite.ProcessStatus(now, nowTimeOnly, out status);
                 }
 
                 if (requisite.Status != status)
