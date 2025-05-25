@@ -33,41 +33,45 @@ public class GatewayHandler(
         {
             try
             {
-                RequisiteStatus status;
-                var deviceOfflineCacheKey = $"device_offline_warning:{requisite.Id}";
+                var status = requisite.Status;
+
+                if (requisite.Status is not RequisiteStatus.Cooldown)
+                {
+                    var deviceOfflineCacheKey = $"device_offline_warning:{requisite.Id}";
                 
-                if (requisite.DeviceId == null)
-                {
-                    if (cache.Get(deviceOfflineCacheKey) is null)
-                    {
-                        logger.LogInformation("Реквизит {RequisiteId} заморожен из-за оффлайн устройства", requisite.Id);
-                        cache.Set(deviceOfflineCacheKey, 0, logTimeout);
-                    }
-                    status = RequisiteStatus.Frozen;
-                }
-                else
-                {
-                    var deviceDto = DeviceHub.BindDeviceByIdAndUserId(requisite.DeviceId.Value, requisite.UserId);
-                    if (deviceDto is not { State: true })
+                    if (requisite.DeviceId == null)
                     {
                         if (cache.Get(deviceOfflineCacheKey) is null)
                         {
-                            logger.LogInformation("Реквизит {RequisiteId} заморожен из-за оффлайн статуса устройства", requisite.Id);
+                            logger.LogInformation("Реквизит {RequisiteId} заморожен из-за оффлайн устройства", requisite.Id);
                             cache.Set(deviceOfflineCacheKey, 0, logTimeout);
                         }
                         status = RequisiteStatus.Frozen;
                     }
                     else
                     {
-                        cache.Remove(deviceOfflineCacheKey);
-                        if (requisite.Status == RequisiteStatus.Frozen)
+                        var deviceDto = DeviceHub.BindDeviceByIdAndUserId(requisite.DeviceId.Value, requisite.UserId);
+                        if (deviceDto is not { State: true })
                         {
-                            requisite.ProcessStatus(now, nowTimeOnly, out status);
-                            logger.LogInformation("Реквизит {RequisiteId} разморожен, устройство онлайн", requisite.Id);
+                            if (cache.Get(deviceOfflineCacheKey) is null)
+                            {
+                                logger.LogInformation("Реквизит {RequisiteId} заморожен из-за оффлайн статуса устройства", requisite.Id);
+                                cache.Set(deviceOfflineCacheKey, 0, logTimeout);
+                            }
+                            status = RequisiteStatus.Frozen;
                         }
                         else
                         {
-                            requisite.ProcessStatus(now, nowTimeOnly, out status);
+                            cache.Remove(deviceOfflineCacheKey);
+                            if (requisite.Status == RequisiteStatus.Frozen)
+                            {
+                                requisite.ProcessStatus(now, nowTimeOnly, out status);
+                                logger.LogInformation("Реквизит {RequisiteId} разморожен, устройство онлайн", requisite.Id);
+                            }
+                            else
+                            {
+                                requisite.ProcessStatus(now, nowTimeOnly, out status);
+                            }
                         }
                     }
                 }
