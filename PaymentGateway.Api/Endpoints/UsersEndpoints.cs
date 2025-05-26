@@ -35,7 +35,8 @@ public class UsersEndpoints : ICarterModule
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status401Unauthorized)
-            .RequireAuthorization(new AuthorizeAttribute() { Roles = "User,Admin,Support" });
+            .Produces(StatusCodes.Status404NotFound)
+            .RequireAuthorization(new AuthorizeAttribute() { Roles = "Admin" });
         
         group.MapPost("login", Login)
             .WithName("Login")
@@ -86,33 +87,59 @@ public class UsersEndpoints : ICarterModule
             .RequireAuthorization(new AuthorizeAttribute() { Roles = "Admin,Support" });
     }
 
-    private static IResult Deposit()
+    private static async Task<IResult> Deposit(
+        DepositDto? dto,
+        IValidator<DepositDto> validator,
+        UserManager<UserEntity> userManager,
+        ILogger<UsersEndpoints> logger,
+        ClaimsPrincipal currentUser)
     {
+        if (dto is null) return Results.BadRequest();
+        
+        var validation = await validator.ValidateAsync(dto);
+        if (!validation.IsValid)
+        {
+            return Results.BadRequest(validation.Errors.GetErrors());
+        }
+        
+        var user = await userManager.FindByIdAsync(dto.UserId.ToString());
+        if (user is not { IsActive: true })
+        {
+            return Results.NotFound(UserErrors.UserNotFound.ToString());
+        }
+        
+        var oldBalance = user.Balance;
+        
+        user.Balance += dto.Amount;
+        await userManager.UpdateAsync(user);
+        
+        logger.LogInformation("Пополнение счета пользователя {UserId} на {DepositAmount} [{CurrentUser}]. Было {OldBalance}, стало {NewBalance}", dto.UserId, dto.Amount, currentUser.GetCurrentUsername(), oldBalance, user.Balance);
+        
         return Results.Ok();
     }
     
     private static async Task<IResult> Login(
-        LoginDto? model,
+        LoginDto? dto,
         UserManager<UserEntity> userManager,
         SignInManager<UserEntity> signInManager,
         ITokenService tokenService,
-        IValidator<LoginDto> loginValidator)
+        IValidator<LoginDto> validator)
     {
-        if (model is null) return Results.BadRequest();
+        if (dto is null) return Results.BadRequest();
 
-        var validation = await loginValidator.ValidateAsync(model);
+        var validation = await validator.ValidateAsync(dto);
         if (!validation.IsValid)
         {
             return Results.BadRequest(validation.Errors.GetErrors());
         }
             
-        var user = await userManager.FindByNameAsync(model.Username);
+        var user = await userManager.FindByNameAsync(dto.Username);
         if (user is not { IsActive: true })
         {
             return Results.BadRequest(UserErrors.UserNotFound.ToString());
         }
 
-        var result = await signInManager.CheckPasswordSignInAsync(user, model.Password, false);
+        var result = await signInManager.CheckPasswordSignInAsync(user, dto.Password, false);
         if (!result.Succeeded)
         {
             return Results.BadRequest(UserErrors.InappropriateData.ToString());
@@ -120,11 +147,11 @@ public class UsersEndpoints : ICarterModule
 
         switch (user.TwoFactorEnabled)
         {
-            case true when string.IsNullOrEmpty(model.TwoFactorCode):
+            case true when string.IsNullOrEmpty(dto.TwoFactorCode):
                 return Results.StatusCode(StatusCodes.Status428PreconditionRequired);
-            case true when !string.IsNullOrEmpty(model.TwoFactorCode):
+            case true when !string.IsNullOrEmpty(dto.TwoFactorCode):
             {
-                var isValid = TotpService.VerifyTotpCode(user.TwoFactorSecretKey ?? string.Empty, model.TwoFactorCode);
+                var isValid = TotpService.VerifyTotpCode(user.TwoFactorSecretKey ?? string.Empty, dto.TwoFactorCode);
                 if (!isValid)
                 {
                     return Results.BadRequest(UserErrors.InappropriateCode.ToString());
@@ -140,14 +167,14 @@ public class UsersEndpoints : ICarterModule
     }
     
     private static async Task<IResult> ChangePassword(
-        ChangePasswordDto? model,
+        ChangePasswordDto? dto,
         UserManager<UserEntity> userManager,
         IValidator<ChangePasswordDto> changePasswordValidator,
         ClaimsPrincipal user)
     {
-        if (model is null) return Results.BadRequest();
+        if (dto is null) return Results.BadRequest();
 
-        var validation = await changePasswordValidator.ValidateAsync(model);
+        var validation = await changePasswordValidator.ValidateAsync(dto);
         if (!validation.IsValid)
         {
             return Results.BadRequest(validation.Errors.GetErrors());
@@ -161,8 +188,8 @@ public class UsersEndpoints : ICarterModule
 
         var result = await userManager.ChangePasswordAsync(
             userEntity,
-            model.CurrentPassword,
-            model.NewPassword);
+            dto.CurrentPassword,
+            dto.NewPassword);
 
         if (result.Succeeded)
         {
@@ -221,14 +248,14 @@ public class UsersEndpoints : ICarterModule
     }
     
     private static async Task<IResult> VerifyTwoFactor(
-        TwoFactorVerifyDto? model,
+        TwoFactorVerifyDto? dto,
         UserManager<UserEntity> userManager,
         IValidator<TwoFactorVerifyDto> twoFactorVerifyValidator,
         ClaimsPrincipal user)
     {
-        if (model is null) return Results.BadRequest();
+        if (dto is null) return Results.BadRequest();
         
-        var validation = await twoFactorVerifyValidator.ValidateAsync(model);
+        var validation = await twoFactorVerifyValidator.ValidateAsync(dto);
         if (!validation.IsValid)
         {
             return Results.BadRequest(validation.Errors.GetErrors());
@@ -240,7 +267,7 @@ public class UsersEndpoints : ICarterModule
             return Results.NotFound();
         }
         
-        var isValid = TotpService.VerifyTotpCode(userEntity.TwoFactorSecretKey ?? string.Empty, model.Code);
+        var isValid = TotpService.VerifyTotpCode(userEntity.TwoFactorSecretKey ?? string.Empty, dto.Code);
         if (!isValid)
         {
             return Results.BadRequest(UserErrors.InappropriateCode.ToString());
