@@ -26,7 +26,7 @@ public class GatewayHandler(
         var requisites = await unit.RequisiteRepository.GetAll();
         var now = DateTime.UtcNow;
         var nowTimeOnly = TimeOnly.FromDateTime(now);
-        var logTimeout = TimeSpan.FromMinutes(30);
+        var logTimeout = TimeSpan.FromHours(3);
         var needToCommit = false;
 
         foreach (var requisite in requisites)

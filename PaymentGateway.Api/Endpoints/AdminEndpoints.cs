@@ -7,6 +7,9 @@ using PaymentGateway.Shared.Enums;
 using System.Security.Claims;
 using Carter;
 using Asp.Versioning;
+using FluentValidation;
+using Microsoft.AspNetCore.Identity;
+using PaymentGateway.Core.Entities;
 
 namespace PaymentGateway.Api.Endpoints;
 
@@ -34,6 +37,16 @@ public class AdminEndpoints : ICarterModule
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status403Forbidden)
             .Produces(StatusCodes.Status409Conflict);
+        
+        group.MapPost("/deposit", Deposit)
+            .WithName("Deposit")
+            .WithSummary("Пополнение баланса пользователя")
+            .WithDescription("Добавляет средства на счет пользователя")
+            .Produces(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status404NotFound)
+            .RequireAuthorization(new AuthorizeAttribute() { Roles = "Admin" });
 
         group.MapGet("users", GetAllUsers)
             .WithName("GetAllUsers")
@@ -111,6 +124,37 @@ public class AdminEndpoints : ICarterModule
             .Produces(StatusCodes.Status403Forbidden);
     }
 
+    private static async Task<IResult> Deposit(
+        DepositDto? dto,
+        IValidator<DepositDto> validator,
+        UserManager<UserEntity> userManager,
+        ILogger<AdminEndpoints> logger,
+        ClaimsPrincipal currentUser)
+    {
+        if (dto is null) return Results.BadRequest();
+        
+        var validation = await validator.ValidateAsync(dto);
+        if (!validation.IsValid)
+        {
+            return Results.BadRequest(validation.Errors.GetErrors());
+        }
+        
+        var user = await userManager.FindByIdAsync(dto.UserId.ToString());
+        if (user is not { IsActive: true })
+        {
+            return Results.NotFound(UserErrors.UserNotFound.ToString());
+        }
+        
+        var oldBalance = user.Balance;
+        
+        user.Balance += dto.Amount;
+        await userManager.UpdateAsync(user);
+        
+        logger.LogInformation("Пополнение счета пользователя {UserId} на {DepositAmount} [{CurrentUser}]. Было {OldBalance}, стало {NewBalance}", dto.UserId, dto.Amount, currentUser.GetCurrentUsername(), oldBalance, user.Balance);
+        
+        return Results.Ok();
+    }
+    
     private static async Task<IResult> CreateUser(
         CreateUserDto? dto,
         IAdminService service,
