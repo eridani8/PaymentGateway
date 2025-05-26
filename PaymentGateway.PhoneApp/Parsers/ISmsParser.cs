@@ -5,19 +5,27 @@ namespace PaymentGateway.PhoneApp.Parsers;
 public interface ISmsParser
 {
     List<string> Numbers { get; }
-    string Pattern { get; }
+    Regex[] Patterns { get; }
     decimal ExtractedAmount { get; set; }
     
     public bool ParseMessage(string message)
     {
-        var match = Regex.Match(message, Pattern, RegexOptions.IgnoreCase);
-        if (!match.Success) return false;
-        var moneyGroup = match.Groups["money"];
-        if (!moneyGroup.Success) return false;
-        var amountStr = moneyGroup.Value.Replace(" ", "");
-        if (!decimal.TryParse(amountStr, out var amount)) return false;
-        if (amount == 0) return false;
-        ExtractedAmount = amount;
-        return true;
+        foreach (var regex in Patterns)
+        {
+            var match = regex.Match(message);
+            if (!match.Success) continue;
+
+            var moneyGroup = match.Groups["money"];
+            if (!moneyGroup.Success) continue;
+
+            var amountStr = moneyGroup.Value.Replace(" ", "");
+            if (!decimal.TryParse(amountStr, out var amount)) continue;
+
+            if (amount == 0) continue;
+
+            ExtractedAmount = amount;
+            return true;
+        }
+        return false;
     }
 }
