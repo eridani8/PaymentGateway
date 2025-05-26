@@ -1,6 +1,6 @@
 using System.Security.Claims;
 
-namespace PaymentGateway.Api;
+namespace PaymentGateway.Application.Extensions;
 
 public static class ClaimsPrincipalExtensions
 {

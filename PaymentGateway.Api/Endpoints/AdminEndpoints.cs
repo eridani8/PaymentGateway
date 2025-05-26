@@ -9,6 +9,8 @@ using Carter;
 using Asp.Versioning;
 using FluentValidation;
 using Microsoft.AspNetCore.Identity;
+using PaymentGateway.Application.Extensions;
+using PaymentGateway.Application.Services;
 using PaymentGateway.Core.Entities;
 
 namespace PaymentGateway.Api.Endpoints;
@@ -126,31 +128,19 @@ public class AdminEndpoints : ICarterModule
 
     private static async Task<IResult> Deposit(
         DepositDto? dto,
-        IValidator<DepositDto> validator,
-        UserManager<UserEntity> userManager,
-        ILogger<AdminEndpoints> logger,
+        WalletService service,
         ClaimsPrincipal currentUser)
     {
         if (dto is null) return Results.BadRequest();
         
-        var validation = await validator.ValidateAsync(dto);
-        if (!validation.IsValid)
+        var result = await service.Deposit(dto, currentUser);
+
+        if (result.IsFailure)
         {
-            return Results.BadRequest(validation.Errors.GetErrors());
+            return result.Error.Code == ErrorCode.UserNotFound 
+                ? Results.NotFound(result.Error.Message) 
+                : Results.BadRequest(result.Error.Message);
         }
-        
-        var user = await userManager.FindByIdAsync(dto.UserId.ToString());
-        if (user is not { IsActive: true })
-        {
-            return Results.NotFound(UserErrors.UserNotFound.ToString());
-        }
-        
-        var oldBalance = user.Balance;
-        
-        user.Balance += dto.Amount;
-        await userManager.UpdateAsync(user);
-        
-        logger.LogInformation("Пополнение счета пользователя {UserId} на {DepositAmount} [{CurrentUser}]. Было {OldBalance}, стало {NewBalance}", dto.UserId, dto.Amount, currentUser.GetCurrentUsername(), oldBalance, user.Balance);
         
         return Results.Ok();
     }

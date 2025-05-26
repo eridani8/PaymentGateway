@@ -1,7 +1,7 @@
 ﻿using FluentValidation.Results;
 using Microsoft.AspNetCore.Identity;
 
-namespace PaymentGateway.Api;
+namespace PaymentGateway.Application.Extensions;
 
 public static class ValidationExtensions
 {

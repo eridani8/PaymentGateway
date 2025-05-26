@@ -9,6 +9,7 @@ using System.Security.Claims;
 using Asp.Versioning;
 using Carter;
 using Microsoft.AspNetCore.Authorization;
+using PaymentGateway.Application.Extensions;
 using PaymentGateway.Application.Results;
 using PaymentGateway.Shared.Services;
 

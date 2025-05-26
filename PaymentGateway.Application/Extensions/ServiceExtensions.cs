@@ -1,5 +1,4 @@
-﻿using System.Collections.Concurrent;
-using FluentValidation;
+﻿using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Application.Mappings;
@@ -7,7 +6,7 @@ using PaymentGateway.Application.Services;
 using PaymentGateway.Core.Interfaces;
 using PaymentGateway.Shared.Validations;
 
-namespace PaymentGateway.Application;
+namespace PaymentGateway.Application.Extensions;
 
 public static class ServiceExtensions
 {
@@ -23,19 +22,15 @@ public static class ServiceExtensions
         services.AddValidatorsFromAssembly(typeof(BaseValidator<>).Assembly);
         
         services.AddScoped<IRequisiteService, RequisiteService>();
-        
         services.AddScoped<IPaymentConfirmationService, PaymentConfirmationService>();
         services.AddScoped<IPaymentService, PaymentService>();
-
         services.AddScoped<ITransactionService, TransactionService>();
-
         services.AddSingleton<ITokenService, TokenService>();
-        
         services.AddScoped<IAdminService, AdminService>();
         services.AddScoped<IChatMessageService, ChatMessageService>();
+        services.AddScoped<IWalletService, WalletService>();
         
         services.AddScoped<IGatewayHandler, GatewayHandler>();
-
         services.AddHostedService<GatewayHost>();
 
         return services;

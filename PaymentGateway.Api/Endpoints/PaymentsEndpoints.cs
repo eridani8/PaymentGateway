@@ -7,6 +7,7 @@ using System.Security.Claims;
 using Asp.Versioning;
 using Carter;
 using FluentValidation;
+using PaymentGateway.Application.Extensions;
 
 namespace PaymentGateway.Api.Endpoints;
 

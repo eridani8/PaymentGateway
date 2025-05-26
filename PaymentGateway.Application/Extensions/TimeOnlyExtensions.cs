@@ -1,4 +1,4 @@
-﻿namespace PaymentGateway.Application;
+﻿namespace PaymentGateway.Application.Extensions;
 
 public static class TimeOnlyExtensions
 {

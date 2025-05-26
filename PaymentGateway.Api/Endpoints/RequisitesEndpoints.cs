@@ -6,6 +6,7 @@ using PaymentGateway.Shared.DTOs.Requisite;
 using System.Security.Claims;
 using Asp.Versioning;
 using Carter;
+using PaymentGateway.Application.Extensions;
 
 namespace PaymentGateway.Api.Endpoints;
 

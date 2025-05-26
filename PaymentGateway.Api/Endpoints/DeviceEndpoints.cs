@@ -8,6 +8,7 @@ using PaymentGateway.Core.Entities;
 using PaymentGateway.Shared;
 using PaymentGateway.Shared.DTOs.Device;
 using System.Security.Claims;
+using PaymentGateway.Application.Extensions;
 using PaymentGateway.Core.Interfaces;
 using PaymentGateway.Shared.Services;
 
