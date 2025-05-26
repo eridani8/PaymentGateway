@@ -28,7 +28,8 @@ public class TransactionsEndpoints : ICarterModule
             .WithSummary("Создание транзакции")
             .WithDescription("Создает новую транзакцию в системе")
             .Produces<TransactionDto>(StatusCodes.Status201Created)
-            .Produces(StatusCodes.Status400BadRequest);
+            .Produces(StatusCodes.Status400BadRequest)
+            .RequireAuthorization(new AuthorizeAttribute() { Roles = "User,Admin,Support" });;
 
         group.MapGet("/", GetAllTransactions)
             .WithName("GetAllTransactions")
@@ -56,7 +57,7 @@ public class TransactionsEndpoints : ICarterModule
             .Produces<List<TransactionDto>>()
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status400BadRequest)
-            .RequireAuthorization();
+            .RequireAuthorization(new AuthorizeAttribute() { Roles = "User" });
     }
 
     private static async Task<IResult> CreateTransaction(
@@ -100,7 +101,7 @@ public class TransactionsEndpoints : ICarterModule
         var result = await service.GetUserTransactions(userId);
 
         if (result.IsFailure) return Results.BadRequest(result.Error.Message);
-        
+
         return Results.Json(result.Value);
     }
 

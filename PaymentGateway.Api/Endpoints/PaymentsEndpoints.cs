@@ -30,7 +30,8 @@ public class PaymentsEndpoints : ICarterModule
             .WithDescription("Создает новый платеж в системе")
             .Produces<Guid>()
             .Produces(StatusCodes.Status400BadRequest)
-            .Produces(StatusCodes.Status409Conflict);
+            .Produces(StatusCodes.Status409Conflict)
+            .AllowAnonymous();
 
         group.MapPut("confirm", ManualConfirmPayment)
             .WithName("ManualConfirmPayment")
@@ -40,7 +41,7 @@ public class PaymentsEndpoints : ICarterModule
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status404NotFound)
-            .RequireAuthorization();
+            .RequireAuthorization(new AuthorizeAttribute() { Roles = "Admin,Support" });
 
         group.MapPut("cancel", CancelPayment)
             .WithName("CancelPayment")
@@ -77,7 +78,7 @@ public class PaymentsEndpoints : ICarterModule
             .WithDescription("Возвращает список платежей текущего пользователя")
             .Produces<IEnumerable<PaymentDto>>()
             .Produces(StatusCodes.Status401Unauthorized)
-            .RequireAuthorization();
+            .RequireAuthorization(new AuthorizeAttribute() { Roles = "User" });
 
         group.MapGet("{id:guid}", GetPaymentById)
             .WithName("GetPaymentById")

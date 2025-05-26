@@ -8,6 +8,7 @@ using PaymentGateway.Shared.DTOs.User;
 using System.Security.Claims;
 using Asp.Versioning;
 using Carter;
+using Microsoft.AspNetCore.Authorization;
 using PaymentGateway.Application.Results;
 using PaymentGateway.Shared.Services;
 
@@ -27,6 +28,15 @@ public class UsersEndpoints : ICarterModule
             .WithTags("Пользовательские методы и аутентификация")
             .AddEndpointFilter<UserStatusFilter>();
 
+        group.MapPost("/deposit", Deposit)
+            .WithName("Deposit")
+            .WithSummary("Пополнение баланса пользователя")
+            .WithDescription("Добавляет средства на счет пользователя")
+            .Produces(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .RequireAuthorization(new AuthorizeAttribute() { Roles = "User,Admin,Support" });
+        
         group.MapPost("login", Login)
             .WithName("Login")
             .WithSummary("Аутентификация пользователя")
@@ -45,34 +55,42 @@ public class UsersEndpoints : ICarterModule
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status404NotFound)
-            .RequireAuthorization();
+            .RequireAuthorization(new AuthorizeAttribute() { Roles = "User,Admin,Support" });
 
         group.MapGet("two-factor/status", TwoFactorStatus)
             .WithName("TwoFactorStatus")
             .WithSummary("Статус двухфакторной аутентификации")
             .WithDescription("Возвращает информацию о состоянии двухфакторной аутентификации пользователя")
             .Produces<TwoFactorStatusDto>()
+            .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status404NotFound)
-            .RequireAuthorization();
+            .RequireAuthorization(new AuthorizeAttribute() { Roles = "Admin,Support" });
 
         group.MapPost("two-factor/enable", EnableTwoFactor)
             .WithName("EnableTwoFactor")
             .WithSummary("Включение двухфакторной аутентификации")
             .WithDescription("Генерирует QR-код и секретный ключ для настройки двухфакторной аутентификации")
             .Produces<TwoFactorDto>()
+            .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status404NotFound)
-            .RequireAuthorization();
+            .RequireAuthorization(new AuthorizeAttribute() { Roles = "Admin,Support" });
 
         group.MapPost("two-factor/verify", VerifyTwoFactor)
             .WithName("VerifyTwoFactor")
             .WithSummary("Проверка кода двухфакторной аутентификации")
             .WithDescription("Проверяет введенный код двухфакторной аутентификации")
             .Produces(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status404NotFound)
-            .RequireAuthorization();
+            .RequireAuthorization(new AuthorizeAttribute() { Roles = "Admin,Support" });
     }
 
+    private static IResult Deposit()
+    {
+        return Results.Ok();
+    }
+    
     private static async Task<IResult> Login(
         LoginDto? model,
         UserManager<UserEntity> userManager,

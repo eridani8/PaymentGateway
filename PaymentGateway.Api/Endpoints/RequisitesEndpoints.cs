@@ -17,12 +17,11 @@ public class RequisitesEndpoints : ICarterModule
             .HasApiVersion(new ApiVersion(1))
             .ReportApiVersions()
             .Build();
-        
+
         var group = app.MapGroup("api/requisites")
             .WithApiVersionSet(versionSet)
             .WithTags("Управление реквизитами")
-            .AddEndpointFilter<UserStatusFilter>()
-            .RequireAuthorization();
+            .AddEndpointFilter<UserStatusFilter>();
 
         group.MapPost("/", CreateRequisite)
             .WithName("CreateRequisite")
@@ -31,7 +30,8 @@ public class RequisitesEndpoints : ICarterModule
             .Produces<Guid>()
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status401Unauthorized)
-            .Produces(StatusCodes.Status409Conflict);
+            .Produces(StatusCodes.Status409Conflict)
+            .RequireAuthorization(new AuthorizeAttribute() { Roles = "User,Admin,Support" });;
 
         group.MapGet("/", GetAllRequisites)
             .WithName("GetAllRequisites")
@@ -55,7 +55,8 @@ public class RequisitesEndpoints : ICarterModule
             .WithSummary("Получение реквизитов пользователя")
             .WithDescription("Возвращает список реквизитов текущего пользователя")
             .Produces<IEnumerable<RequisiteDto>>()
-            .Produces(StatusCodes.Status401Unauthorized);
+            .Produces(StatusCodes.Status401Unauthorized)
+            .RequireAuthorization(new AuthorizeAttribute() { Roles = "User" });
 
         group.MapGet("/{id:guid}", GetRequisiteById)
             .WithName("GetRequisiteById")
@@ -63,7 +64,8 @@ public class RequisitesEndpoints : ICarterModule
             .WithDescription("Возвращает информацию о реквизите по его идентификатору")
             .Produces<RequisiteDto>()
             .Produces(StatusCodes.Status401Unauthorized)
-            .Produces(StatusCodes.Status404NotFound);
+            .Produces(StatusCodes.Status404NotFound)
+            .RequireAuthorization(new AuthorizeAttribute() { Roles = "User,Admin,Support" });
 
         group.MapPut("/{id:guid}", UpdateRequisite)
             .WithName("UpdateRequisite")
@@ -72,7 +74,8 @@ public class RequisitesEndpoints : ICarterModule
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status401Unauthorized)
-            .Produces(StatusCodes.Status404NotFound);
+            .Produces(StatusCodes.Status404NotFound)
+            .RequireAuthorization(new AuthorizeAttribute() { Roles = "Admin,Support" });
 
         group.MapDelete("/{id:guid}", DeleteRequisite)
             .WithName("DeleteRequisite")
@@ -80,7 +83,8 @@ public class RequisitesEndpoints : ICarterModule
             .WithDescription("Удаляет реквизит по его идентификатору")
             .Produces<RequisiteDto>()
             .Produces(StatusCodes.Status401Unauthorized)
-            .Produces(StatusCodes.Status404NotFound);
+            .Produces(StatusCodes.Status404NotFound)
+            .RequireAuthorization(new AuthorizeAttribute() { Roles = "Admin,Support" });
     }
 
     private static async Task<IResult> CreateRequisite(

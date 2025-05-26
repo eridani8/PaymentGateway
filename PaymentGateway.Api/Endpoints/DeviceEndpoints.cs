@@ -28,6 +28,9 @@ public class DeviceEndpoints : ICarterModule
             .AddEndpointFilter<UserStatusFilter>();
         
         group.MapGet("/", GetDevices)
+            .WithName("GetAllDevices")
+            .WithSummary("Получение всех устройств")
+            .WithDescription("Возвращает список всех устройств администратору")
             .Produces<List<DeviceDto>>()
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status401Unauthorized)
@@ -35,6 +38,9 @@ public class DeviceEndpoints : ICarterModule
             .RequireAuthorization(new AuthorizeAttribute { Roles = "Admin" });
         
         group.MapGet("/user/{userId:guid}", GetDevicesByUserId)
+            .WithName("GetDevicesByUserId")
+            .WithSummary("Получение устройств пользователя по его ID")
+            .WithDescription("Возвращает список устройств пользователя")
             .Produces<List<DeviceDto>>()
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status401Unauthorized)
@@ -42,13 +48,19 @@ public class DeviceEndpoints : ICarterModule
             .RequireAuthorization(new AuthorizeAttribute { Roles = "Admin" });
         
         group.MapGet("/user", GetUserDevices)
+            .WithName("GetUserDevices")
+            .WithSummary("Получение устройств текущего пользователя")
+            .WithDescription("Возвращает список устройств текущему пользователю")
             .Produces<List<DeviceDto>>()
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status401Unauthorized)
             .AddEndpointFilter<UserStatusFilter>()
-            .RequireAuthorization(new AuthorizeAttribute { Roles = "User,Admin,Support" });
+            .RequireAuthorization(new AuthorizeAttribute { Roles = "User" });
 
         group.MapPost("/user/token", GenerateDeviceToken)
+            .WithName("GenerateDeviceToken")
+            .WithSummary("Генерация токена для привязки устройства")
+            .WithDescription("Возвращает QR код и токен для привязки устройства")
             .Produces<DeviceTokenDto>()
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status401Unauthorized)
