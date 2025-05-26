@@ -184,6 +184,15 @@
                                     </MudTooltip>
                                 </Authorized>
                             </AuthorizeView>
+                            @if (rowContext.Item.Device is not null)
+                            {
+                                <MudTooltip Placement="Placement.Left" Text="Id устройства">
+                                    <MudStack Row="true">
+                                        <MudIcon Icon="@Icons.Material.Filled.Smartphone" Class="mr-2"/>
+                                        <MudText Typo="Typo.body1">@rowContext.Item.Device.Id</MudText>
+                                    </MudStack>
+                                </MudTooltip>
+                            }
                             @if (rowContext.Item.Payment is not null)
                             {
                                 <MudTooltip Placement="Placement.Left" Text="Id платежа">
