@@ -128,7 +128,7 @@ public class AdminEndpoints : ICarterModule
 
     private static async Task<IResult> Deposit(
         DepositDto? dto,
-        WalletService service,
+        IWalletService service,
         ClaimsPrincipal currentUser)
     {
         if (dto is null) return Results.BadRequest();
