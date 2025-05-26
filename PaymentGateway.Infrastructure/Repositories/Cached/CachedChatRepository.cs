@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Caching.Memory;
 using PaymentGateway.Core.Entities;
-using PaymentGateway.Core.Interfaces;
 using PaymentGateway.Infrastructure.Interfaces;
 
 namespace PaymentGateway.Infrastructure.Repositories.Cached;

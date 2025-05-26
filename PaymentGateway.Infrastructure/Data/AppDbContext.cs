@@ -11,19 +11,20 @@ namespace PaymentGateway.Infrastructure.Data;
 public class AppDbContext(DbContextOptions<AppDbContext> options, ICryptographyService cryptographyService)
     : IdentityDbContext<UserEntity, IdentityRole<Guid>, Guid>(options)
 {
-    public DbSet<PaymentEntity> Payments { get; set; }
-    public DbSet<RequisiteEntity> Requisites { get; set; }
-    public DbSet<TransactionEntity> Transactions { get; set; }
-    public DbSet<ChatMessageEntity> ChatMessages { get; set; }
-    public DbSet<DeviceEntity> Devices { get; set; }
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
         modelBuilder.ApplyEncryptedProperties(cryptographyService);
+        
+        modelBuilder.Entity<IdentityUser>(entity =>
+        {
+            entity.ToTable("Users");
+        });
 
         modelBuilder.Entity<RequisiteEntity>(entity =>
         {
+            entity.ToTable("Requisites");
+            
             entity.HasIndex(e => e.Id).IsUnique();
             entity.HasIndex(e => e.Status);
             entity.HasIndex(e => e.Priority);
@@ -53,6 +54,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICryptographyS
 
         modelBuilder.Entity<PaymentEntity>(entity =>
         {
+            entity.ToTable("Payments");
+            
             entity.HasIndex(e => e.Id).IsUnique();
             entity.HasIndex(e => e.ExternalPaymentId).IsUnique();
             entity.HasIndex(e => e.Status);
@@ -86,6 +89,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICryptographyS
 
         modelBuilder.Entity<TransactionEntity>(entity =>
         {
+            entity.ToTable("Transactions");
+            
             entity.HasIndex(e => e.Id).IsUnique();
             entity.HasIndex(e => e.PaymentId);
             entity.HasIndex(e => e.RequisiteId);
@@ -113,6 +118,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICryptographyS
 
         modelBuilder.Entity<ChatMessageEntity>(entity =>
         {
+            entity.ToTable("ChatMessages");
+            
             entity.HasIndex(e => e.Id).IsUnique();
             entity.HasIndex(e => e.UserId);
             entity.HasIndex(e => e.Timestamp);
@@ -131,6 +138,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICryptographyS
 
         modelBuilder.Entity<DeviceEntity>(entity =>
         {
+            entity.ToTable("Devices");
+            
             entity.HasIndex(e => e.Id).IsUnique();
             entity.HasIndex(e => e.UserId);
             entity.HasIndex(e => e.BindingAt);
