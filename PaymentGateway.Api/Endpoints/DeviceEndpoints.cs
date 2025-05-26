@@ -71,7 +71,7 @@ public class DeviceEndpoints : ICarterModule
 
     private static IResult GetDevices()
     {
-        var devices = DeviceHub.Devices.Values.ToList();
+        var devices = DeviceHub.Devices.Values.Reverse().ToList();
         
         return Results.Json(devices);
     }

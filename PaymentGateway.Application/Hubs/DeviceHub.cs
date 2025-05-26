@@ -201,12 +201,14 @@ public class DeviceHub(
     {
         return Devices.Values
             .Where(d => d.UserId == userId && d.BindingAt == DateTime.MinValue)
+            .Reverse()
             .ToList();
     }
 
     public static IEnumerable<DeviceDto> UserDevices(Guid userId)
     {
         return Devices.Values
-            .Where(d => d.UserId == userId);
+            .Where(d => d.UserId == userId)
+            .Reverse();
     }
 }

@@ -2,7 +2,6 @@ using Asp.Versioning.ApiExplorer;
 using Carter;
 using PaymentGateway.Api;
 using PaymentGateway.Api.Configuration;
-using PaymentGateway.Application;
 using PaymentGateway.Application.Extensions;
 using PaymentGateway.Application.Hubs;
 using PaymentGateway.Core;
