@@ -34,8 +34,8 @@ public class UserEntity : IdentityUser<Guid>
     public DateTime LastFundsResetAt { get; set; }
     
     public DateTime CreatedAt { get; set; }
-    [MaxLength(255)]
     
+    [MaxLength(255)]
     [Encrypted]
     public string? TwoFactorSecretKey { get; set; }
 }
