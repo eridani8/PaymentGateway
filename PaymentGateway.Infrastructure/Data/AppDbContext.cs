@@ -15,11 +15,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICryptographyS
     {
         base.OnModelCreating(modelBuilder);
         modelBuilder.ApplyEncryptedProperties(cryptographyService);
-        
-        modelBuilder.Entity<IdentityUser>(entity =>
-        {
-            entity.ToTable("Users");
-        });
 
         modelBuilder.Entity<RequisiteEntity>(entity =>
         {
