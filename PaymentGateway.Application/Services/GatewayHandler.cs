@@ -37,7 +37,15 @@ public class GatewayHandler(
 
                 var deviceOfflineCacheKey = $"device_offline_warning:{requisite.Id}";
 
-                if (requisite.DeviceId == null)
+                if (requisite.Status is RequisiteStatus.Cooldown or RequisiteStatus.Pending)
+                {
+                    requisite.ProcessStatus(now, nowTimeOnly, out status);
+                }
+                else if (!requisite.User.IsActive)
+                {
+                    status = RequisiteStatus.Inactive;
+                }
+                else if (requisite.DeviceId == null)
                 {
                     if (cache.Get(deviceOfflineCacheKey) is null)
                     {
@@ -76,11 +84,6 @@ public class GatewayHandler(
                             requisite.ProcessStatus(now, nowTimeOnly, out status);
                         }
                     }
-                }
-                
-                if (requisite.Status is RequisiteStatus.Cooldown or RequisiteStatus.Pending)
-                {
-                    requisite.ProcessStatus(now, nowTimeOnly, out status);
                 }
 
                 if (requisite.Status != status)
