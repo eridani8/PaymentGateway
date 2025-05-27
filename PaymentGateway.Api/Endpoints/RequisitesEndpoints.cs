@@ -76,7 +76,7 @@ public class RequisitesEndpoints : ICarterModule
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status404NotFound)
-            .RequireAuthorization(new AuthorizeAttribute() { Roles = "Admin,Support" });
+            .RequireAuthorization(new AuthorizeAttribute() { Roles = "User,Admin,Support" });
 
         group.MapDelete("/{id:guid}", DeleteRequisite)
             .WithName("DeleteRequisite")
