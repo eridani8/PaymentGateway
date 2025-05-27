@@ -25,35 +25,35 @@
     }
     else
     {
-        <MudCard Elevation="3" Class="pa-16">
+        <MudCard Elevation="3" Class="pa-8">
             <MudText Typo="Typo.h5" Align="Align.Center" Class="mb-4">Информация о платеже</MudText>
 
             <MudGrid>
                 <MudItem xs="6">
                     <MudText><strong>ID:</strong></MudText>
                 </MudItem>
-                <MudItem xs="6">
+                <MudItem xs="6" Class="d-flex justify-end">
                     <MudText>@_payment.Id</MudText>
                 </MudItem>
 
                 <MudItem xs="6">
                     <MudText><strong>Сумма:</strong></MudText>
                 </MudItem>
-                <MudItem xs="6">
+                <MudItem xs="6" Class="d-flex justify-end">
                     <MudText>@_payment.Amount</MudText>
                 </MudItem>
 
                 <MudItem xs="6">
                     <MudText><strong>Создан:</strong></MudText>
                 </MudItem>
-                <MudItem xs="6">
+                <MudItem xs="6" Class="d-flex justify-end">
                     <MudText>@_payment.CreatedAt.ToString(CultureInfo.InvariantCulture)</MudText>
                 </MudItem>
 
                 <MudItem xs="6">
                     <MudText><strong>Оплатить до:</strong></MudText>
                 </MudItem>
-                <MudItem xs="6">
+                <MudItem xs="6" Class="d-flex justify-end">
                     <MudText>@_payment.ExpiresAt?.ToString(CultureInfo.InvariantCulture)</MudText>
                 </MudItem>
             </MudGrid>
@@ -77,7 +77,7 @@
                     <MudItem xs="6">
                         <MudText><strong>Получатель:</strong></MudText>
                     </MudItem>
-                    <MudItem xs="6">
+                    <MudItem xs="6" Class="d-flex justify-end">
                         <MudText>@_payment.Requisite.FullName</MudText>
                     </MudItem>
 
@@ -86,7 +86,7 @@
                         <MudItem xs="6">
                             <MudText><strong>Банковский счет:</strong></MudText>
                         </MudItem>
-                        <MudItem xs="6">
+                        <MudItem xs="6" Class="d-flex justify-end">
                             <MudText>@_payment.Requisite.BankNumber</MudText>
                         </MudItem>
                     }

@@ -433,10 +433,10 @@
 
     private static Color GetStatusColor(PaymentStatus status) => status switch
     {
-        PaymentStatus.Created => Color.Warning,
-        PaymentStatus.Pending => Color.Primary,
+        PaymentStatus.Created => Color.Primary,
+        PaymentStatus.Pending => Color.Warning,
         PaymentStatus.Confirmed => Color.Success,
-        PaymentStatus.ManualConfirm => Color.Success,
+        PaymentStatus.ManualConfirm => Color.Secondary,
         PaymentStatus.Expired => Color.Error,
         PaymentStatus.Canceled => Color.Error,
         _ => Color.Default
