@@ -1,4 +1,5 @@
 ﻿@page "/devices"
+@using System.Net
 @using PaymentGateway.Shared.DTOs.Device
 @attribute [Authorize(Roles = "User,Admin,Support")]
 @inject IDialogService DialogService
@@ -320,18 +321,18 @@
         {
             try
             {
-                // _isLoading = true;
-                // var deleteResult = await AdminService.DeleteUser(user.Id);
-                //
-                // if (deleteResult.Code == HttpStatusCode.OK)
-                // {
-                //     Snackbar.Add($"Пользователь {user.Username} успешно удален", Severity.Success);
-                // }
-                // else
-                // {
-                //     var error = !string.IsNullOrEmpty(deleteResult.Content) ? deleteResult.Content : "Ошибка при удалении пользователя";
-                //     Snackbar.Add(error, Severity.Error);
-                // }
+                _isLoading = true;
+                var deleteResult = await DeviceService.DeleteDevice(device.Id);
+                
+                if (deleteResult.Code == HttpStatusCode.OK)
+                {
+                    Snackbar.Add($"Устройство {device.DeviceName} успешно удалено", Severity.Success);
+                }
+                else
+                {
+                    var error = !string.IsNullOrEmpty(deleteResult.Content) ? deleteResult.Content : "Ошибка при удалении устройства";
+                    Snackbar.Add(error, Severity.Error);
+                }
             }
             catch (Exception e)
             {
@@ -344,5 +345,4 @@
             }
         }
     }
-
 }

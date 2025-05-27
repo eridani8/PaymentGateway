@@ -19,7 +19,12 @@ public class DeviceService(
     {
         return await PostRequest<DeviceTokenDto>($"{apiEndpoint}/user/token");
     }
-
+    
+    public async Task<Response> DeleteDevice(Guid id)
+    {
+        return await DeleteRequest($"{apiEndpoint}/{id}");
+    }
+    
     public async Task<List<DeviceDto>> GetDevices()
     {
         var authState = await authStateProvider.GetAuthenticationStateAsync();
