@@ -14,32 +14,35 @@
 
 <MudContainer MaxWidth="MaxWidth.ExtraSmall" Class="mt-8">
     <MudStack>
-        <AuthorizeView>
-            <Authorized>
-                <MudCard Elevation="12" Class="pa-8">
-                    <MudGrid>
-                        <MudItem xs="6">
-                            <MudText><strong>Баланс:</strong></MudText>
-                        </MudItem>
-                        <MudItem xs="6" Class="d-flex justify-end">
-                            <MudText><strong>@_walletDto.Balance</strong></MudText>
-                        </MudItem>
-                        <MudItem xs="6">
-                            <MudText><strong>Заморожено:</strong></MudText>
-                        </MudItem>
-                        <MudItem xs="6" Class="d-flex justify-end">
-                            <MudText><strong>@_walletDto.Frozen</strong></MudText>
-                        </MudItem>
-                        <MudItem xs="6">
-                            <MudText><strong>Доход:</strong></MudText>
-                        </MudItem>
-                        <MudItem xs="6" Class="d-flex justify-end">
-                            <MudText><strong>@_walletDto.Profit</strong></MudText>
-                        </MudItem>
-                    </MudGrid>
-                </MudCard>
-            </Authorized>
-        </AuthorizeView>
+       @if (_walletDto is not null)
+       {
+           <AuthorizeView>
+               <Authorized>
+                   <MudCard Elevation="12" Class="pa-8">
+                       <MudGrid>
+                           <MudItem xs="6">
+                               <MudText><strong>Баланс:</strong></MudText>
+                           </MudItem>
+                           <MudItem xs="6" Class="d-flex justify-end">
+                               <MudText><strong>@_walletDto.Balance</strong></MudText>
+                           </MudItem>
+                           <MudItem xs="6">
+                               <MudText><strong>Заморожено:</strong></MudText>
+                           </MudItem>
+                           <MudItem xs="6" Class="d-flex justify-end">
+                               <MudText><strong>@_walletDto.Frozen</strong></MudText>
+                           </MudItem>
+                           <MudItem xs="6">
+                               <MudText><strong>Доход:</strong></MudText>
+                           </MudItem>
+                           <MudItem xs="6" Class="d-flex justify-end">
+                               <MudText><strong>@_walletDto.Profit</strong></MudText>
+                           </MudItem>
+                       </MudGrid>
+                   </MudCard>
+               </Authorized>
+           </AuthorizeView>
+       }
         <MudCard Elevation="12" Class="pa-8 mt-6">
             <MudText Typo="Typo.h5" Align="Align.Center" Class="mb-4">Создание платежа</MudText>
 
@@ -70,7 +73,7 @@
     private readonly PaymentCreateDto _paymentModel = new();
     private MudForm _form = null!;
     private bool _isLoading;
-    private WalletDto _walletDto = null!;
+    private WalletDto? _walletDto;
 
     protected override async Task OnInitializedAsync()
     {
