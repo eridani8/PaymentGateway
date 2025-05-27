@@ -235,6 +235,8 @@ public class GatewayHandler(
                     await notificationService.NotifyRequisiteUpdated(mapper.Map<RequisiteDto>(requisite));
                     unit.RequisiteRepository.Update(requisite);
                 }
+                
+                
 
                 unit.PaymentRepository.Delete(expiredPayment);
                 await notificationService.NotifyPaymentDeleted(expiredPayment.Id, requisiteUserId == Guid.Empty ? null : requisiteUserId);

@@ -57,10 +57,16 @@ public class PaymentService(
         await unit.PaymentRepository.Add(entity);
         await unit.Commit();
         
+        var oldBalance = user.Balance;
+        var oldFrozen = user.Frozen;
+        
         user.Balance -= dto.Amount;
         user.Frozen += -dto.Amount;
         
         await userManager.UpdateAsync(user);
+        
+        logger.LogInformation("Заморожено {Frozen} на счету пользователя {UserId}. Платеж {PaymentId}. Было на балансе {OldBalance}, стало {NewBalance}. Было заморожено {OldFrozen}, стало {NewFrozen}",
+            dto.Amount, user.Id, entity.Id, oldBalance, user.Balance, oldFrozen, user.Frozen);
 
         var paymentDto = mapper.Map<PaymentDto>(entity);
         var userDto = mapper.Map<UserDto>(user);
