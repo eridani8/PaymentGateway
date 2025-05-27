@@ -84,10 +84,11 @@ public class GatewayHost(
                 using var scope = serviceProvider.CreateScope();
                 var unit = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
                 var handler = scope.ServiceProvider.GetRequiredService<IGatewayHandler>();
+                var userManager = scope.ServiceProvider.GetRequiredService<UserManager<UserEntity>>();
 
                 await handler.HandleRequisites(unit);
                 await handler.HandleUnprocessedPayments(unit);
-                await handler.HandleExpiredPayments(unit);
+                await handler.HandleExpiredPayments(unit, userManager);
             }
             catch (OperationCanceledException)
             {

@@ -8,6 +8,6 @@ public interface IGatewayHandler
 {
     Task HandleRequisites(IUnitOfWork unit);
     Task HandleUnprocessedPayments(IUnitOfWork unit);
-    Task HandleExpiredPayments(IUnitOfWork unit);
+    Task HandleExpiredPayments(IUnitOfWork unit, UserManager<UserEntity> userManager);
     Task HandleUserFundsReset(UserManager<UserEntity> userManager);
 }

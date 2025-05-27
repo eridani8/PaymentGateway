@@ -219,7 +219,7 @@ public class GatewayHandler(
         }
     }
 
-    public async Task HandleExpiredPayments(IUnitOfWork unit)
+    public async Task HandleExpiredPayments(IUnitOfWork unit, UserManager<UserEntity> userManager)
     {
         var expiredPayments = await unit.PaymentRepository.GetExpiredPayments();
         if (expiredPayments.Count > 0)
@@ -235,12 +235,25 @@ public class GatewayHandler(
                     await notificationService.NotifyRequisiteUpdated(mapper.Map<RequisiteDto>(requisite));
                     unit.RequisiteRepository.Update(requisite);
                 }
-                
-                
 
                 unit.PaymentRepository.Delete(expiredPayment);
                 await notificationService.NotifyPaymentDeleted(expiredPayment.Id, requisiteUserId == Guid.Empty ? null : requisiteUserId);
                 logger.LogInformation("Платеж {PaymentId} на сумму {Amount} отменен из-за истечения срока ожидания", expiredPayment.Id, expiredPayment.Amount);
+
+                var user = await userManager.FindByIdAsync(expiredPayment.UserId.ToString());
+                if (user is not null)
+                {
+                    var oldBalance = user.Balance;
+                    var oldFrozen = user.Frozen;
+                    
+                    user.Balance += expiredPayment.Amount;
+                    user.Frozen -= expiredPayment.Amount;
+                    await userManager.UpdateAsync(user);
+                    logger.LogInformation(
+                        "Разморозка средств пользователя {UserId}. Было на балансе {OldBalance}, стало {NewBalance}. Было заморожено {OldFrozen}, стало {NewFrozen}",
+                        user.Id, oldBalance, user.Balance, oldFrozen, user.Frozen);
+                }
+                
                 needToCommit = true;
             }
 

@@ -17,7 +17,7 @@ public sealed class PaymentEntity : BaseEntity
     /// <summary>
     /// Идентификатор пользователя
     /// </summary>
-    public Guid? UserId { get; init; }
+    public Guid UserId { get; init; }
 
     /// <summary>
     /// Сумма платежа

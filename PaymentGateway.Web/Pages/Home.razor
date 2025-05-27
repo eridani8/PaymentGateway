@@ -96,7 +96,7 @@
                 
                 _walletDto = await UserService.GetWalletState() ?? new WalletDto()
                 {
-                    UserId = _paymentModel.UserId ?? Guid.Empty,
+                    UserId = _paymentModel.UserId,
                     Balance = 0,
                     Frozen = 0,
                     Profit = 0
