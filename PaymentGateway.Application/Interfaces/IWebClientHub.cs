@@ -9,6 +9,7 @@ namespace PaymentGateway.Application.Interfaces;
 
 public interface IWebClientHub
 {
+    Task WalletUpdated(WalletDto wallet);
     Task RequisiteUpdated(RequisiteDto requisite);
     Task RequisiteDeleted(Guid requisiteId);
     Task UserUpdated(UserDto user);

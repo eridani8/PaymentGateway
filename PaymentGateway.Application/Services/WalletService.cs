@@ -1,4 +1,5 @@
 ﻿using System.Security.Claims;
+using AutoMapper;
 using FluentValidation;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
@@ -13,6 +14,8 @@ namespace PaymentGateway.Application.Services;
 public class WalletService(
     IValidator<DepositDto> validator,
     UserManager<UserEntity> userManager,
+    INotificationService notificationService,
+    IMapper mapper,
     ILogger<WalletService> logger) : IWalletService
 {
     public async Task<Result> Deposit(DepositDto dto, ClaimsPrincipal currentUser)
@@ -35,7 +38,9 @@ public class WalletService(
         await userManager.UpdateAsync(user);
         
         logger.LogInformation("Пополнение счета пользователя {UserId} на {DepositAmount} [{CurrentUser}]. Было {OldBalance}, стало {NewBalance}", dto.UserId, dto.Amount, currentUser.GetCurrentUsername(), oldBalance, user.Balance);
-
+        
+        await notificationService.NotifyUserUpdated(mapper.Map<UserDto>(user));
+        
         return Result.Success();
     }
 }
