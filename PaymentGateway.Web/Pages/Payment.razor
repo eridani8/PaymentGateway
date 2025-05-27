@@ -1,5 +1,6 @@
 @page "/payment/{Id:guid}"
 @using System.Globalization
+@using System.Net
 @using PaymentGateway.Shared.DTOs.Payment
 @using PaymentGateway.Shared.DTOs.Transaction
 @using PaymentGateway.Shared.Enums
@@ -17,8 +18,15 @@
     }
     else if (_payment is null)
     {
-        <MudAlert Severity="Severity.Error" Class="my-4">Платеж не найден или вы не имеете доступа к нему</MudAlert>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/" Class="d-block mx-auto">
+        @if (_isRemoved)
+        {
+            <MudAlert Severity="Severity.Error" Class="my-4">Платеж был удален</MudAlert>
+        }
+        else
+        {
+            <MudAlert Severity="Severity.Error" Class="my-4">Платеж не найден или вы не имеете доступа к нему</MudAlert>
+        }
+        <MudButton Variant="Variant.Outlined" Color="Color.Primary" Href="/">
             Вернуться на главную
         </MudButton>
     }
@@ -112,35 +120,13 @@
     }
 </MudContainer>
 
-@if (_showSuccessDialog)
-{
-    <MudDialog Open="showSuccessDialog" DisableSidePadding="true" ClassContent="px-0">
-        <TitleContent>
-            <MudText Typo="Typo.h6">
-                <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Class="mr-2"/>
-                Платеж успешно выполнен
-            </MudText>
-        </TitleContent>
-        <DialogContent>
-            <MudContainer Class="pa-4">
-                <MudText>Платеж на сумму @_payment?.Amount был успешно обработан.</MudText>
-                <MudText Class="mt-2">Статус платежа: @_payment?.Status.ToString()</MudText>
-            </MudContainer>
-        </DialogContent>
-        <DialogActions>
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(CloseSuccessDialog)">Закрыть
-            </MudButton>
-        </DialogActions>
-    </MudDialog>
-}
-
 @code {
     [Parameter] public Guid Id { get; set; }
 
     private PaymentDto? _payment;
     private bool _isLoading = true;
-    private bool _showSuccessDialog;
     private Timer? _refreshTimer;
+    private bool _isRemoved;
     private const int refreshInterval = 7000;
     private readonly TransactionCreateDto _transactionDto = new();
 
@@ -148,7 +134,10 @@
     {
         await LoadPayment();
 
-        _refreshTimer = new Timer(TimerTick, null, refreshInterval, refreshInterval);
+        if (_payment is not null)
+        {
+            _refreshTimer = new Timer(TimerTick, null, refreshInterval, refreshInterval);
+        }
     }
 
     private async Task LoadPayment()
@@ -161,16 +150,22 @@
             if (_payment is null)
             {
                 Snackbar.Add("Платеж не найден или вы не имеете доступа к нему", Severity.Error);
+                _isRemoved = true; 
             }
-            else if (_payment.Status == PaymentStatus.Confirmed && !_showSuccessDialog)
+            else if (_payment.Status == PaymentStatus.Confirmed)
             {
-                _showSuccessDialog = true;
                 Snackbar.Add("Платеж успешно выполнен", Severity.Success);
             }
             else if (_payment.Requisite is not null)
             {
                 _transactionDto.ExtractedAmount = _payment.Amount;
             }
+        }
+        catch (HttpRequestException httpException) when (httpException.StatusCode == HttpStatusCode.NotFound)
+        {
+            Snackbar.Add("Платеж не найден или был удален", Severity.Error);
+            _payment = null;
+            _isRemoved = true;
         }
         catch (Exception ex)
         {
@@ -187,28 +182,70 @@
     {
         try
         {
-            if (_payment is null) return;
-
+            if (_payment is null && _isRemoved)
+            {
+                if (_refreshTimer != null)
+                {
+                    await _refreshTimer.DisposeAsync();
+                    _refreshTimer = null;
+                }
+                await InvokeAsync(StateHasChanged);
+                return;
+            }
+            
             var updatedPayment = await PaymentService.GetPaymentById(Id);
-            if (updatedPayment is null ||
-                (_payment.Status == updatedPayment.Status &&
-                 _payment.Requisite?.Id == updatedPayment.Requisite?.Id)) return;
+
+            if (updatedPayment is null)
+            {
+                if (_refreshTimer != null)
+                {
+                    await _refreshTimer.DisposeAsync();
+                    _refreshTimer = null;
+                }
+                _payment = null;
+                _isRemoved = true;
+                await InvokeAsync(StateHasChanged);
+                return;
+            }
+
+            if (_payment is not null &&
+                _payment.Status == updatedPayment.Status &&
+                _payment.Requisite?.Id == updatedPayment.Requisite?.Id)
+            {
+                return;
+            }
 
             _payment = updatedPayment;
+            _isRemoved = false;
 
-            if (_payment.Status == PaymentStatus.Confirmed && !_showSuccessDialog)
+            if (_payment.Status == PaymentStatus.Confirmed)
             {
-                _showSuccessDialog = true;
                 await InvokeAsync(() => Snackbar.Add("Платеж успешно выполнен", Severity.Success));
+                if (_refreshTimer != null)
+                {
+                    await _refreshTimer.DisposeAsync();
+                    _refreshTimer = null;
+                }
             }
             else if (_payment.Requisite is not null)
             {
                 _transactionDto.ExtractedAmount = _payment.Amount;
             }
 
-            await InvokeAsync(StateHasChanged);
-
             Logger.LogInformation("Обновлена информация о платеже {PaymentId}, статус: {Status}", _payment.Id, _payment.Status);
+        }
+        catch (HttpRequestException httpException) when (httpException.StatusCode == HttpStatusCode.NotFound)
+        {
+            if (_refreshTimer != null)
+            {
+                await _refreshTimer.DisposeAsync();
+                _refreshTimer = null;
+            }
+
+            _payment = null;
+            _isLoading = false;
+            _isRemoved = true;
+            await InvokeAsync(StateHasChanged);
         }
         catch (Exception ex)
         {
@@ -216,14 +253,10 @@
         }
     }
 
-    private void CloseSuccessDialog()
-    {
-        _showSuccessDialog = false;
-    }
-
     public void Dispose()
     {
-        _refreshTimer?.Dispose();
+        if (_refreshTimer == null) return;
+        _refreshTimer.Dispose();
         _refreshTimer = null;
     }
 
@@ -236,4 +269,4 @@
             _ => "NULL"
         };
     }
-} 
+}
