@@ -80,14 +80,16 @@
                         <TemplateColumn Title="Привязка">
                             <CellTemplate Context="cellContext">
                                 <div style="display: flex; align-items: center; gap: 8px;">
-                                    <div style="width: 12px; height: 12px; border-radius: 50%; background-color: @(cellContext.Item.RequisiteId is not null ? "#4caf50" : "#f44336");"></div>
+                                    <div
+                                        style="width: 12px; height: 12px; border-radius: 50%; background-color: @(cellContext.Item.RequisiteId is not null ? "#4caf50" : "#f44336");"></div>
                                 </div>
                             </CellTemplate>
                         </TemplateColumn>
                         <TemplateColumn Title="Состояние подключения">
                             <CellTemplate Context="cellContext">
                                 <div style="display: flex; align-items: center; gap: 8px;">
-                                    <div style="width: 12px; height: 12px; border-radius: 50%; background-color: @(cellContext.Item.State ? "#4caf50" : "#f44336");"></div>
+                                    <div
+                                        style="width: 12px; height: 12px; border-radius: 50%; background-color: @(cellContext.Item.State ? "#4caf50" : "#f44336");"></div>
                                 </div>
                             </CellTemplate>
                         </TemplateColumn>
@@ -97,7 +99,8 @@
                                     <MudIconButton Variant="Variant.Outlined"
                                                    OnClick="@(() => DeleteDevice(cellContext.Item))"
                                                    Icon="@Icons.Material.Filled.Delete"
-                                                   Color="Color.Error"/>
+                                                   Color="Color.Error"
+                                                   Size="Size.Small"/>
                                 </MudStack>
                             </CellTemplate>
                         </TemplateColumn>
@@ -188,7 +191,7 @@
             if (device is null) return;
 
             _devices.Remove(device);
-            
+
             await InvokeAsync(StateHasChanged);
         }
         catch (Exception e)
@@ -297,7 +300,7 @@
             _isLoading = false;
         }
     }
-    
+
     private async Task ClearSearch()
     {
         _searchUserId = string.Empty;
@@ -313,17 +316,17 @@
             ["ContentText"] = $"Вы действительно хотите удалить устройство {device.DeviceName}?",
             ["ButtonText"] = "Удалить"
         };
-        
+
         var dialog = await DialogService.ShowAsync<ConfirmationDialog>(null, parameters);
         var result = await dialog.Result;
-        
+
         if (result is { Canceled: false })
         {
             try
             {
                 _isLoading = true;
                 var deleteResult = await DeviceService.DeleteDevice(device.Id);
-                
+
                 if (deleteResult.Code == HttpStatusCode.OK)
                 {
                     Snackbar.Add($"Устройство {device.DeviceName} успешно удалено", Severity.Success);
@@ -345,4 +348,5 @@
             }
         }
     }
+
 }
