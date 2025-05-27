@@ -80,7 +80,7 @@ public class DeviceHub(
         }
 
         var connectionId = Context.ConnectionId;
-
+        
         if (Devices.TryGetValue(deviceDto.Id, out var existingDevice))
         {
             existingDevice.State = true;
