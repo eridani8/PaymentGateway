@@ -247,7 +247,7 @@ public class GatewayHandler(
                     var oldFrozen = user.Frozen;
                     
                     user.Balance += expiredPayment.Amount;
-                    user.Frozen -= expiredPayment.Amount;
+                    user.Frozen += expiredPayment.Amount;
                     await userManager.UpdateAsync(user);
                     logger.LogInformation(
                         "Разморозка средств пользователя {UserId}. Было на балансе {OldBalance}, стало {NewBalance}. Было заморожено {OldFrozen}, стало {NewFrozen}",

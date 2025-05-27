@@ -61,7 +61,7 @@ public class PaymentService(
         var oldFrozen = user.Frozen;
         
         user.Balance -= dto.Amount;
-        user.Frozen += -dto.Amount;
+        user.Frozen += dto.Amount;
         
         await userManager.UpdateAsync(user);
         
