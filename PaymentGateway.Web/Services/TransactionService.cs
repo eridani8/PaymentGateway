@@ -34,40 +34,6 @@ public class TransactionService(
         }
         return [];
     }
-    
-    public async Task<TransactionDto?> SimulatePayment(string paymentData, decimal amount, TransactionSource source)
-    {
-        try
-        {
-            var dto = new TransactionCreateDto
-            {
-                // PaymentData = paymentData,
-                ExtractedAmount = amount,
-                Source = source,
-                RawMessage = $"Поступление {amount} на счет {paymentData} через {source}"
-            };
-            
-            var response = await PostRequest<TransactionDto>(apiEndpoint, dto);
-            
-            if (response is not null)
-            {
-                logger.LogInformation("Успешно создана транзакция {id} на сумму {amount} через {source}", 
-                    response.Id, amount, source);
-            }
-            else
-            {
-                logger.LogWarning("Не удалось создать транзакцию для платежа {paymentData} на сумму {amount}", 
-                    paymentData, amount);
-            }
-            
-            return response;
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Ошибка при имитации платежа на сумму {amount} для {paymentData}", amount, paymentData);
-            throw;
-        }
-    }
 
     public async Task<List<TransactionDto>> GetTransactionsByUserId(Guid userId)
     {

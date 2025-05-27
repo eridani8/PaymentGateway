@@ -111,7 +111,6 @@ public class TransactionsEndpoints : ICarterModule
         ClaimsPrincipal user)
     {
         var userId = user.GetCurrentUserId();
-        if (userId == Guid.Empty) return Results.Unauthorized();
 
         var result = await service.GetUserTransactions(userId);
 

@@ -7,6 +7,5 @@ public interface ITransactionService
 {
     Task<List<TransactionDto>> GetTransactions();
     Task<List<TransactionDto>> GetUserTransactions();
-    Task<TransactionDto?> SimulatePayment(string paymentData, decimal amount, TransactionSource source);
     Task<List<TransactionDto>> GetTransactionsByUserId(Guid userId);
 } 

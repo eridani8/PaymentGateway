@@ -74,7 +74,7 @@ public class DeviceEndpoints : ICarterModule
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status404NotFound)
-            .RequireAuthorization(new AuthorizeAttribute { Roles = "Admin" });
+            .RequireAuthorization(new AuthorizeAttribute { Roles = "User,Admin,Support" });
     }
 
     private static IResult GetDevices()
