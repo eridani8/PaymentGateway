@@ -11,6 +11,8 @@
 @inject AuthenticationStateProvider AuthStateProvider
 @inject IUserService UserService
 @inject NotificationService NotificationService
+@inject ILogger<Home> Logger
+@implements IDisposable
 
 <MudContainer MaxWidth="MaxWidth.ExtraSmall" Class="mt-8">
     <MudStack>
@@ -94,7 +96,22 @@
                     Frozen = -1,
                     Profit = -1
                 };
+                
+                NotificationService.SubscribeToWalletUpdates(HandleWalletUpdate);
             }
+        }
+    }
+
+    private async void HandleWalletUpdate(WalletDto walletDto)
+    {
+        try
+        {
+            _walletDto = walletDto;
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e, "Ошибка при обновлении кошелька пользователя");
         }
     }
 
@@ -124,5 +141,10 @@
             Snackbar.Add($"Ошибка при создании платежа: {ex.Message}", Severity.Error);
             _isLoading = false;
         }
+    }
+
+    public void Dispose()
+    {
+        NotificationService.UnsubscribeFromWalletUpdates();
     }
 }

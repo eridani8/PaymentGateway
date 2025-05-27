@@ -15,6 +15,26 @@ public class NotificationService(
     ILogger<NotificationService> logger)
     : INotificationService
 {
+    public async Task NotifyWalletUpdated(WalletDto wallet)
+    {
+        try
+        {
+            var tasks = new List<Task>();
+
+            if (NotificationHub.GetUserConnectionId(wallet.UserId) is { } connectionId)
+            {
+                var userTask = hubContext.Clients.Client(connectionId).WalletUpdated(wallet);
+                tasks.Add(userTask);
+            }
+            
+            await Task.WhenAll(tasks);
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, "Ошибка отправки уведомления об обновлении кошелька {UserId}", wallet.UserId);
+        }
+    }
+    
     public async Task NotifyUserUpdated(UserDto user)
     {
         try

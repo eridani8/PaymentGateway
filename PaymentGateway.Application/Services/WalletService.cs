@@ -38,8 +38,12 @@ public class WalletService(
         await userManager.UpdateAsync(user);
         
         logger.LogInformation("Пополнение счета пользователя {UserId} на {DepositAmount} [{CurrentUser}]. Было {OldBalance}, стало {NewBalance}", dto.UserId, dto.Amount, currentUser.GetCurrentUsername(), oldBalance, user.Balance);
+
+        var userDto = mapper.Map<UserDto>(user);
+        var walletDto = mapper.Map<WalletDto>(user);
         
-        await notificationService.NotifyUserUpdated(mapper.Map<UserDto>(user));
+        await notificationService.NotifyUserUpdated(userDto);
+        await notificationService.NotifyWalletUpdated(walletDto);
         
         return Result.Success();
     }

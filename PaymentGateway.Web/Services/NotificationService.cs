@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+﻿ using System.Security.Claims;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.SignalR.Client;
@@ -82,7 +82,8 @@ public class NotificationService(
     public override ValueTask DisposeAsync()
     {
         if (IsDisposed) return ValueTask.CompletedTask;
-        
+
+        Unsubscribe(SignalREvents.Web.WalletUpdated);
         Unsubscribe(SignalREvents.Web.UserUpdated);
         Unsubscribe(SignalREvents.Web.UserDeleted);
         Unsubscribe(SignalREvents.Web.RequisiteUpdated);
@@ -170,6 +171,20 @@ public class NotificationService(
     public void UnsubscribeFromPaymentDeletions()
     {
         Unsubscribe(SignalREvents.Web.PaymentDeleted);
+    }
+
+    #endregion
+
+    #region Wallet
+
+    public void SubscribeToWalletUpdates(Action<WalletDto> handler)
+    {
+        Subscribe(SignalREvents.Web.WalletUpdated, handler);
+    }
+
+    public void UnsubscribeFromWalletUpdates()
+    {
+        Unsubscribe(SignalREvents.Web.WalletUpdated);
     }
 
     #endregion

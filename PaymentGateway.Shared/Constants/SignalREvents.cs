@@ -4,6 +4,7 @@ public static class SignalREvents
 {
     public static class Web
     {
+        public const string WalletUpdated = "WalletUpdated";
         public const string RequisiteUpdated = "RequisiteUpdated";
         public const string RequisiteDeleted = "RequisiteDeleted";
         public const string UserUpdated = "UserUpdated";

@@ -8,6 +8,7 @@ namespace PaymentGateway.Application.Interfaces;
 
 public interface INotificationService
 {
+    Task NotifyWalletUpdated(WalletDto wallet);
     Task NotifyUserUpdated(UserDto user);
     Task NotifyUserDeleted(Guid id);
     Task NotifyRequisiteUpdated(RequisiteDto requisite);
