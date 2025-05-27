@@ -93,10 +93,7 @@ public class DeviceEndpoints : ICarterModule
     
     private static IResult GetUserDevices(ClaimsPrincipal user, bool onlyAvailable = false, bool onlyOnline = false)
     {
-        var currentUserId = user.GetCurrentUserId();
-        if (currentUserId == Guid.Empty) return Results.Unauthorized();
-
-        var devices = DeviceHub.UserDevices(currentUserId);
+        var devices = DeviceHub.UserDevices(user.GetCurrentUserId());
 
         if (onlyAvailable)
         {

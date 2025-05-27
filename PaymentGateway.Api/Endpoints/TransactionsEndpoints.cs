@@ -110,9 +110,7 @@ public class TransactionsEndpoints : ICarterModule
         ITransactionService service,
         ClaimsPrincipal user)
     {
-        var userId = user.GetCurrentUserId();
-
-        var result = await service.GetUserTransactions(userId);
+        var result = await service.GetUserTransactions(user.GetCurrentUserId());
 
         if (result.IsFailure)
         {

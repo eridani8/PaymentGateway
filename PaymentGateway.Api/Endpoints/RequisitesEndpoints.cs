@@ -96,10 +96,7 @@ public class RequisitesEndpoints : ICarterModule
     {
         if (dto is null) return Results.BadRequest();
 
-        var userId = user.GetCurrentUserId();
-        if (userId == Guid.Empty) return Results.Unauthorized();
-        
-        var result = await service.CreateRequisite(dto, userId);
+        var result = await service.CreateRequisite(dto, user.GetCurrentUserId());
         
         if (result.IsFailure)
         {
@@ -140,10 +137,7 @@ public class RequisitesEndpoints : ICarterModule
         IRequisiteService service,
         ClaimsPrincipal user)
     {
-        var userId = user.GetCurrentUserId();
-        if (userId == Guid.Empty) return Results.Unauthorized();
-        
-        var result = await service.GetUserRequisites(userId);
+        var result = await service.GetUserRequisites(user.GetCurrentUserId());
         
         if (result.IsFailure) return Results.BadRequest(result.Error.Message);
         
@@ -152,12 +146,8 @@ public class RequisitesEndpoints : ICarterModule
     
     private static async Task<IResult> GetRequisiteById(
         Guid id,
-        IRequisiteService service,
-        ClaimsPrincipal user)
+        IRequisiteService service)
     {
-        var userId = user.GetCurrentUserId();
-        if (userId == Guid.Empty) return Results.Unauthorized();
-        
         var result = await service.GetRequisiteById(id);
         
         if (result.IsFailure)

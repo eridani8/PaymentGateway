@@ -132,10 +132,7 @@ public class PaymentsEndpoints : ICarterModule
     {
         if (dto is null) return Results.BadRequest();
         
-        var userId = user.GetCurrentUserId();
-        if (userId == Guid.Empty) return Results.Unauthorized();
-        
-        var result = await service.ManualConfirmPayment(dto, userId);
+        var result = await service.ManualConfirmPayment(dto, user.GetCurrentUserId());
         
         if (result.IsFailure)
         {
@@ -156,10 +153,7 @@ public class PaymentsEndpoints : ICarterModule
     {
         if (dto is null) return Results.BadRequest();
 
-        var userId = user.GetCurrentUserId();
-        if (userId == Guid.Empty) return Results.Unauthorized();
-        
-        var result = await service.CancelPayment(dto, userId);
+        var result = await service.CancelPayment(dto, user.GetCurrentUserId());
         
         if (result.IsFailure)
         {
@@ -197,10 +191,7 @@ public class PaymentsEndpoints : ICarterModule
         IPaymentService service,
         ClaimsPrincipal user)
     {
-        var userId = user.GetCurrentUserId();
-        if (userId == Guid.Empty) return Results.Unauthorized();
-        
-        var result = await service.GetUserPayments(userId);
+        var result = await service.GetUserPayments(user.GetCurrentUserId());
         
         if (result.IsFailure) return Results.BadRequest(result.Error.Message);
             
