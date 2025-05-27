@@ -11,4 +11,7 @@ public class UserDto
     public decimal ReceivedDailyFunds { get; set; }
     public DateTime LastFundsResetAt { get; set; }
     public DateTime CreatedAt { get; set; }
+    public decimal Balance { get; set; }
+    public decimal Frozen { get; set; }
+    public decimal Profit { get; set; }
 }

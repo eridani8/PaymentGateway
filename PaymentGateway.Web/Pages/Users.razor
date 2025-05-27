@@ -63,6 +63,9 @@
                     <Columns>
                         <HierarchyColumn/>
                         <PropertyColumn Property="x => x.Username" Title="Логин"/>
+                        <PropertyColumn Property="x => x.Balance" Title="Баланс"/>
+                        <PropertyColumn Property="x => x.Frozen" Title="Заморожено"/>
+                        <PropertyColumn Property="x => x.Profit" Title="Доход"/>
                         <TemplateColumn Title="Лимит реквизитов">
                             <CellTemplate Context="cellContext">
                                 @($"{cellContext.Item.RequisitesCount}/{cellContext.Item.MaxRequisitesCount}")
@@ -81,7 +84,8 @@
                                     {
                                         foreach (var splitRole in role.Split(','))
                                         {
-                                            <MudChip Size="Size.Small" Color="@GetRoleColor(splitRole)">@splitRole</MudChip>
+                                            <MudChip Size="Size.Small"
+                                                     Color="@GetRoleColor(splitRole)">@splitRole</MudChip>
                                         }
                                     }
                                     else

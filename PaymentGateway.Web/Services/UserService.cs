@@ -12,6 +12,16 @@ public class UserService(
     JsonSerializerOptions jsonOptions) : ServiceBase(factory, logger, jsonOptions), IUserService
 {
     private const string apiEndpoint = "api/users";
+
+    public async Task<WalletDto?> GetWalletState()
+    {
+        var response = await GetRequest($"{apiEndpoint}/wallet");
+        if (response.Code == HttpStatusCode.OK && !string.IsNullOrEmpty(response.Content))
+        {
+            return JsonSerializer.Deserialize<WalletDto>(response.Content, JsonOptions);
+        }
+        return null;
+    }
     
     public async Task<Response> Login(LoginDto dto)
     {
@@ -39,7 +49,7 @@ public class UserService(
 
         return result;
     }
-    
+
     public async Task<Response<TwoFactorDto>> EnableTwoFactor()
     {
         var response = await PostRequest($"{apiEndpoint}/two-factor/enable");

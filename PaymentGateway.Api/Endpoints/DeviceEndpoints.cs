@@ -33,7 +33,6 @@ public class DeviceEndpoints : ICarterModule
             .WithSummary("Получение всех устройств")
             .WithDescription("Возвращает список всех устройств администратору")
             .Produces<List<DeviceDto>>()
-            .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status401Unauthorized)
             .AddEndpointFilter<UserStatusFilter>()
             .RequireAuthorization(new AuthorizeAttribute { Roles = "Admin" });
@@ -43,7 +42,6 @@ public class DeviceEndpoints : ICarterModule
             .WithSummary("Получение устройств пользователя по его ID")
             .WithDescription("Возвращает список устройств пользователя")
             .Produces<List<DeviceDto>>()
-            .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status401Unauthorized)
             .AddEndpointFilter<UserStatusFilter>()
             .RequireAuthorization(new AuthorizeAttribute { Roles = "Admin" });
@@ -53,7 +51,6 @@ public class DeviceEndpoints : ICarterModule
             .WithSummary("Получение устройств текущего пользователя")
             .WithDescription("Возвращает список устройств текущему пользователю")
             .Produces<List<DeviceDto>>()
-            .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status401Unauthorized)
             .AddEndpointFilter<UserStatusFilter>()
             .RequireAuthorization(new AuthorizeAttribute { Roles = "User" });
@@ -63,7 +60,6 @@ public class DeviceEndpoints : ICarterModule
             .WithSummary("Генерация токена для привязки устройства")
             .WithDescription("Возвращает QR код и токен для привязки устройства")
             .Produces<DeviceTokenDto>()
-            .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status401Unauthorized)
             .AddEndpointFilter<UserStatusFilter>()
             .RequireAuthorization(new AuthorizeAttribute { Roles = "User,Admin,Support" });

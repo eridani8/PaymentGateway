@@ -7,6 +7,7 @@ using PaymentGateway.Shared;
 using PaymentGateway.Shared.DTOs.User;
 using System.Security.Claims;
 using Asp.Versioning;
+using AutoMapper;
 using Carter;
 using Microsoft.AspNetCore.Authorization;
 using PaymentGateway.Application.Extensions;
@@ -23,16 +24,26 @@ public class UsersEndpoints : ICarterModule
             .HasApiVersion(new ApiVersion(1))
             .ReportApiVersions()
             .Build();
-        
+
         var group = app.MapGroup("api/users")
             .WithApiVersionSet(versionSet)
             .WithTags("Пользовательские методы и аутентификация")
             .AddEndpointFilter<UserStatusFilter>();
+
+        group.MapGet("wallet", GetWalletState)
+            .WithName("WalletState")
+            .WithSummary("Информация кошелька")
+            .WithDescription("Возвращает информацию о кошельке текущего пользователя")
+            .Produces<WalletDto>()
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status404NotFound)
+            .RequireAuthorization(new AuthorizeAttribute() { Roles = "User,Admin,Support" });
         
         group.MapPost("login", Login)
             .WithName("Login")
             .WithSummary("Аутентификация пользователя")
-            .WithDescription("Выполняет вход пользователя в систему. При включенной двухфакторной аутентификации требует дополнительного кода.")
+            .WithDescription(
+                "Выполняет вход пользователя в систему. При включенной двухфакторной аутентификации требует дополнительного кода.")
             .Produces<string>()
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status401Unauthorized)
@@ -78,6 +89,18 @@ public class UsersEndpoints : ICarterModule
             .RequireAuthorization(new AuthorizeAttribute() { Roles = "Admin,Support" });
     }
     
+    private static async Task<IResult> GetWalletState(ClaimsPrincipal userClaim, UserManager<UserEntity> userManager,
+        IMapper mapper)
+    {
+        var user = await userManager.GetUserAsync(userClaim);
+        if (user is null)
+        {
+            return Results.NotFound();
+        }
+
+        return Results.Json(mapper.Map<WalletDto>(user));
+    }
+
     private static async Task<IResult> Login(
         LoginDto? dto,
         UserManager<UserEntity> userManager,
@@ -92,7 +115,7 @@ public class UsersEndpoints : ICarterModule
         {
             return Results.BadRequest(validation.Errors.GetErrors());
         }
-            
+
         var user = await userManager.FindByNameAsync(dto.Username);
         if (user is not { IsActive: true })
         {
@@ -116,21 +139,22 @@ public class UsersEndpoints : ICarterModule
                 {
                     return Results.BadRequest(UserErrors.InappropriateCode.ToString());
                 }
+
                 break;
             }
         }
 
         var roles = await userManager.GetRolesAsync(user);
         var token = tokenService.GenerateJwtToken(user, roles);
-        
+
         return Results.Ok(token);
     }
-    
+
     private static async Task<IResult> ChangePassword(
         ChangePasswordDto? dto,
         UserManager<UserEntity> userManager,
         IValidator<ChangePasswordDto> changePasswordValidator,
-        ClaimsPrincipal user)
+        ClaimsPrincipal userClaim)
     {
         if (dto is null) return Results.BadRequest();
 
@@ -139,15 +163,15 @@ public class UsersEndpoints : ICarterModule
         {
             return Results.BadRequest(validation.Errors.GetErrors());
         }
-        
-        var userEntity = await userManager.GetUserAsync(user);
-        if (userEntity is null)
+
+        var user = await userManager.GetUserAsync(userClaim);
+        if (user is null)
         {
             return Results.NotFound();
         }
 
         var result = await userManager.ChangePasswordAsync(
-            userEntity,
+            user,
             dto.CurrentPassword,
             dto.NewPassword);
 
@@ -158,7 +182,7 @@ public class UsersEndpoints : ICarterModule
 
         return Results.BadRequest(result.Errors.GetErrors());
     }
-    
+
     private static async Task<IResult> TwoFactorStatus(
         UserManager<UserEntity> userManager,
         ClaimsPrincipal user)
@@ -168,18 +192,18 @@ public class UsersEndpoints : ICarterModule
         {
             return Results.NotFound();
         }
-        
+
         var roles = await userManager.GetRolesAsync(userEntity);
-        
+
         var result = new TwoFactorStatusDto
         {
             IsEnabled = userEntity.TwoFactorEnabled,
             IsSetupRequired = roles.Contains("Admin") && !userEntity.TwoFactorEnabled
         };
-        
+
         return Results.Json(result);
     }
-    
+
     private static async Task<IResult> EnableTwoFactor(
         UserManager<UserEntity> userManager,
         ClaimsPrincipal user)
@@ -189,24 +213,25 @@ public class UsersEndpoints : ICarterModule
         {
             return Results.NotFound();
         }
-        
+
         var secretKey = TotpService.GenerateSecretKey();
-        
+
         const string issuer = "PaymentGateway";
-        var totpUri = TotpService.GenerateTotpUri(secretKey, userEntity.UserName ?? userEntity.Email ?? userEntity.Id.ToString(), issuer);
-        
+        var totpUri = TotpService.GenerateTotpUri(secretKey,
+            userEntity.UserName ?? userEntity.Email ?? userEntity.Id.ToString(), issuer);
+
         var qrCodeImage = TotpService.GenerateQrCodeBase64(totpUri);
-        
+
         userEntity.TwoFactorSecretKey = secretKey;
         await userManager.UpdateAsync(userEntity);
-        
+
         return Results.Json(new TwoFactorDto
         {
             QrCodeUri = qrCodeImage,
             SharedKey = secretKey
         });
     }
-    
+
     private static async Task<IResult> VerifyTwoFactor(
         TwoFactorVerifyDto? dto,
         UserManager<UserEntity> userManager,
@@ -214,28 +239,28 @@ public class UsersEndpoints : ICarterModule
         ClaimsPrincipal user)
     {
         if (dto is null) return Results.BadRequest();
-        
+
         var validation = await twoFactorVerifyValidator.ValidateAsync(dto);
         if (!validation.IsValid)
         {
             return Results.BadRequest(validation.Errors.GetErrors());
         }
-        
+
         var userEntity = await userManager.GetUserAsync(user);
         if (userEntity is null)
         {
             return Results.NotFound();
         }
-        
+
         var isValid = TotpService.VerifyTotpCode(userEntity.TwoFactorSecretKey ?? string.Empty, dto.Code);
         if (!isValid)
         {
             return Results.BadRequest(UserErrors.InappropriateCode.ToString());
         }
-        
+
         userEntity.TwoFactorEnabled = true;
         await userManager.UpdateAsync(userEntity);
-        
+
         return Results.Ok();
     }
 }

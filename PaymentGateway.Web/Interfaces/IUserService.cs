@@ -6,6 +6,7 @@ namespace PaymentGateway.Web.Interfaces;
 
 public interface IUserService
 {
+    Task<WalletDto?> GetWalletState();
     Task<Response> Login(LoginDto dto);
     Task<Response> ChangePassword(ChangePasswordDto dto);
     Task<Response<TwoFactorStatusDto>> GetTwoFactorStatus();

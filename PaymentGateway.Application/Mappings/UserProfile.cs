@@ -18,8 +18,17 @@ public class UserProfile : Profile
             .ForMember(dest => dest.MaxDailyMoneyReceptionLimit, opt => opt.MapFrom(src => src.MaxDailyMoneyReceptionLimit))
             .ForMember(dest => dest.ReceivedDailyFunds, opt => opt.MapFrom(src => src.ReceivedDailyFunds))
             .ForMember(dest => dest.LastFundsResetAt, opt => opt.MapFrom(src => src.LastFundsResetAt))
-            .ForMember(dest => dest.CreatedAt, opt => opt.ConvertUsing(new UtcToLocalDateTimeConverter(), src => src.CreatedAt));
+            .ForMember(dest => dest.CreatedAt, opt => opt.ConvertUsing(new UtcToLocalDateTimeConverter(), src => src.CreatedAt))
+            .ForMember(dest => dest.Balance, opt => opt.MapFrom(src => src.Balance))
+            .ForMember(dest => dest.Frozen, opt => opt.MapFrom(src => src.Frozen))
+            .ForMember(dest => dest.Profit, opt => opt.MapFrom(src => src.Profit));
 
+        CreateMap<UserEntity, WalletDto>()
+            .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.Id))
+            .ForMember(dest => dest.Balance, opt => opt.MapFrom(src => src.Balance))
+            .ForMember(dest => dest.Frozen, opt => opt.MapFrom(src => src.Frozen))
+            .ForMember(dest => dest.Profit, opt => opt.MapFrom(src => src.Profit));
+        
         CreateMap<CreateUserDto, UserEntity>()
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => Guid.CreateVersion7()))
             .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive))
@@ -28,7 +37,10 @@ public class UserProfile : Profile
             .ForMember(dest => dest.MaxDailyMoneyReceptionLimit, opt => opt.MapFrom(src => src.MaxDailyMoneyReceptionLimit))
             .ForMember(dest => dest.ReceivedDailyFunds, opt => opt.MapFrom(src => 0m))
             .ForMember(dest => dest.LastFundsResetAt, opt => opt.MapFrom(src => DateTime.UtcNow))
-            .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow));
+            .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
+            .ForMember(dest => dest.Balance, opt => opt.MapFrom(src => 0))
+            .ForMember(dest => dest.Frozen, opt => opt.MapFrom(src => 0))
+            .ForMember(dest => dest.Profit, opt => opt.MapFrom(src => 0));
 
         CreateMap<UpdateUserDto, UserEntity>()
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
