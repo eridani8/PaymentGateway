@@ -8,11 +8,6 @@ public sealed class PaymentEntity : BaseEntity
 {
     // ReSharper disable once EmptyConstructor
     public PaymentEntity() { }
-
-    /// <summary>
-    /// Идентификатор платежа во внешней системе
-    /// </summary>
-    public Guid ExternalPaymentId { get; init; }
     
     /// <summary>
     /// Идентификатор пользователя

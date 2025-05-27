@@ -84,7 +84,6 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _paymentModel.ExternalPaymentId = Guid.NewGuid();
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
         var claimsPrincipal = authState.User;
         if (claimsPrincipal.Identity is { IsAuthenticated: true })

@@ -12,7 +12,6 @@ public class PaymentProfile : Profile
     {
         CreateMap<PaymentEntity, PaymentDto>()
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
-            .ForMember(dest => dest.ExternalPaymentId, opt => opt.MapFrom(src => src.ExternalPaymentId))
             .ForMember(dest => dest.Amount, opt => opt.MapFrom(src => src.Amount))
             .ForMember(dest => dest.RequisiteId, opt => opt.MapFrom(src => src.RequisiteId))
             .ForMember(dest => dest.Requisite, opt => opt.MapFrom(src => src.Requisite))
@@ -27,7 +26,6 @@ public class PaymentProfile : Profile
         
         CreateMap<PaymentCreateDto, PaymentEntity>()
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => Guid.CreateVersion7()))
-            .ForMember(dest => dest.ExternalPaymentId, opt => opt.MapFrom(src => src.ExternalPaymentId))
             .ForMember(dest => dest.Amount, opt => opt.MapFrom(src => src.Amount))
             .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId))
             .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))

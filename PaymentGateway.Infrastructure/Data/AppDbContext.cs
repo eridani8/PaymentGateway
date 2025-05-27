@@ -53,7 +53,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICryptographyS
         modelBuilder.Entity<PaymentEntity>(entity =>
         {
             entity.HasIndex(e => e.Id).IsUnique();
-            entity.HasIndex(e => e.ExternalPaymentId).IsUnique();
             entity.HasIndex(e => e.Status);
             entity.HasIndex(e => e.CreatedAt);
             entity.HasIndex(e => e.UserId);

@@ -46,12 +46,6 @@ public class PaymentService(
             return Result.Failure<PaymentDto>(PaymentErrors.NotEnoughFunds);
         }
 
-        var containsEntity = await unit.PaymentRepository.GetExistingPayment(dto.ExternalPaymentId);
-        if (containsEntity is not null)
-        {
-            return Result.Failure<PaymentDto>(PaymentErrors.DuplicatePayment);
-        }
-
         var entity = mapper.Map<PaymentEntity>(dto);
 
         await unit.PaymentRepository.Add(entity);

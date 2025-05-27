@@ -104,12 +104,6 @@
                                     <MudText Typo="Typo.body1">@rowContext.Item.Id</MudText>
                                 </MudStack>
                             </MudTooltip>
-                            <MudTooltip Placement="Placement.Left" Text="Id внешнего платежа">
-                                <MudStack Row="true">
-                                    <MudIcon Icon="@Icons.Material.Filled.Source" Class="mr-2"/>
-                                    <MudText Typo="Typo.body1">@rowContext.Item.ExternalPaymentId</MudText>
-                                </MudStack>
-                            </MudTooltip>
                             @if (rowContext.Item.Requisite is not null)
                             {
                                 <MudTooltip Placement="Placement.Left" Text="Id реквизита">

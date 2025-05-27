@@ -37,11 +37,6 @@ public class CachedPaymentRepository(PaymentRepository repository, IMemoryCache 
         return Repository.GetExpiredPayments();
     }
 
-    public Task<PaymentEntity?> GetExistingPayment(Guid externalPaymentId)
-    {
-        return Repository.GetExistingPayment(externalPaymentId);
-    }
-
     public Task<PaymentEntity?> PaymentById(Guid id)
     {
         return Repository.PaymentById(id);

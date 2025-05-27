@@ -6,7 +6,6 @@ namespace PaymentGateway.Shared.DTOs.Payment;
 public class PaymentDto
 {
     public Guid Id { get; set; }
-    public Guid ExternalPaymentId { get; set; }
     public decimal Amount { get; set; }
     public Guid? RequisiteId { get; set; }
     public RequisiteDto? Requisite { get; set; }

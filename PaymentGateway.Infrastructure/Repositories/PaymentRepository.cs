@@ -32,13 +32,6 @@ public class PaymentRepository(
             .ToListAsync();
     }
 
-    public async Task<PaymentEntity?> GetExistingPayment(Guid externalPaymentId)
-    {
-        return await GetSet()
-            .AsNoTracking()
-            .FirstOrDefaultAsync(p => p.ExternalPaymentId == externalPaymentId);
-    }
-
     public async Task<PaymentEntity?> PaymentById(Guid id)
     {
         return await GetSet()
