@@ -69,7 +69,7 @@ public class DeviceEndpoints : ICarterModule
         group.MapDelete("/{deviceId:guid}", RemoveDevice)
             .WithName("RemoveDevice")
             .WithSummary("Удаление устройства")
-            .WithDescription("Удаляет непривязанное устройство")
+            .WithDescription("Удаляет непривязанное оффлайн устройство")
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status401Unauthorized)
@@ -150,10 +150,10 @@ public class DeviceEndpoints : ICarterModule
             return Results.NotFound();
         }
         
-        var deviceDto = DeviceHub.Devices.Values.FirstOrDefault(d => d.Id == deviceId && d.BindingAt == DateTime.MinValue);
+        var deviceDto = DeviceHub.Devices.Values.FirstOrDefault(d => d.Id == deviceId && d.BindingAt == DateTime.MinValue && d.State == false);
         if (deviceDto is null)
         {
-            return Results.BadRequest("Устройство привязано к реквизиту");
+            return Results.BadRequest("Устройство должно быть оффлайн и не привязано к реквизиту");
         }
 
         unit.DeviceRepository.Delete(device);
