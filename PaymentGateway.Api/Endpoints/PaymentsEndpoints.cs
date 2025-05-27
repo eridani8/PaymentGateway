@@ -31,8 +31,9 @@ public class PaymentsEndpoints : ICarterModule
             .WithDescription("Создает новый платеж в системе")
             .Produces<Guid>()
             .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status404NotFound)
             .Produces(StatusCodes.Status409Conflict)
-            .AllowAnonymous();
+            .RequireAuthorization(new AuthorizeAttribute() { Roles = "User,Admin,Support" });
 
         group.MapPut("confirm", ManualConfirmPayment)
             .WithName("ManualConfirmPayment")
@@ -102,17 +103,21 @@ public class PaymentsEndpoints : ICarterModule
     private static async Task<IResult> CreatePayment(
         PaymentCreateDto? dto,
         IPaymentService service,
-        ILogger<PaymentsEndpoints> logger)
+        ILogger<PaymentsEndpoints> logger,
+        ClaimsPrincipal userClaim)
     {
         if (dto is null) return Results.BadRequest();
 
-        var result = await service.CreatePayment(dto);
+        var result = await service.CreatePayment(dto, userClaim);
         
         if (result.IsFailure)
         {
-            if (result.Error.Code == ErrorCode.DuplicatePayment) return Results.Conflict(result.Error.Message);
-                
-            return Results.BadRequest(result.Error.Message);
+            return result.Error.Code switch
+            {
+                ErrorCode.DuplicatePayment => Results.Conflict(result.Error.Message),
+                ErrorCode.NotFound => Results.NotFound(result.Error.Message),
+                _ => Results.BadRequest(result.Error.Message)
+            };
         }
         
         logger.LogInformation("Создание платежа {paymentId} на сумму {amount}", result.Value.Id, result.Value.Amount);

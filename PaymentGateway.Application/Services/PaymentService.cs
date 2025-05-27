@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using System.Security.Claims;
+using AutoMapper;
 using FluentValidation;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -11,6 +12,7 @@ using PaymentGateway.Shared.DTOs.Payment;
 using PaymentGateway.Shared.DTOs.Requisite;
 using PaymentGateway.Shared.Enums;
 using Npgsql;
+using PaymentGateway.Shared.DTOs.User;
 
 namespace PaymentGateway.Application.Services;
 
@@ -25,12 +27,23 @@ public class PaymentService(
     IPaymentConfirmationService paymentConfirmationService,
     ILogger<PaymentService> logger) : IPaymentService
 {
-    public async Task<Result<PaymentDto>> CreatePayment(PaymentCreateDto dto)
+    public async Task<Result<PaymentDto>> CreatePayment(PaymentCreateDto dto, ClaimsPrincipal userClaim)
     {
         var validation = await createValidator.ValidateAsync(dto);
         if (!validation.IsValid)
         {
             return Result.Failure<PaymentDto>(new ValidationError(validation.Errors.Select(e => e.ErrorMessage)));
+        }
+
+        var user = await userManager.GetUserAsync(userClaim);
+        if (user is null)
+        {
+            return Result.Failure<PaymentDto>(UserErrors.UserNotFound);
+        }
+
+        if (user.Balance < dto.Amount)
+        {
+            return Result.Failure<PaymentDto>(PaymentErrors.NotEnoughFunds);
         }
 
         var containsEntity = await unit.PaymentRepository.GetExistingPayment(dto.ExternalPaymentId);
@@ -43,10 +56,19 @@ public class PaymentService(
 
         await unit.PaymentRepository.Add(entity);
         await unit.Commit();
+        
+        user.Balance -= dto.Amount;
+        user.Frozen += -dto.Amount;
+        
+        await userManager.UpdateAsync(user);
 
         var paymentDto = mapper.Map<PaymentDto>(entity);
-
+        var userDto = mapper.Map<UserDto>(user);
+        var walletDto = mapper.Map<WalletDto>(user);
+        
         await notificationService.NotifyPaymentUpdated(paymentDto);
+        await notificationService.NotifyUserUpdated(userDto);
+        await notificationService.NotifyWalletUpdated(walletDto);
 
         return Result.Success(paymentDto);
     }

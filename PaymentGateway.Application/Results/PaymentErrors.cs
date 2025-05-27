@@ -16,4 +16,7 @@ public static class PaymentErrors
     
     public static Error InsufficientPermissionsForPayment => 
         new(ErrorCode.InsufficientPermissionsForPayment, "Недостаточно прав для подтверждения платежа");
+
+    public static Error NotEnoughFunds =>
+        new Error(ErrorCode.NotEnoughFunds, "Недостаточно средств");
 }

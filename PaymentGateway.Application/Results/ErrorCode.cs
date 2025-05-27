@@ -29,6 +29,7 @@ public enum ErrorCode
     RequisiteNotAttached,
     InsufficientPermissions,
     InsufficientPermissionsForPayment,
+    NotEnoughFunds,
     
     RequisiteNotFound,
     DuplicateRequisite,

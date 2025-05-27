@@ -1,4 +1,5 @@
-﻿using PaymentGateway.Core.Entities;
+﻿using System.Security.Claims;
+using PaymentGateway.Core.Entities;
 using PaymentGateway.Shared.DTOs.Payment;
 using PaymentGateway.Application.Results;
 
@@ -6,7 +7,7 @@ namespace PaymentGateway.Application.Interfaces;
 
 public interface IPaymentService
 {
-    Task<Result<PaymentDto>> CreatePayment(PaymentCreateDto dto);
+    Task<Result<PaymentDto>> CreatePayment(PaymentCreateDto dto, ClaimsPrincipal userClaim);
     Task<Result<PaymentEntity>> ManualConfirmPayment(PaymentManualConfirmDto dto, Guid currentUserId);
     Task<Result<PaymentEntity>> CancelPayment(PaymentCancelDto dto, Guid currentUserId);
     Task<Result<IEnumerable<PaymentDto>>> GetAllPayments();
