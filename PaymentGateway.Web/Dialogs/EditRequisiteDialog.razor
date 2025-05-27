@@ -7,6 +7,7 @@
 @inject IRequisiteService RequisiteService
 @inject IDeviceService DeviceService
 @inject ILogger<EditRequisiteDialog> Logger
+@inject AuthenticationStateProvider AuthStateProvider
 
 <MudDialog>
     <TitleContent>
@@ -203,6 +204,7 @@
     private TimeSpan? _workToTime;
     private List<DeviceDto> _devices = [];
     private Guid? _currentDevice;
+    private bool _isAdminOrSupport;
 
     private readonly RequisiteUpdateDtoValidator _validator = new();
 
@@ -234,7 +236,12 @@
         _processing = true;
         try
         {
-            _devices = await DeviceService.GetUserDevices();
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            _isAdminOrSupport = authState.User.IsInRole("Admin") || authState.User.IsInRole("Support");
+
+            _devices = _isAdminOrSupport
+                ? await DeviceService.GetDevicesByUserId(Requisite.User?.Id ?? Guid.Empty)
+                : await DeviceService.GetUserDevices();
         }
         catch (Exception e)
         {
