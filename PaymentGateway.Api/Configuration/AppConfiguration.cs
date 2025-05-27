@@ -52,8 +52,8 @@ public static class AppConfiguration
                 Id = Guid.CreateVersion7(),
                 UserName = username,
                 IsActive = true,
-                MaxRequisitesCount = int.MaxValue,
-                MaxDailyMoneyReceptionLimit = 9999999999999999m,
+                MaxRequisitesCount = 100,
+                MaxDailyMoneyReceptionLimit = 1000000,
                 CreatedAt = DateTime.UtcNow
             };
             var result = await userManager.CreateAsync(defaultUser, "Qwerty123_");
