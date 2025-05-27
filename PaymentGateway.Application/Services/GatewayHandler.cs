@@ -41,10 +41,6 @@ public class GatewayHandler(
                 {
                     requisite.ProcessStatus(now, nowTimeOnly, out status);
                 }
-                else if (!requisite.User.IsActive)
-                {
-                    status = RequisiteStatus.Inactive;
-                }
                 else if (requisite.DeviceId == null)
                 {
                     if (cache.Get(deviceOfflineCacheKey) is null)

@@ -20,6 +20,7 @@ public class RequisiteRepository(
             .Include(r => r.Payment)
             .Include(r => r.User)
             .Include(r => r.Device)
+            .Where(r => r.Status != RequisiteStatus.Disabled)
             .ToListAsync();
     }
 
@@ -100,15 +101,19 @@ public class RequisiteRepository(
                 r.PaymentData.Equals(paymentData));
     }
 
-    public async Task<RequisiteEntity?> GetRequisiteByPaymentData(string paymentData)
+    public async Task EnableUserRequisites(Guid userId)
     {
-        return await GetSet()
-            .Include(r => r.Payment)
-            .Include(r => r.User)
-            .Include(r => r.Device)
-            .FirstOrDefaultAsync(r =>
-                r.PaymentData == paymentData &&
-                r.Payment != null &&
-                r.Payment.Status == PaymentStatus.Pending);
+        await GetSet()
+            .Where(r => r.UserId == userId)
+            .ExecuteUpdateAsync(set => set
+                .SetProperty(r => r.Status, RequisiteStatus.Processing));
+    }
+
+    public async Task DisableUserRequisites(Guid userId)
+    {
+        await GetSet()
+            .Where(r => r.UserId == userId)
+            .ExecuteUpdateAsync(set => set
+                .SetProperty(r => r.Status, RequisiteStatus.Disabled));
     }
 }

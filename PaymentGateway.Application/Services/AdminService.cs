@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using System.Threading.Channels;
+using AutoMapper;
 using FluentValidation;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -12,12 +13,14 @@ using PaymentGateway.Shared.DTOs.User;
 using PaymentGateway.Shared.Enums;
 using Npgsql;
 using PaymentGateway.Core.Configs;
+using PaymentGateway.Infrastructure.Interfaces;
 
 namespace PaymentGateway.Application.Services;
 
 public class AdminService(
     IMapper mapper,
     UserManager<UserEntity> userManager,
+    IUnitOfWork unit,
     IValidator<CreateUserDto> createValidator,
     IValidator<UpdateUserDto> updateValidator,
     INotificationService notificationService,
@@ -137,13 +140,28 @@ public class AdminService(
             return Result.Failure<UserDto>(UserErrors.ModifyRootUserForbidden);
         }
 
+        var initialStatus = user.IsActive;
+
         mapper.Map(dto, user);
+        
         var result = await userManager.UpdateAsync(user);
         
         if (!result.Succeeded)
         {
             return Result.Failure<UserDto>(UserErrors.UserUpdateFailed(
                 string.Join(", ", result.Errors.Select(e => e.Description))));
+        }
+
+        if (initialStatus != user.IsActive)
+        {
+            if (user.IsActive)
+            {
+                await unit.RequisiteRepository.EnableUserRequisites(user.Id);
+            }
+            else
+            {
+                await unit.RequisiteRepository.DisableUserRequisites(user.Id);
+            }
         }
 
         var currentRoles = await userManager.GetRolesAsync(user);

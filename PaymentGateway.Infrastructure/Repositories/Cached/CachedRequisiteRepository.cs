@@ -62,8 +62,13 @@ public class CachedRequisiteRepository(RequisiteRepository repository, IMemoryCa
         return Repository.HasSimilarRequisite(paymentData);
     }
 
-    public Task<RequisiteEntity?> GetRequisiteByPaymentData(string paymentData)
+    public async Task EnableUserRequisites(Guid userId)
     {
-        return Repository.GetRequisiteByPaymentData(paymentData);
+        await Repository.EnableUserRequisites(userId);
+    }
+
+    public async Task DisableUserRequisites(Guid userId)
+    {
+        await Repository.DisableUserRequisites(userId);
     }
 }
