@@ -78,20 +78,26 @@
                         </TemplateColumn>
                         <TemplateColumn Title="Роль">
                             <CellTemplate Context="cellContext">
-                                @if (_userRoles.TryGetValue(cellContext.Item.Id, out var role) && !string.IsNullOrEmpty(role))
+                                @if (_userRoles.TryGetValue(cellContext.Item.Id, out var roleStr) && !string.IsNullOrEmpty(roleStr))
                                 {
-                                    @if (role.Contains(','))
+                                    string role;
+                                    @if (roleStr.Contains(','))
                                     {
-                                        foreach (var splitRole in role.Split(','))
+                                        var roleOrder = new Dictionary<string, int>
                                         {
-                                            <MudChip Size="Size.Small"
-                                                     Color="@GetRoleColor(splitRole)">@splitRole</MudChip>
-                                        }
+                                            ["Admin"] = 0,
+                                            ["Support"] = 1,
+                                            ["User"] = 2
+                                        };
+                                        role = roleStr.Split([','], StringSplitOptions.RemoveEmptyEntries)
+                                            .OrderBy(r => roleOrder.GetValueOrDefault(r, int.MaxValue))
+                                            .First();
                                     }
                                     else
                                     {
-                                        <MudChip Size="Size.Small" Color="@GetRoleColor(role)">@role</MudChip>
+                                        role = roleStr;
                                     }
+                                    <MudChip Size="Size.Small" Color="@GetRoleColor(role)">@role</MudChip>
                                 }
                             </CellTemplate>
                         </TemplateColumn>

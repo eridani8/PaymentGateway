@@ -118,7 +118,7 @@ public class DeviceEndpoints : ICarterModule
             ["User"] = 2
         };
         var role = roles
-            .OrderBy(role => roleOrder.TryGetValue(role, out var order) ? order : int.MaxValue)
+            .OrderBy(r => roleOrder.GetValueOrDefault(r, int.MaxValue))
             .First();
         var token = tokenService.GenerateDeviceJwtToken(userEntity, role);
         var qrCodeUri = TotpService.GenerateQrCodeBase64(token);
