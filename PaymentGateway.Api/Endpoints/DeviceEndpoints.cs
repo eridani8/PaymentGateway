@@ -9,7 +9,9 @@ using PaymentGateway.Shared;
 using PaymentGateway.Shared.DTOs.Device;
 using System.Security.Claims;
 using PaymentGateway.Application.Extensions;
+using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Core.Interfaces;
+using PaymentGateway.Infrastructure.Interfaces;
 using PaymentGateway.Shared.Services;
 
 namespace PaymentGateway.Api.Endpoints;
@@ -63,6 +65,16 @@ public class DeviceEndpoints : ICarterModule
             .Produces(StatusCodes.Status401Unauthorized)
             .AddEndpointFilter<UserStatusFilter>()
             .RequireAuthorization(new AuthorizeAttribute { Roles = "User,Admin,Support" });
+        
+        group.MapDelete("/{deviceId:guid}", RemoveDevice)
+            .WithName("RemoveDevice")
+            .WithSummary("Удаление устройства")
+            .WithDescription("Удаляет непривязанное устройство")
+            .Produces(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status404NotFound)
+            .RequireAuthorization(new AuthorizeAttribute { Roles = "Admin" });
     }
 
     private static IResult GetDevices()
@@ -128,5 +140,29 @@ public class DeviceEndpoints : ICarterModule
             Token = token,
             QrCodeUri = qrCodeUri
         });
+    }
+
+    private static async Task<IResult> RemoveDevice(Guid deviceId, IUnitOfWork unit, INotificationService notificationService)
+    {
+        var device = await unit.DeviceRepository.GetDeviceById(deviceId);
+        if (device is null)
+        {
+            return Results.NotFound();
+        }
+        
+        var deviceDto = DeviceHub.Devices.Values.FirstOrDefault(d => d.Id == deviceId && d.BindingAt == DateTime.MinValue);
+        if (deviceDto is null)
+        {
+            return Results.BadRequest("Устройство привязано к реквизиту");
+        }
+
+        unit.DeviceRepository.Delete(device);
+        await unit.Commit();
+        
+        DeviceHub.Devices.TryRemove(deviceDto.Id, out _);
+        
+        await notificationService.NotifyDeviceDeleted(deviceDto.Id, deviceDto.UserId);
+
+        return Results.Ok();
     }
 }

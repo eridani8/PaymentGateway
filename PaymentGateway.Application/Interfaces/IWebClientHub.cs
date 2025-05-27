@@ -21,4 +21,5 @@ public interface IWebClientHub
     Task UserDisconnected(UserState state);
     Task ChangeRequisiteAssignmentAlgorithm(RequisiteAssignmentAlgorithm algorithm);
     Task DeviceUpdated(DeviceDto device);
+    Task DeviceDeleted(Guid deviceId);
 } 

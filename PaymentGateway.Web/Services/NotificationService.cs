@@ -95,6 +95,7 @@ public class NotificationService(
         Unsubscribe(SignalREvents.Web.UserDisconnected);
         Unsubscribe(SignalREvents.Web.ChangeRequisiteAssignmentAlgorithm);
         Unsubscribe(SignalREvents.Web.DeviceUpdated);
+        Unsubscribe(SignalREvents.Web.DeviceDeleted);
         
         return base.DisposeAsync();
     }
@@ -105,10 +106,20 @@ public class NotificationService(
     {
         Subscribe(SignalREvents.Web.DeviceUpdated, handler);
     }
+    
+    public void SubscribeToDeviceDeletions(Action<Guid> handler)
+    {
+        Subscribe(SignalREvents.Web.DeviceDeleted, handler);
+    }
 
     public void UnsubscribeFromDeviceUpdated()
     {
         Unsubscribe(SignalREvents.Web.DeviceUpdated);
+    }
+    
+    public void UnsubscribeFromDeviceDeletions()
+    {
+        Unsubscribe(SignalREvents.Web.DeviceDeleted);
     }
 
     #endregion

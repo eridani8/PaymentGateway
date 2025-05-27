@@ -90,6 +90,16 @@
                                 </div>
                             </CellTemplate>
                         </TemplateColumn>
+                        <TemplateColumn Title="Действия">
+                            <CellTemplate Context="cellContext">
+                                <MudStack Row="true">
+                                    <MudIconButton Variant="Variant.Outlined"
+                                                   OnClick="@(() => DeleteDevice(cellContext.Item))"
+                                                   Icon="@Icons.Material.Filled.Delete"
+                                                   Color="Color.Error"/>
+                                </MudStack>
+                            </CellTemplate>
+                        </TemplateColumn>
                     </Columns>
                     <ChildRowContent Context="rowContext">
                         <MudStack>
@@ -143,6 +153,7 @@
         await LoadDevices();
 
         NotificationService.SubscribeToDeviceUpdated(HandleDeviceUpdated);
+        NotificationService.SubscribeToDeviceDeletions(HandleDeviceDeleted);
     }
 
     private async void HandleDeviceUpdated(DeviceDto deviceDto)
@@ -168,9 +179,27 @@
         }
     }
 
+    private async void HandleDeviceDeleted(Guid id)
+    {
+        try
+        {
+            var device = _devices.FirstOrDefault(d => d.Id == id);
+            if (device is null) return;
+
+            _devices.Remove(device);
+            
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e, "Ошибка при удалении устройства {DeviceId}", id);
+        }
+    }
+
     public void Dispose()
     {
         NotificationService.UnsubscribeFromDeviceUpdated();
+        NotificationService.UnsubscribeFromDeviceDeletions();
     }
 
     private async Task LoadDevices()
@@ -275,4 +304,45 @@
         _isFiltered = false;
         await LoadDevices();
     }
+
+    private async Task DeleteDevice(DeviceDto device)
+    {
+        var parameters = new DialogParameters
+        {
+            ["ContentText"] = $"Вы действительно хотите удалить устройство {device.DeviceName}?",
+            ["ButtonText"] = "Удалить"
+        };
+        
+        var dialog = await DialogService.ShowAsync<ConfirmationDialog>(null, parameters);
+        var result = await dialog.Result;
+        
+        if (result is { Canceled: false })
+        {
+            try
+            {
+                // _isLoading = true;
+                // var deleteResult = await AdminService.DeleteUser(user.Id);
+                //
+                // if (deleteResult.Code == HttpStatusCode.OK)
+                // {
+                //     Snackbar.Add($"Пользователь {user.Username} успешно удален", Severity.Success);
+                // }
+                // else
+                // {
+                //     var error = !string.IsNullOrEmpty(deleteResult.Content) ? deleteResult.Content : "Ошибка при удалении пользователя";
+                //     Snackbar.Add(error, Severity.Error);
+                // }
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e, "Ошибка при удалении устройства {DeviceName}", device.DeviceName);
+                Snackbar.Add(e.Message, Severity.Error);
+            }
+            finally
+            {
+                _isLoading = false;
+            }
+        }
+    }
+
 }

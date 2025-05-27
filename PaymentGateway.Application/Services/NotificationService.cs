@@ -227,7 +227,32 @@ public class NotificationService(
         }
         catch (Exception e)
         {
-            logger.LogError(e, "Ошибка отправки уведомления онлайн устройства");
+            logger.LogError(e, "Ошибка отправки уведомления обновления устройства");
+        }
+    }
+    public async Task NotifyDeviceDeleted(Guid deviceId, Guid userId)
+    {
+        try
+        {
+            var tasks = new List<Task>();
+            
+            if (NotificationHub.GetUsersByRoles(["Admin"]) is { Count: > 0 } staffIds)
+            {
+                var staffTask = hubContext.Clients.Clients(staffIds).DeviceDeleted(deviceId);
+                tasks.Add(staffTask);
+            }
+
+            if (NotificationHub.GetUserConnectionId(userId) is { } connectionId)
+            {
+                var userTask = hubContext.Clients.Client(connectionId).DeviceDeleted(deviceId);
+                tasks.Add(userTask);
+            }
+            
+            await Task.WhenAll(tasks);
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, "Ошибка отправки уведомления удаления устройства");
         }
     }
 } 
