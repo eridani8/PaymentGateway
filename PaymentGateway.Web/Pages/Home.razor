@@ -49,8 +49,14 @@
             <MudText Typo="Typo.h5" Align="Align.Center" Class="mb-4">Создание платежа</MudText>
 
             <MudForm Model="@_paymentModel" @ref="@_form" Validation="@(_validator.ValidateValue)">
-                <MudNumericField T="decimal" @bind-Value="_paymentModel.Amount" Label="Сумма" Required="true"
-                                 For="@(() => _paymentModel.Amount)" Immediate="true" Min="0" Step="1000"/>
+                <MudNumericField T="decimal" 
+                                 @bind-Value="_paymentModel.Amount" 
+                                 Label="Сумма" Required="true"
+                                 For="@(() => _paymentModel.Amount)" 
+                                 Immediate="true"
+                                 Max="@(_walletDto?.Balance ?? 0)"
+                                 Min="0" 
+                                 Step="1000"/>
             </MudForm>
 
             <MudButton Variant="Variant.Filled" Color="Color.Primary"
@@ -92,9 +98,9 @@
                 _walletDto = await UserService.GetWalletState() ?? new WalletDto()
                 {
                     UserId = _paymentModel.UserId ?? Guid.Empty,
-                    Balance = -1,
-                    Frozen = -1,
-                    Profit = -1
+                    Balance = 0,
+                    Frozen = 0,
+                    Profit = 0
                 };
                 
                 NotificationService.SubscribeToWalletUpdates(HandleWalletUpdate);
