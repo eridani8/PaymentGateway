@@ -244,4 +244,14 @@ public class AdminService(
         notificationService.NotifyRequisiteAssignmentAlgorithmChanged(result);
         return Result.Success(true);
     }
+
+    public Result<decimal> GetCurrentUsdtExchangeRate()
+    {
+        throw new NotImplementedException();
+    }
+
+    public Result<bool> SetUsdtExchangeRate(decimal rate)
+    {
+        throw new NotImplementedException();
+    }
 }

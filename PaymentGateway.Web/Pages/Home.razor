@@ -50,7 +50,8 @@
             <MudForm Model="@_paymentModel" @ref="@_form" Validation="@(_validator.ValidateValue)">
                 <MudNumericField T="decimal" 
                                  @bind-Value="_paymentModel.Amount" 
-                                 Label="Сумма" Required="true"
+                                 Label="Сумма" 
+                                 Required="true"
                                  For="@(() => _paymentModel.Amount)" 
                                  Immediate="true"
                                  Max="@(_walletDto?.Balance ?? 0)"
