@@ -16,4 +16,6 @@ public interface IAdminService
     Task<Response> ResetTwoFactor(Guid userId);
     Task<RequisiteAssignmentAlgorithm> GetCurrentRequisiteAssignmentAlgorithm();
     Task<Response> SetRequisiteAssignmentAlgorithm(int algorithm);
+    Task<decimal> GetCurrentUsdtExchangeRate();
+    Task<Response> SetCurrentUsdtExchangeRate(decimal rate);
 }

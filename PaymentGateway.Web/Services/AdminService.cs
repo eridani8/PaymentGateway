@@ -104,4 +104,22 @@ public class AdminService(
     {
         return await PutRequest($"{apiEndpoint}/requisite-assignment-algorithm?algorithm={algorithm}");
     }
+
+    public async Task<decimal> GetCurrentUsdtExchangeRate()
+    {
+        var response = await GetRequest($"{apiEndpoint}/usdt-exchange-rate");
+        if (response.Code == HttpStatusCode.OK && 
+            !string.IsNullOrEmpty(response.Content) &&
+            decimal.TryParse(response.Content, out var rate))
+        {
+            return rate;
+        }
+
+        return -1;
+    }
+
+    public async Task<Response> SetCurrentUsdtExchangeRate(decimal rate)
+    {
+        return await PutRequest($"{apiEndpoint}/usdt-exchange-rate?rate={rate}");
+    }
 }

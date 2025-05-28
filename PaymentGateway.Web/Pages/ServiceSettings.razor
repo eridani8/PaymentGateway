@@ -63,8 +63,16 @@
     protected override async Task OnInitializedAsync()
     {
         _currentAlgorithm = await AdminService.GetCurrentRequisiteAssignmentAlgorithm();
-        
         NotificationService.SubscribeToChangeRequisiteAssignmentAlgorithm(HandleChangeRequisiteAssignmentAlgorithm);
+
+        try
+        {
+            _currentExchangeRate = await AdminService.GetCurrentUsdtExchangeRate();
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e, "Ошибка получения текущего обменного курса USDT");
+        }
     }
     
     private void HandleChangeRequisiteAssignmentAlgorithm(int algorithm)
@@ -102,7 +110,17 @@
         {
             try
             {
-                
+                var setResult = await AdminService.SetCurrentUsdtExchangeRate(_currentExchangeRate);
+
+                if (setResult.Code == HttpStatusCode.OK)
+                {
+                    Snackbar.Add("Обменный курс USDT успешно установлен", Severity.Success);
+                }
+                else
+                {
+                    var error = !string.IsNullOrEmpty(setResult.Content) ? setResult.Content : "Ошибка назначения обменного курса USDT";
+                    Snackbar.Add(error, Severity.Error);
+                }
             }
             catch (Exception e)
             {

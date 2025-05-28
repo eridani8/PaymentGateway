@@ -124,6 +124,24 @@ public class AdminEndpoints : ICarterModule
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status403Forbidden);
+        
+        group.MapGet("usdt-exchange-rate", GetCurrentUsdtExchangeRate)
+            .WithName("GetCurrentUsdtExchangeRate")
+            .WithSummary("Получение текущего обменного курса USDT")
+            .WithDescription("Возвращает курс USDT заданный в сервисе")
+            .Produces<decimal>()
+            .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden);
+        
+        group.MapPut("usdt-exchange-rate", SetUsdtExchangeRate)
+            .WithName("SetUsdtExchangeRate")
+            .WithSummary("Изменение курса USDT")
+            .WithDescription("Задает курс USDT в сервисе")
+            .Produces(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden);
     }
 
     private static async Task<IResult> Deposit(
@@ -288,8 +306,7 @@ public class AdminEndpoints : ICarterModule
         return Results.Ok();
     }
     
-    private static IResult GetCurrentRequisiteAssignmentAlgorithm(
-        IAdminService service)
+    private static IResult GetCurrentRequisiteAssignmentAlgorithm(IAdminService service)
     {
         var result = service.GetCurrentRequisiteAssignmentAlgorithm();
         
@@ -304,7 +321,6 @@ public class AdminEndpoints : ICarterModule
     private static async Task<IResult> SetRequisiteAssignmentAlgorithm(
         int algorithm,
         IAdminService service,
-        INotificationService notificationService,
         ILogger<AdminEndpoints> logger,
         ClaimsPrincipal user)
     {
@@ -320,6 +336,39 @@ public class AdminEndpoints : ICarterModule
         logger.LogInformation("Изменение алгоритма подбора реквизитов. С {old} на {new} [{User}]", 
             oldAlgorithm, (RequisiteAssignmentAlgorithm)algorithm, user.GetCurrentUsername());
 
+        return Results.Ok();
+    }
+
+    private static IResult GetCurrentUsdtExchangeRate(IAdminService service)
+    {
+        var result = service.GetCurrentUsdtExchangeRate();
+
+        if (result.IsFailure)
+        {
+            return Results.BadRequest(result.Error.Message);
+        }
+        
+        return Results.Ok(result.Value);
+    }
+
+    private static async Task<IResult> SetUsdtExchangeRate(
+        decimal rate,
+        IAdminService service,
+        ILogger<AdminEndpoints> logger,
+        ClaimsPrincipal user)
+    {
+        var oldExchangeRate = service.GetCurrentUsdtExchangeRate().Value;
+        
+        var result = await service.SetUsdtExchangeRate(rate);
+
+        if (result.IsFailure)
+        {
+            return Results.BadRequest(result.Error.Message);
+        }
+
+        logger.LogInformation("Изменение курса USDT. С {OldExchangeRate} на {NewExchangeRate} [{User}]}",
+            oldExchangeRate, rate, user.GetCurrentUsername());
+        
         return Results.Ok();
     }
 } 
