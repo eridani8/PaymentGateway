@@ -366,7 +366,7 @@ public class AdminEndpoints : ICarterModule
             return Results.BadRequest(result.Error.Message);
         }
 
-        logger.LogInformation("Изменение курса USDT. С {OldExchangeRate} на {NewExchangeRate} [{User}]}",
+        logger.LogInformation("Изменение курса USDT. С {OldExchangeRate} на {NewExchangeRate} [{User}]",
             oldExchangeRate, rate, user.GetCurrentUsername());
         
         return Results.Ok();
