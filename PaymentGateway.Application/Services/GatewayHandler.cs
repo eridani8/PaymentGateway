@@ -5,6 +5,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using PaymentGateway.Application.Hubs;
 using PaymentGateway.Application.Interfaces;
+using PaymentGateway.Core.Configs;
 using PaymentGateway.Core.Entities;
 using PaymentGateway.Infrastructure.Interfaces;
 using PaymentGateway.Shared.DTOs.Payment;
@@ -18,7 +19,8 @@ public class GatewayHandler(
     ILogger<GatewayHandler> logger,
     IMemoryCache cache,
     INotificationService notificationService,
-    IMapper mapper)
+    IMapper mapper,
+    GatewaySettings gatewaySettings)
     : IGatewayHandler
 {
     public async Task HandleRequisites(IUnitOfWork unit)
@@ -247,8 +249,10 @@ public class GatewayHandler(
                     var oldBalance = user.Balance;
                     var oldFrozen = user.Frozen;
                     
-                    user.Balance += expiredPayment.Amount;
-                    user.Frozen -= expiredPayment.Amount;
+                    var exchangeAmount = expiredPayment.Amount / gatewaySettings.UsdtExchangeRate;
+                    
+                    user.Balance += exchangeAmount;
+                    user.Frozen -= exchangeAmount;
                     await userManager.UpdateAsync(user);
                     logger.LogInformation(
                         "Разморозка средств пользователя {UserId}. Было на балансе {OldBalance}, стало {NewBalance}. Было заморожено {OldFrozen}, стало {NewFrozen}",

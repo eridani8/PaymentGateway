@@ -12,6 +12,7 @@ using PaymentGateway.Shared.DTOs.Payment;
 using PaymentGateway.Shared.DTOs.Requisite;
 using PaymentGateway.Shared.Enums;
 using Npgsql;
+using PaymentGateway.Core.Configs;
 using PaymentGateway.Shared.DTOs.User;
 
 namespace PaymentGateway.Application.Services;
@@ -25,7 +26,8 @@ public class PaymentService(
     UserManager<UserEntity> userManager,
     INotificationService notificationService,
     IPaymentConfirmationService paymentConfirmationService,
-    ILogger<PaymentService> logger) : IPaymentService
+    ILogger<PaymentService> logger,
+    GatewaySettings gatewaySettings) : IPaymentService
 {
     public async Task<Result<PaymentDto>> CreatePayment(PaymentCreateDto dto, ClaimsPrincipal userClaim)
     {
@@ -41,7 +43,9 @@ public class PaymentService(
             return Result.Failure<PaymentDto>(UserErrors.UserNotFound);
         }
 
-        if (user.Balance < dto.Amount)
+        var exchangeAmount = dto.Amount / gatewaySettings.UsdtExchangeRate;
+
+        if (user.Balance < exchangeAmount)
         {
             return Result.Failure<PaymentDto>(PaymentErrors.NotEnoughFunds);
         }
@@ -54,13 +58,13 @@ public class PaymentService(
         var oldBalance = user.Balance;
         var oldFrozen = user.Frozen;
         
-        user.Balance -= dto.Amount;
-        user.Frozen += dto.Amount;
+        user.Balance -= exchangeAmount;
+        user.Frozen += exchangeAmount;
         
         await userManager.UpdateAsync(user);
         
         logger.LogInformation("Заморожено {Frozen} на счету пользователя {UserId}. Платеж {PaymentId}. Было на балансе {OldBalance}, стало {NewBalance}. Было заморожено {OldFrozen}, стало {NewFrozen}",
-            dto.Amount, user.Id, entity.Id, oldBalance, user.Balance, oldFrozen, user.Frozen);
+            exchangeAmount, user.Id, entity.Id, oldBalance, user.Balance, oldFrozen, user.Frozen);
 
         var paymentDto = mapper.Map<PaymentDto>(entity);
         var userDto = mapper.Map<UserDto>(user);
