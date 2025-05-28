@@ -96,6 +96,7 @@ public class NotificationService(
         Unsubscribe(SignalREvents.Web.ChangeRequisiteAssignmentAlgorithm);
         Unsubscribe(SignalREvents.Web.DeviceUpdated);
         Unsubscribe(SignalREvents.Web.DeviceDeleted);
+        Unsubscribe(SignalREvents.Web.ChangeUsdtExchangeRate);
         
         return base.DisposeAsync();
     }
@@ -302,6 +303,20 @@ public class NotificationService(
             logger.LogError(e, "Ошибка загрузки истории чата");
             return [];
         }
+    }
+
+    #endregion
+
+    #region ExchangeRate
+
+    public void SubscribeToExchangeRateUpdates(Action<decimal> handler)
+    {
+        Subscribe(SignalREvents.Web.ChangeUsdtExchangeRate, handler);
+    }
+    
+    public void UnsubscribeToExchangeRateUpdates()
+    {
+        Unsubscribe(SignalREvents.Web.ChangeUsdtExchangeRate);
     }
 
     #endregion

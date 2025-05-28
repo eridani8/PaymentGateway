@@ -18,4 +18,5 @@ public interface INotificationService
     Task NotifyRequisiteAssignmentAlgorithmChanged(RequisiteAssignmentAlgorithm algorithm);
     Task NotifyDeviceUpdated(DeviceDto device);
     Task NotifyDeviceDeleted(Guid deviceId, Guid userId);
+    Task NotifyUsdtExchangeRateUpdated(decimal rate);
 } 

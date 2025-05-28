@@ -21,6 +21,7 @@ public static class SignalREvents
         public const string ChangeRequisiteAssignmentAlgorithm = "ChangeRequisiteAssignmentAlgorithm";
         public const string DeviceUpdated = "DeviceUpdated";
         public const string DeviceDeleted = "DeviceDeleted";
+        public const string ChangeUsdtExchangeRate = "ChangeUsdtExchangeRate";
     }
 
     public static class DeviceApp

@@ -22,4 +22,5 @@ public interface IWebClientHub
     Task ChangeRequisiteAssignmentAlgorithm(RequisiteAssignmentAlgorithm algorithm);
     Task DeviceUpdated(DeviceDto device);
     Task DeviceDeleted(Guid deviceId);
+    Task ChangeUsdtExchangeRate(decimal rate);
 } 

@@ -64,7 +64,7 @@
     {
         _currentAlgorithm = await AdminService.GetCurrentRequisiteAssignmentAlgorithm();
         NotificationService.SubscribeToChangeRequisiteAssignmentAlgorithm(HandleChangeRequisiteAssignmentAlgorithm);
-
+        NotificationService.SubscribeToExchangeRateUpdates(HandleChangeExchangeRate);
         try
         {
             _currentExchangeRate = await AdminService.GetCurrentUsdtExchangeRate();
@@ -80,6 +80,11 @@
         _currentAlgorithm = (RequisiteAssignmentAlgorithm)algorithm;
     }
 
+    private void HandleChangeExchangeRate(decimal rate)
+    {
+        _currentExchangeRate = rate;
+    }
+
     private async Task RequisiteAssignmentAlgorithmChanged(RequisiteAssignmentAlgorithm algorithm)
     {
         var result = await AdminService.SetRequisiteAssignmentAlgorithm((int)algorithm);
@@ -92,6 +97,7 @@
     public void Dispose()
     {
         NotificationService.UnsubscribeFromChangeRequisiteAssignmentAlgorithm();
+        NotificationService.UnsubscribeToExchangeRateUpdates();
     }
 
     private async Task SetExchangeRate()

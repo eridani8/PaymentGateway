@@ -256,8 +256,8 @@ public class AdminService(
     {
         await settingsService.SetValue(nameof(gatewaySettings.UsdtExchangeRate), rate);
         gatewaySettings.UsdtExchangeRate = rate;
-        
-        // TODO notify
+
+        await notificationService.NotifyUsdtExchangeRateUpdated(rate);
         
         return Result.Success(true);
     }

@@ -230,6 +230,7 @@ public class NotificationService(
             logger.LogError(e, "Ошибка отправки уведомления обновления устройства");
         }
     }
+    
     public async Task NotifyDeviceDeleted(Guid deviceId, Guid userId)
     {
         try
@@ -253,6 +254,26 @@ public class NotificationService(
         catch (Exception e)
         {
             logger.LogError(e, "Ошибка отправки уведомления удаления устройства");
+        }
+    }
+
+    public async Task NotifyUsdtExchangeRateUpdated(decimal rate)
+    {
+        try
+        {
+            var tasks = new List<Task>();
+            
+            if (NotificationHub.GetUsersByRoles(["Admin"]) is { Count: > 0 } staffIds)
+            {
+                var staffTask = hubContext.Clients.Clients(staffIds).ChangeUsdtExchangeRate(rate);
+                tasks.Add(staffTask);
+            }
+            
+            await Task.WhenAll(tasks);
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, "Ошибка отправки уведомления об изменении курса USDT");
         }
     }
 } 
