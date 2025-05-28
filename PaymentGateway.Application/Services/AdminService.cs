@@ -1,5 +1,4 @@
-﻿using System.Threading.Channels;
-using AutoMapper;
+﻿using AutoMapper;
 using FluentValidation;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -7,7 +6,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Application.Results;
-using PaymentGateway.Core;
 using PaymentGateway.Core.Entities;
 using PaymentGateway.Shared.DTOs.User;
 using PaymentGateway.Shared.Enums;
@@ -25,6 +23,7 @@ public class AdminService(
     IValidator<UpdateUserDto> updateValidator,
     INotificationService notificationService,
     IOptions<GatewayConfig> gatewayConfig,
+    ISettingsService settingsService,
     ILogger<AdminService> logger) : IAdminService
 {
     public async Task<Result<UserDto>> CreateUser(CreateUserDto dto)
@@ -232,7 +231,7 @@ public class AdminService(
         return Result.Success((int)gatewayConfig.Value.AppointmentAlgorithm);
     }
 
-    public Result<bool> SetRequisiteAssignmentAlgorithm(int algorithm)
+    public async Task<Result<bool>> SetRequisiteAssignmentAlgorithm(int algorithm)
     {
         if (!Enum.IsDefined(typeof(RequisiteAssignmentAlgorithm), algorithm) || !Enum.TryParse(algorithm.ToString(), out RequisiteAssignmentAlgorithm result))
         {
@@ -241,7 +240,8 @@ public class AdminService(
         }
             
         gatewayConfig.Value.AppointmentAlgorithm = result;
-        notificationService.NotifyRequisiteAssignmentAlgorithmChanged(result);
+        await settingsService.SetValue(nameof(RequisiteAssignmentAlgorithm), result);
+        await notificationService.NotifyRequisiteAssignmentAlgorithmChanged(result);
         return Result.Success(true);
     }
 

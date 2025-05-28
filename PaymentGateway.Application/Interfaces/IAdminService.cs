@@ -14,7 +14,7 @@ public interface IAdminService
     Task<Result<Dictionary<Guid, string>>> GetUsersRoles(List<Guid> ids);
     Task<Result<bool>> ResetTwoFactor(Guid userId);
     Result<int> GetCurrentRequisiteAssignmentAlgorithm();
-    Result<bool> SetRequisiteAssignmentAlgorithm(int algorithm);
+    Task<Result<bool>> SetRequisiteAssignmentAlgorithm(int algorithm);
     Result<decimal> GetCurrentUsdtExchangeRate();
     Result<bool> SetUsdtExchangeRate(decimal rate);
 }

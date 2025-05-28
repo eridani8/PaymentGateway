@@ -76,4 +76,20 @@ public abstract class BaseCachedRepository<TEntity, TRepository>(TRepository rep
     
         return result ?? [];
     }
+    
+    protected async Task<TResult?> GetCachedData<TResult>(
+        string cacheKey, 
+        Func<Task<TResult>> dataLoader,
+        TimeSpan? slidingExpiration = null,
+        TimeSpan? absoluteExpiration = null)
+    {
+        var result = await cache.GetOrCreateAsync(cacheKey, entry =>
+        {
+            entry.SetSlidingExpiration(slidingExpiration ?? TimeSpan.FromMinutes(1));
+            entry.SetAbsoluteExpiration(absoluteExpiration ?? TimeSpan.FromMinutes(5));
+            return dataLoader();
+        });
+    
+        return result;
+    }
 } 

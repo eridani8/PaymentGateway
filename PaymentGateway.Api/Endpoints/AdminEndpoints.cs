@@ -301,7 +301,7 @@ public class AdminEndpoints : ICarterModule
         return Results.Ok(result.Value);
     }
 
-    private static IResult SetRequisiteAssignmentAlgorithm(
+    private static async Task<IResult> SetRequisiteAssignmentAlgorithm(
         int algorithm,
         IAdminService service,
         INotificationService notificationService,
@@ -310,7 +310,7 @@ public class AdminEndpoints : ICarterModule
     {
         var oldAlgorithm = (RequisiteAssignmentAlgorithm)service.GetCurrentRequisiteAssignmentAlgorithm().Value;
         
-        var result = service.SetRequisiteAssignmentAlgorithm(algorithm);
+        var result = await service.SetRequisiteAssignmentAlgorithm(algorithm);
         
         if (result.IsFailure)
         {

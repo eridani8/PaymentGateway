@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using PaymentGateway.Core.Configs;
 using PaymentGateway.Core.Encryption;
 using PaymentGateway.Core.Entities;
 using PaymentGateway.Core.Interfaces;
@@ -15,6 +16,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICryptographyS
     public DbSet<TransactionEntity> Transactions { get; set; }
     public DbSet<ChatMessageEntity> ChatMessages { get; set; }
     public DbSet<DeviceEntity> Devices { get; set; }
+    public DbSet<ConfigEntity> Settings { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

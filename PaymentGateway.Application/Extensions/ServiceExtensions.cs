@@ -29,6 +29,7 @@ public static class ServiceExtensions
         services.AddScoped<IAdminService, AdminService>();
         services.AddScoped<IChatMessageService, ChatMessageService>();
         services.AddScoped<IWalletService, WalletService>();
+        services.AddScoped<ISettingsService, SettingsService>();
         
         services.AddScoped<IGatewayHandler, GatewayHandler>();
         services.AddHostedService<GatewayHost>();

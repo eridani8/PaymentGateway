@@ -1,10 +1,14 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Options;
 using PaymentGateway.Application.Hubs;
+using PaymentGateway.Application.Interfaces;
+using PaymentGateway.Core.Configs;
 using PaymentGateway.Core.Entities;
 using PaymentGateway.Infrastructure.Interfaces;
 using PaymentGateway.Shared.DTOs.Device;
 using PaymentGateway.Shared.DTOs.User;
+using PaymentGateway.Shared.Enums;
 
 namespace PaymentGateway.Api.Configuration;
 
@@ -39,6 +43,14 @@ public static class AppConfiguration
             var deviceDto = mapper.Map<DeviceDto>(device);
             deviceDto.User = mapper.Map<UserDto>(device.User);
             DeviceHub.Devices.TryAdd(device.Id, deviceDto);
+        }
+        
+        var settingsService = scope.ServiceProvider.GetRequiredService<ISettingsService>();
+        var gatewayConfig = scope.ServiceProvider.GetRequiredService<IOptions<GatewayConfig>>();
+
+        if (await settingsService.GetValue<RequisiteAssignmentAlgorithm>(nameof(RequisiteAssignmentAlgorithm)) is { } requisiteAssignmentAlgorithm)
+        {
+            gatewayConfig.Value.AppointmentAlgorithm = requisiteAssignmentAlgorithm;
         }
     }
 

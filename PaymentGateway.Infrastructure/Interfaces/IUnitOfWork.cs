@@ -1,4 +1,5 @@
 ﻿using PaymentGateway.Infrastructure.Data;
+using PaymentGateway.Infrastructure.Repositories;
 
 namespace PaymentGateway.Infrastructure.Interfaces;
 
@@ -10,5 +11,6 @@ public interface IUnitOfWork
     ITransactionRepository TransactionRepository { get; }
     IChatRepository ChatRepository { get; }
     IDeviceRepository DeviceRepository { get; }
+    ISettingsRepository SettingsRepository { get; }
     Task Commit(CancellationToken cancellationToken = default);
 }

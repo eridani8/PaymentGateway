@@ -39,6 +39,8 @@ public static class ServiceExtensions
 
         services.AddScoped<DeviceRepository>();
         services.AddScoped<IDeviceRepository, CachedDeviceRepository>();
+
+        services.AddScoped<ISettingsRepository, SettingsRepository>();
         
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         
