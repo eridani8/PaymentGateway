@@ -27,13 +27,20 @@
                             <MudSelectItem Value="RequisiteAssignmentAlgorithm.Distribution">Равномерное</MudSelectItem>
                         </MudSelect>
                     </MudItem>
+                    
+                    <MudItem xs="6" Class="d-flex align-center">
+                        <MudText><strong>Текущий курс USDT</strong></MudText>
+                    </MudItem>
+                    <MudItem xs="6" Class="d-flex justify-end align-center">
+                        <MudText><strong>@_currentExchangeRate</strong></MudText>
+                    </MudItem>
 
                     <MudItem xs="6" Class="d-flex align-center">
                         <MudText><strong>Курс USDT (1x USDT = x ₽)</strong></MudText>
                     </MudItem>
-                    <MudItem xs="3" Class="d-flex justify-end">
+                    <MudItem xs="3" Class="d-flex justify-end align-center">
                         <MudNumericField T="decimal"
-                                         @bind-Value="_currentExchangeRate"
+                                         @bind-Value="_exchangeRate"
                                          Label="Новый курс"
                                          Required="true"
                                          Immediate="true"
@@ -58,6 +65,7 @@
 @code {
 
     private RequisiteAssignmentAlgorithm _currentAlgorithm;
+    private decimal _exchangeRate = 1;
     private decimal _currentExchangeRate = 1;
 
     protected override async Task OnInitializedAsync()
@@ -105,7 +113,7 @@
         var parameters = new DialogParameters
         {
             ["Title"] = "Установка курса",
-            ["ContentText"] = $"Вы действительно хотите установить курс 1 USDT = {_currentExchangeRate} ₽?",
+            ["ContentText"] = $"Вы действительно хотите установить курс 1 USDT = {_exchangeRate} ₽?",
             ["ButtonText"] = "Да"
         };
         
@@ -116,7 +124,7 @@
         {
             try
             {
-                var setResult = await AdminService.SetCurrentUsdtExchangeRate(_currentExchangeRate);
+                var setResult = await AdminService.SetCurrentUsdtExchangeRate(_exchangeRate);
 
                 if (setResult.Code == HttpStatusCode.OK)
                 {
