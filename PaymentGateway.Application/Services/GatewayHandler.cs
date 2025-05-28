@@ -94,15 +94,15 @@ public class GatewayHandler(
 
                 var todayDate = now.ToLocalTime().Date;
                 var lastResetDate = requisite.LastDayFundsResetAt.ToLocalTime().Date;
-                var resetCacheKey = $"funds_reset:{requisite.Id}:{todayDate:yyyy-MM-dd}";
+                var fundsResetCacheKey = $"funds_reset:{requisite.Id}:{todayDate:yyyy-MM-dd}";
 
-                if (lastResetDate < todayDate && cache.Get(resetCacheKey) is null)
+                if (lastResetDate < todayDate && cache.Get(fundsResetCacheKey) is null)
                 {
                     logger.LogInformation("Сброс полученных средств с реквизита {RequisiteId}", requisite.Id);
                     requisite.DayReceivedFunds = 0;
                     requisite.DayOperationsCount = 0;
                     requisite.LastDayFundsResetAt = now;
-                    cache.Set(resetCacheKey, TimeSpan.FromHours(1));
+                    cache.Set(fundsResetCacheKey, TimeSpan.FromHours(1));
                     await notificationService.NotifyRequisiteUpdated(mapper.Map<RequisiteDto>(requisite));
                     needToCommit = true;
                 }
@@ -110,14 +110,14 @@ public class GatewayHandler(
                 var currentMonth = new DateTime(now.Year, now.Month, 1);
                 var lastMonthlyResetDate = new DateTime(requisite.LastMonthlyFundsResetAt.Year,
                     requisite.LastMonthlyFundsResetAt.Month, 1);
-                var monthlyResetCacheKey = $"monthly_funds_reset:{requisite.Id}:{currentMonth:yyyy-MM}";
+                var monthlyFundsResetCacheKey = $"monthly_funds_reset:{requisite.Id}:{currentMonth:yyyy-MM}";
 
-                if (lastMonthlyResetDate < currentMonth && cache.Get(monthlyResetCacheKey) is null)
+                if (lastMonthlyResetDate < currentMonth && cache.Get(monthlyFundsResetCacheKey) is null)
                 {
                     logger.LogInformation("Сброс полученных средств за месяц с реквизита {RequisiteId}", requisite.Id);
                     requisite.MonthReceivedFunds = 0;
                     requisite.LastMonthlyFundsResetAt = now;
-                    cache.Set(monthlyResetCacheKey, TimeSpan.FromHours(1));
+                    cache.Set(monthlyFundsResetCacheKey, TimeSpan.FromHours(1));
                     await notificationService.NotifyRequisiteUpdated(mapper.Map<RequisiteDto>(requisite));
                     needToCommit = true;
                 }
@@ -167,6 +167,7 @@ public class GatewayHandler(
                 var requisite = activeRequisites.FirstOrDefault(r =>
                     r.DeviceId is { } deviceId &&
                     DeviceHub.AvailableDeviceByIdAndUserId(deviceId, r.UserId) is not null &&
+                    r.UserId != payment.UserId &&
                     r.DayLimit >= payment.Amount &&
                     (r.DayLimit - r.DayReceivedFunds) >= payment.Amount &&
                     (r.MonthLimit == 0 || r.MonthLimit >= payment.Amount) &&
