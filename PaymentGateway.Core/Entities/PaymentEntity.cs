@@ -14,6 +14,8 @@ public sealed class PaymentEntity : BaseEntity
     /// </summary>
     public Guid UserId { get; init; }
 
+    public UserEntity User { get; set; }
+
     /// <summary>
     /// Сумма платежа
     /// </summary>

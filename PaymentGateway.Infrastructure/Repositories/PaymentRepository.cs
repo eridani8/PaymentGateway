@@ -14,6 +14,7 @@ public class PaymentRepository(
     {
         return await GetSet()
             .Include(p => p.Requisite)
+            .Include(p => p.User)
             .Where(p => p.Requisite == null && p.Status == PaymentStatus.Created)
             .OrderBy(p => p.CreatedAt)
             .ToListAsync();
@@ -24,6 +25,7 @@ public class PaymentRepository(
         var now = DateTime.UtcNow;
         return await GetSet()
             .Include(p => p.Requisite)
+            .Include(p => p.User)
             .Where(p =>
                 p.ExpiresAt.HasValue &&
                 now >= p.ExpiresAt &&
@@ -37,6 +39,7 @@ public class PaymentRepository(
         return await GetSet()
             .Include(p => p.Requisite)
             .ThenInclude(r => r.User)
+            .Include(p => p.User)
             .Include(p => p.Transaction)
             .Include(p => p.ManualConfirmUser)
             .Include(p => p.CanceledByUser)

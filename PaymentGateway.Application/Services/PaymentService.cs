@@ -109,7 +109,7 @@ public class PaymentService(
 
         var userRoles = await userManager.GetRolesAsync(user);
 
-        if (payment.Requisite.UserId != currentUserId && !userRoles.Contains("Admin") && !userRoles.Contains("Support"))
+        if (!userRoles.Contains("Admin") && !userRoles.Contains("Support"))
         {
             return Result.Failure<PaymentEntity>(PaymentErrors.InsufficientPermissionsForPayment);
         }
@@ -117,10 +117,20 @@ public class PaymentService(
         payment.ManualConfirm(user.Id);
 
         await paymentConfirmationService.ProcessPaymentConfirmation(payment, requisite, payment.Amount);
+
+        // var requisiteUser = payment.Requisite?.User;
+        // if (requisiteUser is not null)
+        // {
+        //     var exchangeAmount = payment.Amount / gatewaySettings.UsdtExchangeRate;
+        //     
+        //     requisiteUser.Profit += exchangeAmount;
+        //     
+        // } // TODO profit
         
         var paymentDto = mapper.Map<PaymentDto>(payment);
-        await notificationService.NotifyPaymentUpdated(paymentDto);
         var requisiteDto = mapper.Map<RequisiteDto>(requisite);
+        
+        await notificationService.NotifyPaymentUpdated(paymentDto);
         await notificationService.NotifyRequisiteUpdated(requisiteDto);
 
         return Result.Success(payment);

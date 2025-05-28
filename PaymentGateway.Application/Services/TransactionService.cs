@@ -1,13 +1,16 @@
 ﻿using AutoMapper;
 using FluentValidation;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Application.Results;
+using PaymentGateway.Core.Configs;
 using PaymentGateway.Core.Entities;
 using PaymentGateway.Infrastructure.Interfaces;
 using PaymentGateway.Shared.DTOs.Payment;
 using PaymentGateway.Shared.DTOs.Requisite;
 using PaymentGateway.Shared.DTOs.Transaction;
+using PaymentGateway.Shared.DTOs.User;
 
 namespace PaymentGateway.Application.Services;
 
@@ -17,7 +20,9 @@ public class TransactionService(
     IValidator<TransactionCreateDto> validator,
     ILogger<TransactionService> logger,
     IPaymentConfirmationService paymentConfirmationService,
-    INotificationService notificationService)
+    INotificationService notificationService,
+    GatewaySettings gatewaySettings,
+    UserManager<UserEntity> userManager)
     : ITransactionService
 {
     public async Task<Result<TransactionDto>> CreateTransaction(TransactionCreateDto dto)
@@ -52,9 +57,22 @@ public class TransactionService(
 
         await unit.Commit();
 
+        var exchangeAmount = payment.Amount / gatewaySettings.UsdtExchangeRate;
+        
+        var requisiteUser = requisite.User;
+        requisiteUser.Profit += exchangeAmount * 0.05m;
+        await userManager.UpdateAsync(requisiteUser);
+        await notificationService.NotifyWalletUpdated(mapper.Map<WalletDto>(requisiteUser));
+        // TODO profit
+        var paymentUser = payment.User;
+        paymentUser.Frozen -= exchangeAmount;
+        await userManager.UpdateAsync(paymentUser);
+        await notificationService.NotifyWalletUpdated(mapper.Map<WalletDto>(paymentUser));
+
         var paymentDto = mapper.Map<PaymentDto>(payment);
-        await notificationService.NotifyPaymentUpdated(paymentDto);
         var requisiteDto = mapper.Map<RequisiteDto>(requisite);
+        
+        await notificationService.NotifyPaymentUpdated(paymentDto);
         await notificationService.NotifyRequisiteUpdated(requisiteDto);
 
         return Result.Success(mapper.Map<TransactionDto>(transactionEntity));
