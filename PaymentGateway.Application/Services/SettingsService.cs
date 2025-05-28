@@ -1,13 +1,15 @@
 ﻿using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using PaymentGateway.Application.Interfaces;
+using PaymentGateway.Core.Configs;
 using PaymentGateway.Core.Entities;
 using PaymentGateway.Infrastructure.Data;
 using PaymentGateway.Infrastructure.Interfaces;
 
 namespace PaymentGateway.Application.Services;
 
-public class SettingsService(IUnitOfWork unit, JsonSerializerOptions jsonSerializerOptions) : ISettingsService
+public class SettingsService(IUnitOfWork unit, GatewaySettings settings, JsonSerializerOptions jsonSerializerOptions)
+    : ISettingsService
 {
     public async Task<string?> GetValue(string key)
     {
@@ -23,7 +25,7 @@ public class SettingsService(IUnitOfWork unit, JsonSerializerOptions jsonSeriali
     public async Task SetValue<T>(string key, T value)
     {
         var json = JsonSerializer.Serialize(value, jsonSerializerOptions);
-        
+
         var entity = await unit.SettingsRepository.GetFirstOrDefault(key);
         if (entity != null)
         {

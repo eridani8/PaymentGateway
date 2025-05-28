@@ -11,7 +11,7 @@ namespace PaymentGateway.Infrastructure.Repositories;
 
 public class RequisiteRepository(
     AppDbContext context,
-    IOptions<GatewayConfig> gatewayConfig)
+    GatewaySettings gatewaySettings)
     : RepositoryBase<RequisiteEntity>(context), IRequisiteRepository
 {
     public async Task<List<RequisiteEntity>> GetAll()
@@ -48,7 +48,7 @@ public class RequisiteRepository(
                 (r.User.MaxDailyMoneyReceptionLimit == 0 ||
                  r.User.ReceivedDailyFunds < r.User.MaxDailyMoneyReceptionLimit));
 
-        return gatewayConfig.Value.AppointmentAlgorithm switch
+        return gatewaySettings.AppointmentAlgorithm switch
         {
             RequisiteAssignmentAlgorithm.Priority => await query.OrderByDescending(r => r.Priority).ToListAsync(),
             RequisiteAssignmentAlgorithm.Distribution => await query.OrderBy(r => r.DayOperationsCount).ToListAsync(),

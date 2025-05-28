@@ -22,7 +22,7 @@ public class AdminService(
     IValidator<CreateUserDto> createValidator,
     IValidator<UpdateUserDto> updateValidator,
     INotificationService notificationService,
-    IOptions<GatewayConfig> gatewayConfig,
+    GatewaySettings gatewaySettings,
     ISettingsService settingsService,
     ILogger<AdminService> logger) : IAdminService
 {
@@ -228,7 +228,7 @@ public class AdminService(
 
     public Result<int> GetCurrentRequisiteAssignmentAlgorithm()
     {
-        return Result.Success((int)gatewayConfig.Value.AppointmentAlgorithm);
+        return Result.Success((int)gatewaySettings.AppointmentAlgorithm);
     }
 
     public async Task<Result<bool>> SetRequisiteAssignmentAlgorithm(int algorithm)
@@ -238,20 +238,27 @@ public class AdminService(
             return Result.Failure<bool>(
                 Error.OperationFailed("изменение алгоритма назначения реквизитов", "Указан недопустимый алгоритм"));
         }
-            
-        gatewayConfig.Value.AppointmentAlgorithm = result;
-        await settingsService.SetValue(nameof(RequisiteAssignmentAlgorithm), result);
+        
+        await settingsService.SetValue(nameof(gatewaySettings.AppointmentAlgorithm), result);
+        gatewaySettings.AppointmentAlgorithm = result;
+        
         await notificationService.NotifyRequisiteAssignmentAlgorithmChanged(result);
+        
         return Result.Success(true);
     }
 
     public Result<decimal> GetCurrentUsdtExchangeRate()
     {
-        throw new NotImplementedException();
+        return Result.Success(gatewaySettings.UsdtExchangeRate);
     }
 
-    public Result<bool> SetUsdtExchangeRate(decimal rate)
+    public async Task<Result<bool>> SetUsdtExchangeRate(decimal rate)
     {
-        throw new NotImplementedException();
+        await settingsService.SetValue(nameof(gatewaySettings.UsdtExchangeRate), rate);
+        gatewaySettings.UsdtExchangeRate = rate;
+        
+        // TODO notify
+        
+        return Result.Success(true);
     }
 }

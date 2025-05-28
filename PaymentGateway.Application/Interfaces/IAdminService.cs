@@ -16,5 +16,5 @@ public interface IAdminService
     Result<int> GetCurrentRequisiteAssignmentAlgorithm();
     Task<Result<bool>> SetRequisiteAssignmentAlgorithm(int algorithm);
     Result<decimal> GetCurrentUsdtExchangeRate();
-    Result<bool> SetUsdtExchangeRate(decimal rate);
+    Task<Result<bool>> SetUsdtExchangeRate(decimal rate);
 }

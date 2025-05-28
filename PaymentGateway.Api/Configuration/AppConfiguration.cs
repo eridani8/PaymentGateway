@@ -1,6 +1,7 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
+using PaymentGateway.Application;
 using PaymentGateway.Application.Hubs;
 using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Core.Configs;
@@ -46,11 +47,16 @@ public static class AppConfiguration
         }
         
         var settingsService = scope.ServiceProvider.GetRequiredService<ISettingsService>();
-        var gatewayConfig = scope.ServiceProvider.GetRequiredService<IOptions<GatewayConfig>>();
+        var gatewayConfig = scope.ServiceProvider.GetRequiredService<GatewaySettings>();
 
-        if (await settingsService.GetValue<RequisiteAssignmentAlgorithm>(nameof(RequisiteAssignmentAlgorithm)) is { } requisiteAssignmentAlgorithm)
+        if (await settingsService.GetValue<RequisiteAssignmentAlgorithm>(nameof(gatewayConfig.AppointmentAlgorithm)) is { } requisiteAssignmentAlgorithm)
         {
-            gatewayConfig.Value.AppointmentAlgorithm = requisiteAssignmentAlgorithm;
+            gatewayConfig.AppointmentAlgorithm = requisiteAssignmentAlgorithm;
+        }
+
+        if (await settingsService.GetValue<decimal>(nameof(gatewayConfig.UsdtExchangeRate)) is { } usdtExchangeRate)
+        {
+            gatewayConfig.UsdtExchangeRate = usdtExchangeRate;
         }
     }
 
