@@ -76,6 +76,7 @@
         try
         {
             _currentExchangeRate = await AdminService.GetCurrentUsdtExchangeRate();
+            _exchangeRate = _currentExchangeRate;
         }
         catch (Exception e)
         {
@@ -91,6 +92,7 @@
     private void HandleChangeExchangeRate(decimal rate)
     {
         _currentExchangeRate = rate;
+        _exchangeRate = _currentExchangeRate;
     }
 
     private async Task RequisiteAssignmentAlgorithmChanged(RequisiteAssignmentAlgorithm algorithm)

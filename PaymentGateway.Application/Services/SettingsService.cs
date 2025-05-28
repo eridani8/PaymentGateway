@@ -8,7 +8,7 @@ using PaymentGateway.Infrastructure.Interfaces;
 
 namespace PaymentGateway.Application.Services;
 
-public class SettingsService(IUnitOfWork unit, GatewaySettings settings, JsonSerializerOptions jsonSerializerOptions)
+public class SettingsService(IUnitOfWork unit, JsonSerializerOptions jsonSerializerOptions)
     : ISettingsService
 {
     public async Task<string?> GetValue(string key)
