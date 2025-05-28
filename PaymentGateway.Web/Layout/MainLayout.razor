@@ -15,6 +15,7 @@
 
 <MudLayout>
     <MudAppBar Color="Color.Primary" Elevation="12">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer" />
         <MudButton Href="/" Variant="Variant.Text"
                    Class="ml-2" Color="Color.Inherit">
             <MudText Typo="Typo.h5">PaymentGateway</MudText>
@@ -48,10 +49,10 @@
     </MudAppBar>
     <AuthorizeView>
         <Authorized>
-            <MudDrawer Variant="DrawerVariant.Persistent"
+            <MudDrawer @bind-Open="@_openDrawer"
+                       Variant="@DrawerVariant.Mini"
                        Elevation="12"
-                       ClipMode="DrawerClipMode.Always"
-                       Open="true">
+                       ClipMode="DrawerClipMode.Always">
                 <MudNavMenu Class="mt-4">
                     <AuthorizeView Context="adminContext" Roles="Admin">
                         <MudNavLink Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.People" Href="users">
@@ -105,6 +106,7 @@
     private MudThemeProvider _themeProvider = null!;
     private MudTheme? _theme;
     private const string themeKey = "preferred-theme";
+    private bool _openDrawer;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -164,6 +166,11 @@
         {
             Logger.LogError(ex, "Ошибка при инициализации соединения");
         }
+    }
+    
+    private void ToggleDrawer()
+    {
+        _openDrawer = !_openDrawer;
     }
 
     private async Task DarkModeToggle()
