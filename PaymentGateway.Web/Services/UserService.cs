@@ -13,6 +13,19 @@ public class UserService(
 {
     private const string apiEndpoint = "api/users";
 
+    public async Task<decimal> GetCurrentUsdtExchangeRate()
+    {
+        var response = await GetRequest($"{apiEndpoint}/usdt-exchange-rate");
+        if (response.Code == HttpStatusCode.OK && 
+            !string.IsNullOrEmpty(response.Content) &&
+            decimal.TryParse(response.Content, out var rate))
+        {
+            return rate;
+        }
+
+        return -1;
+    }
+    
     public async Task<WalletDto?> GetWalletState()
     {
         var response = await GetRequest($"{apiEndpoint}/wallet");

@@ -12,6 +12,7 @@ using Carter;
 using Microsoft.AspNetCore.Authorization;
 using PaymentGateway.Application.Extensions;
 using PaymentGateway.Application.Results;
+using PaymentGateway.Core.Configs;
 using PaymentGateway.Shared.Services;
 
 namespace PaymentGateway.Api.Endpoints;
@@ -87,6 +88,14 @@ public class UsersEndpoints : ICarterModule
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status404NotFound)
             .RequireAuthorization(new AuthorizeAttribute() { Roles = "Admin,Support" });
+
+        group.MapGet("usdt-exchange-rate", GetCurrentUsdtExchangeRate)
+            .WithName("GetCurrentUsdtExchangeRate")
+            .WithSummary("Получение текущего обменного курса USDT")
+            .WithDescription("Возвращает курс USDT заданный в сервисе")
+            .Produces<decimal>()
+            .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status401Unauthorized);
     }
     
     private static async Task<IResult> GetWalletState(ClaimsPrincipal userClaim, UserManager<UserEntity> userManager,
@@ -262,5 +271,10 @@ public class UsersEndpoints : ICarterModule
         await userManager.UpdateAsync(userEntity);
 
         return Results.Ok();
+    }
+    
+    private static IResult GetCurrentUsdtExchangeRate(GatewaySettings gatewaySettings)
+    {
+        return Results.Ok(gatewaySettings.UsdtExchangeRate);
     }
 }

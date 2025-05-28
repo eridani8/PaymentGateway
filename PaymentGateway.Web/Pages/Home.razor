@@ -27,17 +27,26 @@
                            <MudItem xs="6" Class="d-flex justify-end">
                                <MudText><strong>@_walletDto.Balance</strong></MudText>
                            </MudItem>
+                           
                            <MudItem xs="6">
                                <MudText><strong>Заморожено:</strong></MudText>
                            </MudItem>
                            <MudItem xs="6" Class="d-flex justify-end">
                                <MudText><strong>@_walletDto.Frozen</strong></MudText>
                            </MudItem>
+                           
                            <MudItem xs="6">
                                <MudText><strong>Доход:</strong></MudText>
                            </MudItem>
                            <MudItem xs="6" Class="d-flex justify-end">
                                <MudText><strong>@_walletDto.Profit</strong></MudText>
+                           </MudItem>
+                           
+                           <MudItem xs="6">
+                               <MudText><strong>Курс USDT:</strong></MudText>
+                           </MudItem>
+                           <MudItem xs="6" Class="d-flex justify-end">
+                               <MudText><strong>@_currentExchangeRate</strong></MudText>
                            </MudItem>
                        </MudGrid>
                    </MudCard>
@@ -54,7 +63,7 @@
                                  Required="true"
                                  For="@(() => _paymentModel.Amount)" 
                                  Immediate="true"
-                                 Max="@(_walletDto?.Balance ?? 0)"
+                                 Max="@(_walletDto?.Balance * _currentExchangeRate ?? 0)"
                                  Min="0" 
                                  Step="1000"/>
             </MudForm>
@@ -82,6 +91,7 @@
     private MudForm _form = null!;
     private bool _isLoading;
     private WalletDto? _walletDto;
+    private decimal _currentExchangeRate;
 
     protected override async Task OnInitializedAsync()
     {
@@ -105,6 +115,14 @@
                 NotificationService.SubscribeToWalletUpdates(HandleWalletUpdate);
             }
         }
+
+        NotificationService.SubscribeToExchangeRateUpdates(HandleChangeExchangeRate);
+        _currentExchangeRate = await UserService.GetCurrentUsdtExchangeRate();
+    }
+
+    private void HandleChangeExchangeRate(decimal rate)
+    {
+        _currentExchangeRate = rate;
     }
 
     private async void HandleWalletUpdate(WalletDto walletDto)
@@ -151,5 +169,6 @@
     public void Dispose()
     {
         NotificationService.UnsubscribeFromWalletUpdates();
+        NotificationService.UnsubscribeToExchangeRateUpdates();
     }
 }

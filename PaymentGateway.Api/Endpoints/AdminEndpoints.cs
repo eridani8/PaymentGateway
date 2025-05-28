@@ -125,15 +125,6 @@ public class AdminEndpoints : ICarterModule
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status403Forbidden);
         
-        group.MapGet("usdt-exchange-rate", GetCurrentUsdtExchangeRate)
-            .WithName("GetCurrentUsdtExchangeRate")
-            .WithSummary("Получение текущего обменного курса USDT")
-            .WithDescription("Возвращает курс USDT заданный в сервисе")
-            .Produces<decimal>()
-            .Produces(StatusCodes.Status400BadRequest)
-            .Produces(StatusCodes.Status401Unauthorized)
-            .Produces(StatusCodes.Status403Forbidden);
-        
         group.MapPut("usdt-exchange-rate", SetUsdtExchangeRate)
             .WithName("SetUsdtExchangeRate")
             .WithSummary("Изменение курса USDT")
@@ -337,18 +328,6 @@ public class AdminEndpoints : ICarterModule
             oldAlgorithm, (RequisiteAssignmentAlgorithm)algorithm, user.GetCurrentUsername());
 
         return Results.Ok();
-    }
-
-    private static IResult GetCurrentUsdtExchangeRate(IAdminService service)
-    {
-        var result = service.GetCurrentUsdtExchangeRate();
-
-        if (result.IsFailure)
-        {
-            return Results.BadRequest(result.Error.Message);
-        }
-        
-        return Results.Ok(result.Value);
     }
 
     private static async Task<IResult> SetUsdtExchangeRate(

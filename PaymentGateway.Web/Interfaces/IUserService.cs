@@ -12,4 +12,5 @@ public interface IUserService
     Task<Response<TwoFactorStatusDto>> GetTwoFactorStatus();
     Task<Response<TwoFactorDto>> EnableTwoFactor();
     Task<Response> VerifyTwoFactor(TwoFactorVerifyDto dto);
+    Task<decimal> GetCurrentUsdtExchangeRate();
 }

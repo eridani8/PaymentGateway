@@ -261,15 +261,7 @@ public class NotificationService(
     {
         try
         {
-            var tasks = new List<Task>();
-            
-            if (NotificationHub.GetUsersByRoles(["Admin"]) is { Count: > 0 } staffIds)
-            {
-                var staffTask = hubContext.Clients.Clients(staffIds).ChangeUsdtExchangeRate(rate);
-                tasks.Add(staffTask);
-            }
-            
-            await Task.WhenAll(tasks);
+            await hubContext.Clients.All.ChangeUsdtExchangeRate(rate);
         }
         catch (Exception e)
         {

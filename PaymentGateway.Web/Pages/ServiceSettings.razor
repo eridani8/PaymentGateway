@@ -8,6 +8,7 @@
 @inject IAdminService AdminService
 @inject IDialogService DialogService
 @inject ILogger<ServiceSettings> Logger
+@inject IUserService UserService
 @implements IDisposable
 
 <AuthorizeView Roles="Admin">
@@ -41,7 +42,6 @@
                     <MudItem xs="3" Class="d-flex justify-end align-center">
                         <MudNumericField T="decimal"
                                          @bind-Value="_exchangeRate"
-                                         Label="Новый курс"
                                          Required="true"
                                          Immediate="true"
                                          Min="1"
@@ -75,7 +75,7 @@
         NotificationService.SubscribeToExchangeRateUpdates(HandleChangeExchangeRate);
         try
         {
-            _currentExchangeRate = await AdminService.GetCurrentUsdtExchangeRate();
+            _currentExchangeRate = await UserService.GetCurrentUsdtExchangeRate();
             _exchangeRate = _currentExchangeRate;
         }
         catch (Exception e)
