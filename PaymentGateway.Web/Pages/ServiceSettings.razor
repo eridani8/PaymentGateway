@@ -1,0 +1,70 @@
+﻿@page "/service-settings"
+@using System.Net
+@using PaymentGateway.Shared.Enums
+@attribute [Authorize(Roles = "Admin")]
+@inject IDialogService DialogService
+@inject ILogger<ServiceSettings> Logger
+@inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
+@inject NotificationService NotificationService
+@inject IAdminService AdminService
+@implements IDisposable
+
+<AuthorizeView Roles="Admin">
+    <Authorized>
+        <MudContainer MaxWidth="MaxWidth.Small" Class="mt-8">
+            <MudCard Elevation="12" Class="pa-8">
+                <MudGrid>
+                    <MudItem xs="6" Class="d-flex align-center">
+                        <MudText><strong>Распределение платежей</strong></MudText>
+                    </MudItem>
+                    <MudItem xs="6" Class="d-flex justify-end">
+                        <MudSelect T="RequisiteAssignmentAlgorithm" 
+                                   Value="_currentAlgorithm"
+                                   ValueChanged="RequisiteAssignmentAlgorithmChanged">
+                            <MudSelectItem Value="RequisiteAssignmentAlgorithm.Priority">Согласно приоритету</MudSelectItem>
+                            <MudSelectItem Value="RequisiteAssignmentAlgorithm.Distribution">Равномерное распределение</MudSelectItem>
+                        </MudSelect>
+                    </MudItem>
+                </MudGrid>
+            </MudCard>
+        </MudContainer>
+    </Authorized>
+    <NotAuthorized>
+        @{
+            NavigationManager.NavigateTo("/");
+        }
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+
+    private RequisiteAssignmentAlgorithm _currentAlgorithm;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _currentAlgorithm = await AdminService.GetCurrentRequisiteAssignmentAlgorithm();
+        
+        NotificationService.SubscribeToChangeRequisiteAssignmentAlgorithm(HandleChangeRequisiteAssignmentAlgorithm);
+    }
+    
+    private void HandleChangeRequisiteAssignmentAlgorithm(int algorithm)
+    {
+        _currentAlgorithm = (RequisiteAssignmentAlgorithm)algorithm;
+    }
+
+    private async Task RequisiteAssignmentAlgorithmChanged(RequisiteAssignmentAlgorithm algorithm)
+    {
+        var result = await AdminService.SetRequisiteAssignmentAlgorithm((int)algorithm);
+        if (result.Code != HttpStatusCode.OK)
+        {
+            Snackbar.Add("Ошибка при назначении алгоритма подбора реквизита", Severity.Error);
+        }
+    }
+
+    public void Dispose()
+    {
+        NotificationService.UnsubscribeFromChangeRequisiteAssignmentAlgorithm();
+    }
+
+}

@@ -30,13 +30,6 @@
                     <MudSpacer/>
                     <AuthorizeView Roles="Admin, Support">
                         <Authorized Context="adminContext">
-                            <MudSelect T="RequisiteAssignmentAlgorithm" Value="_currentAlgorithm"
-                                       ValueChanged="RequisiteAssignmentAlgorithmChanged">
-                                <MudSelectItem Value="RequisiteAssignmentAlgorithm.Priority">Приоритет</MudSelectItem>
-                                <MudSelectItem Value="RequisiteAssignmentAlgorithm.Distribution">Равномерно
-                                </MudSelectItem>
-                            </MudSelect>
-                            <MudSpacer/>
                             <MudStack Row="true" Spacing="1">
                                 <MudTextField @bind-Value="_searchUserId" Label="ID пользователя"
                                               Adornment="Adornment.End"
@@ -518,14 +511,4 @@
         _isFiltered = false;
         await LoadRequisites();
     }
-
-    private async Task RequisiteAssignmentAlgorithmChanged(RequisiteAssignmentAlgorithm algorithm)
-    {
-        var result = await AdminService.SetRequisiteAssignmentAlgorithm((int)algorithm);
-        if (result.Code != HttpStatusCode.OK)
-        {
-            Snackbar.Add("Ошибка при назначении алгоритма подбора реквизита", Severity.Error);
-        }
-    }
-
 }

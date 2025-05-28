@@ -15,7 +15,8 @@
 
 <MudLayout>
     <MudAppBar Color="Color.Primary" Elevation="12">
-        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer" />
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start"
+                       OnClick="@ToggleDrawer"/>
         <MudButton Href="/" Variant="Variant.Text"
                    Class="ml-2" Color="Color.Inherit">
             <MudText Typo="Typo.h5">PaymentGateway</MudText>
@@ -53,7 +54,8 @@
                        Variant="@DrawerVariant.Mini"
                        Elevation="12"
                        ClipMode="DrawerClipMode.Always">
-                <MudNavMenu Class="mt-4">
+                <MudNavMenu Class="d-flex flex-column mt-4" Style="height: 100%;">
+
                     <AuthorizeView Context="adminContext" Roles="Admin">
                         <MudNavLink Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.People" Href="users">
                             Пользователи
@@ -81,6 +83,15 @@
                     </AuthorizeView>
                     <AuthorizeView Context="adminContext" Roles="User,Admin,Support">
                         <MudNavLink Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Chat" Href="chat">Чат
+                        </MudNavLink>
+                    </AuthorizeView>
+
+                    <AuthorizeView Context="adminContext" Roles="Admin">
+                        <MudNavLink Class="mt-auto mb-4"
+                                    Match="NavLinkMatch.Prefix"
+                                    Icon="@Icons.Material.Filled.Settings"
+                                    Href="service-settings">
+                            Параметры сервиса
                         </MudNavLink>
                     </AuthorizeView>
                 </MudNavMenu>
@@ -167,7 +178,7 @@
             Logger.LogError(ex, "Ошибка при инициализации соединения");
         }
     }
-    
+
     private void ToggleDrawer()
     {
         _openDrawer = !_openDrawer;
